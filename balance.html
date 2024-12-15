@@ -3,17 +3,19 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Time Bank</title>
+    <title>ยอดคงเหลือ - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
 </head>
 
-<body class="bg-gray-100">
+<body class="bg-gray-100 font-roboto">
     <div class="flex">
         <!-- Sidebar -->
         <div class="w-1/5 bg-white h-screen p-5">
             <div class="flex items-center mb-10">
-                <img alt="Logo" class="w-10 h-10 rounded-full" height="50"
+                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
+                    class="w-10 h-10 rounded-full" height="50"
                     src="https://storage.googleapis.com/a1aa/image/GOMFBEaepyxe3E3gz2xaZviBDO0q04rV6Cz8h1wgcnNFaw5TA.jpg"
                     width="50" />
                 <span class="ml-3 text-xl font-bold text-blue-600">TIMEBANK</span>
@@ -69,21 +71,20 @@
         </div>
         <!-- Main Content -->
         <div class="w-4/5 bg-blue-700 text-white p-10">
-            <h1 class="text-4xl font-bold mb-5">TIME BANK</h1>
-            <h2 class="text-3xl font-bold mb-5">ธนาคารเวลา คืออะไร ?</h2>
-            <p class="mb-10">เป็นรูปแบบกิจกรรม ที่ช่วยส่งเสริมให้ชุมชนดูแลซึ่งกันและกัน ด้วยการแลกเปลี่ยนทักษะ
-                ประสบการณ์ บริการขั้นพื้นฐาน และสามารถสะสมเวลาไว้ เสมือนเราออมเงิน</p>
-            <h2 class="text-3xl font-bold mb-5">ข่าวสารประชาสัมพันธ์</h2>
-            <div class="grid grid-cols-2 gap-5">
-                <div class="bg-white text-black p-5 rounded-lg">
-                    <div class="bg-blue-300 h-40 flex items-center justify-center mb-5">IMAGE</div>
-                    <p class="text-gray-500 mb-2">DATETIME</p>
-                    <p>Details</p>
-                </div>
-                <div class="bg-white text-black p-5 rounded-lg">
-                    <div class="bg-blue-300 h-40 flex items-center justify-center mb-5">IMAGE</div>
-                    <p class="text-gray-500 mb-2">DATETIME</p>
-                    <p>Details</p>
+            <h1 class="text-4xl font-bold mb-5">ยอดคงเหลือ</h1>
+            <div class="bg-white text-black p-8 rounded-lg shadow-lg">
+                <div class="mb-4">
+                    <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">ยอดคงเหลือปัจจุบัน</h2>
+                    <div class="flex justify-around items-center">
+                        <div class="text-center">
+                            <p class="text-2xl font-semibold text-gray-700">จำนวนชั่วโมงที่สะสม</p>
+                            <p class="text-4xl font-bold text-blue-600 mt-2">50 ชั่วโมง</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-2xl font-semibold text-gray-700">จำนวนชั่วโมงที่ยืม</p>
+                            <p class="text-4xl font-bold text-red-600 mt-2">10 ชั่วโมง</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
