@@ -1,0 +1,184 @@
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>จัดการสมาชิก - Time Bank</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+</head>
+
+<body class="bg-gray-100">
+    <div class="flex">
+        <!-- Sidebar -->
+        <div class="w-1/5 bg-white h-screen p-5">
+            <div class="flex items-center mb-10">
+                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
+                    class="w-10 h-10 rounded-full" height="50"
+                    src="https://storage.googleapis.com/a1aa/image/GOMFBEaepyxe3E3gz2xaZviBDO0q04rV6Cz8h1wgcnNFaw5TA.jpg"
+                    width="50" />
+                <span class="ml-3 text-xl font-bold text-blue-600">TIMEBANK</span>
+            </div>
+            <nav>
+                <ul>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600" href="homepage.html">
+                            <i class="fas fa-home mr-3"></i>หน้าหลัก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600" href="report.html">
+                            <i class="fas fa-chart-bar mr-3"></i>รายงาน
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600" href="skillconf.html">
+                            <i class="fas fa-cogs mr-3"></i>จัดการหมวหมู่ทักษะ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600" href="fund.html">
+                            <i class="fas fa-hand-holding-usd mr-3"></i>จัดการกองทุนชุมชน
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600" href="activity.html">
+                            <i class="fas fa-calendar-alt mr-3"></i>จัดการกิจกรรม
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600" href="member.html">
+                            <i class="fas fa-users mr-3"></i>จัดการสมาชิก
+                        </a>
+                    </li>
+                    <li>
+                        <a class="flex items-center text-gray-700 hover:text-blue-600" href="login.html">
+                            <i class="fas fa-sign-in-alt mr-3"></i>Login
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        <!-- Main Content -->
+        <div class="w-4/5 bg-blue-700 text-white p-10">
+            <h1 class="text-4xl font-bold mb-5">จัดการสมาชิก</h1>
+            <div class="bg-white text-black p-8 rounded-lg shadow-lg">
+                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">สมาชิก</h2>
+                <div class="mb-4 flex items-center">
+                    <input
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        type="text" placeholder="ค้นหาสมาชิก" />
+                    <a href="create-member.html"
+                        class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">เพิ่ม</a>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white">
+                        <thead>
+                            <tr>
+                                <th
+                                    class="py-2 px-4 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600">
+                                    UID</th>
+                                <th
+                                    class="py-2 px-4 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600">
+                                    ชื่อสมาชิก</th>
+                                <th
+                                    class="py-2 px-4 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600">
+                                    อีเมล</th>
+                                <th
+                                    class="py-2 px-4 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600">
+                                    เบอร์โทร</th>
+                                <th
+                                    class="py-2 px-4 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600">
+                                    จำนวนชั่วโมง</th>
+                                <th
+                                    class="py-2 px-4 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600">
+                                    การกระทำ</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="py-2 px-4 border-b border-gray-200">1</td>
+                                <td class="py-2 px-4 border-b border-gray-200">สมชาย ใจดี</td>
+                                <td class="py-2 px-4 border-b border-gray-200">somchai@example.com</td>
+                                <td class="py-2 px-4 border-b border-gray-200">081-234-5678</td>
+                                <td class="py-2 px-4 border-b border-gray-200">50 ชั่วโมง</td>
+                                <td class="py-2 px-4 border-b border-gray-200">
+                                    <button
+                                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                        type="button">ดูโปรไฟล์</button>
+                                    <button
+                                        class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                        type="button">แก้ไข</button>
+                                    <button
+                                        class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                        type="button">ลบ</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 px-4 border-b border-gray-200">2</td>
+                                <td class="py-2 px-4 border-b border-gray-200">สมหญิง ใจงาม</td>
+                                <td class="py-2 px-4 border-b border-gray-200">somying@example.com</td>
+                                <td class="py-2 px-4 border-b border-gray-200">081-234-5679</td>
+                                <td class="py-2 px-4 border-b border-gray-200">40 ชั่วโมง</td>
+                                <td class="py-2 px-4 border-b border-gray-200">
+                                    <button
+                                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                        type="button">ดูโปรไฟล์</button>
+                                    <button
+                                        class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                        type="button">แก้ไข</button>
+                                    <button
+                                        class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                        type="button">ลบ</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 px-4 border-b border-gray-200">3</td>
+                                <td class="py-2 px-4 border-b border-gray-200">สมปอง ใจเย็น</td>
+                                <td class="py-2 px-4 border-b border-gray-200">sompong@example.com</td>
+                                <td class="py-2 px-4 border-b border-gray-200">081-234-5680</td>
+                                <td class="py-2 px-4 border-b border-gray-200">30 ชั่วโมง</td>
+                                <td class="py-2 px-4 border-b border-gray-200">
+                                    <button
+                                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                        type="button">ดูโปรไฟล์</button>
+                                    <button
+                                        class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                        type="button">แก้ไข</button>
+                                    <button
+                                        class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                        type="button">ลบ</button>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 px-4 border-b border-gray-200">4</td>
+                                <td class="py-2 px-4 border-b border-gray-200">สมศรี ใจดี</td>
+                                <td class="py-2 px-4 border-b border-gray-200">somsri@example.com</td>
+                                <td class="py-2 px-4 border-b border-gray-200">081-234-5681</td>
+                                <td class="py-2 px-4 border-b border-gray-200">20 ชั่วโมง</td>
+                                <td class="py-2 px-4 border-b border-gray-200">
+                                    <button
+                                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                        type="button">ดูโปรไฟล์</button>
+                                    <button
+                                        class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                        type="button">แก้ไข</button>
+                                    <button
+                                        class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                        type="button">ลบ</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="flex items-center justify-center mt-5">
+                    <button
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        type="button">บันทึก</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
