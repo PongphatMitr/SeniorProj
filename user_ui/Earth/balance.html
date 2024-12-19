@@ -1,12 +1,13 @@
-<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TIMEBANK</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>ยอดคงเหลือ - Time Bank</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
 </head>
 
 <body>
@@ -78,30 +79,25 @@
         </div>
 
         <!-- Main Content -->
-        <div class="page-home">
-            <h1>TIME BANK</h1>
-            <h2>ธนาคารเวลา คืออะไร ?</h2>
-            <p class="description" style="font-size: 18px;">
-                เป็นรูปแบบกิจกรรม ที่ช่วยส่งเสริ/มให้ชุมชนดูแลซึ่งกันและกัน
-                ด้วยการแลกเปลี่ยนทักษะ ประสบการณ์ บริการขั้นพื้นฐาน และสามารถสะสมเวลาไว้ เสมือนเราออมเงิน
-            </p>
-            <h2>ข่าวสารประชาสัมพันธ์</h2>
-            <div class="news-grid">
-                <div class="news-card">
-                    <div class="image-placeholder">IMAGE</div>
-                    <p class="datetime">DATETIME</p>
-                    <p>Details</p>
-                </div>
-                <div class="news-card">
-                    <div class="image-placeholder">IMAGE</div>
-                    <h3 class="datetime">DATETIME </h3>
-                    <p>Details</p>
+        <div class="page-balance">
+            <h1 class="text-4xl font-bold mb-5">ยอดคงเหลือ</h1>
+            <div class="balance-section">
+                <div class="mb-4">
+                    <h2 class="text-3xl font-bold mb-6 text-center">ยอดคงเหลือปัจจุบัน</h2>
+                    <div class="balance-details">
+                        <div class="text-center">
+                            <p class="text-2xl font-semibold">จำนวนชั่วโมงที่สะสม</p>
+                            <p class="text-4xl font-bold mt-2 text-blue">50 ชั่วโมง</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-2xl font-semibold">จำนวนชั่วโมงที่ยืม</p>
+                            <p class="text-4xl font-bold mt-2 text-red">10 ชั่วโมง</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <!-- Dropdown Toggle Script -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
@@ -125,7 +121,6 @@
             });
         });
     </script>
-    
 </body>
 
 </html>

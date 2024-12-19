@@ -1,12 +1,13 @@
-<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TIMEBANK</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>ประวัติ - Time Bank</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
 </head>
 
 <body>
@@ -78,35 +79,99 @@
         </div>
 
         <!-- Main Content -->
-        <div class="page-home">
-            <h1>TIME BANK</h1>
-            <h2>ธนาคารเวลา คืออะไร ?</h2>
-            <p class="description" style="font-size: 18px;">
-                เป็นรูปแบบกิจกรรม ที่ช่วยส่งเสริ/มให้ชุมชนดูแลซึ่งกันและกัน
-                ด้วยการแลกเปลี่ยนทักษะ ประสบการณ์ บริการขั้นพื้นฐาน และสามารถสะสมเวลาไว้ เสมือนเราออมเงิน
-            </p>
-            <h2>ข่าวสารประชาสัมพันธ์</h2>
-            <div class="news-grid">
-                <div class="news-card">
-                    <div class="image-placeholder">IMAGE</div>
-                    <p class="datetime">DATETIME</p>
-                    <p>Details</p>
-                </div>
-                <div class="news-card">
-                    <div class="image-placeholder">IMAGE</div>
-                    <h3 class="datetime">DATETIME </h3>
-                    <p>Details</p>
-                </div>
+        <div class="page-history">
+            <h1>ประวัติ</h1>
+            <div>
+                <h2>ประวัติการทำธุรกรรม</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>วันที่</th>
+                            <th>รายละเอียด</th>
+                            <th>จำนวนชั่วโมง</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>01/01/2023</td>
+                            <td>บริการทำความสะอาด</td>
+                            <td>+5 ชั่วโมง</td>
+                        </tr>
+                        <tr>
+                            <td>15/01/2023</td>
+                            <td>บริการสอนคอมพิวเตอร์</td>
+                            <td>+3 ชั่วโมง</td>
+                        </tr>
+                        <tr>
+                            <td>20/01/2023</td>
+                            <td>บริการดูแลผู้สูงอายุ</td>
+                            <td>+2 ชั่วโมง</td>
+                        </tr>
+                        <tr>
+                            <td>25/01/2023</td>
+                            <td>บริการซ่อมแซมบ้าน</td>
+                            <td>+4 ชั่วโมง</td>
+                        </tr>
+                        <tr>
+                            <td>30/01/2023</td>
+                            <td>บริการทำอาหาร</td>
+                            <td>+6 ชั่วโมง</td>
+                        </tr>
+                        <tr>
+                            <td>05/02/2023</td>
+                            <td>บริการทำสวน</td>
+                            <td>+3 ชั่วโมง</td>
+                        </tr>
+                        <tr>
+                            <td>10/02/2023</td>
+                            <td>บริการซ่อมรถ</td>
+                            <td>+4 ชั่วโมง</td>
+                        </tr>
+                        <tr>
+                            <td>15/02/2023</td>
+                            <td>บริการดูแลเด็ก</td>
+                            <td>+5 ชั่วโมง</td>
+                        </tr>
+                        <tr>
+                            <td>20/02/2023</td>
+                            <td>บริการทำความสะอาด</td>
+                            <td>+2 ชั่วโมง</td>
+                        </tr>
+                        <tr>
+                            <td>25/02/2023</td>
+                            <td>บริการสอนภาษา</td>
+                            <td>+3 ชั่วโมง</td>
+                        </tr>
+                        <tr>
+                            <td>01/03/2023</td>
+                            <td>บริการทำอาหาร</td>
+                            <td>+4 ชั่วโมง</td>
+                        </tr>
+                        <tr>
+                            <td>05/03/2023</td>
+                            <td>บริการทำสวน</td>
+                            <td>+3 ชั่วโมง</td>
+                        </tr>
+                        <tr>
+                            <td>10/03/2023</td>
+                            <td>บริการซ่อมรถ</td>
+                            <td>+4 ชั่วโมง</td>
+                        </tr>
+                        <tr>
+                            <td>15/03/2023</td>
+                            <td>บริการดูแลเด็ก</td>
+                            <td>+5 ชั่วโมง</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
-
-    <!-- Dropdown Toggle Script -->
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
             const sidebar = document.querySelector('.sidebar');
-    
+
             // Handle dropdown toggle click
             dropdownToggles.forEach(toggle => {
                 toggle.addEventListener('click', (e) => {
@@ -115,17 +180,16 @@
                     parent.classList.toggle('open'); // Toggle the "open" class
                 });
             });
-    
+
             // Reset dropdowns when the mouse leaves the sidebar
             sidebar.addEventListener('mouseleave', () => {
                 const dropdowns = document.querySelectorAll('.dropdown');
                 dropdowns.forEach(dropdown => {
-                    dropdown.classList.remove('open'); // Remove "open" class
+                    dropdown.classList.remove('open');
                 });
             });
         });
     </script>
-    
 </body>
 
 </html>

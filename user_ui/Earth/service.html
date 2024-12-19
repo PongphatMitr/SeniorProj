@@ -1,10 +1,10 @@
-<!DOCTYPE html>
 <html lang="en">
 
 <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>TIMEBANK</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Services - Time Bank</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
 </head>
@@ -78,30 +78,40 @@
         </div>
 
         <!-- Main Content -->
-        <div class="page-home">
-            <h1>TIME BANK</h1>
-            <h2>ธนาคารเวลา คืออะไร ?</h2>
-            <p class="description" style="font-size: 18px;">
-                เป็นรูปแบบกิจกรรม ที่ช่วยส่งเสริ/มให้ชุมชนดูแลซึ่งกันและกัน
-                ด้วยการแลกเปลี่ยนทักษะ ประสบการณ์ บริการขั้นพื้นฐาน และสามารถสะสมเวลาไว้ เสมือนเราออมเงิน
-            </p>
-            <h2>ข่าวสารประชาสัมพันธ์</h2>
-            <div class="news-grid">
-                <div class="news-card">
-                    <div class="image-placeholder">IMAGE</div>
-                    <p class="datetime">DATETIME</p>
-                    <p>Details</p>
+        <div class="page-service">
+            <h1>การบริการ</h1>
+            <h2>ยื่นข้อของานบริการ</h2>
+            <form>
+                <div>
+                    <label for="service-title">ชื่อบริการ</label>
+                    <input id="service-title" type="text" placeholder="ชื่อบริการ" />
                 </div>
-                <div class="news-card">
-                    <div class="image-placeholder">IMAGE</div>
-                    <h3 class="datetime">DATETIME </h3>
-                    <p>Details</p>
+                <div>
+                    <label for="service-description">รายละเอียดบริการ</label>
+                    <textarea id="service-description" placeholder="รายละเอียดบริการ"></textarea>
                 </div>
-            </div>
+                <div>
+                    <label for="service-date">วันที่ให้บริการ</label>
+                    <input id="service-date" type="date" />
+                </div>
+                <div>
+                    <label for="service-location">สถานที่จัด</label>
+                    <input id="service-location" type="text" placeholder="สถานที่จัด" />
+                </div>
+                <div>
+                    <label for="service-hours">จำนวนชั่วโมง</label>
+                    <input id="service-hours" type="number" placeholder="จำนวนชั่วโมง" />
+                </div>
+                <div>
+                    <label for="requester-name">ชื่อผู้ขอบริการ</label>
+                    <input id="requester-name" type="text" placeholder="ชื่อผู้ขอบริการ" />
+                </div>
+                <div>
+                    <button type="button">ยื่นข้อเสนอ</button>
+                </div>
+            </form>
         </div>
-    </div>
-
-    <!-- Dropdown Toggle Script -->
+        
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
@@ -125,7 +135,6 @@
             });
         });
     </script>
-    
 </body>
 
 </html>
