@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TIMEBANK</title>
+    <link rel="stylesheet" href="style.css" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+</head>
+
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo-section">
+                <img src="https://storage.googleapis.com/a1aa/image/GOMFBEaepyxe3E3gz2xaZviBDO0q04rV6Cz8h1wgcnNFaw5TA.jpg" alt="Logo" class="logo" />
+                <span class="brand-name">TIMEBANK</span>
+            </div>
+            <nav>
+                <ul>
+                    <li>
+                        <a href="login.html">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span class="link-text">Login</span>
+                        </a>
+                    </li>
+                    
+                    <li>
+                        <a href="HomePage.html">
+                            <i class="fas fa-home"></i>
+                            <span class="link-text">หน้าหลัก</span>
+                        </a>
+                    </li>
+                    <!-- การบริการ Dropdown -->
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="fas fa-cogs"></i>
+                            <span class="link-text">การบริการ</span>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="service.html" class="sub-link">ยื่นข้อของานบริการ</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <!-- การจัดการบัญชี Dropdown -->
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="fas fa-user-circle"></i>
+                            <span class="link-text">การจัดการบัญชี</span>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="profile.html" class="sub-link">แก้ไขประวัติ</a>
+                            </li>
+                            <li>
+                                <a href="skillconf.html" class="sub-link">แก้ไขทักษะ</a>
+                            </li>
+                            <li>
+                                <a href="balance.html" class="sub-link">ยอดคงเหลือ</a>
+                            </li>
+                            <li>
+                                <a href="history.html" class="sub-link">ประวัติ</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="contact.html">
+                            <i class="fas fa-phone"></i>
+                            <span class="link-text">ติดต่อเรา</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="page-home">
+            <h1>TIME BANK</h1>
+            <h2>ธนาคารเวลา คืออะไร ?</h2>
+            <p class="description" style="font-size: 18px;">
+                เป็นรูปแบบกิจกรรม ที่ช่วยส่งเสริ/มให้ชุมชนดูแลซึ่งกันและกัน
+                ด้วยการแลกเปลี่ยนทักษะ ประสบการณ์ บริการขั้นพื้นฐาน และสามารถสะสมเวลาไว้ เสมือนเราออมเงิน
+            </p>
+            <h2>ข่าวสารประชาสัมพันธ์</h2>
+            <div class="news-grid">
+                <div class="news-card">
+                    <div class="image-placeholder">IMAGE</div>
+                    <p class="datetime">DATETIME</p>
+                    <p>Details</p>
+                </div>
+                <div class="news-card">
+                    <div class="image-placeholder">IMAGE</div>
+                    <h3 class="datetime">DATETIME </h3>
+                    <p>Details</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Dropdown Toggle Script -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+            const sidebar = document.querySelector('.sidebar');
+    
+            // Handle dropdown toggle click
+            dropdownToggles.forEach(toggle => {
+                toggle.addEventListener('click', (e) => {
+                    e.preventDefault(); // Prevent default anchor behavior
+                    const parent = toggle.parentElement;
+                    parent.classList.toggle('open'); // Toggle the "open" class
+                });
+            });
+    
+            // Reset dropdowns when the mouse leaves the sidebar
+            sidebar.addEventListener('mouseleave', () => {
+                const dropdowns = document.querySelectorAll('.dropdown');
+                dropdowns.forEach(dropdown => {
+                    dropdown.classList.remove('open'); // Remove "open" class
+                });
+            });
+        });
+    </script>
+    
+</body>
+
+</html>
