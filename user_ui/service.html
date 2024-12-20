@@ -5,131 +5,136 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>Services - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
 </head>
 
-<body class="bg-gray-100">
-    <div class="flex">
+<body>
+    <div class="container">
         <!-- Sidebar -->
-        <div class="w-1/5 bg-white h-screen p-5">
-            <div class="flex items-center mb-10">
-                <img alt="Logo" class="w-10 h-10 rounded-full" height="50"
-                    src="https://storage.googleapis.com/a1aa/image/GOMFBEaepyxe3E3gz2xaZviBDO0q04rV6Cz8h1wgcnNFaw5TA.jpg"
-                    width="50" />
-                <span class="ml-3 text-xl font-bold text-blue-600">TIMEBANK</span>
+        <div class="sidebar">
+            <div class="logo-section">
+                <img src="https://storage.googleapis.com/a1aa/image/GOMFBEaepyxe3E3gz2xaZviBDO0q04rV6Cz8h1wgcnNFaw5TA.jpg" alt="Logo" class="logo" />
+                <span class="brand-name">TIMEBANK</span>
             </div>
             <nav>
                 <ul>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600" href="HomePage.html">
-                            <i class="fas fa-home mr-3"></i>หน้าหลัก
+                    <li>
+                        <a href="login.html">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span class="link-text">Login</span>
                         </a>
                     </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600" href="#">
-                            <i class="fas fa-cogs mr-3"></i>การบริการ
+                    
+                    <li>
+                        <a href="HomePage.html">
+                            <i class="fas fa-home"></i>
+                            <span class="link-text">หน้าหลัก</span>
                         </a>
-                        <ul class="ml-8 mt-2">
-                            <li class="mb-2">
-                                <a class="text-gray-500 hover:text-blue-600" href="service.html">ยื่นข้อของานบริการ</a>
+                    </li>
+                    <!-- การบริการ Dropdown -->
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="fas fa-cogs"></i>
+                            <span class="link-text">การบริการ</span>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="service.html" class="sub-link">ยื่นข้อของานบริการ</a>
                             </li>
                         </ul>
                     </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600" href="#">
-                            <i class="fas fa-user-circle mr-3"></i>การจัดการบัญชี
+                    <!-- การจัดการบัญชี Dropdown -->
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="fas fa-user-circle"></i>
+                            <span class="link-text">การจัดการบัญชี</span>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
                         </a>
-                        <ul class="ml-8 mt-2">
-                            <li class="mb-2">
-                                <a class="text-gray-500 hover:text-blue-600" href="profile.html">แก้ไขประวัติ</a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="profile.html" class="sub-link">แก้ไขประวัติ</a>
                             </li>
-                            <li class="mb-2">
-                                <a class="text-gray-500 hover:text-blue-600" href="skillconf.html">แก้ไขทักษะ</a>
+                            <li>
+                                <a href="skillconf.html" class="sub-link">แก้ไขทักษะ</a>
                             </li>
-                            <li class="mb-2">
-                                <a class="text-gray-500 hover:text-blue-600" href="balance.html">ยอดคงเหลือ</a>
+                            <li>
+                                <a href="balance.html" class="sub-link">ยอดคงเหลือ</a>
                             </li>
-                            <li class="mb-2">
-                                <a class="text-gray-500 hover:text-blue-600" href="history.html">ประวัติ</a>
+                            <li>
+                                <a href="history.html" class="sub-link">ประวัติ</a>
                             </li>
                         </ul>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600" href="contact.html">
-                            <i class="fas fa-phone mr-3"></i>ติดต่อเรา
-                        </a>
                     </li>
                     <li>
-                        <a class="flex items-center text-gray-700 hover:text-blue-600" href="login.html">
-                            <i class="fas fa-sign-in-alt mr-3"></i>Login
+                        <a href="contact.html">
+                            <i class="fas fa-phone"></i>
+                            <span class="link-text">ติดต่อเรา</span>
                         </a>
                     </li>
                 </ul>
             </nav>
         </div>
+
         <!-- Main Content -->
-        <div class="w-4/5 bg-blue-700 text-white p-10">
-            <h1 class="text-4xl font-bold mb-5">การบริการ</h1>
-            <h2 class="text-3xl font-bold mb-5">ยื่นข้อของานบริการ</h2>
-            <form class="bg-white text-black p-5 rounded-lg">
-                <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="service-title">
-                        ชื่อบริการ
-                    </label>
-                    <input
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        id="service-title" type="text" placeholder="ชื่อบริการ" />
+        <div class="page-service">
+            <h1>การบริการ</h1>
+            <h2>ยื่นข้อของานบริการ</h2>
+            <form>
+                <div>
+                    <label for="service-title">ชื่อบริการ</label>
+                    <input id="service-title" type="text" placeholder="ชื่อบริการ" />
                 </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="service-description">
-                        รายละเอียดบริการ
-                    </label>
-                    <textarea
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        id="service-description" placeholder="รายละเอียดบริการ"></textarea>
+                <div>
+                    <label for="service-description">รายละเอียดบริการ</label>
+                    <textarea id="service-description" placeholder="รายละเอียดบริการ"></textarea>
                 </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="service-date">
-                        วันที่ให้บริการ
-                    </label>
-                    <input
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        id="service-date" type="date" />
+                <div>
+                    <label for="service-date">วันที่ให้บริการ</label>
+                    <input id="service-date" type="date" />
                 </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="service-location">
-                        สถานที่จัด
-                    </label>
-                    <input
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        id="service-location" type="text" placeholder="สถานที่จัด" />
+                <div>
+                    <label for="service-location">สถานที่จัด</label>
+                    <input id="service-location" type="text" placeholder="สถานที่จัด" />
                 </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="service-hours">
-                        จำนวนชั่วโมง
-                    </label>
-                    <input
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        id="service-hours" type="number" placeholder="จำนวนชั่วโมง" />
+                <div>
+                    <label for="service-hours">จำนวนชั่วโมง</label>
+                    <input id="service-hours" type="number" placeholder="จำนวนชั่วโมง" />
                 </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="requester-name">
-                        ชื่อผู้ขอบริการ
-                    </label>
-                    <input
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        id="requester-name" type="text" placeholder="ชื่อผู้ขอบริการ" />
+                <div>
+                    <label for="requester-name">ชื่อผู้ขอบริการ</label>
+                    <input id="requester-name" type="text" placeholder="ชื่อผู้ขอบริการ" />
                 </div>
-                <div class="flex items-center justify-center">
-                    <button
-                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                        type="button">
-                        ยื่นข้อเสนอ
-                    </button>
+                <div>
+                    <button type="button">ยื่นข้อเสนอ</button>
                 </div>
             </form>
         </div>
-    </div>
+        
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+            const sidebar = document.querySelector('.sidebar');
+    
+            // Handle dropdown toggle click
+            dropdownToggles.forEach(toggle => {
+                toggle.addEventListener('click', (e) => {
+                    e.preventDefault(); // Prevent default anchor behavior
+                    const parent = toggle.parentElement;
+                    parent.classList.toggle('open'); // Toggle the "open" class
+                });
+            });
+    
+            // Reset dropdowns when the mouse leaves the sidebar
+            sidebar.addEventListener('mouseleave', () => {
+                const dropdowns = document.querySelectorAll('.dropdown');
+                dropdowns.forEach(dropdown => {
+                    dropdown.classList.remove('open'); // Remove "open" class
+                });
+            });
+        });
+    </script>
 </body>
 
 </html>

@@ -5,159 +5,191 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>ประวัติ - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
 </head>
 
-<body class="bg-gray-100 font-roboto">
-    <div class="flex h-screen">
+<body>
+    <div class="container">
         <!-- Sidebar -->
-        <div class="w-1/5 bg-white h-full p-5">
-            <div class="flex items-center mb-10">
-                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
-                    class="w-10 h-10 rounded-full" height="50"
-                    src="https://storage.googleapis.com/a1aa/image/GOMFBEaepyxe3E3gz2xaZviBDO0q04rV6Cz8h1wgcnNFaw5TA.jpg"
-                    width="50" />
-                <span class="ml-3 text-xl font-bold text-blue-600">TIMEBANK</span>
+        <div class="sidebar">
+            <div class="logo-section">
+                <img src="https://storage.googleapis.com/a1aa/image/GOMFBEaepyxe3E3gz2xaZviBDO0q04rV6Cz8h1wgcnNFaw5TA.jpg" alt="Logo" class="logo" />
+                <span class="brand-name">TIMEBANK</span>
             </div>
             <nav>
                 <ul>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600" href="HomePage.html">
-                            <i class="fas fa-home mr-3"></i>หน้าหลัก
+                    <li>
+                        <a href="login.html">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span class="link-text">Login</span>
                         </a>
                     </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600" href="#">
-                            <i class="fas fa-cogs mr-3"></i>การบริการ
+                    
+                    <li>
+                        <a href="HomePage.html">
+                            <i class="fas fa-home"></i>
+                            <span class="link-text">หน้าหลัก</span>
                         </a>
-                        <ul class="ml-8 mt-2">
-                            <li class="mb-2">
-                                <a class="text-gray-500 hover:text-blue-600" href="service.html">ยื่นข้อของานบริการ</a>
+                    </li>
+                    <!-- การบริการ Dropdown -->
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="fas fa-cogs"></i>
+                            <span class="link-text">การบริการ</span>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="service.html" class="sub-link">ยื่นข้อของานบริการ</a>
                             </li>
                         </ul>
                     </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600" href="#">
-                            <i class="fas fa-user-circle mr-3"></i>การจัดการบัญชี
+                    <!-- การจัดการบัญชี Dropdown -->
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="fas fa-user-circle"></i>
+                            <span class="link-text">การจัดการบัญชี</span>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
                         </a>
-                        <ul class="ml-8 mt-2">
-                            <li class="mb-2">
-                                <a class="text-gray-500 hover:text-blue-600" href="profile.html">แก้ไขประวัติ</a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="profile.html" class="sub-link">แก้ไขประวัติ</a>
                             </li>
-                            <li class="mb-2">
-                                <a class="text-gray-500 hover:text-blue-600" href="skillconf.html">แก้ไขทักษะ</a>
+                            <li>
+                                <a href="skillconf.html" class="sub-link">แก้ไขทักษะ</a>
                             </li>
-                            <li class="mb-2">
-                                <a class="text-gray-500 hover:text-blue-600" href="balance.html">ยอดคงเหลือ</a>
+                            <li>
+                                <a href="balance.html" class="sub-link">ยอดคงเหลือ</a>
                             </li>
-                            <li class="mb-2">
-                                <a class="text-gray-500 hover:text-blue-600" href="history.html">ประวัติ</a>
+                            <li>
+                                <a href="history.html" class="sub-link">ประวัติ</a>
                             </li>
                         </ul>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600" href="contact.html">
-                            <i class="fas fa-phone mr-3"></i>ติดต่อเรา
-                        </a>
                     </li>
                     <li>
-                        <a class="flex items-center text-gray-700 hover:text-blue-600" href="login.html">
-                            <i class="fas fa-sign-in-alt mr-3"></i>Login
+                        <a href="contact.html">
+                            <i class="fas fa-phone"></i>
+                            <span class="link-text">ติดต่อเรา</span>
                         </a>
                     </li>
                 </ul>
             </nav>
         </div>
+
         <!-- Main Content -->
-        <div class="flex-1 bg-blue-700 text-white p-10 overflow-auto">
-            <h1 class="text-4xl font-bold mb-5">ประวัติ</h1>
-            <div class="bg-white text-black p-8 rounded-lg shadow-lg">
-                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">ประวัติการทำธุรกรรม</h2>
-                <table class="min-w-full bg-white">
+        <div class="page-history">
+            <h1>ประวัติ</h1>
+            <div>
+                <h2>ประวัติการทำธุรกรรม</h2>
+                <table>
                     <thead>
                         <tr>
-                            <th class="py-2 px-4 border-b text-left">วันที่</th>
-                            <th class="py-2 px-4 border-b text-left">รายละเอียด</th>
-                            <th class="py-2 px-4 border-b text-left">จำนวนชั่วโมง</th>
+                            <th>วันที่</th>
+                            <th>รายละเอียด</th>
+                            <th>จำนวนชั่วโมง</th>
                         </tr>
                     </thead>
                     <tbody>
                         <tr>
-                            <td class="py-2 px-4 border-b">01/01/2023</td>
-                            <td class="py-2 px-4 border-b">บริการทำความสะอาด</td>
-                            <td class="py-2 px-4 border-b">+5 ชั่วโมง</td>
+                            <td>01/01/2023</td>
+                            <td>บริการทำความสะอาด</td>
+                            <td>+5 ชั่วโมง</td>
                         </tr>
                         <tr>
-                            <td class="py-2 px-4 border-b">15/01/2023</td>
-                            <td class="py-2 px-4 border-b">บริการสอนคอมพิวเตอร์</td>
-                            <td class="py-2 px-4 border-b">+3 ชั่วโมง</td>
+                            <td>15/01/2023</td>
+                            <td>บริการสอนคอมพิวเตอร์</td>
+                            <td>+3 ชั่วโมง</td>
                         </tr>
                         <tr>
-                            <td class="py-2 px-4 border-b">20/01/2023</td>
-                            <td class="py-2 px-4 border-b">บริการดูแลผู้สูงอายุ</td>
-                            <td class="py-2 px-4 border-b">+2 ชั่วโมง</td>
+                            <td>20/01/2023</td>
+                            <td>บริการดูแลผู้สูงอายุ</td>
+                            <td>+2 ชั่วโมง</td>
                         </tr>
                         <tr>
-                            <td class="py-2 px-4 border-b">25/01/2023</td>
-                            <td class="py-2 px-4 border-b">บริการซ่อมแซมบ้าน</td>
-                            <td class="py-2 px-4 border-b">+4 ชั่วโมง</td>
+                            <td>25/01/2023</td>
+                            <td>บริการซ่อมแซมบ้าน</td>
+                            <td>+4 ชั่วโมง</td>
                         </tr>
                         <tr>
-                            <td class="py-2 px-4 border-b">30/01/2023</td>
-                            <td class="py-2 px-4 border-b">บริการทำอาหาร</td>
-                            <td class="py-2 px-4 border-b">+6 ชั่วโมง</td>
+                            <td>30/01/2023</td>
+                            <td>บริการทำอาหาร</td>
+                            <td>+6 ชั่วโมง</td>
                         </tr>
                         <tr>
-                            <td class="py-2 px-4 border-b">05/02/2023</td>
-                            <td class="py-2 px-4 border-b">บริการทำสวน</td>
-                            <td class="py-2 px-4 border-b">+3 ชั่วโมง</td>
+                            <td>05/02/2023</td>
+                            <td>บริการทำสวน</td>
+                            <td>+3 ชั่วโมง</td>
                         </tr>
                         <tr>
-                            <td class="py-2 px-4 border-b">10/02/2023</td>
-                            <td class="py-2 px-4 border-b">บริการซ่อมรถ</td>
-                            <td class="py-2 px-4 border-b">+4 ชั่วโมง</td>
+                            <td>10/02/2023</td>
+                            <td>บริการซ่อมรถ</td>
+                            <td>+4 ชั่วโมง</td>
                         </tr>
                         <tr>
-                            <td class="py-2 px-4 border-b">15/02/2023</td>
-                            <td class="py-2 px-4 border-b">บริการดูแลเด็ก</td>
-                            <td class="py-2 px-4 border-b">+5 ชั่วโมง</td>
+                            <td>15/02/2023</td>
+                            <td>บริการดูแลเด็ก</td>
+                            <td>+5 ชั่วโมง</td>
                         </tr>
                         <tr>
-                            <td class="py-2 px-4 border-b">20/02/2023</td>
-                            <td class="py-2 px-4 border-b">บริการทำความสะอาด</td>
-                            <td class="py-2 px-4 border-b">+2 ชั่วโมง</td>
+                            <td>20/02/2023</td>
+                            <td>บริการทำความสะอาด</td>
+                            <td>+2 ชั่วโมง</td>
                         </tr>
                         <tr>
-                            <td class="py-2 px-4 border-b">25/02/2023</td>
-                            <td class="py-2 px-4 border-b">บริการสอนภาษา</td>
-                            <td class="py-2 px-4 border-b">+3 ชั่วโมง</td>
+                            <td>25/02/2023</td>
+                            <td>บริการสอนภาษา</td>
+                            <td>+3 ชั่วโมง</td>
                         </tr>
                         <tr>
-                            <td class="py-2 px-4 border-b">01/03/2023</td>
-                            <td class="py-2 px-4 border-b">บริการทำอาหาร</td>
-                            <td class="py-2 px-4 border-b">+4 ชั่วโมง</td>
+                            <td>01/03/2023</td>
+                            <td>บริการทำอาหาร</td>
+                            <td>+4 ชั่วโมง</td>
                         </tr>
                         <tr>
-                            <td class="py-2 px-4 border-b">05/03/2023</td>
-                            <td class="py-2 px-4 border-b">บริการทำสวน</td>
-                            <td class="py-2 px-4 border-b">+3 ชั่วโมง</td>
+                            <td>05/03/2023</td>
+                            <td>บริการทำสวน</td>
+                            <td>+3 ชั่วโมง</td>
                         </tr>
                         <tr>
-                            <td class="py-2 px-4 border-b">10/03/2023</td>
-                            <td class="py-2 px-4 border-b">บริการซ่อมรถ</td>
-                            <td class="py-2 px-4 border-b">+4 ชั่วโมง</td>
+                            <td>10/03/2023</td>
+                            <td>บริการซ่อมรถ</td>
+                            <td>+4 ชั่วโมง</td>
                         </tr>
                         <tr>
-                            <td class="py-2 px-4 border-b">15/03/2023</td>
-                            <td class="py-2 px-4 border-b">บริการดูแลเด็ก</td>
-                            <td class="py-2 px-4 border-b">+5 ชั่วโมง</td>
+                            <td>15/03/2023</td>
+                            <td>บริการดูแลเด็ก</td>
+                            <td>+5 ชั่วโมง</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+            const sidebar = document.querySelector('.sidebar');
+
+            // Handle dropdown toggle click
+            dropdownToggles.forEach(toggle => {
+                toggle.addEventListener('click', (e) => {
+                    e.preventDefault(); // Prevent default anchor behavior
+                    const parent = toggle.parentElement;
+                    parent.classList.toggle('open'); // Toggle the "open" class
+                });
+            });
+
+            // Reset dropdowns when the mouse leaves the sidebar
+            sidebar.addEventListener('mouseleave', () => {
+                const dropdowns = document.querySelectorAll('.dropdown');
+                dropdowns.forEach(dropdown => {
+                    dropdown.classList.remove('open');
+                });
+            });
+        });
+    </script>
 </body>
 
 </html>

@@ -6,69 +6,79 @@
     <title>
         Contact Us - Time Bank
     </title>
-    <script src="https://cdn.tailwindcss.com">
-    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
 </head>
 
 <body class="bg-white">
-    <div class="flex">
-        <div class="w-1/5 bg-white h-screen p-5">
-            <div class="flex items-center mb-10">
-                <img alt="Logo" class="w-10 h-10 rounded-full" height="50"
-                    src="https://storage.googleapis.com/a1aa/image/GOMFBEaepyxe3E3gz2xaZviBDO0q04rV6Cz8h1wgcnNFaw5TA.jpg"
-                    width="50" />
-                <span class="ml-3 text-xl font-bold text-blue-600">TIMEBANK</span>
+    <div class="container">
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="logo-section">
+                <img src="https://storage.googleapis.com/a1aa/image/GOMFBEaepyxe3E3gz2xaZviBDO0q04rV6Cz8h1wgcnNFaw5TA.jpg" alt="Logo" class="logo" />
+                <span class="brand-name">TIMEBANK</span>
             </div>
             <nav>
                 <ul>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600" href="HomePage.html">
-                            <i class="fas fa-home mr-3"></i>หน้าหลัก
+                    <li>
+                        <a href="login.html">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span class="link-text">Login</span>
                         </a>
                     </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600" href="#">
-                            <i class="fas fa-cogs mr-3"></i>การบริการ
+                    
+                    <li>
+                        <a href="HomePage.html">
+                            <i class="fas fa-home"></i>
+                            <span class="link-text">หน้าหลัก</span>
                         </a>
-                        <ul class="ml-8 mt-2">
-                            <li class="mb-2">
-                                <a class="text-gray-500 hover:text-blue-600" href="service.html">ยื่นข้อของานบริการ</a>
+                    </li>
+                    <!-- การบริการ Dropdown -->
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="fas fa-cogs"></i>
+                            <span class="link-text">การบริการ</span>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="service.html" class="sub-link">ยื่นข้อของานบริการ</a>
                             </li>
                         </ul>
                     </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600" href="#">
-                            <i class="fas fa-user-circle mr-3"></i>การจัดการบัญชี
+                    <!-- การจัดการบัญชี Dropdown -->
+                    <li class="dropdown">
+                        <a href="#" class="dropdown-toggle">
+                            <i class="fas fa-user-circle"></i>
+                            <span class="link-text">การจัดการบัญชี</span>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
                         </a>
-                        <ul class="ml-8 mt-2">
-                            <li class="mb-2">
-                                <a class="text-gray-500 hover:text-blue-600" href="profile.html">แก้ไขประวัติ</a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a href="profile.html" class="sub-link">แก้ไขประวัติ</a>
                             </li>
-                            <li class="mb-2">
-                                <a class="text-gray-500 hover:text-blue-600" href="skillconf.html">แก้ไขทักษะ</a>
+                            <li>
+                                <a href="skillconf.html" class="sub-link">แก้ไขทักษะ</a>
                             </li>
-                            <li class="mb-2">
-                                <a class="text-gray-500 hover:text-blue-600" href="balance.html">ยอดคงเหลือ</a>
+                            <li>
+                                <a href="balance.html" class="sub-link">ยอดคงเหลือ</a>
                             </li>
-                            <li class="mb-2">
-                                <a class="text-gray-500 hover:text-blue-600" href="history.html">ประวัติ</a>
+                            <li>
+                                <a href="history.html" class="sub-link">ประวัติ</a>
                             </li>
                         </ul>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600" href="contact.html">
-                            <i class="fas fa-phone mr-3"></i>ติดต่อเรา
-                        </a>
                     </li>
                     <li>
-                        <a class="flex items-center text-gray-700 hover:text-blue-600" href="login.html">
-                            <i class="fas fa-sign-in-alt mr-3"></i>Login
+                        <a href="contact.html">
+                            <i class="fas fa-phone"></i>
+                            <span class="link-text">ติดต่อเรา</span>
                         </a>
                     </li>
                 </ul>
             </nav>
         </div>
+
         <!-- Main Content -->
         <div class="flex-1 bg-blue-900 text-white p-8">
             <h1 class="text-4xl font-bold text-center mb-8">
