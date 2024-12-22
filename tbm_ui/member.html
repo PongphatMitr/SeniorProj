@@ -6,6 +6,68 @@
     <title>จัดการสมาชิก - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <style>
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .dropdown-content.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f1f1f1;
+        }
+
+        .dropdown-item b {
+            color: rgb(0, 123, 255);
+            transition: color 0.3s ease;
+        }
+
+        .dropdown-item:hover b {
+            color: rgb(0, 86, 179);
+        }
+
+        .dropdown-item b.red {
+            color: red;
+        }
+
+        .dropdown-item:hover b.red {
+            color: darkred;
+        }
+    </style>
+    <script>
+        function toggleDropdown(event) {
+            event.stopPropagation();
+            const dropdownContent = event.currentTarget.nextElementSibling;
+            dropdownContent.classList.toggle('show');
+        }
+
+        window.onclick = function (event) {
+            if (!event.target.matches('.dropdown-button')) {
+                const dropdowns = document.getElementsByClassName("dropdown-content");
+                for (let i = 0; i < dropdowns.length; i++) {
+                    const openDropdown = dropdowns[i];
+                    if (openDropdown.classList.contains('show')) {
+                        openDropdown.classList.remove('show');
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 
 <body class="bg-gray-100">
@@ -76,7 +138,7 @@
             </nav>
         </div>
         <!-- Main Content -->
-        <div class="w-4/5 bg-blue-700 text-white p-10">
+        <div class="w-5/6 bg-blue-700 text-white p-10">
             <h1 class="text-4xl font-bold mb-5">จัดการสมาชิก</h1>
             <div class="bg-white text-black p-8 rounded-lg shadow-lg">
                 <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">สมาชิก</h2>
@@ -85,112 +147,190 @@
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                         type="text" placeholder="ค้นหาสมาชิก" />
                     <a href="create-member.html"
-                        class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">เพิ่ม</a>
+                        class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-2">เพิ่ม</a>
                 </div>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white">
-                        <thead>
-                            <tr>
-                                <th
-                                    class="py-2 px-4 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600">
-                                    UID</th>
-                                <th
-                                    class="py-2 px-4 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600">
-                                    ชื่อสมาชิก</th>
-                                <th
-                                    class="py-2 px-4 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600">
-                                    อีเมล</th>
-                                <th
-                                    class="py-2 px-4 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600">
-                                    เบอร์โทร</th>
-                                <th
-                                    class="py-2 px-4 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600">
-                                    จำนวนชั่วโมง</th>
-                                <th
-                                    class="py-2 px-4 border-b-2 border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-600">
-                                    การกระทำ</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="py-2 px-4 border-b border-gray-200">1</td>
-                                <td class="py-2 px-4 border-b border-gray-200">สมชาย ใจดี</td>
-                                <td class="py-2 px-4 border-b border-gray-200">somchai@example.com</td>
-                                <td class="py-2 px-4 border-b border-gray-200">081-234-5678</td>
-                                <td class="py-2 px-4 border-b border-gray-200">50 ชั่วโมง</td>
-                                <td class="py-2 px-4 border-b border-gray-200">
-                                    <button
-                                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
-                                        type="button">ดูโปรไฟล์</button>
-                                    <button
-                                        class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
-                                        type="button">แก้ไข</button>
-                                    <button
-                                        class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
-                                        type="button">ลบ</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 px-4 border-b border-gray-200">2</td>
-                                <td class="py-2 px-4 border-b border-gray-200">สมหญิง ใจงาม</td>
-                                <td class="py-2 px-4 border-b border-gray-200">somying@example.com</td>
-                                <td class="py-2 px-4 border-b border-gray-200">081-234-5679</td>
-                                <td class="py-2 px-4 border-b border-gray-200">40 ชั่วโมง</td>
-                                <td class="py-2 px-4 border-b border-gray-200">
-                                    <button
-                                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
-                                        type="button">ดูโปรไฟล์</button>
-                                    <button
-                                        class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
-                                        type="button">แก้ไข</button>
-                                    <button
-                                        class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
-                                        type="button">ลบ</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 px-4 border-b border-gray-200">3</td>
-                                <td class="py-2 px-4 border-b border-gray-200">สมปอง ใจเย็น</td>
-                                <td class="py-2 px-4 border-b border-gray-200">sompong@example.com</td>
-                                <td class="py-2 px-4 border-b border-gray-200">081-234-5680</td>
-                                <td class="py-2 px-4 border-b border-gray-200">30 ชั่วโมง</td>
-                                <td class="py-2 px-4 border-b border-gray-200">
-                                    <button
-                                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
-                                        type="button">ดูโปรไฟล์</button>
-                                    <button
-                                        class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
-                                        type="button">แก้ไข</button>
-                                    <button
-                                        class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
-                                        type="button">ลบ</button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 px-4 border-b border-gray-200">4</td>
-                                <td class="py-2 px-4 border-b border-gray-200">สมศรี ใจดี</td>
-                                <td class="py-2 px-4 border-b border-gray-200">somsri@example.com</td>
-                                <td class="py-2 px-4 border-b border-gray-200">081-234-5681</td>
-                                <td class="py-2 px-4 border-b border-gray-200">20 ชั่วโมง</td>
-                                <td class="py-2 px-4 border-b border-gray-200">
-                                    <button
-                                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
-                                        type="button">ดูโปรไฟล์</button>
-                                    <button
-                                        class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
-                                        type="button">แก้ไข</button>
-                                    <button
-                                        class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
-                                        type="button">ลบ</button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                <div class="flex items-center justify-center mt-5">
-                    <button
-                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                        type="button">บันทึก</button>
+                    <div data-v-0b0690a0="" class="col-sm-12 col-md-12 col-12" style="margin-top: 15px;">
+                        <div data-v-0b0690a0="" class="table-responsive-sm">
+                            <table role="table" aria-busy="false" aria-colcount="6"
+                                class="table b-table b-table-stacked-md w-full" id="__BVID__180">
+                                <thead role="rowgroup" class="bg-gray-100">
+                                    <tr role="row">
+                                        <th role="columnheader" scope="col" aria-colindex="1"
+                                            class="tr-tr py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                            รหัสสมาชิก
+                                        </th>
+                                        <th role="columnheader" scope="col" aria-colindex="2"
+                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                            ชื่อ
+                                        </th>
+                                        <th role="columnheader" scope="col" aria-colindex="3"
+                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                            เครดิตเวลา(คะแนน)
+                                        </th>
+                                        <th role="columnheader" scope="col" aria-colindex="4"
+                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                            สถานะ
+                                        </th>
+                                        <th role="columnheader" scope="col" aria-colindex="5"
+                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                            ล็อกอินไลน์
+                                        </th>
+                                        <th role="columnheader" scope="col" aria-colindex="6"
+                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                            การจัดการ
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody role="rowgroup">
+                                    <tr role="row" class="hover:bg-gray-100">
+                                        <td aria-colindex="1" data-label="รหัสสมาชิก" role="cell"
+                                            class="py-2 px-4 border-b border-gray-200">
+                                            2410170001
+                                        </td>
+                                        <td aria-colindex="2" data-label="ชื่อ" role="cell"
+                                            class="py-2 px-4 border-b border-gray-200">
+                                            กฤชนพัต จุลจู
+                                        </td>
+                                        <td aria-colindex="3" data-label="เครดิตเวลา(คะแนน)" role="cell"
+                                            class="py-2 px-4 border-b border-gray-200">
+                                            21
+                                        </td>
+                                        <td aria-colindex="4" data-label="สถานะ" role="cell"
+                                            class="py-2 px-4 border-b border-gray-200">
+                                            <span class="badge badge-success" style="width: 100px;">ปกติ</span>
+                                        </td>
+                                        <td aria-colindex="5" data-label="ล็อกอินไลน์" role="cell"
+                                            class="py-2 px-4 border-b border-gray-200">
+                                            <span class="badge badge-success" style="width: 100px;">ล็อกอินเเล้ว</span>
+                                        </td>
+                                        <td aria-colindex="6" data-label="การจัดการ" role="cell"
+                                            class="py-2 px-4 border-b border-gray-200">
+                                            <div class="dropdown b-dropdown m-md-2 btn-group">
+                                                <button id="dropdown-1__BV_toggle_" aria-haspopup="menu"
+                                                    aria-expanded="false" type="button"
+                                                    class="btn bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                                    onclick="toggleDropdown(event)">เลือก</button>
+                                                <ul role="menu" tabindex="-1" aria-labelledby="dropdown-1__BV_toggle_"
+                                                    class="dropdown-content">
+                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
+                                                            href="#" target="_self"><b>โปรไฟล์</b></a></li>
+                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
+                                                            href="#" target="_self"><b>สมุดบัญชี</b></a></li>
+                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
+                                                            href="#" target="_self"><b>แก้ไข</b></a></li>
+                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
+                                                            href="#" target="_self"><b>PDF</b></a></li>
+                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
+                                                            href="#" target="_self"><b>ความสามารถ</b></a></li>
+                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
+                                                            href="#" target="_self"><b>วันที่สะดวกทำงาน</b></a></li>
+                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
+                                                            href="#" target="_self"><b class="red">ลบสมาชิก</b></a></li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr role="row" class="hover:bg-gray-100">
+                                        <td aria-colindex="1" data-label="รหัสสมาชิก" role="cell"
+                                            class="py-2 px-4 border-b border-gray-200">
+                                            2410600002
+                                        </td>
+                                        <td aria-colindex="2" data-label="ชื่อ" role="cell"
+                                            class="py-2 px-4 border-b border-gray-200">
+                                            วริศ คำกวีปราชญ์
+                                        </td>
+                                        <td aria-colindex="3" data-label="เครดิตเวลา(คะแนน)" role="cell"
+                                            class="py-2 px-4 border-b border-gray-200">
+                                            11
+                                        </td>
+                                        <td aria-colindex="4" data-label="สถานะ" role="cell"
+                                            class="py-2 px-4 border-b border-gray-200">
+                                            <span class="badge badge-success" style="width: 100px;">ปกติ</span>
+                                        </td>
+                                        <td aria-colindex="5" data-label="ล็อกอินไลน์" role="cell"
+                                            class="py-2 px-4 border-b border-gray-200">
+                                            <span class="badge badge-success" style="width: 100px;">ล็อกอินเเล้ว</span>
+                                        </td>
+                                        <td aria-colindex="6" data-label="การจัดการ" role="cell"
+                                            class="py-2 px-4 border-b border-gray-200">
+                                            <div class="dropdown b-dropdown m-md-2 btn-group">
+                                                <button id="dropdown-2__BV_toggle_" aria-haspopup="menu"
+                                                    aria-expanded="false" type="button"
+                                                    class="btn bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                                    onclick="toggleDropdown(event)">เลือก</button>
+                                                <ul role="menu" tabindex="-1" aria-labelledby="dropdown-2__BV_toggle_"
+                                                    class="dropdown-content">
+                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
+                                                            href="#" target="_self"><b>โปรไฟล์</b></a></li>
+                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
+                                                            href="#" target="_self"><b>สมุดบัญชี</b></a></li>
+                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
+                                                            href="#" target="_self"><b>แก้ไข</b></a></li>
+                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
+                                                            href="#" target="_self"><b>PDF</b></a></li>
+                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
+                                                            href="#" target="_self"><b>ความสามารถ</b></a></li>
+                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
+                                                            href="#" target="_self"><b>วันที่สะดวกทำงาน</b></a></li>
+                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
+                                                            href="#" target="_self"><b class="red">ลบสมาชิก</b></a></li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr role="row" class="hover:bg-gray-100">
+                                        <td aria-colindex="1" data-label="รหัสสมาชิก" role="cell"
+                                            class="py-2 px-4 border-b border-gray-200">
+                                            2473170001
+                                        </td>
+                                        <td aria-colindex="2" data-label="ชื่อ" role="cell"
+                                            class="py-2 px-4 border-b border-gray-200">
+                                            ชื่อทดสอบ สกุลทดสอบ
+                                        </td>
+                                        <td aria-colindex="3" data-label="เครดิตเวลา(คะแนน)" role="cell"
+                                            class="py-2 px-4 border-b border-gray-200">
+                                            7
+                                        </td>
+                                        <td aria-colindex="4" data-label="สถานะ" role="cell"
+                                            class="py-2 px-4 border-b border-gray-200">
+                                            <span class="badge badge-success" style="width: 100px;">ปกติ</span>
+                                        </td>
+                                        <td aria-colindex="5" data-label="ล็อกอินไลน์" role="cell"
+                                            class="py-2 px-4 border-b border-gray-200">
+                                            <span class="badge badge-success" style="width: 100px;">ล็อกอินเเล้ว</span>
+                                        </td>
+                                        <td aria-colindex="6" data-label="การจัดการ" role="cell"
+                                            class="py-2 px-4 border-b border-gray-200">
+                                            <div class="dropdown b-dropdown m-md-2 btn-group">
+                                                <button id="dropdown-3__BV_toggle_" aria-haspopup="menu"
+                                                    aria-expanded="false" type="button"
+                                                    class="btn bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                                    onclick="toggleDropdown(event)">เลือก</button>
+                                                <ul role="menu" tabindex="-1" aria-labelledby="dropdown-3__BV_toggle_"
+                                                    class="dropdown-content">
+                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
+                                                            href="#" target="_self"><b>โปรไฟล์</b></a></li>
+                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
+                                                            href="#" target="_self"><b>สมุดบัญชี</b></a></li>
+                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
+                                                            href="#" target="_self"><b>แก้ไข</b></a></li>
+                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
+                                                            href="#" target="_self"><b>PDF</b></a></li>
+                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
+                                                            href="#" target="_self"><b>ความสามารถ</b></a></li>
+                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
+                                                            href="#" target="_self"><b>วันที่สะดวกทำงาน</b></a></li>
+                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
+                                                            href="#" target="_self"><b class="red">ลบสมาชิก</b></a></li>
+                                                </ul>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
