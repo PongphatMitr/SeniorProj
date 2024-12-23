@@ -3,9 +3,22 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>จัดการกองทุนชุมชน - Time Bank</title>
+    <title>เพิ่มทักษะใหม่ - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <script>
+        function addCategory() {
+            const newCategory = prompt("กรุณาใส่ชื่อหมวดหมู่ใหม่:");
+            if (newCategory) {
+                const select = document.getElementById('categorySelect');
+                const option = document.createElement('option');
+                option.value = newCategory;
+                option.text = newCategory;
+                select.add(option);
+                select.value = newCategory;
+            }
+        }
+    </script>
 </head>
 
 <body class="bg-gray-100">
@@ -76,46 +89,47 @@
             </nav>
         </div>
         <!-- Main Content -->
-        <div class="w-4/5 bg-blue-700 text-white p-10">
-            <h1 class="text-4xl font-bold mb-5">จัดการกองทุนชุมชน</h1>
-            <div class="bg-white text-black p-8 rounded-lg shadow-lg">
-                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">กองทุนชุมชน</h2>
-                <div class="grid grid-cols-2 gap-5">
-                    <div class="bg-gray-100 p-4 rounded-lg">
-                        <h3 class="text-xl font-bold mb-4">ยอดคงเหลือในกองทุน</h3>
-                        <p class="text-4xl font-bold text-center text-blue-600">200 ชั่วโมง</p>
-                    </div>
-                    <div class="bg-gray-100 p-4 rounded-lg">
-                        <h3 class="text-xl font-bold mb-4">จำนวนชั่วโมงที่กู้</h3>
-                        <p class="text-4xl font-bold text-center text-red-600">50 ชั่วโมง</p>
-                    </div>
-                </div>
-                <div class="mt-10">
-                    <h2 class="text-2xl font-bold mb-4">เพิ่มชั่วโมงเข้าสู่กองทุน</h2>
+        <div class="w-5/6 bg-blue-700 text-white p-10">
+            <h1 class="text-4xl font-bold mb-5">เพิ่มทักษะใหม่</h1>
+            <div class="bg-white text-black p-5 rounded-lg">
+                <form>
                     <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="skillName">
+                            ชื่อทักษะ
+                        </label>
                         <input
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            type="number" placeholder="จำนวนชั่วโมง" />
+                            id="skillName" type="text" placeholder="ชื่อทักษะ" />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="categorySelect">
+                            หมวดหมู่
+                        </label>
+                        <div class="flex items-center">
+                            <select
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="categorySelect">
+                                <option value="หมวดหมู่ทักษะ 1">หมวดหมู่ทักษะ 1</option>
+                                <option value="หมวดหมู่ทักษะ 2">หมวดหมู่ทักษะ 2</option>
+                                <option value="หมวดหมู่ทักษะ 3">หมวดหมู่ทักษะ 3</option>
+                                <option value="หมวดหมู่ทักษะ 4">หมวดหมู่ทักษะ 4</option>
+                                <option value="หมวดหมู่ทักษะ 5">หมวดหมู่ทักษะ 5</option>
+                                <option value="หมวดหมู่ทักษะ 6">หมวดหมู่ทักษะ 6</option>
+                            </select>
+                            <button
+                                class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 ml-2 whitespace-nowrap rounded focus:outline-none focus:shadow-outline"
+                                type="button" onclick="addCategory()">เพิ่มหมวดหมู่</button>
+                        </div>
                     </div>
                     <div class="flex items-center justify-center">
                         <button
-                            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                            type="button">เพิ่มชั่วโมง</button>
-                    </div>
-                </div>
-                <div class="mt-10">
-                    <h2 class="text-2xl font-bold mb-4">กู้ชั่วโมงจากกองทุน</h2>
-                    <div class="mb-4">
-                        <input
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            type="number" placeholder="จำนวนชั่วโมง" />
-                    </div>
-                    <div class="flex items-center justify-center">
+                            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
+                            type="button" onclick="window.history.back()">ย้อนกลับ</button>
                         <button
-                            class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                            type="button">กู้ชั่วโมง</button>
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
+                            type="submit">บันทึก</button>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     </div>

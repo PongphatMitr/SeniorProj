@@ -46,20 +46,6 @@
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="skillconf.html">
-                            <i class="fas fa-cogs mr-3"></i>
-                            จัดการหมวหมู่ทักษะ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="fund.html">
-                            <i class="fas fa-hand-holding-usd mr-3"></i>
-                            จัดการกองทุนชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="activity.html">
                             <i class="fas fa-calendar-alt mr-3"></i>
                             จัดการกิจกรรม
@@ -70,6 +56,20 @@
                             href="member.html">
                             <i class="fas fa-users mr-3"></i>
                             จัดการสมาชิก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="skillconf.html">
+                            <i class="fas fa-cogs mr-3"></i>
+                            จัดการหมวหมู่ทักษะ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="fund.html">
+                            <i class="fas fa-hand-holding-usd mr-3"></i>
+                            จัดการกองทุนชุมชน
                         </a>
                     </li>
                 </ul>
@@ -84,21 +84,53 @@
                         class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">เพิ่มกิจกรรมใหม่</a>
                 </div>
                 <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">กิจกรรม</h2>
-                <div class="grid grid-cols-2 gap-5">
-                    <div class="bg-gray-100 p-4 rounded-lg">
-                        <h3 class="text-xl font-bold mb-4">กิจกรรมที่กำลังจะมาถึง</h3>
-                        <p class="mb-2">กิจกรรมทำความสะอาดชุมชน - 01/01/2023</p>
-                        <p class="mb-2">กิจกรรมสอนคอมพิวเตอร์ - 15/01/2023</p>
-                        <p class="mb-2">กิจกรรมดูแลผู้สูงอายุ - 20/01/2023</p>
-                        <p class="mb-2">กิจกรรมซ่อมแซมบ้าน - 25/01/2023</p>
-                    </div>
-                    <div class="bg-gray-100 p-4 rounded-lg">
-                        <h3 class="text-xl font-bold mb-4">กิจกรรมที่ผ่านมา</h3>
-                        <p class="mb-2">กิจกรรมทำอาหาร - 30/01/2023</p>
-                        <p class="mb-2">กิจกรรมทำสวน - 05/02/2023</p>
-                        <p class="mb-2">กิจกรรมซ่อมรถ - 10/02/2023</p>
-                        <p class="mb-2">กิจกรรมดูแลเด็ก - 15/02/2023</p>
-                    </div>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white">
+                        <thead>
+                            <tr>
+                                <th
+                                    class="py-2 px-4 border-b-2 border-gray-300 text-left text-sm font-semibold text-gray-600">
+                                    กิจกรรม</th>
+                                <th
+                                    class="py-2 px-4 border-b-2 border-gray-300 text-left text-sm font-semibold text-gray-600">
+                                    วันที่</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="py-2 px-4 border-b border-gray-300">กิจกรรมทำความสะอาดชุมชน</td>
+                                <td class="py-2 px-4 border-b border-gray-300">01/01/2023</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 px-4 border-b border-gray-300">กิจกรรมสอนคอมพิวเตอร์</td>
+                                <td class="py-2 px-4 border-b border-gray-300">15/01/2023</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 px-4 border-b border-gray-300">กิจกรรมดูแลผู้สูงอายุ</td>
+                                <td class="py-2 px-4 border-b border-gray-300">20/01/2023</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 px-4 border-b border-gray-300">กิจกรรมซ่อมแซมบ้าน</td>
+                                <td class="py-2 px-4 border-b border-gray-300">25/01/2023</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 px-4 border-b border-gray-300">กิจกรรมทำอาหาร</td>
+                                <td class="py-2 px-4 border-b border-gray-300">30/01/2023</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 px-4 border-b border-gray-300">กิจกรรมทำสวน</td>
+                                <td class="py-2 px-4 border-b border-gray-300">05/02/2023</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 px-4 border-b border-gray-300">กิจกรรมซ่อมรถ</td>
+                                <td class="py-2 px-4 border-b border-gray-300">10/02/2023</td>
+                            </tr>
+                            <tr>
+                                <td class="py-2 px-4 border-b border-gray-300">กิจกรรมดูแลเด็ก</td>
+                                <td class="py-2 px-4 border-b border-gray-300">15/02/2023</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

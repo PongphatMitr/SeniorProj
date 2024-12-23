@@ -6,6 +6,22 @@
     <title>จัดการหมวหมู่ทักษะ - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <script>
+        function showCategory(category) {
+            const categories = document.querySelectorAll('.category');
+            categories.forEach(cat => {
+                if (category === 'all' || cat.classList.contains(`category-${category}`)) {
+                    cat.classList.remove('hidden');
+                } else {
+                    cat.classList.add('hidden');
+                }
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            showCategory('all');
+        });
+    </script>
 </head>
 
 <body class="bg-gray-100">
@@ -46,20 +62,6 @@
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="skillconf.html">
-                            <i class="fas fa-cogs mr-3"></i>
-                            จัดการหมวหมู่ทักษะ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="fund.html">
-                            <i class="fas fa-hand-holding-usd mr-3"></i>
-                            จัดการกองทุนชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="activity.html">
                             <i class="fas fa-calendar-alt mr-3"></i>
                             จัดการกิจกรรม
@@ -72,11 +74,25 @@
                             จัดการสมาชิก
                         </a>
                     </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="skillconf.html">
+                            <i class="fas fa-cogs mr-3"></i>
+                            จัดการหมวหมู่ทักษะ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="fund.html">
+                            <i class="fas fa-hand-holding-usd mr-3"></i>
+                            จัดการกองทุนชุมชน
+                        </a>
+                    </li>
                 </ul>
             </nav>
         </div>
         <!-- Main Content -->
-        <div class="w-4/5 bg-blue-700 text-white p-10">
+        <div class="w-5/6 bg-blue-700 text-white p-10">
             <h1 class="text-4xl font-bold mb-5">จัดการหมวหมู่ทักษะ</h1>
             <div class="bg-white text-black p-5 rounded-lg">
                 <div class="mb-4 flex items-center">
@@ -84,120 +100,116 @@
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                         type="text" placeholder="ค้นหาทักษะ" />
                     <button
-                        class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 ml-2 rounded focus:outline-none focus:shadow-outline"
-                        type="button">แก้ไข</button>
-                    <button
-                        class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 ml-2 rounded focus:outline-none focus:shadow-outline"
-                        type="button">ลบ</button>
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
+                        type="button" onclick="window.location.href='create-skill.html'">เพิ่ม</button>
                 </div>
-                <div class="grid grid-cols-2 gap-5">
-                    <div class="bg-gray-100 p-4 rounded-lg">
-                        <h3 class="text-xl font-bold mb-4">หมวดหมู่ทักษะ 1</h3>
+                <div class="flex justify-center mb-5">
+                    <button
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mx-1 rounded focus:outline-none focus:shadow-outline"
+                        onclick="showCategory('all')">All</button>
+                    <button
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mx-1 rounded focus:outline-none focus:shadow-outline"
+                        onclick="showCategory('1')">1</button>
+                    <button
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mx-1 rounded focus:outline-none focus:shadow-outline"
+                        onclick="showCategory('2')">2</button>
+                    <button
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mx-1 rounded focus:outline-none focus:shadow-outline"
+                        onclick="showCategory('3')">3</button>
+                    <button
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mx-1 rounded focus:outline-none focus:shadow-outline"
+                        onclick="showCategory('4')">4</button>
+                    <button
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mx-1 rounded focus:outline-none focus:shadow-outline"
+                        onclick="showCategory('5')">5</button>
+                    <button
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mx-1 rounded focus:outline-none focus:shadow-outline"
+                        onclick="showCategory('6')">6</button>
+                </div>
+                <div class="grid grid-cols-1 gap-5 justify-center">
+                    <div class="bg-gray-100 p-6 rounded-lg category category-1 w-3/4 mx-auto">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold">หมวดหมู่ทักษะ 1</h3>
+                            <div>
+                                <button
+                                    class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                    type="button">แก้ไข</button>
+                            </div>
+                        </div>
                         <p class="mb-2">ทักษะ 1.1</p>
                         <p class="mb-2">ทักษะ 1.2</p>
                         <p class="mb-2">ทักษะ 1.3</p>
                         <p class="mb-2">ทักษะ 1.4</p>
-                        <div class="mt-4">
-                            <input
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="text" placeholder="เพิ่มทักษะใหม่" />
-                            <button
-                                class="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 mt-2 rounded focus:outline-none focus:shadow-outline"
-                                type="button">เพิ่มทักษะ</button>
-                        </div>
                     </div>
-                    <div class="bg-gray-100 p-4 rounded-lg">
-                        <h3 class="text-xl font-bold mb-4">หมวดหมู่ทักษะ 2</h3>
+                    <div class="bg-gray-100 p-6 rounded-lg category category-2 hidden w-3/4 mx-auto">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold">หมวดหมู่ทักษะ 2</h3>
+                            <div>
+                                <button
+                                    class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                    type="button">แก้ไข</button>
+                            </div>
+                        </div>
                         <p class="mb-2">ทักษะ 2.1</p>
                         <p class="mb-2">ทักษะ 2.2</p>
                         <p class="mb-2">ทักษะ 2.3</p>
                         <p class="mb-2">ทักษะ 2.4</p>
-                        <div class="mt-4">
-                            <input
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="text" placeholder="เพิ่มทักษะใหม่" />
-                            <button
-                                class="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 mt-2 rounded focus:outline-none focus:shadow-outline"
-                                type="button">เพิ่มทักษะ</button>
-                        </div>
                     </div>
-                    <div class="bg-gray-100 p-4 rounded-lg">
-                        <h3 class="text-xl font-bold mb-4">หมวดหมู่ทักษะ 3</h3>
+                    <div class="bg-gray-100 p-6 rounded-lg category category-3 hidden w-3/4 mx-auto">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold">หมวดหมู่ทักษะ 3</h3>
+                            <div>
+                                <button
+                                    class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                    type="button">แก้ไข</button>
+                            </div>
+                        </div>
                         <p class="mb-2">ทักษะ 3.1</p>
                         <p class="mb-2">ทักษะ 3.2</p>
                         <p class="mb-2">ทักษะ 3.3</p>
                         <p class="mb-2">ทักษะ 3.4</p>
-                        <div class="mt-4">
-                            <input
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="text" placeholder="เพิ่มทักษะใหม่" />
-                            <button
-                                class="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 mt-2 rounded focus:outline-none focus:shadow-outline"
-                                type="button">เพิ่มทักษะ</button>
-                        </div>
                     </div>
-                    <div class="bg-gray-100 p-4 rounded-lg">
-                        <h3 class="text-xl font-bold mb-4">หมวดหมู่ทักษะ 4</h3>
+                    <div class="bg-gray-100 p-6 rounded-lg category category-4 hidden w-3/4 mx-auto">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold">หมวดหมู่ทักษะ 4</h3>
+                            <div>
+                                <button
+                                    class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                    type="button">แก้ไข</button>
+                            </div>
+                        </div>
                         <p class="mb-2">ทักษะ 4.1</p>
                         <p class="mb-2">ทักษะ 4.2</p>
                         <p class="mb-2">ทักษะ 4.3</p>
                         <p class="mb-2">ทักษะ 4.4</p>
-                        <div class="mt-4">
-                            <input
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="text" placeholder="เพิ่มทักษะใหม่" />
-                            <button
-                                class="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 mt-2 rounded focus:outline-none focus:shadow-outline"
-                                type="button">เพิ่มทักษะ</button>
-                        </div>
                     </div>
-                    <div class="bg-gray-100 p-4 rounded-lg">
-                        <h3 class="text-xl font-bold mb-4">หมวดหมู่ทักษะ 5</h3>
+                    <div class="bg-gray-100 p-6 rounded-lg category category-5 hidden w-3/4 mx-auto">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold">หมวดหมู่ทักษะ 5</h3>
+                            <div>
+                                <button
+                                    class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                    type="button">แก้ไข</button>
+                            </div>
+                        </div>
                         <p class="mb-2">ทักษะ 5.1</p>
                         <p class="mb-2">ทักษะ 5.2</p>
                         <p class="mb-2">ทักษะ 5.3</p>
                         <p class="mb-2">ทักษะ 5.4</p>
-                        <div class="mt-4">
-                            <input
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="text" placeholder="เพิ่มทักษะใหม่" />
-                            <button
-                                class="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 mt-2 rounded focus:outline-none focus:shadow-outline"
-                                type="button">เพิ่มทักษะ</button>
-                        </div>
                     </div>
-                    <div class="bg-gray-100 p-4 rounded-lg">
-                        <h3 class="text-xl font-bold mb-4">หมวดหมู่ทักษะ 6</h3>
+                    <div class="bg-gray-100 p-6 rounded-lg category category-6 hidden w-3/4 mx-auto">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-xl font-bold">หมวดหมู่ทักษะ 6</h3>
+                            <div>
+                                <button
+                                    class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                    type="button">แก้ไข</button>
+                            </div>
+                        </div>
                         <p class="mb-2">ทักษะ 6.1</p>
                         <p class="mb-2">ทักษะ 6.2</p>
                         <p class="mb-2">ทักษะ 6.3</p>
                         <p class="mb-2">ทักษะ 6.4</p>
-                        <div class="mt-4">
-                            <input
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="text" placeholder="เพิ่มทักษะใหม่" />
-                            <button
-                                class="bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 mt-2 rounded focus:outline-none focus:shadow-outline"
-                                type="button">เพิ่มทักษะ</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="flex items-center justify-center mt-5">
-                    <button
-                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                        type="button">บันทึก</button>
-                </div>
-                <div class="mt-10">
-                    <h2 class="text-2xl font-bold mb-4">เพิ่มหมวดหมู่ทักษะใหม่</h2>
-                    <div class="mb-4">
-                        <input
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            type="text" placeholder="ชื่อหมวดหมู่ทักษะใหม่" />
-                    </div>
-                    <div class="flex items-center justify-center">
-                        <button
-                            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                            type="button">เพิ่มหมวดหมู่</button>
                     </div>
                 </div>
             </div>
