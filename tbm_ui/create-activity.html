@@ -3,19 +3,22 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>เพิ่มกิจกรรมใหม่ - Time Bank</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>
+        เพิ่มกิจกรรมใหม่ - Time Bank
+    </title>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
 </head>
 
 <body class="bg-gray-100">
-    <div class="flex">
+    <div class="flex flex-col md:flex-row">
         <!-- Sidebar -->
-        <div class="w-1/6 bg-white h-screen p-5">
+        <div class="w-full md:w-1/6 bg-white h-screen p-5">
             <div class="flex items-center mb-10">
                 <img alt="Logo of Time Bank System, a clock with a handshake in the center"
                     class="w-10 h-10 rounded-full" height="50"
-                    src="https://storage.googleapis.com/a1aa/image/GOMFBEaepyxe3E3gz2xaZviBDO0q04rV6Cz8h1wgcnNFaw5TA.jpg"
+                    src="https://storage.googleapis.com/a1aa/image/0evJInagqwwexUvOsHx1Vbr97igUPawzadfRGe7hUbautO3PB.jpg"
                     width="50" />
                 <span class="ml-3 text-xl font-bold text-blue-600">
                     TIMEBANK
@@ -26,106 +29,188 @@
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="login.html">
-                            <i class="fas fa-sign-in-alt mr-3"></i>
-                            Login
+                            <i class="fas fa-sign-in-alt mr-3">
+                            </i>
+                            <span class="ml-3">
+                                Login
+                            </span>
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
+                            <i class="fas fa-home mr-3">
+                            </i>
+                            <span class="ml-3">
+                                หน้าหลัก
+                            </span>
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="report.html">
-                            <i class="fas fa-chart-bar mr-3"></i>
-                            รายงาน
+                            <i class="fas fa-chart-bar mr-3">
+                            </i>
+                            <span class="ml-3">
+                                รายงาน
+                            </span>
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="activity.html">
-                            <i class="fas fa-calendar-alt mr-3"></i>
-                            จัดการกิจกรรม
+                            <i class="fas fa-calendar-alt mr-3">
+                            </i>
+                            <span class="ml-3">
+                                จัดการกิจกรรม
+                            </span>
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="member.html">
-                            <i class="fas fa-users mr-3"></i>
-                            จัดการสมาชิก
+                            <i class="fas fa-users mr-3">
+                            </i>
+                            <span class="ml-3">
+                                จัดการสมาชิก
+                            </span>
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="skillconf.html">
-                            <i class="fas fa-cogs mr-3"></i>
-                            จัดการหมวหมู่ทักษะ
+                            <i class="fas fa-cogs mr-3">
+                            </i>
+                            <span class="ml-3">
+                                จัดการหมวหมู่ทักษะ
+                            </span>
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="fund.html">
-                            <i class="fas fa-hand-holding-usd mr-3"></i>
-                            จัดการกองทุนชุมชน
+                            <i class="fas fa-hand-holding-usd mr-3">
+                            </i>
+                            <span class="ml-3">
+                                จัดการกองทุนชุมชน
+                            </span>
                         </a>
                     </li>
                 </ul>
             </nav>
         </div>
         <!-- Main Content -->
-        <div class="w-4/5 bg-blue-700 text-white p-10">
-            <h1 class="text-4xl font-bold mb-5">เพิ่มกิจกรรมใหม่</h1>
+        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
+            <h1 class="text-4xl font-bold mb-5">
+                เพิ่มกิจกรรมใหม่
+            </h1>
             <div class="bg-white text-black p-8 rounded-lg shadow-lg">
-                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">รายละเอียดกิจกรรม</h2>
+                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">
+                    รายละเอียดกิจกรรม
+                </h2>
                 <form>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="service-title">ชื่อบริการ</label>
-                        <input
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            id="service-title" type="text" placeholder="ชื่อบริการ" />
+                    <div class="flex flex-wrap -mx-3 mb-4">
+                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-title">
+                                ชื่อบริการ
+                            </label>
+                            <input
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="service-title" placeholder="ชื่อบริการ" type="text" />
+                        </div>
+                        <div class="w-full md:w-1/2 px-3">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-date">
+                                วันที่ให้บริการ
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                                    <i class="fas fa-calendar-alt text-gray-400 cursor-pointer"
+                                        onclick="document.getElementById('service-date').focus()">
+                                    </i>
+                                </span>
+                                <input
+                                    class="shadow appearance-none border rounded w-full py-2 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    id="service-date" type="date" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap -mx-3 mb-4">
+                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-time-start">
+                                เวลาเริ่มต้น
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                                    <i class="fas fa-clock text-gray-400 cursor-pointer"
+                                        onclick="document.getElementById('service-time-start').focus()">
+                                    </i>
+                                </span>
+                                <input
+                                    class="shadow appearance-none border rounded w-full py-2 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    id="service-time-start" type="time" />
+                            </div>
+                        </div>
+                        <div class="w-full md:w-1/2 px-3">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-time-end">
+                                เวลาสิ้นสุด
+                            </label>
+                            <div class="relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
+                                    <i class="fas fa-clock text-gray-400 cursor-pointer"
+                                        onclick="document.getElementById('service-time-end').focus()">
+                                    </i>
+                                </span>
+                                <input
+                                    class="shadow appearance-none border rounded w-full py-2 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    id="service-time-end" type="time" />
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap -mx-3 mb-4">
+                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-location">
+                                สถานที่จัด
+                            </label>
+                            <input
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="service-location" placeholder="สถานที่จัด" type="text" />
+                        </div>
+                        <div class="w-full md:w-1/2 px-3">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-people">
+                                จำนวนคน
+                            </label>
+                            <input
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="service-people" placeholder="จำนวนคน" type="number" />
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap -mx-3 mb-4">
+                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="requester-name">
+                                ชื่อผู้ขอบริการ
+                            </label>
+                            <input
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="requester-name" placeholder="ชื่อผู้ขอบริการ" type="text" />
+                        </div>
                     </div>
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2"
-                            for="service-description">รายละเอียดบริการ</label>
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="service-description">
+                            รายละเอียดบริการ
+                        </label>
                         <textarea
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="service-description" placeholder="รายละเอียดบริการ"></textarea>
                     </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2"
-                            for="service-date">วันที่ให้บริการ</label>
-                        <input
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            id="service-date" type="date" />
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2"
-                            for="service-location">สถานที่จัด</label>
-                        <input
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            id="service-location" type="text" placeholder="สถานที่จัด" />
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2"
-                            for="service-hours">จำนวนชั่วโมง</label>
-                        <input
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            id="service-hours" type="number" placeholder="จำนวนชั่วโมง" />
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2"
-                            for="requester-name">ชื่อผู้ขอบริการ</label>
-                        <input
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            id="requester-name" type="text" placeholder="ชื่อผู้ขอบริการ" />
-                    </div>
                     <div class="flex items-center justify-center">
                         <button
-                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                            type="button">ยื่นข้อเสนอ</button>
+                            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
+                            type="button" onclick="window.history.back()">ย้อนกลับ</button>
+                        <button
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
+                            type="button">
+                            ยื่นกิจกรรม
+                        </button>
                     </div>
                 </form>
             </div>

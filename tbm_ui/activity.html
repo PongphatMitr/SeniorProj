@@ -6,6 +6,16 @@
     <title>จัดการกิจกรรม - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <script>
+        function confirmAndRemove(event, rowId) {
+            event.preventDefault();
+            const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลบกิจกรรมนี้?");
+            if (confirmation) {
+                document.getElementById(rowId).remove();
+                alert("กิจกรรมถูกลบเรียบร้อยแล้ว");
+            }
+        }
+    </script>
 </head>
 
 <body class="bg-gray-100">
@@ -76,61 +86,177 @@
             </nav>
         </div>
         <!-- Main Content -->
-        <div class="w-4/5 bg-blue-700 text-white p-10 relative">
+        <div class="w-5/6 bg-blue-700 text-white p-10">
             <h1 class="text-4xl font-bold mb-5">จัดการกิจกรรม</h1>
-            <div class="bg-white text-black p-8 rounded-lg shadow-lg relative">
-                <div class="absolute top-5 right-5">
-                    <a href="create-activity.html"
-                        class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">เพิ่มกิจกรรมใหม่</a>
-                </div>
+            <div class="bg-white text-black p-8 rounded-lg shadow-lg">
                 <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">กิจกรรม</h2>
+                <div class="mb-4 flex items-center">
+                    <input
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        type="text" placeholder="ค้นหากิจกรรม" />
+                    <a href="create-activity.html"
+                        class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-2">เพิ่ม</a>
+                </div>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white">
-                        <thead>
-                            <tr>
-                                <th
-                                    class="py-2 px-4 border-b-2 border-gray-300 text-left text-sm font-semibold text-gray-600">
-                                    กิจกรรม</th>
-                                <th
-                                    class="py-2 px-4 border-b-2 border-gray-300 text-left text-sm font-semibold text-gray-600">
-                                    วันที่</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="py-2 px-4 border-b border-gray-300">กิจกรรมทำความสะอาดชุมชน</td>
-                                <td class="py-2 px-4 border-b border-gray-300">01/01/2023</td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 px-4 border-b border-gray-300">กิจกรรมสอนคอมพิวเตอร์</td>
-                                <td class="py-2 px-4 border-b border-gray-300">15/01/2023</td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 px-4 border-b border-gray-300">กิจกรรมดูแลผู้สูงอายุ</td>
-                                <td class="py-2 px-4 border-b border-gray-300">20/01/2023</td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 px-4 border-b border-gray-300">กิจกรรมซ่อมแซมบ้าน</td>
-                                <td class="py-2 px-4 border-b border-gray-300">25/01/2023</td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 px-4 border-b border-gray-300">กิจกรรมทำอาหาร</td>
-                                <td class="py-2 px-4 border-b border-gray-300">30/01/2023</td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 px-4 border-b border-gray-300">กิจกรรมทำสวน</td>
-                                <td class="py-2 px-4 border-b border-gray-300">05/02/2023</td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 px-4 border-b border-gray-300">กิจกรรมซ่อมรถ</td>
-                                <td class="py-2 px-4 border-b border-gray-300">10/02/2023</td>
-                            </tr>
-                            <tr>
-                                <td class="py-2 px-4 border-b border-gray-300">กิจกรรมดูแลเด็ก</td>
-                                <td class="py-2 px-4 border-b border-gray-300">15/02/2023</td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <div class="table-responsive-sm">
+                        <table role="table" aria-busy="false" aria-colcount="4"
+                            class="table b-table b-table-stacked-md w-full">
+                            <thead role="rowgroup" class="bg-gray-100">
+                                <tr role="row">
+                                    <th role="columnheader" scope="col" aria-colindex="1"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                        กิจกรรม
+                                    </th>
+                                    <th role="columnheader" scope="col" aria-colindex="2"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                        วันที่
+                                    </th>
+                                    <th role="columnheader" scope="col" aria-colindex="3"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                        สถานะ
+                                    </th>
+                                    <th role="columnheader" scope="col" aria-colindex="4"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                        การจัดการ
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody role="rowgroup">
+                                <tr id="row-1" role="row" class="hover:bg-gray-100">
+                                    <td aria-colindex="1" data-label="กิจกรรม" role="cell"
+                                        class="py-2 px-4 border-b border-gray-200">
+                                        กิจกรรมทำความสะอาดชุมชน
+                                    </td>
+                                    <td aria-colindex="2" data-label="วันที่" role="cell"
+                                        class="py-2 px-4 border-b border-gray-200">
+                                        01/01/2023
+                                    </td>
+                                    <td aria-colindex="3" data-label="สถานะ" role="cell"
+                                        class="py-2 px-4 border-b border-gray-200">
+                                        <span class="bg-blue-500 text-white py-1 px-2 rounded">กำลังจะมาถึง</span>
+                                    </td>
+                                    <td aria-colindex="4" data-label="การจัดการ" role="cell"
+                                        class="py-2 px-4 border-b border-gray-200">
+                                        <button
+                                            class="bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">รายละเอียด</button>
+                                        <button
+                                            class="bg-red-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                            onclick="confirmAndRemove(event, 'row-1')">ลบ</button>
+                                    </td>
+                                </tr>
+                                <tr id="row-2" role="row" class="hover:bg-gray-100">
+                                    <td aria-colindex="1" data-label="กิจกรรม" role="cell"
+                                        class="py-2 px-4 border-b border-gray-200">
+                                        กิจกรรมสอนคอมพิวเตอร์
+                                    </td>
+                                    <td aria-colindex="2" data-label="วันที่" role="cell"
+                                        class="py-2 px-4 border-b border-gray-200">
+                                        15/01/2023
+                                    </td>
+                                    <td aria-colindex="3" data-label="สถานะ" role="cell"
+                                        class="py-2 px-4 border-b border-gray-200">
+                                        <span class="bg-blue-500 text-white py-1 px-2 rounded">กำลังจะมาถึง</span>
+                                    </td>
+                                    <td aria-colindex="4" data-label="การจัดการ" role="cell"
+                                        class="py-2 px-4 border-b border-gray-200">
+                                        <button
+                                            class="bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">รายละเอียด</button>
+                                        <button
+                                            class="bg-red-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                            onclick="confirmAndRemove(event, 'row-2')">ลบ</button>
+                                    </td>
+                                </tr>
+                                <tr id="row-3" role="row" class="hover:bg-gray-100">
+                                    <td aria-colindex="1" data-label="กิจกรรม" role="cell"
+                                        class="py-2 px-4 border-b border-gray-200">
+                                        กิจกรรมทำอาหาร
+                                    </td>
+                                    <td aria-colindex="2" data-label="วันที่" role="cell"
+                                        class="py-2 px-4 border-b border-gray-200">
+                                        30/01/2023
+                                    </td>
+                                    <td aria-colindex="3" data-label="สถานะ" role="cell"
+                                        class="py-2 px-4 border-b border-gray-200">
+                                        <span class="bg-green-500 text-white py-1 px-2 rounded">เสร็จสิ้น</span>
+                                    </td>
+                                    <td aria-colindex="4" data-label="การจัดการ" role="cell"
+                                        class="py-2 px-4 border-b border-gray-200">
+                                        <button
+                                            class="bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">รายละเอียด</button>
+                                        <button
+                                            class="bg-red-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                            onclick="confirmAndRemove(event, 'row-3')">ลบ</button>
+                                    </td>
+                                </tr>
+                                <tr id="row-4" role="row" class="hover:bg-gray-100">
+                                    <td aria-colindex="1" data-label="กิจกรรม" role="cell"
+                                        class="py-2 px-4 border-b border-gray-200">
+                                        กิจกรรมทำสวน
+                                    </td>
+                                    <td aria-colindex="2" data-label="วันที่" role="cell"
+                                        class="py-2 px-4 border-b border-gray-200">
+                                        05/02/2023
+                                    </td>
+                                    <td aria-colindex="3" data-label="สถานะ" role="cell"
+                                        class="py-2 px-4 border-b border-gray-200">
+                                        <span class="bg-green-500 text-white py-1 px-2 rounded">เสร็จสิ้น</span>
+                                    </td>
+                                    <td aria-colindex="4" data-label="การจัดการ" role="cell"
+                                        class="py-2 px-4 border-b border-gray-200">
+                                        <button
+                                            class="bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">รายละเอียด</button>
+                                        <button
+                                            class="bg-red-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                            onclick="confirmAndRemove(event, 'row-4')">ลบ</button>
+                                    </td>
+                                </tr>
+                                <tr id="row-5" role="row" class="hover:bg-gray-100">
+                                    <td aria-colindex="1" data-label="กิจกรรม" role="cell"
+                                        class="py-2 px-4 border-b border-gray-200">
+                                        กิจกรรมยกเลิก
+                                    </td>
+                                    <td aria-colindex="2" data-label="วันที่" role="cell"
+                                        class="py-2 px-4 border-b border-gray-200">
+                                        20/02/2023
+                                    </td>
+                                    <td aria-colindex="3" data-label="สถานะ" role="cell"
+                                        class="py-2 px-4 border-b border-gray-200">
+                                        <span class="bg-red-500 text-white py-1 px-2 rounded">ยกเลิก</span>
+                                    </td>
+                                    <td aria-colindex="4" data-label="การจัดการ" role="cell"
+                                        class="py-2 px-4 border-b border-gray-200">
+                                        <button
+                                            class="bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">รายละเอียด</button>
+                                        <button
+                                            class="bg-red-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                            onclick="confirmAndRemove(event, 'row-5')">ลบ</button>
+                                    </td>
+                                </tr>
+                                <tr id="row-6" role="row" class="hover:bg-gray-100">
+                                    <td aria-colindex="1" data-label="กิจกรรม" role="cell"
+                                        class="py-2 px-4 border-b border-gray-200">
+                                        กิจกรรมยกเลิก
+                                    </td>
+                                    <td aria-colindex="2" data-label="วันที่" role="cell"
+                                        class="py-2 px-4 border-b border-gray-200">
+                                        25/02/2023
+                                    </td>
+                                    <td aria-colindex="3" data-label="สถานะ" role="cell"
+                                        class="py-2 px-4 border-b border-gray-200">
+                                        <span class="bg-red-500 text-white py-1 px-2 rounded">ยกเลิก</span>
+                                    </td>
+                                    <td aria-colindex="4" data-label="การจัดการ" role="cell"
+                                        class="py-2 px-4 border-b border-gray-200">
+                                        <button
+                                            class="bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">รายละเอียด</button>
+                                        <button
+                                            class="bg-red-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                            onclick="confirmAndRemove(event, 'row-6')">ลบ</button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
