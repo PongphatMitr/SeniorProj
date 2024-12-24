@@ -80,32 +80,65 @@
             <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
                 <h1 class="text-4xl font-bold text-center text-blue-900 mb-8">TIME BANK</h1>
                 <h2 class="text-2xl font-bold text-center text-blue-900 mb-6">Login</h2>
-                <form>
+                <form id="loginForm">
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2"
-                            for="id-number">เลขผู้จัดการธนาคารเวลา</label>
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="username">Username</label>
                         <input
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            id="id-number" placeholder="" type="text" />
+                            id="username" type="text" placeholder="Username" />
                     </div>
                     <div class="mb-6">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="password">รหัสผ่าน</label>
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="password">Password</label>
                         <input
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
-                            id="password" placeholder="" type="password" />
+                            id="password" type="password" placeholder="Password" />
                     </div>
                     <div class="flex items-center justify-center">
                         <button
                             class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                            type="button">เข้าสู่ระบบ</button>
+                            type="submit">Login</button>
                     </div>
                 </form>
                 <div class="text-center mt-4">
-                    <p class="text-gray-700">ไม่มีบัญชีผู้ใช้? <a class="text-blue-500" href="#">สมัครสมาชิก</a></p>
+                    <p class="text-gray-700">Don't have an account? <a class="text-blue-500"
+                            href="register.html">Register</a></p>
                 </div>
             </div>
         </div>
     </div>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    // Save the token in localStorage
+                    localStorage.setItem('token', data.token);
+                    // Redirect to the homepage or another page
+                    window.location.href = 'homepage.html';
+                } else {
+                    console.error('Error:', data);
+                    alert(data.error);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('An error occurred. Please try again.');
+            }
+        });
+    </script>
 </body>
 
 </html>
