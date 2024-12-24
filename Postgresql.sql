@@ -1,10 +1,10 @@
 -- Create the users table
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
-    username VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(255) NOT NULL,
-    email VARCHAR(100) NOT NULL UNIQUE,
-    role VARCHAR(20) NOT NULL CHECK (role IN ('admin', 'member'))
+    username VARCHAR(50) NOT NULL,
+    password VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    role VARCHAR(50) NOT NULL CHECK (role IN ('Member', 'TimeBankManager', 'Admin'))
 );
 
 -- Create the members table
@@ -69,5 +69,6 @@ CREATE TABLE activity_participants (
 -- Insert initial data into community_fund
 INSERT INTO community_fund (total_hours, borrowed_hours) VALUES (200, 50);
 
-INSERT INTO users (username, password, email, role) 
-VALUES ('testuser', '$2a$10$y2yR9UyFAUfyYCiYqDxgteWBflWnsbYdlFZDmNPmn7P1.xUfbRFtu', 'testuser@example.com', 'member');
+-- Insert initial data into users
+INSERT INTO users (user_id, username, password, email, role) 
+VALUES (1, 'testuser', '$2a$10$y2yR9UyFAUfyYCiYqDxgteWBflWnsbYdlFZDmNPmn7P1.xUfbRFtu', 'testuser@example.com', 'Member');

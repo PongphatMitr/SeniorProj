@@ -1,7 +1,7 @@
 const express = require('express');
-const bodyParser = require('body-parser');
 const dotenv = require('dotenv');
 const { Pool } = require('pg');
+const cors = require('cors');
 const authRoutes = require('./routes/auth');
 const memberRoutes = require('./routes/members');
 const activityRoutes = require('./routes/activities');
@@ -22,11 +22,15 @@ const pool = new Pool({
 // Middleware to parse JSON bodies
 app.use(express.json());
 
-app.use('/api/auth', authRoutes);
-app.use('/api/members', authMiddleware, memberRoutes);
-app.use('/api/activities', authMiddleware, activityRoutes);
-app.use('/api/skills', authMiddleware, skillRoutes);
-app.use('/api/funds', authMiddleware, fundRoutes);
+// Enable CORS
+app.use(cors());
+
+// Routes
+app.use('/api/auth', authRoutes(pool));
+app.use('/api/members', authMiddleware, memberRoutes(pool));
+app.use('/api/activities', authMiddleware, activityRoutes(pool));
+app.use('/api/skills', authMiddleware, skillRoutes(pool));
+app.use('/api/funds', authMiddleware, fundRoutes(pool));
 
 app.get('/', (req, res) => {
     res.send('Welcome to Time Bank API');
