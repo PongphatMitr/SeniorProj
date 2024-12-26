@@ -26,12 +26,13 @@ CREATE TABLE activities (
     title VARCHAR(100) NOT NULL,
     description TEXT,
     location VARCHAR(100),
-    date DATE NOT NULL,
+    start_date DATE NOT NULL,
     start_time TIME,
+    end_date DATE NOT NULL,
     end_time TIME,
     max_participants INT,
     requester_name VARCHAR(100),
-    status VARCHAR(20) NOT NULL CHECK (status IN ('upcoming', 'completed', 'cancelled'))
+    status VARCHAR(20) NOT NULL CHECK (status IN ('กำลังจะเริ่ม', 'เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา'))
 );
 
 -- Create the skills table
@@ -70,5 +71,43 @@ CREATE TABLE activity_participants (
 INSERT INTO community_fund (total_hours, borrowed_hours) VALUES (200, 50);
 
 -- Insert initial data into users
-INSERT INTO users (user_id, username, password, email, role) 
-VALUES (1, 'testuser', '$2a$10$y2yR9UyFAUfyYCiYqDxgteWBflWnsbYdlFZDmNPmn7P1.xUfbRFtu', 'testuser@example.com', 'Member');
+INSERT INTO users (username, password, email, role) 
+VALUES ('testuser', '$2a$10$y2yR9UyFAUfyYCiYqDxgteWBflWnsbYdlFZDmNPmn7P1.xUfbRFtu', 'testuser@example.com', 'Member');
+
+-- Insert initial data into members
+INSERT INTO members (user_id, name, phone, address, branch, time_credits, status) 
+VALUES (1, 'Test User', '1234567890', '123 Test St, Test City', 'Test Branch', 10, 'active');
+
+-- Insert initial data into activities
+INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_name, status) 
+VALUES 
+('กิจกรรมทำความสะอาดชุมชน', 'ทำความสะอาดชุมชน', 'Community Center', '2023-01-01', '09:00', '2023-01-01', '12:00', 20, 'Test User', 'กำลังจะเริ่ม'),
+('กิจกรรมสอนคอมพิวเตอร์', 'สอนคอมพิวเตอร์ให้กับชุมชน', 'Community Center', '2023-01-15', '10:00', '2023-01-15', '13:00', 15, 'Test User', 'กำลังจะเริ่ม'),
+('กิจกรรมทำอาหาร', 'ทำอาหารร่วมกัน', 'Community Kitchen', '2023-01-30', '11:00', '2023-01-30', '14:00', 10, 'Test User', 'เสร็จสิ้น'),
+('กิจกรรมทำสวน', 'ทำสวนร่วมกัน', 'Community Garden', '2023-02-05', '08:00', '2023-02-05', '11:00', 25, 'Test User', 'เสร็จสิ้น'),
+('กิจกรรมยกเลิก', 'กิจกรรมนี้ถูกยกเลิก', 'Community Center', '2023-02-20', '09:00', '2023-02-20', '12:00', 0, 'Test User', 'ยกเลิก'),
+('กิจกรรมยกเลิก', 'กิจกรรมนี้ถูกยกเลิก', 'Community Center', '2023-02-25', '09:00', '2023-02-25', '12:00', 0, 'Test User', 'ยกเลิก');
+
+-- Insert initial data into skills
+INSERT INTO skills (name, category) 
+VALUES 
+('การทำความสะอาด', 'ทั่วไป'),
+('การสอนคอมพิวเตอร์', 'การศึกษา'),
+('การทำอาหาร', 'การทำอาหาร'),
+('การทำสวน', 'การเกษตร');
+
+-- Insert initial data into member_skills
+INSERT INTO member_skills (member_id, skill_id) 
+VALUES 
+(1, 1),
+(1, 2),
+(1, 3),
+(1, 4);
+
+-- Insert initial data into activity_participants
+INSERT INTO activity_participants (activity_id, member_id) 
+VALUES 
+(1, 1),
+(2, 1),
+(3, 1),
+(4, 1);

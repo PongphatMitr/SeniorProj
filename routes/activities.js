@@ -32,12 +32,12 @@ const activityRoutes = (pool) => {
 
     // Create a new activity
     router.post('/', async (req, res) => {
-        const { title, description, location, date, start_time, end_time, max_participants, requester_name, status } = req.body;
+        const { title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_name, status } = req.body;
 
         try {
             const result = await pool.query(
-                'INSERT INTO activities (title, description, location, date, start_time, end_time, max_participants, requester_name, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING *',
-                [title, description, location, date, start_time, end_time, max_participants, requester_name, status]
+                'INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_name, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
+                [title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_name, status]
             );
 
             res.status(201).json(result.rows[0]);
@@ -50,12 +50,12 @@ const activityRoutes = (pool) => {
     // Update an activity
     router.put('/:id', async (req, res) => {
         const { id } = req.params;
-        const { title, description, location, date, start_time, end_time, max_participants, requester_name, status } = req.body;
+        const { title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_name, status } = req.body;
 
         try {
             const result = await pool.query(
-                'UPDATE activities SET title = $1, description = $2, location = $3, date = $4, start_time = $5, end_time = $6, max_participants = $7, requester_name = $8, status = $9 WHERE activity_id = $10 RETURNING *',
-                [title, description, location, date, start_time, end_time, max_participants, requester_name, status, id]
+                'UPDATE activities SET title = $1, description = $2, location = $3, start_date = $4, start_time = $5, end_date = $6, end_time = $7, max_participants = $8, requester_name = $9, status = $10 WHERE activity_id = $11 RETURNING *',
+                [title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_name, status, id]
             );
 
             res.json(result.rows[0]);

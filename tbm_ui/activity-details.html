@@ -4,24 +4,64 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>
-        เพิ่มกิจกรรมใหม่ - Time Bank
+        แก้ไขกิจกรรม - Time Bank
     </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
     <script>
-        async function submitActivity(event) {
+        async function fetchActivityDetails() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const activityId = urlParams.get('id');
+
+            if (!activityId) {
+                alert('ไม่พบรหัสกิจกรรม');
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/activities/${activityId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                const activity = await response.json();
+
+                if (activity) {
+                    document.getElementById('service-title').value = activity.title;
+                    document.getElementById('service-description').value = activity.description;
+                    document.getElementById('service-location').value = activity.location;
+                    document.getElementById('service-start-date').value = activity.start_date;
+                    document.getElementById('service-time-start').value = activity.start_time;
+                    document.getElementById('service-end-date').value = activity.end_date;
+                    document.getElementById('service-time-end').value = activity.end_time;
+                    document.getElementById('service-people').value = activity.max_participants;
+                    document.getElementById('requester-name').value = activity.requester_name;
+                    document.getElementById('service-status').value = activity.status;
+                } else {
+                    alert('ไม่พบรายละเอียดกิจกรรม');
+                }
+            } catch (error) {
+                console.error('Error fetching activity details:', error);
+                alert('เกิดข้อผิดพลาดในการดึงรายละเอียดกิจกรรม');
+            }
+        }
+
+        async function updateActivity(event) {
             event.preventDefault();
 
+            const urlParams = new URLSearchParams(window.location.search);
+            const activityId = urlParams.get('id');
+
             const title = document.getElementById('service-title').value;
+            const description = document.getElementById('service-description').value;
+            const location = document.getElementById('service-location').value;
             const start_date = document.getElementById('service-start-date').value;
             const start_time = document.getElementById('service-time-start').value;
             const end_date = document.getElementById('service-end-date').value;
             const end_time = document.getElementById('service-time-end').value;
-            const location = document.getElementById('service-location').value;
             const max_participants = document.getElementById('service-people').value;
             const requester_name = document.getElementById('requester-name').value;
-            const description = document.getElementById('service-description').value;
-            const status = 'กำลังจะเริ่ม'; // Default status for new activities
+            const status = document.getElementById('service-status').value;
 
             const activityData = {
                 title,
@@ -37,8 +77,8 @@
             };
 
             try {
-                const response = await fetch('http://localhost:3000/api/activities', {
-                    method: 'POST',
+                const response = await fetch(`http://localhost:3000/api/activities/${activityId}`, {
+                    method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -47,17 +87,19 @@
                 });
 
                 if (response.ok) {
-                    alert('กิจกรรมถูกเพิ่มเรียบร้อยแล้ว');
-                    window.location.href = 'activity.html'; // Redirect to the activity management page
+                    alert('กิจกรรมถูกแก้ไขเรียบร้อยแล้ว');
+                    window.location.href = 'activity-details.html?id=' + activityId; // Redirect to the activity details page
                 } else {
                     const errorData = await response.json();
                     alert(`เกิดข้อผิดพลาด: ${errorData.error}`);
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('เกิดข้อผิดพลาดในการยื่นกิจกรรม');
+                alert('เกิดข้อผิดพลาดในการแก้ไขกิจกรรม');
             }
         }
+
+        document.addEventListener('DOMContentLoaded', fetchActivityDetails);
     </script>
 </head>
 
@@ -152,13 +194,13 @@
         <!-- Main Content -->
         <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
             <h1 class="text-4xl font-bold mb-5">
-                เพิ่มกิจกรรมใหม่
+                แก้ไขกิจกรรม
             </h1>
             <div class="bg-white text-black p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
                 <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">
                     รายละเอียดกิจกรรม
                 </h2>
-                <form onsubmit="submitActivity(event)">
+                <form onsubmit="updateActivity(event)">
                     <div class="flex flex-wrap -mx-3 mb-4">
                         <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="service-title">
@@ -267,6 +309,18 @@
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="service-description" placeholder="รายละเอียดบริการ" required></textarea>
                     </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="service-status">
+                            สถานะ
+                        </label>
+                        <select
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="service-status" required>
+                            <option value="กำลังจะเริ่ม">กำลังจะเริ่ม</option>
+                            <option value="เสร็จสิ้น">เสร็จสิ้น</option>
+                            <option value="ยกเลิก">ยกเลิก</option>
+                        </select>
+                    </div>
                     <div class="flex items-center justify-center">
                         <button
                             class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
@@ -274,7 +328,7 @@
                         <button
                             class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
                             type="submit">
-                            ยื่นกิจกรรม
+                            บันทึกการแก้ไข
                         </button>
                     </div>
                 </form>
