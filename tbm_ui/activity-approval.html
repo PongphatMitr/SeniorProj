@@ -7,8 +7,6 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
     <script>
-        let participants = [];
-
         async function fetchActivityDetails() {
             const urlParams = new URLSearchParams(window.location.search);
             const activityId = urlParams.get('id');
@@ -38,11 +36,23 @@
                     document.getElementById('activity-date').innerText = new Date(activity.start_date).toLocaleDateString();
                     document.getElementById('activity-start-time').innerText = activity.start_time;
                     document.getElementById('activity-end-time').innerText = activity.end_time;
-                    document.getElementById('activity-max-participants').innerText = activity.max_participants;
+
+                    // Fetch participants
+                    const participantsResponse = await fetch(`http://localhost:3000/api/activities/${activityId}/participants`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+
+                    if (!participantsResponse.ok) {
+                        throw new Error(`HTTP error! status: ${participantsResponse.status}`);
+                    }
+
+                    const participants = await participantsResponse.json();
+                    const participantsCount = Array.isArray(participants) ? participants.length : 0;
+                    document.getElementById('activity-max-participants').innerText = `${participantsCount}/${activity.max_participants}`;
                     document.getElementById('activity-requester-name').innerText = activity.requester_name;
                     document.getElementById('activity-status').innerText = activity.status;
-
-                    fetchParticipants(activityId);
                 } else {
                     alert('ไม่พบรายละเอียดกิจกรรม');
                 }
@@ -50,62 +60,6 @@
                 console.error('Error fetching activity details:', error);
                 alert('เกิดข้อผิดพลาดในการดึงรายละเอียดกิจกรรม');
             }
-        }
-
-        async function fetchParticipants(activityId) {
-            try {
-                const response = await fetch(`http://localhost:3000/api/activities/${activityId}/participants`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                participants = await response.json();
-
-                if (Array.isArray(participants)) {
-                    renderParticipants(participants);
-                } else {
-                    console.error('Expected an array but got:', participants);
-                }
-            } catch (error) {
-                console.error('Error fetching participants:', error);
-                alert('เกิดข้อผิดพลาดในการดึงรายชื่อผู้เข้าร่วม');
-            }
-        }
-
-        function renderParticipants(data) {
-            const tbody = document.getElementById('participants-tbody');
-            tbody.innerHTML = '';
-            data.forEach((participant, index) => {
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-gray-100';
-                row.innerHTML = `
-                    <td class="py-2 px-4 border-b border-gray-200">${participant.name}</td>
-                    <td class="py-2 px-4 border-b border-gray-200">${participant.email}</td>
-                    <td class="py-2 px-4 border-b border-gray-200">
-                        <button class="bg-red-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline" onclick="removeParticipant(${index})">ลบ</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        function searchParticipants() {
-            const searchTerm = document.getElementById('search-input').value.toLowerCase();
-            const filteredParticipants = participants.filter(participant =>
-                participant.name.toLowerCase().includes(searchTerm) ||
-                participant.email.toLowerCase().includes(searchTerm)
-            );
-            renderParticipants(filteredParticipants);
-        }
-
-        function removeParticipant(index) {
-            participants.splice(index, 1);
-            renderParticipants(participants);
         }
 
         async function approveActivity() {
@@ -156,7 +110,14 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', fetchActivityDetails);
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchActivityDetails();
+
+            document.getElementById('participants-button').addEventListener('click', () => {
+                const activityId = new URLSearchParams(window.location.search).get('id');
+                window.location.href = `activity-participant.html?id=${activityId}`;
+            });
+        });
     </script>
 </head>
 
@@ -232,12 +193,12 @@
             <h1 class="text-4xl font-bold mb-5">
                 อนุมัติกิจกรรม
             </h1>
-            <div class="bg-white text-black p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="bg-white text-black p-12 rounded-lg shadow-lg max-w-6xl mx-auto">
+                <h2 class="text-4xl font-bold mb-6 text-center text-blue-700" id="activity-title">
+                    <!-- Activity Title will be inserted here -->
+                </h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div>
-                        <h2 class="text-4xl font-bold mb-6 text-center text-blue-700" id="activity-title">
-                            <!-- Activity Title will be inserted here -->
-                        </h2>
                         <div class="mb-4">
                             <label class="block text-gray-700 text-lg font-bold mb-2">
                                 รายละเอียด:
@@ -254,6 +215,8 @@
                                 <!-- Activity Location will be inserted here -->
                             </p>
                         </div>
+                    </div>
+                    <div>
                         <div class="mb-4">
                             <label class="block text-gray-700 text-lg font-bold mb-2">
                                 วันที่:
@@ -270,6 +233,8 @@
                                 <!-- Activity Start Time will be inserted here -->
                             </p>
                         </div>
+                    </div>
+                    <div>
                         <div class="mb-4">
                             <label class="block text-gray-700 text-lg font-bold mb-2">
                                 เวลาสิ้นสุด:
@@ -286,6 +251,8 @@
                                 <!-- Activity Max Participants will be inserted here -->
                             </p>
                         </div>
+                    </div>
+                    <div>
                         <div class="mb-4">
                             <label class="block text-gray-700 text-lg font-bold mb-2">
                                 ชื่อผู้ขอบริการ:
@@ -303,62 +270,27 @@
                             </p>
                         </div>
                     </div>
-                    <div>
-                        <h3 class="text-2xl font-bold mb-4 text-blue-700">
-                            รายชื่อผู้เข้าร่วม
-                        </h3>
-                        <div class="mb-4 flex items-center">
-                            <input
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="text" id="search-input" placeholder="ค้นหาผู้เข้าร่วม"
-                                oninput="searchParticipants()" />
-                        </div>
-                        <div class="overflow-x-auto">
-                            <div class="table-responsive-sm">
-                                <table aria-busy="false" aria-colcount="3"
-                                    class="table b-table b-table-stacked-md w-full" role="table">
-                                    <thead class="bg-gray-100" role="rowgroup">
-                                        <tr role="row">
-                                            <th aria-colindex="1"
-                                                class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                                role="columnheader" scope="col">
-                                                ชื่อ
-                                            </th>
-                                            <th aria-colindex="2"
-                                                class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                                role="columnheader" scope="col">
-                                                อีเมล
-                                            </th>
-                                            <th aria-colindex="3"
-                                                class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                                role="columnheader" scope="col">
-                                                การจัดการ
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="participants-tbody" role="rowgroup">
-                                        <!-- Participants will be dynamically inserted here -->
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                    </div>
                 </div>
                 <div class="flex items-center justify-center mt-6">
                     <button
-                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
+                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-4 px-6 ml-2 rounded focus:outline-none focus:shadow-outline"
                         onclick="window.history.back()" type="button">
                         ย้อนกลับ
                     </button>
                     <button
-                        class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
+                        class="bg-green-500 hover:bg-green-700 text-white font-bold py-4 px-6 ml-2 rounded focus:outline-none focus:shadow-outline"
                         onclick="approveActivity()" type="button">
                         อนุมัติ
                     </button>
                     <button
-                        class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
+                        class="bg-red-500 hover:bg-red-700 text-white font-bold py-4 px-6 ml-2 rounded focus:outline-none focus:shadow-outline"
                         onclick="rejectActivity()" type="button">
                         ปฏิเสธ
+                    </button>
+                    <button id="participants-button"
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-6 ml-2 rounded focus:outline-none focus:shadow-outline"
+                        type="button">
+                        ผู้เข้าร่วม
                     </button>
                 </div>
             </div>

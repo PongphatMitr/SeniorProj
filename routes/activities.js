@@ -6,6 +6,19 @@ dotenv.config();
 const activityRoutes = (pool) => {
     const router = express.Router();
 
+    // Add a route to delete a participant from an activity
+    router.delete('/:activityId/participants/:memberId', async (req, res) => {
+        const { activityId, memberId } = req.params;
+
+        try {
+            await pool.query('DELETE FROM activity_participants WHERE activity_id = $1 AND member_id = $2', [activityId, memberId]);
+            res.status(204).send();
+        } catch (err) {
+            console.error('Error:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+
     // Get all activities
     router.get('/', async (req, res) => {
         try {
@@ -72,6 +85,47 @@ const activityRoutes = (pool) => {
         try {
             await pool.query('DELETE FROM activities WHERE activity_id = $1', [id]);
             res.status(204).send();
+        } catch (err) {
+            console.error('Error:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+
+    // Fetch participants for a given activity
+    router.get('/:activityId/participants', async (req, res) => {
+        const { activityId } = req.params;
+
+        try {
+            const participants = await pool.query(`
+                   SELECT m.member_id, m.name, u.email, array_agg(s.name) as skills
+                   FROM activity_participants ap
+                   JOIN members m ON ap.member_id = m.member_id
+                   JOIN users u ON m.user_id = u.user_id
+                   JOIN member_skills ms ON m.member_id = ms.member_id
+                   JOIN skills s ON ms.skill_id = s.skill_id
+                   WHERE ap.activity_id = $1
+                   GROUP BY m.member_id, m.name, u.email
+               `, [activityId]);
+
+            res.json(participants.rows);
+        } catch (error) {
+            console.error('Error fetching participants:', error);
+            res.status(500).json({ error: 'Failed to fetch participants' });
+        }
+    });
+
+    // Add a participant to an activity
+    router.post('/:activityId/participants', async (req, res) => {
+        const { activityId } = req.params;
+        const { memberId } = req.body;
+
+        try {
+            const result = await pool.query(
+                'INSERT INTO activity_participants (activity_id, member_id) VALUES ($1, $2) RETURNING *',
+                [activityId, memberId]
+            );
+
+            res.status(201).json(result.rows[0]);
         } catch (err) {
             console.error('Error:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });

@@ -6,6 +6,29 @@ dotenv.config();
 const memberRoutes = (pool) => {
     const router = express.Router();
 
+    // Search for members
+    router.get('/search', async (req, res) => {
+        const { query } = req.query;
+
+        try {
+            const result = await pool.query(
+                `SELECT m.member_id, m.name, u.email, array_agg(s.name) as skills
+                 FROM members m
+                 JOIN users u ON m.user_id = u.user_id
+                 JOIN member_skills ms ON m.member_id = ms.member_id
+                 JOIN skills s ON ms.skill_id = s.skill_id
+                 WHERE m.name ILIKE $1 OR u.email ILIKE $1
+                 GROUP BY m.member_id, m.name, u.email`,
+                [`%${query}%`]
+            );
+
+            res.json(result.rows);
+        } catch (err) {
+            console.error('Error:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+
     // Get all members
     router.get('/', async (req, res) => {
         try {
