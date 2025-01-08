@@ -132,6 +132,40 @@ const activityRoutes = (pool) => {
         }
     });
 
+    // Approve an activity
+    router.post('/:activityId/approve', async (req, res) => {
+        const { activityId } = req.params;
+
+        try {
+            const result = await pool.query(
+                'UPDATE activities SET status = $1 WHERE activity_id = $2 RETURNING *',
+                ['เสร็จสิ้น', activityId]
+            );
+
+            res.json(result.rows[0]);
+        } catch (err) {
+            console.error('Error approving activity:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+
+    // Reject an activity
+    router.post('/:activityId/reject', async (req, res) => {
+        const { activityId } = req.params;
+
+        try {
+            const result = await pool.query(
+                'UPDATE activities SET status = $1 WHERE activity_id = $2 RETURNING *',
+                ['ยกเลิก', activityId]
+            );
+
+            res.json(result.rows[0]);
+        } catch (err) {
+            console.error('Error rejecting activity:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+
     return router;
 };
 

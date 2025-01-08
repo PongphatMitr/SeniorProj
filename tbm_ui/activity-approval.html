@@ -65,9 +65,11 @@
         async function approveActivity() {
             const urlParams = new URLSearchParams(window.location.search);
             const activityId = urlParams.get('id');
+            const url = `http://localhost:3000/api/activities/${activityId}/approve`;
 
             try {
-                const response = await fetch(`http://localhost:3000/api/activities/${activityId}/approve`, {
+                console.log(`Sending POST request to ${url}`);
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -75,6 +77,8 @@
                 });
 
                 if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error(`HTTP error! status: ${response.status}, response: ${errorText}`);
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
@@ -89,9 +93,11 @@
         async function rejectActivity() {
             const urlParams = new URLSearchParams(window.location.search);
             const activityId = urlParams.get('id');
+            const url = `http://localhost:3000/api/activities/${activityId}/reject`;
 
             try {
-                const response = await fetch(`http://localhost:3000/api/activities/${activityId}/reject`, {
+                console.log(`Sending POST request to ${url}`);
+                const response = await fetch(url, {
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -99,6 +105,8 @@
                 });
 
                 if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error(`HTTP error! status: ${response.status}, response: ${errorText}`);
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 

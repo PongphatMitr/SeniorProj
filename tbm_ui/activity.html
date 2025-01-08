@@ -6,6 +6,19 @@
     <title>จัดการกิจกรรม - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <style>
+        .day-part {
+            display: inline-block;
+            width: 40px;
+            /* Adjust width as needed */
+        }
+
+        .month-year-part {
+            display: inline-block;
+            width: 80px;
+            /* Adjust width as needed */
+        }
+    </style>
     <script>
         let activities = [];
         let sortOrder = {
@@ -45,12 +58,30 @@
 
                 if (Array.isArray(activities)) {
                     updateActivityStatus();
+                    await fetchParticipants();
                     renderTable(activities);
                 } else {
                     console.error('Expected an array but got:', activities);
                 }
             } catch (error) {
                 console.error('Error fetching activities:', error);
+            }
+        }
+
+        async function fetchParticipants() {
+            for (let activity of activities) {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/activities/${activity.activity_id}/participants`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    const participants = await response.json();
+                    activity.current_participants = participants.length;
+                } catch (error) {
+                    console.error(`Error fetching participants for activity ${activity.activity_id}:`, error);
+                    activity.current_participants = 0;
+                }
             }
         }
 
@@ -81,12 +112,15 @@
                         ${activity.title}
                     </td>
                     <td aria-colindex="2" data-label="วันที่" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${new Date(activity.start_date).toLocaleDateString()}
+                        ${formatDate(activity.start_date)}
                     </td>
                     <td aria-colindex="3" data-label="สถานะ" role="cell" class="py-2 px-4 border-b border-gray-200">
                         <span class="py-1 px-2 rounded ${activity.status === 'กำลังจะเริ่ม' ? 'bg-blue-500' : activity.status === 'เสร็จสิ้น' ? 'bg-green-500' : activity.status === 'เกินเวลา' ? 'bg-orange-500' : 'bg-red-500'} text-white">${activity.status}</span>
                     </td>
-                    <td aria-colindex="4" data-label="การจัดการ" role="cell" class="py-2 px-4 border-b border-gray-200">
+                    <td aria-colindex="4" data-label="จำนวนผู้เข้าร่วม" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${activity.current_participants} / ${activity.max_participants}
+                    </td>
+                    <td aria-colindex="5" data-label="การจัดการ" role="cell" class="py-2 px-4 border-b border-gray-200">
                         <a href="activity-details.html?id=${activity.activity_id}" class="bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">รายละเอียด</a>
                         ${activity.status === 'กำลังจะเริ่ม' ? `<a href="activity-approval.html?id=${activity.activity_id}" class="bg-yellow-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">อนุมัติ</a>` : ''}
                         <button class="bg-red-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline" onclick="confirmAndRemove(event, 'row-${index + 1}', ${activity.activity_id})">ลบ</button>
@@ -94,6 +128,15 @@
                 `;
                 tbody.appendChild(row);
             });
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const year = date.getFullYear() + 543; // Convert to Buddhist year
+            const monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+            const month = monthNames[date.getMonth()];
+            const day = date.getDate();
+            return `<span class="day-part">${day}</span> <span class="month-year-part">${month}</span> <span class="month-year-part">${year}</span>`;
         }
 
         function sortTable(column, type) {
@@ -195,7 +238,7 @@
                 </div>
                 <div class="overflow-x-auto">
                     <div class="table-responsive-sm">
-                        <table role="table" aria-busy="false" aria-colcount="4"
+                        <table role="table" aria-busy="false" aria-colcount="5"
                             class="table b-table b-table-stacked-md w-full">
                             <thead role="rowgroup" class="bg-gray-100">
                                 <tr role="row">
@@ -215,6 +258,10 @@
                                         สถานะ <i class="fas fa-sort"></i>
                                     </th>
                                     <th role="columnheader" scope="col" aria-colindex="4"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                        จำนวนผู้เข้าร่วม
+                                    </th>
+                                    <th role="columnheader" scope="col" aria-colindex="5"
                                         class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
                                         การจัดการ
                                     </th>
