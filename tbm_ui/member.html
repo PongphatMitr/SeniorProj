@@ -50,6 +50,85 @@
         }
     </style>
     <script>
+        let members = [];
+
+        async function confirmAndRemove(event, rowId, memberId) {
+            event.preventDefault();
+            const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลบสมาชิกนี้?");
+            if (confirmation) {
+                const response = await fetch(`http://localhost:3000/api/members/${memberId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                if (response.ok) {
+                    document.getElementById(rowId).remove();
+                    alert("สมาชิกถูกลบเรียบร้อยแล้ว");
+                } else {
+                    alert("เกิดข้อผิดพลาดในการลบสมาชิก");
+                }
+            }
+        }
+
+        async function fetchMembers() {
+            try {
+                const response = await fetch('http://localhost:3000/api/members', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                members = await response.json();
+                renderTable(members);
+            } catch (error) {
+                console.error('Error fetching members:', error);
+            }
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('member-tbody');
+            tbody.innerHTML = '';
+            data.forEach((member, index) => {
+                const row = document.createElement('tr');
+                row.id = `row-${index + 1}`;
+                row.className = 'hover:bg-gray-100';
+                row.innerHTML = `
+                    <td aria-colindex="1" data-label="รหัสสมาชิก" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${member.member_id}
+                    </td>
+                    <td aria-colindex="2" data-label="ชื่อ" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${member.name}
+                    </td>
+                    <td aria-colindex="3" data-label="เครดิตเวลา(คะแนน)" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${member.time_credits}
+                    </td>
+                    <td aria-colindex="4" data-label="สถานะ" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        <span class="badge badge-success" style="width: 100px;">${member.status === 'active' ? 'ปกติ' : 'ไม่ปกติ'}</span>
+                    </td>
+                    <td aria-colindex="5" data-label="ล็อกอินไลน์" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        <span class="badge badge-success" style="width: 100px;">ล็อกอินเเล้ว</span>
+                    </td>
+                    <td aria-colindex="6" data-label="การจัดการ" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        <div class="dropdown b-dropdown m-md-2 btn-group">
+                            <button id="dropdown-${index + 1}__BV_toggle_" aria-haspopup="menu" aria-expanded="false" type="button"
+                                class="btn bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                onclick="toggleDropdown(event)">เลือก</button>
+                            <ul role="menu" tabindex="-1" aria-labelledby="dropdown-${index + 1}__BV_toggle_" class="dropdown-content">
+                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self"><b>โปรไฟล์</b></a></li>
+                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self"><b>สมุดบัญชี</b></a></li>
+                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self"><b>แก้ไข</b></a></li>
+                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self"><b>PDF</b></a></li>
+                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self"><b>ความสามารถ</b></a></li>
+                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self"><b>วันที่สะดวกทำงาน</b></a></li>
+                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self"><b class="red">ลบสมาชิก</b></a></li>
+                            </ul>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
         function toggleDropdown(event) {
             event.stopPropagation();
             const dropdownContent = event.currentTarget.nextElementSibling;
@@ -67,6 +146,8 @@
                 }
             }
         }
+
+        document.addEventListener('DOMContentLoaded', fetchMembers);
     </script>
 </head>
 
@@ -150,186 +231,41 @@
                         class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-2">เพิ่ม</a>
                 </div>
                 <div class="overflow-x-auto">
-                    <div data-v-0b0690a0="" class="col-sm-12 col-md-12 col-12" style="margin-top: 15px;">
-                        <div data-v-0b0690a0="" class="table-responsive-sm">
-                            <table role="table" aria-busy="false" aria-colcount="6"
-                                class="table b-table b-table-stacked-md w-full" id="__BVID__180">
-                                <thead role="rowgroup" class="bg-gray-100">
-                                    <tr role="row">
-                                        <th role="columnheader" scope="col" aria-colindex="1"
-                                            class="tr-tr py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                            รหัสสมาชิก
-                                        </th>
-                                        <th role="columnheader" scope="col" aria-colindex="2"
-                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                            ชื่อ
-                                        </th>
-                                        <th role="columnheader" scope="col" aria-colindex="3"
-                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                            เครดิตเวลา(คะแนน)
-                                        </th>
-                                        <th role="columnheader" scope="col" aria-colindex="4"
-                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                            สถานะ
-                                        </th>
-                                        <th role="columnheader" scope="col" aria-colindex="5"
-                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                            ล็อกอินไลน์
-                                        </th>
-                                        <th role="columnheader" scope="col" aria-colindex="6"
-                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                            การจัดการ
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody role="rowgroup">
-                                    <tr role="row" class="hover:bg-gray-100">
-                                        <td aria-colindex="1" data-label="รหัสสมาชิก" role="cell"
-                                            class="py-2 px-4 border-b border-gray-200">
-                                            2410170001
-                                        </td>
-                                        <td aria-colindex="2" data-label="ชื่อ" role="cell"
-                                            class="py-2 px-4 border-b border-gray-200">
-                                            กฤชนพัต จุลจู
-                                        </td>
-                                        <td aria-colindex="3" data-label="เครดิตเวลา(คะแนน)" role="cell"
-                                            class="py-2 px-4 border-b border-gray-200">
-                                            21
-                                        </td>
-                                        <td aria-colindex="4" data-label="สถานะ" role="cell"
-                                            class="py-2 px-4 border-b border-gray-200">
-                                            <span class="badge badge-success" style="width: 100px;">ปกติ</span>
-                                        </td>
-                                        <td aria-colindex="5" data-label="ล็อกอินไลน์" role="cell"
-                                            class="py-2 px-4 border-b border-gray-200">
-                                            <span class="badge badge-success" style="width: 100px;">ล็อกอินเเล้ว</span>
-                                        </td>
-                                        <td aria-colindex="6" data-label="การจัดการ" role="cell"
-                                            class="py-2 px-4 border-b border-gray-200">
-                                            <div class="dropdown b-dropdown m-md-2 btn-group">
-                                                <button id="dropdown-1__BV_toggle_" aria-haspopup="menu"
-                                                    aria-expanded="false" type="button"
-                                                    class="btn bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
-                                                    onclick="toggleDropdown(event)">เลือก</button>
-                                                <ul role="menu" tabindex="-1" aria-labelledby="dropdown-1__BV_toggle_"
-                                                    class="dropdown-content">
-                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
-                                                            href="#" target="_self"><b>โปรไฟล์</b></a></li>
-                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
-                                                            href="#" target="_self"><b>สมุดบัญชี</b></a></li>
-                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
-                                                            href="#" target="_self"><b>แก้ไข</b></a></li>
-                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
-                                                            href="#" target="_self"><b>PDF</b></a></li>
-                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
-                                                            href="#" target="_self"><b>ความสามารถ</b></a></li>
-                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
-                                                            href="#" target="_self"><b>วันที่สะดวกทำงาน</b></a></li>
-                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
-                                                            href="#" target="_self"><b class="red">ลบสมาชิก</b></a></li>
-                                                </ul>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr role="row" class="hover:bg-gray-100">
-                                        <td aria-colindex="1" data-label="รหัสสมาชิก" role="cell"
-                                            class="py-2 px-4 border-b border-gray-200">
-                                            2410600002
-                                        </td>
-                                        <td aria-colindex="2" data-label="ชื่อ" role="cell"
-                                            class="py-2 px-4 border-b border-gray-200">
-                                            วริศ คำกวีปราชญ์
-                                        </td>
-                                        <td aria-colindex="3" data-label="เครดิตเวลา(คะแนน)" role="cell"
-                                            class="py-2 px-4 border-b border-gray-200">
-                                            11
-                                        </td>
-                                        <td aria-colindex="4" data-label="สถานะ" role="cell"
-                                            class="py-2 px-4 border-b border-gray-200">
-                                            <span class="badge badge-success" style="width: 100px;">ปกติ</span>
-                                        </td>
-                                        <td aria-colindex="5" data-label="ล็อกอินไลน์" role="cell"
-                                            class="py-2 px-4 border-b border-gray-200">
-                                            <span class="badge badge-success" style="width: 100px;">ล็อกอินเเล้ว</span>
-                                        </td>
-                                        <td aria-colindex="6" data-label="การจัดการ" role="cell"
-                                            class="py-2 px-4 border-b border-gray-200">
-                                            <div class="dropdown b-dropdown m-md-2 btn-group">
-                                                <button id="dropdown-2__BV_toggle_" aria-haspopup="menu"
-                                                    aria-expanded="false" type="button"
-                                                    class="btn bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
-                                                    onclick="toggleDropdown(event)">เลือก</button>
-                                                <ul role="menu" tabindex="-1" aria-labelledby="dropdown-2__BV_toggle_"
-                                                    class="dropdown-content">
-                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
-                                                            href="#" target="_self"><b>โปรไฟล์</b></a></li>
-                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
-                                                            href="#" target="_self"><b>สมุดบัญชี</b></a></li>
-                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
-                                                            href="#" target="_self"><b>แก้ไข</b></a></li>
-                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
-                                                            href="#" target="_self"><b>PDF</b></a></li>
-                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
-                                                            href="#" target="_self"><b>ความสามารถ</b></a></li>
-                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
-                                                            href="#" target="_self"><b>วันที่สะดวกทำงาน</b></a></li>
-                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
-                                                            href="#" target="_self"><b class="red">ลบสมาชิก</b></a></li>
-                                                </ul>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr role="row" class="hover:bg-gray-100">
-                                        <td aria-colindex="1" data-label="รหัสสมาชิก" role="cell"
-                                            class="py-2 px-4 border-b border-gray-200">
-                                            2473170001
-                                        </td>
-                                        <td aria-colindex="2" data-label="ชื่อ" role="cell"
-                                            class="py-2 px-4 border-b border-gray-200">
-                                            ชื่อทดสอบ สกุลทดสอบ
-                                        </td>
-                                        <td aria-colindex="3" data-label="เครดิตเวลา(คะแนน)" role="cell"
-                                            class="py-2 px-4 border-b border-gray-200">
-                                            7
-                                        </td>
-                                        <td aria-colindex="4" data-label="สถานะ" role="cell"
-                                            class="py-2 px-4 border-b border-gray-200">
-                                            <span class="badge badge-success" style="width: 100px;">ปกติ</span>
-                                        </td>
-                                        <td aria-colindex="5" data-label="ล็อกอินไลน์" role="cell"
-                                            class="py-2 px-4 border-b border-gray-200">
-                                            <span class="badge badge-success" style="width: 100px;">ล็อกอินเเล้ว</span>
-                                        </td>
-                                        <td aria-colindex="6" data-label="การจัดการ" role="cell"
-                                            class="py-2 px-4 border-b border-gray-200">
-                                            <div class="dropdown b-dropdown m-md-2 btn-group">
-                                                <button id="dropdown-3__BV_toggle_" aria-haspopup="menu"
-                                                    aria-expanded="false" type="button"
-                                                    class="btn bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
-                                                    onclick="toggleDropdown(event)">เลือก</button>
-                                                <ul role="menu" tabindex="-1" aria-labelledby="dropdown-3__BV_toggle_"
-                                                    class="dropdown-content">
-                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
-                                                            href="#" target="_self"><b>โปรไฟล์</b></a></li>
-                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
-                                                            href="#" target="_self"><b>สมุดบัญชี</b></a></li>
-                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
-                                                            href="#" target="_self"><b>แก้ไข</b></a></li>
-                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
-                                                            href="#" target="_self"><b>PDF</b></a></li>
-                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
-                                                            href="#" target="_self"><b>ความสามารถ</b></a></li>
-                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
-                                                            href="#" target="_self"><b>วันที่สะดวกทำงาน</b></a></li>
-                                                    <li role="presentation" class="dropdown-item"><a role="menuitem"
-                                                            href="#" target="_self"><b class="red">ลบสมาชิก</b></a></li>
-                                                </ul>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                    <div class="table-responsive-sm">
+                        <table role="table" aria-busy="false" aria-colcount="6"
+                            class="table b-table b-table-stacked-md w-full">
+                            <thead role="rowgroup" class="bg-gray-100">
+                                <tr role="row">
+                                    <th role="columnheader" scope="col" aria-colindex="1"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                        รหัสสมาชิก
+                                    </th>
+                                    <th role="columnheader" scope="col" aria-colindex="2"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                        ชื่อ
+                                    </th>
+                                    <th role="columnheader" scope="col" aria-colindex="3"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                        เครดิตเวลา(คะแนน)
+                                    </th>
+                                    <th role="columnheader" scope="col" aria-colindex="4"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                        สถานะ
+                                    </th>
+                                    <th role="columnheader" scope="col" aria-colindex="5"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                        ล็อกอินไลน์
+                                    </th>
+                                    <th role="columnheader" scope="col" aria-colindex="6"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                        การจัดการ
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="member-tbody" role="rowgroup">
+                                <!-- Members will be dynamically inserted here -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>

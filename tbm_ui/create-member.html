@@ -3,9 +3,73 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>เพิ่มสมาชิกใหม่ - Time Bank</title>
+    <title>สร้างบัญชีสมาชิก - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <script>
+        async function createMember(event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const email = document.getElementById('email').value;
+            const name = document.getElementById('name').value;
+            const phone = document.getElementById('phone').value;
+            const address = document.getElementById('address').value;
+            const branch = document.getElementById('branch').value;
+            const status = document.getElementById('status').value;
+
+            const userPayload = {
+                username: username,
+                password: password,
+                email: email,
+                role: 'Member'
+            };
+
+            try {
+                const userResponse = await fetch('http://localhost:3000/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(userPayload)
+                });
+
+                if (userResponse.ok) {
+                    const userData = await userResponse.json();
+                    const memberPayload = {
+                        user_id: userData.user_id,
+                        name: name,
+                        phone: phone,
+                        address: address,
+                        branch: branch,
+                        status: status
+                    };
+
+                    const memberResponse = await fetch('http://localhost:3000/api/members', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify(memberPayload)
+                    });
+
+                    if (memberResponse.ok) {
+                        const memberData = await memberResponse.json();
+                        alert('บัญชีสมาชิกถูกสร้างเรียบร้อยแล้ว');
+                        window.location.href = `create-member-skill.html?memberId=${memberData.member_id}`;
+                    } else {
+                        alert('เกิดข้อผิดพลาดในการสร้างบัญชีสมาชิก');
+                    }
+                } else {
+                    alert('เกิดข้อผิดพลาดในการสร้างบัญชีผู้ใช้');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('เกิดข้อผิดพลาดในการสร้างบัญชีผู้ใช้');
+            }
+        }
+    </script>
 </head>
 
 <body class="bg-gray-100">
@@ -62,7 +126,7 @@
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="skillconf.html">
                             <i class="fas fa-cogs mr-3"></i>
-                            จัดการหมวหมู่ทักษะ
+                            จัดการหมวดหมู่ทักษะ
                         </a>
                     </li>
                     <li class="mb-5">
@@ -76,52 +140,89 @@
             </nav>
         </div>
         <!-- Main Content -->
-        <div class="w-4/5 bg-blue-700 text-white p-10">
-            <h1 class="text-4xl font-bold mb-5">เพิ่มสมาชิกใหม่</h1>
-            <div class="bg-white text-black p-8 rounded-lg shadow-lg">
-                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">รายละเอียดสมาชิก</h2>
-                <form>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="name">ชื่อ</label>
-                        <input
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            id="name" type="text" placeholder="ชื่อ" />
+        <div class="w-5/6 bg-blue-700 text-white p-10">
+            <h1 class="text-4xl font-bold mb-5">สร้างบัญชีสมาชิก</h1>
+            <div class="bg-white text-black p-5 rounded-lg">
+                <form onsubmit="createMember(event)">
+                    <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="username">
+                                ชื่อผู้ใช้
+                            </label>
+                            <input
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="username" type="text" placeholder="ชื่อผู้ใช้" required />
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
+                                รหัสผ่าน
+                            </label>
+                            <input
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="password" type="password" placeholder="รหัสผ่าน" required />
+                        </div>
                     </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="email">อีเมล</label>
-                        <input
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            id="email" type="email" placeholder="อีเมล" />
+                    <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
+                                อีเมล
+                            </label>
+                            <input
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="email" type="email" placeholder="อีเมล" required />
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="name">
+                                ชื่อ
+                            </label>
+                            <input
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="name" type="text" placeholder="ชื่อ" required />
+                        </div>
                     </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="phone">เบอร์โทรศัพท์</label>
-                        <input
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            id="phone" type="text" placeholder="เบอร์โทรศัพท์" />
+                    <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="phone">
+                                เบอร์โทรศัพท์
+                            </label>
+                            <input
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="phone" type="text" placeholder="เบอร์โทรศัพท์" required />
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="branch">
+                                สาขา
+                            </label>
+                            <input
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="branch" type="text" placeholder="สาขา" required />
+                        </div>
                     </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="address">ที่อยู่</label>
-                        <textarea
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            id="address" placeholder="ที่อยู่"></textarea>
+                    <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="address">
+                                ที่อยู่
+                            </label>
+                            <textarea
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="address" placeholder="ที่อยู่" required></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="status">
+                                สถานะ
+                            </label>
+                            <select
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="status" required>
+                                <option value="active">Active</option>
+                                <option value="inactive">Inactive</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="branch">สาขา</label>
-                        <select
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            id="branch">
-                            <option value="central">สาขากลาง</option>
-                            <option value="north">สาขาเหนือ</option>
-                            <option value="northeast">สาขาอีสาน</option>
-                            <option value="east">สาขาตะวันออก</option>
-                            <option value="west">สาขาตะวันตก</option>
-                            <option value="south">สาขาใต้</option>
-                        </select>
-                    </div>
-                    <div class="flex items-center justify-center">
+                    <div class="flex items-center justify-center mt-5">
                         <button
                             class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                            type="button">บันทึก</button>
+                            type="submit">ต่อไป</button>
                     </div>
                 </form>
             </div>
