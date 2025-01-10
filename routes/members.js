@@ -21,6 +21,10 @@ const memberRoutes = (pool) => {
     router.get('/:id', async (req, res) => {
         const { id } = req.params;
 
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid member ID' });
+        }
+
         try {
             const result = await pool.query('SELECT * FROM members WHERE member_id = $1', [id]);
             res.json(result.rows[0]);
@@ -33,6 +37,10 @@ const memberRoutes = (pool) => {
     // Get skills of a member
     router.get('/:id/skills', async (req, res) => {
         const { id } = req.params;
+
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid member ID' });
+        }
 
         try {
             const result = await pool.query(`
@@ -52,6 +60,10 @@ const memberRoutes = (pool) => {
     router.put('/:id/skills', async (req, res) => {
         const { id } = req.params;
         const { skills } = req.body;
+
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid member ID' });
+        }
 
         const client = await pool.connect();
         try {
@@ -73,6 +85,22 @@ const memberRoutes = (pool) => {
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         } finally {
             client.release();
+        }
+    });
+
+    // Create a new member
+    router.post('/', async (req, res) => {
+        const { user_id, name, phone, address, branch, status } = req.body;
+
+        try {
+            const result = await pool.query(
+                'INSERT INTO members (user_id, name, phone, address, branch, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+                [user_id, name, phone, address, branch, status]
+            );
+            res.status(201).json(result.rows[0]);
+        } catch (err) {
+            console.error('Error:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
 

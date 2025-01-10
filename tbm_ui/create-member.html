@@ -3,8 +3,11 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>สร้างบัญชีสมาชิก - Time Bank</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>
+        สร้างบัญชีสมาชิก - Time Bank
+    </title>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
     <script>
         async function createMember(event) {
@@ -78,9 +81,7 @@
         <div class="w-1/6 bg-white h-screen p-5">
             <div class="flex items-center mb-10">
                 <img alt="Logo of Time Bank System, a clock with a handshake in the center"
-                    class="w-10 h-10 rounded-full" height="50"
-                    src="https://storage.googleapis.com/a1aa/image/GOMFBEaepyxe3E3gz2xaZviBDO0q04rV6Cz8h1wgcnNFaw5TA.jpg"
-                    width="50" />
+                    class="w-10 h-10 rounded-full" height="50" src="https://placehold.co/50x50" width="50" />
                 <span class="ml-3 text-xl font-bold text-blue-600">
                     TIMEBANK
                 </span>
@@ -90,49 +91,56 @@
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="login.html">
-                            <i class="fas fa-sign-in-alt mr-3"></i>
+                            <i class="fas fa-sign-in-alt mr-3">
+                            </i>
                             Login
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
+                            <i class="fas fa-home mr-3">
+                            </i>
                             หน้าหลัก
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="report.html">
-                            <i class="fas fa-chart-bar mr-3"></i>
+                            <i class="fas fa-chart-bar mr-3">
+                            </i>
                             รายงาน
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="activity.html">
-                            <i class="fas fa-calendar-alt mr-3"></i>
+                            <i class="fas fa-calendar-alt mr-3">
+                            </i>
                             จัดการกิจกรรม
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="member.html">
-                            <i class="fas fa-users mr-3"></i>
+                            <i class="fas fa-users mr-3">
+                            </i>
                             จัดการสมาชิก
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="skillconf.html">
-                            <i class="fas fa-cogs mr-3"></i>
+                            <i class="fas fa-cogs mr-3">
+                            </i>
                             จัดการหมวดหมู่ทักษะ
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="fund.html">
-                            <i class="fas fa-hand-holding-usd mr-3"></i>
+                            <i class="fas fa-hand-holding-usd mr-3">
+                            </i>
                             จัดการกองทุนชุมชน
                         </a>
                     </li>
@@ -141,7 +149,9 @@
         </div>
         <!-- Main Content -->
         <div class="w-5/6 bg-blue-700 text-white p-10">
-            <h1 class="text-4xl font-bold mb-5">สร้างบัญชีสมาชิก</h1>
+            <h1 class="text-4xl font-bold mb-5">
+                สร้างบัญชีสมาชิก
+            </h1>
             <div class="bg-white text-black p-5 rounded-lg">
                 <form onsubmit="createMember(event)">
                     <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -151,7 +161,7 @@
                             </label>
                             <input
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="username" type="text" placeholder="ชื่อผู้ใช้" required />
+                                id="username" placeholder="ชื่อผู้ใช้" required="" type="text" />
                         </div>
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
@@ -159,7 +169,7 @@
                             </label>
                             <input
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="password" type="password" placeholder="รหัสผ่าน" required />
+                                id="password" placeholder="รหัสผ่าน" required="" type="password" />
                         </div>
                     </div>
                     <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -169,7 +179,7 @@
                             </label>
                             <input
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="email" type="email" placeholder="อีเมล" required />
+                                id="email" placeholder="อีเมล" required="" type="email" />
                         </div>
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="name">
@@ -177,7 +187,7 @@
                             </label>
                             <input
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="name" type="text" placeholder="ชื่อ" required />
+                                id="name" placeholder="ชื่อ" required="" type="text" />
                         </div>
                     </div>
                     <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -187,7 +197,7 @@
                             </label>
                             <input
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="phone" type="text" placeholder="เบอร์โทรศัพท์" required />
+                                id="phone" placeholder="เบอร์โทรศัพท์" required="" type="text" />
                         </div>
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="branch">
@@ -195,7 +205,7 @@
                             </label>
                             <input
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="branch" type="text" placeholder="สาขา" required />
+                                id="branch" placeholder="สาขา" required="" type="text" />
                         </div>
                     </div>
                     <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -205,7 +215,7 @@
                             </label>
                             <textarea
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="address" placeholder="ที่อยู่" required></textarea>
+                                id="address" placeholder="ที่อยู่" required=""></textarea>
                         </div>
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="status">
@@ -213,16 +223,22 @@
                             </label>
                             <select
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="status" required>
-                                <option value="active">Active</option>
-                                <option value="inactive">Inactive</option>
+                                id="status" required="">
+                                <option value="active">
+                                    Active
+                                </option>
+                                <option value="inactive">
+                                    Inactive
+                                </option>
                             </select>
                         </div>
                     </div>
                     <div class="flex items-center justify-center mt-5">
                         <button
                             class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                            type="submit">ต่อไป</button>
+                            type="submit">
+                            ต่อไป
+                        </button>
                     </div>
                 </form>
             </div>
