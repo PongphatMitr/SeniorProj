@@ -3,171 +3,246 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>
-        จัดการสมาชิก - Time Bank
-    </title>
-    <script src="https://cdn.tailwindcss.com">
-    </script>
+    <title>จัดการหมวดหมู่ทักษะ - Time Bank</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
-    <style>
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            background-color: white;
-            min-width: 160px;
-            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-            z-index: 1;
-            border-radius: 0.5rem;
-            overflow: hidden;
-        }
-
-        .dropdown-content.show {
-            display: block;
-        }
-
-        .dropdown-item {
-            padding: 0.5rem 1rem;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .dropdown-item:hover {
-            background-color: #f1f1f1;
-        }
-
-        .dropdown-item b {
-            color: rgb(0, 123, 255);
-            transition: color 0.3s ease;
-        }
-
-        .dropdown-item:hover b {
-            color: rgb(0, 86, 179);
-        }
-
-        .dropdown-item b.red {
-            color: red;
-        }
-
-        .dropdown-item:hover b.red {
-            color: darkred;
-        }
-    </style>
     <script>
-        let members = [];
-        let currentPage = 1;
-        const pageSize = 10;
+        let skills = [];
 
-        async function fetchMembers(page, searchTerm = '') {
+        async function fetchSkills() {
             try {
-                const response = await fetch(`http://localhost:3000/api/members?page=${page}&pageSize=${pageSize}&search=${encodeURIComponent(searchTerm)}`, {
+                const response = await fetch('http://localhost:3000/api/skills', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
                 const data = await response.json();
                 if (Array.isArray(data)) {
-                    members = data;
-                    renderTable(members);
-                    renderPagination();
+                    skills = data;
+                    renderSkills(skills);
+                    renderCategoryButtons();
                 } else {
                     console.error('Expected an array but got:', data);
-                    alert('เกิดข้อผิดพลาดในการดึงข้อมูลสมาชิก');
+                    alert('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะ');
                 }
             } catch (error) {
-                console.error('Error fetching members:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลสมาชิก');
+                console.error('Error fetching skills:', error);
+                alert('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะ');
             }
         }
 
-        function renderTable(data) {
-            const tbody = document.getElementById('member-tbody');
-            tbody.innerHTML = '';
-            data.forEach((member, index) => {
-                const row = document.createElement('tr');
-                row.id = `row-${index + 1}`;
-                row.className = 'hover:bg-gray-100';
-                row.innerHTML = `
-                    <td aria-colindex="1" data-label="รหัสสมาชิก" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${member.member_id}
-                    </td>
-                    <td aria-colindex="2" data-label="ชื่อ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${member.name}
-                    </td>
-                    <td aria-colindex="3" data-label="เครดิตเวลา(คะแนน)" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${member.time_credits}
-                    </td>
-                    <td aria-colindex="4" data-label="สถานะ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        <span class="badge badge-success" style="width: 100px;">${member.status === 'active' ? 'ปกติ' : 'ไม่ปกติ'}</span>
-                    </td>
-                    <td aria-colindex="5" data-label="ล็อกอินไลน์" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        <span class="badge badge-success" style="width: 100px;">ล็อกอินเเล้ว</span>
-                    </td>
-                    <td aria-colindex="6" data-label="การจัดการ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        <div class="dropdown b-dropdown m-md-2 btn-group">
-                            <button id="dropdown-${index + 1}__BV_toggle_" aria-haspopup="menu" aria-expanded="false" type="button"
-                                class="btn bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
-                                onclick="toggleDropdown(event)">เลือก</button>
-                            <ul role="menu" tabindex="-1" aria-labelledby="dropdown-${index + 1}__BV_toggle_" class="dropdown-content">
-                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self"><b>โปรไฟล์</b></a></li>
-                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self"><b>สมุดบัญชี</b></a></li>
-                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self"><b>แก้ไข</b></a></li>
-                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self"><b>PDF</b></a></li>
-                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self"><b>ความสามารถ</b></a></li>
-                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self"><b>วันที่สะดวกทำงาน</b></a></li>
-                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self" onclick="confirmAndRemove(event, 'row-${index + 1}', ${member.member_id})"><b class="red">ลบสมาชิก</b></a></li>
-                            </ul>
+        function renderSkills(data) {
+            const skillContainer = document.getElementById('skill-container');
+            skillContainer.innerHTML = '';
+            const categories = [...new Set(data.map(skill => skill.category))];
+
+            function renderCategoryTree(categories, parentElement) {
+                if (categories.length === 0) return;
+
+                const midIndex = Math.floor(categories.length / 2);
+                const leftCategories = categories.slice(0, midIndex);
+                const rightCategories = categories.slice(midIndex + 1);
+                const currentCategory = categories[midIndex];
+
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = `bg-gray-100 p-6 rounded-lg category category-${currentCategory} w-3/4 mx-auto mb-5`;
+                categoryDiv.innerHTML = `
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold category-name">${currentCategory}</h3>
+                        <div>
+                            <button
+                                class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                                type="button" onclick="modifyCategory('${currentCategory}')">แก้ไข</button>
                         </div>
-                    </td>
+                    </div>
                 `;
-                tbody.appendChild(row);
+
+                data.filter(skill => skill.category === currentCategory).forEach(skill => {
+                    const skillP = document.createElement('p');
+                    skillP.className = 'mb-2';
+                    skillP.innerHTML = `
+                        <span class="skill-name">${skill.name}</span>
+                        <button
+                            class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 ml-2 mt-2 rounded focus:outline-none focus:shadow-outline hidden"
+                            type="button" onclick="removeSkill(${skill.skill_id})">ลบ</button>
+                    `;
+                    categoryDiv.appendChild(skillP);
+                });
+
+                parentElement.appendChild(categoryDiv);
+
+                const leftDiv = document.createElement('div');
+                leftDiv.className = 'w-full';
+                parentElement.appendChild(leftDiv);
+                renderCategoryTree(leftCategories, leftDiv);
+
+                const rightDiv = document.createElement('div');
+                rightDiv.className = 'w-full';
+                parentElement.appendChild(rightDiv);
+                renderCategoryTree(rightCategories, rightDiv);
+            }
+
+            renderCategoryTree(categories, skillContainer);
+        }
+
+        function renderCategoryButtons() {
+            const categoryButtonsContainer = document.getElementById('category-buttons');
+            categoryButtonsContainer.innerHTML = '';
+
+            const categories = [...new Set(skills.map(skill => skill.category))];
+
+            const allButton = document.createElement('button');
+            allButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mx-1 rounded focus:outline-none focus:shadow-outline';
+            allButton.textContent = 'All';
+            allButton.onclick = () => showCategory('all');
+            categoryButtonsContainer.appendChild(allButton);
+
+            categories.forEach(category => {
+                const button = document.createElement('button');
+                button.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mx-1 rounded focus:outline-none focus:shadow-outline';
+                button.textContent = category;
+                button.onclick = () => showCategory(category);
+                categoryButtonsContainer.appendChild(button);
             });
         }
 
-        function renderPagination() {
-            const paginationContainer = document.getElementById('pagination');
-            paginationContainer.innerHTML = '';
-
-            const totalPages = Math.ceil(members.length / pageSize);
-
-            for (let i = 1; i <= totalPages; i++) {
-                const pageButton = document.createElement('button');
-                pageButton.className = `bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1 ${i === currentPage ? 'bg-blue-700' : ''}`;
-                pageButton.textContent = i;
-                pageButton.onclick = () => {
-                    currentPage = i;
-                    fetchMembers(currentPage);
-                };
-                paginationContainer.appendChild(pageButton);
+        function showCategory(category) {
+            if (category === 'all') {
+                renderSkills(skills);
+            } else {
+                const filteredSkills = skills.filter(skill => skill.category === category);
+                renderSkills(filteredSkills);
             }
         }
 
-        function toggleDropdown(event) {
-            event.stopPropagation();
-            const dropdownContent = event.currentTarget.nextElementSibling;
-            dropdownContent.classList.toggle('show');
+        async function modifyCategory(category) {
+            const categoryDiv = document.querySelector(`.category-${category}`);
+            const skillNames = categoryDiv.querySelectorAll('.skill-name');
+            const deleteButtons = categoryDiv.querySelectorAll('button.bg-red-500');
+            const categoryNameElement = categoryDiv.querySelector('.category-name');
+
+            // Replace category name with input field
+            const categoryInput = document.createElement('input');
+            categoryInput.type = 'text';
+            categoryInput.value = category;
+            categoryInput.className = 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
+            categoryNameElement.replaceWith(categoryInput);
+
+            skillNames.forEach(skillName => {
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = skillName.textContent;
+                input.className = 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
+                skillName.replaceWith(input);
+            });
+
+            deleteButtons.forEach(button => {
+                button.classList.remove('hidden');
+            });
+
+            // Add button to add new skills
+            const addSkillButton = document.createElement('button');
+            addSkillButton.className = 'bg-green-500 hover:bg-green-700 text-white font-bold py-1 px-2 mt-2 rounded focus:outline-none focus:shadow-outline';
+            addSkillButton.textContent = 'เพิ่มทักษะใหม่';
+            addSkillButton.type = 'button';
+            addSkillButton.onclick = () => {
+                const newSkillInput = document.createElement('input');
+                newSkillInput.type = 'text';
+                newSkillInput.placeholder = 'ชื่อทักษะใหม่';
+                newSkillInput.className = 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-2';
+                categoryDiv.insertBefore(newSkillInput, addSkillButton);
+            };
+            categoryDiv.appendChild(addSkillButton);
+
+            const modifyButton = categoryDiv.querySelector('button.bg-yellow-500');
+            modifyButton.textContent = 'บันทึก';
+            modifyButton.onclick = async () => {
+                const newSkills = [];
+                const inputs = categoryDiv.querySelectorAll('input');
+                const newCategory = categoryInput.value;
+
+                inputs.forEach((input, index) => {
+                    if (index > 0) { // Skip the first input which is the category input
+                        newSkills.push({ name: input.value, skill_id: skills.find(skill => skill.name === skillNames[index - 1]?.textContent)?.skill_id || null });
+                    }
+                });
+
+                console.log('Sending update request for category:', category);
+                console.log('New category name:', newCategory);
+                console.log('New skills data:', newSkills);
+
+                try {
+                    const response = await fetch(`http://localhost:3000/api/skills/category/${encodeURIComponent(category)}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({ newCategory, newSkills })
+                    });
+
+                    if (response.ok) {
+                        alert('หมวดหมู่ถูกแก้ไขเรียบร้อยแล้ว');
+                        fetchSkills();
+                    } else {
+                        const errorText = await response.text();
+                        console.error('Error response:', errorText);
+                        alert('เกิดข้อผิดพลาดในการแก้ไขหมวดหมู่');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('เกิดข้อผิดพลาดในการแก้ไขหมวดหมู่');
+                }
+            };
         }
 
-        window.onclick = function (event) {
-            if (!event.target.matches('.dropdown-button')) {
-                const dropdowns = document.getElementsByClassName("dropdown-content");
-                for (let i = 0; i < dropdowns.length; i++) {
-                    const openDropdown = dropdowns[i];
-                    if (openDropdown.classList.contains('show')) {
-                        openDropdown.classList.remove('show');
+        async function removeSkill(skillId) {
+            const confirmation = confirm('คุณแน่ใจหรือไม่ว่าต้องการลบทักษะนี้?');
+            if (confirmation) {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/skills/${skillId}`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        alert('ทักษะถูกลบเรียบร้อยแล้ว');
+                        fetchSkills();
+                    } else {
+                        alert('เกิดข้อผิดพลาดในการลบทักษะ');
                     }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('เกิดข้อผิดพลาดในการลบทักษะ');
                 }
             }
         }
 
-        function searchMembers() {
-            currentPage = 1;
-            const searchTerm = document.getElementById('search-bar').value;
-            fetchMembers(currentPage, searchTerm);
+        async function searchSkills() {
+            const searchTerm = document.getElementById('search-bar').value.toLowerCase();
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/skills/search?term=${encodeURIComponent(searchTerm)}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                const data = await response.json();
+                if (Array.isArray(data)) {
+                    renderSkills(data);
+                } else {
+                    console.error('Expected an array but got:', data);
+                    alert('เกิดข้อผิดพลาดในการค้นหาทักษะ');
+                }
+            } catch (error) {
+                console.error('Error searching skills:', error);
+                alert('เกิดข้อผิดพลาดในการค้นหาทักษะ');
+            }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchMembers(currentPage);
-        });
+        document.addEventListener('DOMContentLoaded', fetchSkills);
     </script>
 </head>
 
@@ -177,7 +252,9 @@
         <div class="w-1/6 bg-white h-screen p-5">
             <div class="flex items-center mb-10">
                 <img alt="Logo of Time Bank System, a clock with a handshake in the center"
-                    class="w-10 h-10 rounded-full" height="50" src="https://placehold.co/50x50" width="50" />
+                    class="w-10 h-10 rounded-full" height="50"
+                    src="https://storage.googleapis.com/a1aa/image/GOMFBEaepyxe3E3gz2xaZviBDO0q04rV6Cz8h1wgcnNFaw5TA.jpg"
+                    width="50" />
                 <span class="ml-3 text-xl font-bold text-blue-600">
                     TIMEBANK
                 </span>
@@ -187,56 +264,49 @@
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="login.html">
-                            <i class="fas fa-sign-in-alt mr-3">
-                            </i>
+                            <i class="fas fa-sign-in-alt mr-3"></i>
                             Login
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="homepage.html">
-                            <i class="fas fa-home mr-3">
-                            </i>
+                            <i class="fas fa-home mr-3"></i>
                             หน้าหลัก
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="report.html">
-                            <i class="fas fa-chart-bar mr-3">
-                            </i>
+                            <i class="fas fa-chart-bar mr-3"></i>
                             รายงาน
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="activity.html">
-                            <i class="fas fa-calendar-alt mr-3">
-                            </i>
+                            <i class="fas fa-calendar-alt mr-3"></i>
                             จัดการกิจกรรม
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="member.html">
-                            <i class="fas fa-users mr-3">
-                            </i>
+                            <i class="fas fa-users mr-3"></i>
                             จัดการสมาชิก
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="skillconf.html">
-                            <i class="fas fa-cogs mr-3">
-                            </i>
+                            <i class="fas fa-cogs mr-3"></i>
                             จัดการหมวดหมู่ทักษะ
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="fund.html">
-                            <i class="fas fa-hand-holding-usd mr-3">
-                            </i>
+                            <i class="fas fa-hand-holding-usd mr-3"></i>
                             จัดการกองทุนชุมชน
                         </a>
                     </li>
@@ -245,68 +315,21 @@
         </div>
         <!-- Main Content -->
         <div class="w-5/6 bg-blue-700 text-white p-10">
-            <h1 class="text-4xl font-bold mb-5">
-                จัดการสมาชิก
-            </h1>
-            <div class="bg-white text-black p-8 rounded-lg shadow-lg">
-                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">
-                    สมาชิก
-                </h2>
+            <h1 class="text-4xl font-bold mb-5">จัดการหมวดหมู่ทักษะ</h1>
+            <div class="bg-white text-black p-5 rounded-lg">
                 <div class="mb-4 flex items-center">
                     <input
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        id="search-bar" oninput="searchMembers()" placeholder="ค้นหาสมาชิก" type="text" />
-                    <a class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-2"
-                        href="create-member.html">
-                        เพิ่ม
-                    </a>
+                        type="text" id="search-bar" placeholder="ค้นหาทักษะหรือหมวดหมู่" oninput="searchSkills()" />
+                    <button
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
+                        type="button" onclick="window.location.href='create-skill.html'">เพิ่ม</button>
                 </div>
-                <div class="overflow-x-auto">
-                    <div class="table-responsive-sm">
-                        <table aria-busy="false" aria-colcount="6" class="table b-table b-table-stacked-md w-full"
-                            role="table">
-                            <thead class="bg-gray-100" role="rowgroup">
-                                <tr role="row">
-                                    <th aria-colindex="1"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        รหัสสมาชิก
-                                    </th>
-                                    <th aria-colindex="2"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        ชื่อ
-                                    </th>
-                                    <th aria-colindex="3"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        เครดิตเวลา(คะแนน)
-                                    </th>
-                                    <th aria-colindex="4"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        สถานะ
-                                    </th>
-                                    <th aria-colindex="5"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        ล็อกอินไลน์
-                                    </th>
-                                    <th aria-colindex="6"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        การจัดการ
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody id="member-tbody" role="rowgroup">
-                                <!-- Members will be dynamically inserted here -->
-                            </tbody>
-                        </table>
-                    </div>
+                <div id="category-buttons" class="flex justify-center mb-5">
+                    <!-- Category buttons will be dynamically inserted here -->
                 </div>
-                <div class="flex items-center justify-center mt-5" id="pagination">
-                    <!-- Pagination buttons will be dynamically inserted here -->
+                <div id="skill-container" class="grid grid-cols-1 gap-5 justify-center">
+                    <!-- Skills will be dynamically inserted here -->
                 </div>
             </div>
         </div>
