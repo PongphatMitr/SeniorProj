@@ -35,11 +35,18 @@ CREATE TABLE activities (
     status VARCHAR(20) NOT NULL CHECK (status IN ('กำลังจะเริ่ม', 'เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา'))
 );
 
+-- Create the categories table
+CREATE TABLE categories (
+    category_id SERIAL PRIMARY KEY,
+    category VARCHAR(100) NOT NULL
+);
+
 -- Create the skills table
 CREATE TABLE skills (
     skill_id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    category VARCHAR(100) NOT NULL
+    category_id INT NOT NULL,
+    FOREIGN KEY (category_id) REFERENCES categories(category_id)
 );
 
 -- Create the member_skills table to handle many-to-many relationship between members and skills
@@ -88,13 +95,21 @@ VALUES
 ('กิจกรรมยกเลิก', 'กิจกรรมนี้ถูกยกเลิก', 'Community Center', '2023-02-20', '09:00', '2023-02-20', '12:00', 0, 'Test User', 'ยกเลิก'),
 ('กิจกรรมยกเลิก', 'กิจกรรมนี้ถูกยกเลิก', 'Community Center', '2023-02-25', '09:00', '2023-02-25', '12:00', 0, 'Test User', 'ยกเลิก');
 
--- Insert initial data into skills
-INSERT INTO skills (name, category) 
+-- Insert initial data into categories
+INSERT INTO categories (category) 
 VALUES 
-('การทำความสะอาด', 'ทั่วไป'),
-('การสอนคอมพิวเตอร์', 'การศึกษา'),
-('การทำอาหาร', 'การทำอาหาร'),
-('การทำสวน', 'การเกษตร');
+('ทั่วไป'),
+('การศึกษา'),
+('การทำอาหาร'),
+('การเกษตร');
+
+-- Insert initial data into skills
+INSERT INTO skills (name, category_id) 
+VALUES 
+('การทำความสะอาด', 1),
+('การสอนคอมพิวเตอร์', 2),
+('การทำอาหาร', 3),
+('การทำสวน', 4);
 
 -- Insert initial data into member_skills
 INSERT INTO member_skills (member_id, skill_id) 

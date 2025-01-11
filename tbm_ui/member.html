@@ -3,8 +3,11 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>จัดการสมาชิก - Time Bank</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>
+        จัดการสมาชิก - Time Bank
+    </title>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
     <style>
         .dropdown-content {
@@ -51,37 +54,28 @@
     </style>
     <script>
         let members = [];
+        let currentPage = 1;
+        const pageSize = 10;
 
-        async function confirmAndRemove(event, rowId, memberId) {
-            event.preventDefault();
-            const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลบสมาชิกนี้?");
-            if (confirmation) {
-                const response = await fetch(`http://localhost:3000/api/members/${memberId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                if (response.ok) {
-                    document.getElementById(rowId).remove();
-                    alert("สมาชิกถูกลบเรียบร้อยแล้ว");
-                } else {
-                    alert("เกิดข้อผิดพลาดในการลบสมาชิก");
-                }
-            }
-        }
-
-        async function fetchMembers() {
+        async function fetchMembers(page, searchTerm = '') {
             try {
-                const response = await fetch('http://localhost:3000/api/members', {
+                const response = await fetch(`http://localhost:3000/api/members?page=${page}&pageSize=${pageSize}&search=${encodeURIComponent(searchTerm)}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-                members = await response.json();
-                renderTable(members);
+                const data = await response.json();
+                if (Array.isArray(data)) {
+                    members = data;
+                    renderTable(members);
+                    renderPagination();
+                } else {
+                    console.error('Expected an array but got:', data);
+                    alert('เกิดข้อผิดพลาดในการดึงข้อมูลสมาชิก');
+                }
             } catch (error) {
                 console.error('Error fetching members:', error);
+                alert('เกิดข้อผิดพลาดในการดึงข้อมูลสมาชิก');
             }
         }
 
@@ -120,13 +114,31 @@
                                 <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self"><b>PDF</b></a></li>
                                 <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self"><b>ความสามารถ</b></a></li>
                                 <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self"><b>วันที่สะดวกทำงาน</b></a></li>
-                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self"><b class="red">ลบสมาชิก</b></a></li>
+                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self" onclick="confirmAndRemove(event, 'row-${index + 1}', ${member.member_id})"><b class="red">ลบสมาชิก</b></a></li>
                             </ul>
                         </div>
                     </td>
                 `;
                 tbody.appendChild(row);
             });
+        }
+
+        function renderPagination() {
+            const paginationContainer = document.getElementById('pagination');
+            paginationContainer.innerHTML = '';
+
+            const totalPages = Math.ceil(members.length / pageSize);
+
+            for (let i = 1; i <= totalPages; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.className = `bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1 ${i === currentPage ? 'bg-blue-700' : ''}`;
+                pageButton.textContent = i;
+                pageButton.onclick = () => {
+                    currentPage = i;
+                    fetchMembers(currentPage);
+                };
+                paginationContainer.appendChild(pageButton);
+            }
         }
 
         function toggleDropdown(event) {
@@ -147,7 +159,15 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', fetchMembers);
+        function searchMembers() {
+            currentPage = 1;
+            const searchTerm = document.getElementById('search-bar').value;
+            fetchMembers(currentPage, searchTerm);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchMembers(currentPage);
+        });
     </script>
 </head>
 
@@ -157,9 +177,7 @@
         <div class="w-1/6 bg-white h-screen p-5">
             <div class="flex items-center mb-10">
                 <img alt="Logo of Time Bank System, a clock with a handshake in the center"
-                    class="w-10 h-10 rounded-full" height="50"
-                    src="https://storage.googleapis.com/a1aa/image/GOMFBEaepyxe3E3gz2xaZviBDO0q04rV6Cz8h1wgcnNFaw5TA.jpg"
-                    width="50" />
+                    class="w-10 h-10 rounded-full" height="50" src="https://placehold.co/50x50" width="50" />
                 <span class="ml-3 text-xl font-bold text-blue-600">
                     TIMEBANK
                 </span>
@@ -169,49 +187,56 @@
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="login.html">
-                            <i class="fas fa-sign-in-alt mr-3"></i>
+                            <i class="fas fa-sign-in-alt mr-3">
+                            </i>
                             Login
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
+                            <i class="fas fa-home mr-3">
+                            </i>
                             หน้าหลัก
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="report.html">
-                            <i class="fas fa-chart-bar mr-3"></i>
+                            <i class="fas fa-chart-bar mr-3">
+                            </i>
                             รายงาน
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="activity.html">
-                            <i class="fas fa-calendar-alt mr-3"></i>
+                            <i class="fas fa-calendar-alt mr-3">
+                            </i>
                             จัดการกิจกรรม
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="member.html">
-                            <i class="fas fa-users mr-3"></i>
+                            <i class="fas fa-users mr-3">
+                            </i>
                             จัดการสมาชิก
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="skillconf.html">
-                            <i class="fas fa-cogs mr-3"></i>
-                            จัดการหมวหมู่ทักษะ
+                            <i class="fas fa-cogs mr-3">
+                            </i>
+                            จัดการหมวดหมู่ทักษะ
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="fund.html">
-                            <i class="fas fa-hand-holding-usd mr-3"></i>
+                            <i class="fas fa-hand-holding-usd mr-3">
+                            </i>
                             จัดการกองทุนชุมชน
                         </a>
                     </li>
@@ -220,44 +245,56 @@
         </div>
         <!-- Main Content -->
         <div class="w-5/6 bg-blue-700 text-white p-10">
-            <h1 class="text-4xl font-bold mb-5">จัดการสมาชิก</h1>
+            <h1 class="text-4xl font-bold mb-5">
+                จัดการสมาชิก
+            </h1>
             <div class="bg-white text-black p-8 rounded-lg shadow-lg">
-                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">สมาชิก</h2>
+                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">
+                    สมาชิก
+                </h2>
                 <div class="mb-4 flex items-center">
                     <input
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        type="text" placeholder="ค้นหาสมาชิก" />
-                    <a href="create-member.html"
-                        class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-2">เพิ่ม</a>
+                        id="search-bar" oninput="searchMembers()" placeholder="ค้นหาสมาชิก" type="text" />
+                    <a class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-2"
+                        href="create-member.html">
+                        เพิ่ม
+                    </a>
                 </div>
                 <div class="overflow-x-auto">
                     <div class="table-responsive-sm">
-                        <table role="table" aria-busy="false" aria-colcount="6"
-                            class="table b-table b-table-stacked-md w-full">
-                            <thead role="rowgroup" class="bg-gray-100">
+                        <table aria-busy="false" aria-colcount="6" class="table b-table b-table-stacked-md w-full"
+                            role="table">
+                            <thead class="bg-gray-100" role="rowgroup">
                                 <tr role="row">
-                                    <th role="columnheader" scope="col" aria-colindex="1"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                    <th aria-colindex="1"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
+                                        role="columnheader" scope="col">
                                         รหัสสมาชิก
                                     </th>
-                                    <th role="columnheader" scope="col" aria-colindex="2"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                    <th aria-colindex="2"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
+                                        role="columnheader" scope="col">
                                         ชื่อ
                                     </th>
-                                    <th role="columnheader" scope="col" aria-colindex="3"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                    <th aria-colindex="3"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
+                                        role="columnheader" scope="col">
                                         เครดิตเวลา(คะแนน)
                                     </th>
-                                    <th role="columnheader" scope="col" aria-colindex="4"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                    <th aria-colindex="4"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
+                                        role="columnheader" scope="col">
                                         สถานะ
                                     </th>
-                                    <th role="columnheader" scope="col" aria-colindex="5"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                    <th aria-colindex="5"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
+                                        role="columnheader" scope="col">
                                         ล็อกอินไลน์
                                     </th>
-                                    <th role="columnheader" scope="col" aria-colindex="6"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                    <th aria-colindex="6"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
+                                        role="columnheader" scope="col">
                                         การจัดการ
                                     </th>
                                 </tr>
@@ -267,6 +304,9 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+                <div class="flex items-center justify-center mt-5" id="pagination">
+                    <!-- Pagination buttons will be dynamically inserted here -->
                 </div>
             </div>
         </div>
