@@ -1,68 +1,101 @@
 <html lang="en">
 
 <head>
-    <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>
-        เพิ่มกิจกรรมใหม่ - Time Bank
-    </title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สร้างกิจกรรม - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
     <script>
-        function validateDates() {
-            const startDate = document.getElementById('service-start-date');
-            const endDate = document.getElementById('service-end-date');
-            const startTime = document.getElementById('service-time-start');
-            const endTime = document.getElementById('service-time-end');
-            const submitButton = document.getElementById('submit-button');
+        let members = [];
 
-            if (startDate.value && endDate.value) {
-                if (new Date(endDate.value) < new Date(startDate.value)) {
-                    alert('วันที่สิ้นสุดไม่สามารถอยู่ก่อนวันที่เริ่มต้นได้');
-                    endDate.value = ''; // Clear the end date
-                    endTime.value = ''; // Clear the end time
-                    submitButton.disabled = true;
-                    return;
+        async function fetchMembers() {
+            try {
+                const response = await fetch('http://localhost:3000/api/members', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-            }
 
-            if (startDate.value && endDate.value && startTime.value && endTime.value) {
-                if (new Date(endDate.value).getTime() === new Date(startDate.value).getTime() && endTime.value < startTime.value) {
-                    alert('เวลาสิ้นสุดไม่สามารถอยู่ก่อนเวลาเริ่มต้นได้');
-                    endTime.value = ''; // Clear the end time
-                    submitButton.disabled = true;
-                    return;
-                }
+                const data = await response.json();
+                members = data.members;
+            } catch (error) {
+                console.error('Error fetching members:', error);
+                alert('เกิดข้อผิดพลาดในการดึงรายชื่อผู้ขอ');
             }
+        }
 
-            submitButton.disabled = false;
+        function searchMembers() {
+            const searchTerm = document.getElementById('requester-name').value.toLowerCase();
+            const resultsDropdown = document.getElementById('search-results-dropdown');
+            resultsDropdown.innerHTML = '';
+
+            if (searchTerm) {
+                const filteredMembers = members.filter(member =>
+                    member.name.toLowerCase().includes(searchTerm) ||
+                    member.member_id.toString().includes(searchTerm)
+                );
+
+                filteredMembers.forEach(member => {
+                    const item = document.createElement('div');
+                    item.className = 'py-2 px-4 hover:bg-gray-200 cursor-pointer';
+                    item.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-gray-700">${member.name}</p>
+                                <p class="text-gray-500 text-sm">ID: ${member.member_id}</p>
+                                <p class="text-gray-500 text-sm">โทเค็นเวลา: ${member.time_credits}</p>
+                            </div>
+                        </div>
+                    `;
+                    item.onclick = () => {
+                        document.getElementById('requester-name').value = member.name;
+                        resultsDropdown.innerHTML = '';
+                    };
+                    resultsDropdown.appendChild(item);
+                });
+            }
         }
 
         async function submitActivity(event) {
             event.preventDefault();
 
-            const title = document.getElementById('service-title').value;
-            const start_date = document.getElementById('service-start-date').value;
-            const start_time = document.getElementById('service-time-start').value;
-            const end_date = document.getElementById('service-end-date').value;
-            const end_time = document.getElementById('service-time-end').value;
-            const location = document.getElementById('service-location').value;
-            const max_participants = document.getElementById('service-people').value;
-            const requester_name = document.getElementById('requester-name').value;
-            const description = document.getElementById('service-description').value;
-            const status = 'กำลังจะเริ่ม'; // Default status for new activities
+            const title = document.getElementById('title').value;
+            const description = document.getElementById('description').value;
+            const location = document.getElementById('location').value;
+            const startDate = document.getElementById('start-date').value;
+            const startTime = document.getElementById('start-time').value;
+            const endDate = document.getElementById('end-date').value;
+            const endTime = document.getElementById('end-time').value;
+            const maxParticipants = parseInt(document.getElementById('max-participants').value, 10);
+            const requesterName = document.getElementById('requester-name').value;
+            const status = document.getElementById('status').value;
+            const timeTokensPerParticipant = parseInt(document.getElementById('time-tokens-per-participant').value, 10);
+
+            if (isNaN(maxParticipants) || isNaN(timeTokensPerParticipant)) {
+                alert('กรุณากรอกจำนวนผู้เข้าร่วมสูงสุดและจำนวนโทเค็นเวลาต่อผู้เข้าร่วมให้ถูกต้อง');
+                return;
+            }
+
+            const timeTokensRequired = maxParticipants * timeTokensPerParticipant;
 
             const activityData = {
                 title,
                 description,
                 location,
-                start_date,
-                start_time,
-                end_date,
-                end_time,
-                max_participants,
-                requester_name,
-                status
+                start_date: startDate,
+                start_time: startTime,
+                end_date: endDate,
+                end_time: endTime,
+                max_participants: maxParticipants,
+                requester_name: requesterName,
+                status,
+                time_tokens_required: timeTokensRequired,
+                time_tokens_per_participant: timeTokensPerParticipant
             };
 
             try {
@@ -75,18 +108,24 @@
                     body: JSON.stringify(activityData)
                 });
 
-                if (response.ok) {
-                    alert('กิจกรรมถูกเพิ่มเรียบร้อยแล้ว');
-                    window.location.href = 'activity.html'; // Redirect to the activity management page
-                } else {
+                if (!response.ok) {
                     const errorData = await response.json();
-                    alert(`เกิดข้อผิดพลาด: ${errorData.error}`);
+                    if (errorData.error === 'Not enough time credits') {
+                        alert(`มีโทเคนเวลาไม่เพียงพอ คุณมีโทเคนเวลา ${errorData.available_credits} โทเคน`);
+                        return;
+                    }
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
+
+                alert('สร้างกิจกรรมเรียบร้อยแล้ว!');
+                window.location.href = 'activity.html'; // Redirect to the activity management page
             } catch (error) {
-                console.error('Error:', error);
-                alert('เกิดข้อผิดพลาดในการยื่นกิจกรรม');
+                console.error('Error creating activity:', error);
+                alert('เกิดข้อผิดพลาดในการสร้างกิจกรรม กรุณาลองใหม่อีกครั้ง');
             }
         }
+
+        document.addEventListener('DOMContentLoaded', fetchMembers);
     </script>
 </head>
 
@@ -108,71 +147,50 @@
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="login.html">
-                            <i class="fas fa-sign-in-alt mr-3">
-                            </i>
-                            <span class="ml-3">
-                                Login
-                            </span>
+                            <i class="fas fa-sign-in-alt mr-3"></i>
+                            Login
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="homepage.html">
-                            <i class="fas fa-home mr-3">
-                            </i>
-                            <span class="ml-3">
-                                หน้าหลัก
-                            </span>
+                            <i class="fas fa-home mr-3"></i>
+                            หน้าหลัก
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="report.html">
-                            <i class="fas fa-chart-bar mr-3">
-                            </i>
-                            <span class="ml-3">
-                                รายงาน
-                            </span>
+                            <i class="fas fa-chart-bar mr-3"></i>
+                            รายงาน
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="activity.html">
-                            <i class="fas fa-calendar-alt mr-3">
-                            </i>
-                            <span class="ml-3">
-                                จัดการกิจกรรม
-                            </span>
+                            <i class="fas fa-calendar-alt mr-3"></i>
+                            จัดการกิจกรรม
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="member.html">
-                            <i class="fas fa-users mr-3">
-                            </i>
-                            <span class="ml-3">
-                                จัดการสมาชิก
-                            </span>
+                            <i class="fas fa-users mr-3"></i>
+                            จัดการสมาชิก
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="skillconf.html">
-                            <i class="fas fa-cogs mr-3">
-                            </i>
-                            <span class="ml-3">
-                                จัดการหมวหมู่ทักษะ
-                            </span>
+                            <i class="fas fa-cogs mr-3"></i>
+                            จัดการหมวหมู่ทักษะ
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="fund.html">
-                            <i class="fas fa-hand-holding-usd mr-3">
-                            </i>
-                            <span class="ml-3">
-                                จัดการกองทุนชุมชน
-                            </span>
+                            <i class="fas fa-hand-holding-usd mr-3"></i>
+                            จัดการกองทุนชุมชน
                         </a>
                     </li>
                 </ul>
@@ -181,130 +199,121 @@
         <!-- Main Content -->
         <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
             <h1 class="text-4xl font-bold mb-5">
-                เพิ่มกิจกรรมใหม่
+                สร้างกิจกรรม
             </h1>
             <div class="bg-white text-black p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
                 <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">
                     รายละเอียดกิจกรรม
                 </h2>
                 <form onsubmit="submitActivity(event)">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="title">
+                            ชื่อกิจกรรม
+                        </label>
+                        <input id="title"
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            type="text" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="description">
+                            รายละเอียด
+                        </label>
+                        <textarea id="description"
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            required></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="location">
+                            สถานที่
+                        </label>
+                        <input id="location"
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            type="text" required />
+                    </div>
                     <div class="flex flex-wrap -mx-3 mb-4">
                         <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-title">
-                                ชื่อบริการ
-                            </label>
-                            <input
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="service-title" placeholder="ชื่อบริการ" type="text" required />
-                        </div>
-                        <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-start-date">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="start-date">
                                 วันที่เริ่มต้น
                             </label>
-                            <div class="relative">
-                                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
-                                    <i class="fas fa-calendar-alt text-gray-400 cursor-pointer"
-                                        onclick="document.getElementById('service-start-date').focus()">
-                                    </i>
-                                </span>
-                                <input
-                                    class="shadow appearance-none border rounded w-full py-2 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                    id="service-start-date" type="date" required onchange="validateDates()" />
-                            </div>
+                            <input id="start-date"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="date" required />
                         </div>
-                    </div>
-                    <div class="flex flex-wrap -mx-3 mb-4">
-                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-time-start">
+                        <div class="w-full md:w-1/2 px-3">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="start-time">
                                 เวลาเริ่มต้น
                             </label>
-                            <div class="relative">
-                                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
-                                    <i class="fas fa-clock text-gray-400 cursor-pointer"
-                                        onclick="document.getElementById('service-time-start').focus()">
-                                    </i>
-                                </span>
-                                <input
-                                    class="shadow appearance-none border rounded w-full py-2 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                    id="service-time-start" type="time" required onchange="validateDates()" />
-                            </div>
+                            <input id="start-time"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="time" required />
                         </div>
-                        <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-end-date">
+                    </div>
+                    <div class="flex flex-wrap -mx-3 mb-4">
+                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="end-date">
                                 วันที่สิ้นสุด
                             </label>
-                            <div class="relative">
-                                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
-                                    <i class="fas fa-calendar-alt text-gray-400 cursor-pointer"
-                                        onclick="document.getElementById('service-end-date').focus()">
-                                    </i>
-                                </span>
-                                <input
-                                    class="shadow appearance-none border rounded w-full py-2 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                    id="service-end-date" type="date" required onchange="validateDates()" />
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap -mx-3 mb-4">
-                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-time-end">
-                                เวลาสิ้นสุด
-                            </label>
-                            <div class="relative">
-                                <span class="absolute inset-y-0 left-0 flex items-center pl-3">
-                                    <i class="fas fa-clock text-gray-400 cursor-pointer"
-                                        onclick="document.getElementById('service-time-end').focus()">
-                                    </i>
-                                </span>
-                                <input
-                                    class="shadow appearance-none border rounded w-full py-2 pl-10 pr-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                    id="service-time-end" type="time" required onchange="validateDates()" />
-                            </div>
+                            <input id="end-date"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="date" required />
                         </div>
                         <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-location">
-                                สถานที่จัด
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="end-time">
+                                เวลาสิ้นสุด
                             </label>
-                            <input
+                            <input id="end-time"
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="service-location" placeholder="สถานที่จัด" type="text" required />
+                                type="time" required />
                         </div>
                     </div>
                     <div class="flex flex-wrap -mx-3 mb-4">
                         <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-people">
-                                จำนวนคน
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="max-participants">
+                                จำนวนผู้เข้าร่วมสูงสุด
                             </label>
-                            <input
+                            <input id="max-participants"
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="service-people" placeholder="จำนวนคน" type="number" required />
+                                type="number" required />
                         </div>
                         <div class="w-full md:w-1/2 px-3">
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="requester-name">
-                                ชื่อผู้ขอบริการ
+                                ชื่อผู้ขอ
                             </label>
-                            <input
+                            <input id="requester-name"
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="requester-name" placeholder="ชื่อผู้ขอบริการ" type="text" required />
+                                type="text" oninput="searchMembers()" required />
+                            <div id="search-results-dropdown"
+                                class="bg-white border border-gray-300 mt-1 rounded shadow-lg z-10">
+                                <!-- Search results will be dynamically inserted here -->
+                            </div>
                         </div>
                     </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="service-description">
-                            รายละเอียดบริการ
-                        </label>
-                        <textarea
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            id="service-description" placeholder="รายละเอียดบริการ" required></textarea>
+                    <div class="flex flex-wrap -mx-3 mb-4">
+                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="time-tokens-per-participant">
+                                โทเค็นเวลาต่อผู้เข้าร่วม
+                            </label>
+                            <input id="time-tokens-per-participant"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="number" required />
+                        </div>
+                        <div class="w-full md:w-1/2 px-3">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="status">
+                                สถานะ
+                            </label>
+                            <select id="status"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                required>
+                                <option value="กำลังจะเริ่ม">กำลังจะเริ่ม</option>
+                                <option value="เสร็จสิ้น">เสร็จสิ้น</option>
+                                <option value="ยกเลิก">ยกเลิก</option>
+                            </select>
+                        </div>
                     </div>
                     <div class="flex items-center justify-center">
                         <button
-                            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
-                            type="button" onclick="window.history.back()">ย้อนกลับ</button>
-                        <button
                             class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
-                            type="submit" id="submit-button">
-                            ยื่นกิจกรรม
-                        </button>
+                            type="submit">สร้างกิจกรรม</button>
                     </div>
                 </form>
             </div>

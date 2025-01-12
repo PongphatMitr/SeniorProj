@@ -61,10 +61,15 @@
         }
 
         async function searchMembers() {
-            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const searchTerm = document.getElementById('search-input').value.trim().toLowerCase();
+
+            if (!searchTerm) {
+                renderSearchError('กรุณาใส่คำค้นหา');
+                return;
+            }
 
             try {
-                const response = await fetch(`http://localhost:3000/api/members/search?query=${searchTerm}`, {
+                const response = await fetch(`http://localhost:3000/api/members/search?term=${encodeURIComponent(searchTerm)}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -74,7 +79,7 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
-                const members = await response.json();
+                const { members } = await response.json();
                 renderSearchResults(members);
             } catch (error) {
                 console.error('Error searching members:', error);

@@ -32,7 +32,9 @@ CREATE TABLE activities (
     end_time TIME,
     max_participants INT,
     requester_name VARCHAR(100),
-    status VARCHAR(20) NOT NULL CHECK (status IN ('กำลังจะเริ่ม', 'เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา'))
+    status VARCHAR(20) NOT NULL CHECK (status IN ('กำลังจะเริ่ม', 'เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา')),
+    time_tokens_required INT DEFAULT 0,
+    time_tokens_per_participant INT DEFAULT 0
 );
 
 -- Create the categories table
@@ -81,6 +83,7 @@ CREATE TABLE transactions (
     date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     details TEXT,
     time_credits INT,
+    transaction_type VARCHAR(10) NOT NULL CHECK (transaction_type IN ('earn', 'spend')),
     FOREIGN KEY (member_id) REFERENCES members(member_id)
 );
 
@@ -93,14 +96,14 @@ INSERT INTO members (user_id, name, phone, address, branch, time_credits, status
 VALUES (1, 'Test User', '1234567890', '123 Test St, Test City', 'Test Branch', 10, 'active');
 
 -- Insert initial data into activities
-INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_name, status) 
+INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_name, status, time_tokens_required, time_tokens_per_participant) 
 VALUES 
-('กิจกรรมทำความสะอาดชุมชน', 'ทำความสะอาดชุมชน', 'Community Center', '2023-01-01', '09:00', '2023-01-01', '12:00', 20, 'Test User', 'กำลังจะเริ่ม'),
-('กิจกรรมสอนคอมพิวเตอร์', 'สอนคอมพิวเตอร์ให้กับชุมชน', 'Community Center', '2023-01-15', '10:00', '2023-01-15', '13:00', 15, 'Test User', 'กำลังจะเริ่ม'),
-('กิจกรรมทำอาหาร', 'ทำอาหารร่วมกัน', 'Community Kitchen', '2023-01-30', '11:00', '2023-01-30', '14:00', 10, 'Test User', 'เสร็จสิ้น'),
-('กิจกรรมทำสวน', 'ทำสวนร่วมกัน', 'Community Garden', '2023-02-05', '08:00', '2023-02-05', '11:00', 25, 'Test User', 'เสร็จสิ้น'),
-('กิจกรรมยกเลิก', 'กิจกรรมนี้ถูกยกเลิก', 'Community Center', '2023-02-20', '09:00', '2023-02-20', '12:00', 0, 'Test User', 'ยกเลิก'),
-('กิจกรรมยกเลิก', 'กิจกรรมนี้ถูกยกเลิก', 'Community Center', '2023-02-25', '09:00', '2023-02-25', '12:00', 0, 'Test User', 'ยกเลิก');
+('กิจกรรมทำความสะอาดชุมชน', 'ทำความสะอาดชุมชน', 'Community Center', '2023-01-01', '09:00', '2023-01-01', '12:00', 20, 'Test User', 'กำลังจะเริ่ม', 20, 1),
+('กิจกรรมสอนคอมพิวเตอร์', 'สอนคอมพิวเตอร์ให้กับชุมชน', 'Community Center', '2023-01-15', '10:00', '2023-01-15', '13:00', 15, 'Test User', 'กำลังจะเริ่ม', 15, 1),
+('กิจกรรมทำอาหาร', 'ทำอาหารร่วมกัน', 'Community Kitchen', '2023-01-30', '11:00', '2023-01-30', '14:00', 10, 'Test User', 'เสร็จสิ้น', 10, 1),
+('กิจกรรมทำสวน', 'ทำสวนร่วมกัน', 'Community Garden', '2023-02-05', '08:00', '2023-02-05', '11:00', 25, 'Test User', 'เสร็จสิ้น', 25, 1),
+('กิจกรรมยกเลิก', 'กิจกรรมนี้ถูกยกเลิก', 'Community Center', '2023-02-20', '09:00', '2023-02-20', '12:00', 0, 'Test User', 'ยกเลิก', 0, 0),
+('กิจกรรมยกเลิก', 'กิจกรรมนี้ถูกยกเลิก', 'Community Center', '2023-02-25', '09:00', '2023-02-25', '12:00', 0, 'Test User', 'ยกเลิก', 0, 0);
 
 -- Insert initial data into categories
 INSERT INTO categories (category) 
@@ -135,12 +138,12 @@ VALUES
 (4, 1);
 
 -- Insert initial data into transactions
-INSERT INTO transactions (member_id, date, details, time_credits) 
+INSERT INTO transactions (member_id, date, details, time_credits, transaction_type) 
 VALUES 
-(1, '2023-01-01 09:00:00', 'Participated in community cleaning', 5),
-(1, '2023-01-15 10:00:00', 'Taught computer skills', 3),
-(1, '2023-01-30 11:00:00', 'Cooked food together', 2),
-(1, '2023-02-05 08:00:00', 'Worked in the community garden', 4);
+(1, '2023-01-01 09:00:00', 'Participated in community cleaning', 1, 'earn'),
+(1, '2023-01-15 10:00:00', 'Taught computer skills', 1, 'earn'),
+(1, '2023-01-30 11:00:00', 'Cooked food together', 1, 'earn'),
+(1, '2023-02-05 08:00:00', 'Worked in the community garden', 1, 'earn');
 
 -- Insert initial data into community_fund
 INSERT INTO community_fund (total_hours, borrowed_hours) VALUES (200, 50);

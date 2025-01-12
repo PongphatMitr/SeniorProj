@@ -36,6 +36,7 @@
                     document.getElementById('activity-date').innerText = new Date(activity.start_date).toLocaleDateString();
                     document.getElementById('activity-start-time').innerText = activity.start_time;
                     document.getElementById('activity-end-time').innerText = activity.end_time;
+                    document.getElementById('activity-time-tokens').innerText = activity.time_tokens_required;
 
                     // Fetch participants
                     const participantsResponse = await fetch(`http://localhost:3000/api/activities/${activityId}/participants`, {
@@ -275,6 +276,14 @@
                             </label>
                             <p class="text-gray-700 text-lg" id="activity-status">
                                 <!-- Activity Status will be inserted here -->
+                            </p>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-lg font-bold mb-2">
+                                เครดิตเวลาที่ต้องการ:
+                            </label>
+                            <p class="text-gray-700 text-lg" id="activity-time-tokens">
+                                <!-- Activity Time Tokens Required will be inserted here -->
                             </p>
                         </div>
                     </div>

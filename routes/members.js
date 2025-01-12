@@ -44,7 +44,14 @@ const memberRoutes = (pool) => {
 
         try {
             const result = await pool.query(
-                `SELECT * FROM members WHERE LOWER(name) LIKE LOWER($1) OR CAST(member_id AS TEXT) LIKE $1 LIMIT $2 OFFSET $3`,
+                `SELECT m.member_id, m.name, u.email, array_agg(s.name) as skills
+                 FROM members m
+                 JOIN users u ON m.user_id = u.user_id
+                 LEFT JOIN member_skills ms ON m.member_id = ms.member_id
+                 LEFT JOIN skills s ON ms.skill_id = s.skill_id
+                 WHERE LOWER(m.name) LIKE LOWER($1) OR CAST(m.member_id AS TEXT) LIKE $1
+                 GROUP BY m.member_id, m.name, u.email
+                 LIMIT $2 OFFSET $3`,
                 [`%${term}%`, pageSize, offset]
             );
             const totalResult = await pool.query(
