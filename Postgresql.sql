@@ -74,8 +74,15 @@ CREATE TABLE activity_participants (
     FOREIGN KEY (member_id) REFERENCES members(member_id)
 );
 
--- Insert initial data into community_fund
-INSERT INTO community_fund (total_hours, borrowed_hours) VALUES (200, 50);
+-- Create the transactions table
+CREATE TABLE transactions (
+    transaction_id SERIAL PRIMARY KEY,
+    member_id INT NOT NULL,
+    date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    details TEXT,
+    time_credits INT,
+    FOREIGN KEY (member_id) REFERENCES members(member_id)
+);
 
 -- Insert initial data into users
 INSERT INTO users (username, password, email, role) 
@@ -126,3 +133,14 @@ VALUES
 (2, 1),
 (3, 1),
 (4, 1);
+
+-- Insert initial data into transactions
+INSERT INTO transactions (member_id, date, details, time_credits) 
+VALUES 
+(1, '2023-01-01 09:00:00', 'Participated in community cleaning', 5),
+(1, '2023-01-15 10:00:00', 'Taught computer skills', 3),
+(1, '2023-01-30 11:00:00', 'Cooked food together', 2),
+(1, '2023-02-05 08:00:00', 'Worked in the community garden', 4);
+
+-- Insert initial data into community_fund
+INSERT INTO community_fund (total_hours, borrowed_hours) VALUES (200, 50);

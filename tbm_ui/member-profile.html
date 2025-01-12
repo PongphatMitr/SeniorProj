@@ -53,15 +53,30 @@
         }
     </style>
     <script>
-        let memberId = 1; // This should be dynamically set based on the member being viewed
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const memberId = urlParams.get('memberId');
 
-        async function fetchMemberProfile() {
+            if (!memberId) {
+                console.error('No memberId provided in the URL');
+                alert('ไม่พบรหัสสมาชิกใน URL');
+                return;
+            }
+
+            console.log('Member ID:', memberId); // Debugging line
+            fetchMemberProfile(memberId);
+        });
+
+        async function fetchMemberProfile(memberId) {
             try {
                 const response = await fetch(`http://localhost:3000/api/members/${memberId}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
                 const member = await response.json();
                 renderMemberProfile(member);
             } catch (error) {
@@ -71,11 +86,11 @@
         }
 
         function renderMemberProfile(member) {
-            document.getElementById('member-name').textContent = member.name;
-            document.getElementById('member-phone').textContent = member.phone;
-            document.getElementById('member-address').textContent = member.address;
-            document.getElementById('member-branch').textContent = member.branch;
-            document.getElementById('member-time-credits').textContent = member.time_credits;
+            document.getElementById('member-name').textContent = member.name || 'N/A';
+            document.getElementById('member-phone').textContent = member.phone || 'N/A';
+            document.getElementById('member-address').textContent = member.address || 'N/A';
+            document.getElementById('member-branch').textContent = member.branch || 'N/A';
+            document.getElementById('member-time-credits').textContent = member.time_credits || 'N/A';
             document.getElementById('member-status').textContent = member.status === 'active' ? 'ปกติ' : 'ไม่ปกติ';
         }
 
@@ -93,17 +108,17 @@
 
             const editButton = document.getElementById('edit-button');
             editButton.textContent = 'บันทึก';
-            editButton.onclick = saveChanges;
+            editButton.onclick = () => saveChanges(memberId);
         }
 
-        async function saveChanges() {
+        async function saveChanges(memberId) {
             const member = {
                 name: document.getElementById('member-name').value,
                 phone: document.getElementById('member-phone').value,
                 address: document.getElementById('member-address').value,
                 branch: document.getElementById('member-branch').value,
                 time_credits: document.getElementById('member-time-credits').value,
-                status: document.getElementById('member-status').value
+                status: document.getElementById('member-status').value === 'ปกติ' ? 'active' : 'inactive'
             };
 
             try {
@@ -139,10 +154,6 @@
                 alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
             }
         }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchMemberProfile();
-        });
     </script>
 </head>
 
@@ -219,11 +230,11 @@
             </nav>
         </div>
         <!-- Main Content -->
-        <div class="w-5/6 bg-blue-700 text-white p-10">
-            <h1 class="text-4xl font-bold mb-5">
-                โปรไฟล์สมาชิก
-            </h1>
-            <div class="bg-white text-black p-8 rounded-lg shadow-lg">
+        <div class="w-5/6 bg-blue-700 text-white p-10 flex justify-center items-center">
+            <div class="bg-white text-black p-8 rounded-lg shadow-lg w-full max-w-3xl">
+                <h1 class="text-4xl font-bold mb-5 text-center">
+                    โปรไฟล์สมาชิก
+                </h1>
                 <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">
                     ข้อมูลสมาชิก
                 </h2>
@@ -271,11 +282,16 @@
                         </p>
                     </div>
                 </div>
-                <div class="flex justify-end mt-4">
+                <div class="flex justify-center mt-4 space-x-4">
                     <button
                         class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                         id="edit-button" onclick="enableEditing()">
                         แก้ไข
+                    </button>
+                    <button
+                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        onclick="window.history.back()">
+                        ย้อนกลับ
                     </button>
                 </div>
             </div>

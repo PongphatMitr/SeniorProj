@@ -6,6 +6,32 @@ dotenv.config();
 const memberRoutes = (pool) => {
     const router = express.Router();
 
+    // Get transactions of a member
+    router.get('/:id/transactions', async (req, res) => {
+        const { id } = req.params;
+        const { page = 1, pageSize = 10 } = req.query;
+        const offset = (page - 1) * pageSize;
+
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid member ID' });
+        }
+
+        try {
+            const result = await pool.query(
+                'SELECT * FROM transactions WHERE member_id = $1 LIMIT $2 OFFSET $3',
+                [id, pageSize, offset]
+            );
+            const totalResult = await pool.query(
+                'SELECT COUNT(*) FROM transactions WHERE member_id = $1',
+                [id]
+            );
+            res.json({ transactions: result.rows, total: parseInt(totalResult.rows[0].count, 10) });
+        } catch (err) {
+            console.error('Error:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+
     // Search members by name or member_id
     router.get('/search', async (req, res) => {
         const { term, page = 1, pageSize = 10 } = req.query;
@@ -74,9 +100,10 @@ const memberRoutes = (pool) => {
 
         try {
             const result = await pool.query(`
-                SELECT skills.skill_id, skills.name, skills.category
+                SELECT skills.skill_id, skills.name, categories.category
                 FROM member_skills
                 JOIN skills ON member_skills.skill_id = skills.skill_id
+                JOIN categories ON skills.category_id = categories.category_id
                 WHERE member_skills.member_id = $1
             `, [id]);
             res.json({ skills: result.rows });
@@ -150,6 +177,32 @@ const memberRoutes = (pool) => {
                 [user_id, name, phone, address, branch, status]
             );
             res.status(201).json(result.rows[0]);
+        } catch (err) {
+            console.error('Error:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+
+    // Update a member by ID
+    router.put('/:id', async (req, res) => {
+        const { id } = req.params;
+        const { name, phone, address, branch, time_credits, status } = req.body;
+
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid member ID' });
+        }
+
+        // Validate status value
+        if (!['active', 'inactive'].includes(status)) {
+            return res.status(400).json({ error: 'Invalid status value' });
+        }
+
+        try {
+            const result = await pool.query(
+                'UPDATE members SET name = $1, phone = $2, address = $3, branch = $4, time_credits = $5, status = $6 WHERE member_id = $7 RETURNING *',
+                [name, phone, address, branch, time_credits, status, id]
+            );
+            res.json(result.rows[0]);
         } catch (err) {
             console.error('Error:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });

@@ -63,10 +63,10 @@ const skillRoutes = (pool) => {
 
         try {
             const result = await pool.query(
-                'SELECT skills.*, categories.category FROM member_skills JOIN skills ON member_skills.skill_id = skills.skill_id JOIN categories ON skills.category_id = categories.category_id WHERE member_skills.member_id = $1',
+                'SELECT skills.skill_id, skills.name, categories.category FROM member_skills JOIN skills ON member_skills.skill_id = skills.skill_id JOIN categories ON skills.category_id = categories.category_id WHERE member_skills.member_id = $1',
                 [memberId]
             );
-            res.json(result.rows);
+            res.json({ skills: result.rows });
         } catch (err) {
             console.error('Error:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });

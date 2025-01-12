@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>
-        จัดการสมาชิก - Time Bank
+        สมุดบัญชี - Time Bank
     </title>
     <script src="https://cdn.tailwindcss.com">
     </script>
@@ -53,71 +53,59 @@
         }
     </style>
     <script>
-        let members = [];
+        let memberId = new URLSearchParams(window.location.search).get('memberId');
+        if (!memberId) {
+            alert('ไม่พบรหัสสมาชิกใน URL');
+            throw new Error('No memberId provided in the URL');
+        }
+
+        let transactions = [];
         let currentPage = 1;
         const pageSize = 10;
-        let totalMembers = 0;
+        let totalTransactions = 0;
 
-        async function fetchMembers(page, searchTerm = '') {
+        async function fetchTransactions(page) {
             try {
-                const response = await fetch(`http://localhost:3000/api/members?page=${page}&pageSize=${pageSize}&search=${encodeURIComponent(searchTerm)}`, {
+                const response = await fetch(`http://localhost:3000/api/members/${memberId}/transactions?page=${page}&pageSize=${pageSize}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
                 const data = await response.json();
-                if (Array.isArray(data.members)) {
-                    members = data.members;
-                    totalMembers = data.total;
-                    renderTable(members);
+                if (Array.isArray(data.transactions)) {
+                    transactions = data.transactions;
+                    totalTransactions = data.total;
+                    renderTable(transactions);
                     renderPagination();
                 } else {
                     console.error('Expected an array but got:', data);
-                    alert('เกิดข้อผิดพลาดในการดึงข้อมูลสมาชิก');
+                    alert('เกิดข้อผิดพลาดในการดึงข้อมูลธุรกรรม');
                 }
             } catch (error) {
-                console.error('Error fetching members:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลสมาชิก');
+                console.error('Error fetching transactions:', error);
+                alert('เกิดข้อผิดพลาดในการดึงข้อมูลธุรกรรม');
             }
         }
 
         function renderTable(data) {
-            const tbody = document.getElementById('member-tbody');
+            const tbody = document.getElementById('transaction-tbody');
             tbody.innerHTML = '';
-            data.forEach((member, index) => {
+            data.forEach((transaction, index) => {
                 const row = document.createElement('tr');
                 row.id = `row-${index + 1}`;
                 row.className = 'hover:bg-gray-100';
                 row.innerHTML = `
-                    <td aria-colindex="1" data-label="รหัสสมาชิก" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${member.member_id}
+                    <td aria-colindex="1" data-label="รหัสธุรกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${transaction.transaction_id}
                     </td>
-                    <td aria-colindex="2" data-label="ชื่อ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${member.name}
+                    <td aria-colindex="2" data-label="วันที่" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${new Date(transaction.date).toLocaleDateString()}
                     </td>
-                    <td aria-colindex="3" data-label="เครดิตเวลา(คะแนน)" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${member.time_credits}
+                    <td aria-colindex="3" data-label="รายละเอียด" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${transaction.details}
                     </td>
-                    <td aria-colindex="4" data-label="สถานะ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        <span class="badge badge-success" style="width: 100px;">${member.status === 'active' ? 'ปกติ' : 'ไม่ปกติ'}</span>
-                    </td>
-                    <td aria-colindex="5" data-label="ล็อกอินไลน์" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        <span class="badge badge-success" style="width: 100px;">ล็อกอินเเล้ว</span>
-                    </td>
-                    <td aria-colindex="6" data-label="การจัดการ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        <div class="dropdown b-dropdown m-md-2 btn-group">
-                            <button id="dropdown-${index + 1}__BV_toggle_" aria-haspopup="menu" aria-expanded="false" type="button"
-                                class="btn bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
-                                onclick="toggleDropdown(event)">เลือก</button>
-                            <ul role="menu" tabindex="-1" aria-labelledby="dropdown-${index + 1}__BV_toggle_" class="dropdown-content">
-                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="member-profile.html?memberId=${member.member_id}" target="_self"><b>โปรไฟล์</b></a></li>
-                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="member-transaction.html?memberId=${member.member_id}" target="_self"><b>สมุดบัญชี</b></a></li>
-                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="member-skills.html?memberId=${member.member_id}" target="_self"><b>ความสามารถ</b></a></li>
-                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self"><b>PDF</b></a></li>
-                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self"><b>วันที่สะดวกทำงาน</b></a></li>
-                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self" onclick="confirmAndRemove(event, 'row-${index + 1}', ${member.member_id})"><b class="red">ลบสมาชิก</b></a></li>
-                            </ul>
-                        </div>
+                    <td aria-colindex="4" data-label="เครดิตเวลา" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${transaction.time_credits}
                     </td>
                 `;
                 tbody.appendChild(row);
@@ -128,14 +116,14 @@
             const paginationContainer = document.getElementById('pagination');
             paginationContainer.innerHTML = '';
 
-            const totalPages = Math.ceil(totalMembers / pageSize);
+            const totalPages = Math.ceil(totalTransactions / pageSize);
 
             const firstButton = document.createElement('button');
             firstButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1';
             firstButton.textContent = 'First';
             firstButton.onclick = () => {
                 currentPage = 1;
-                fetchMembers(currentPage);
+                fetchTransactions(currentPage);
             };
             paginationContainer.appendChild(firstButton);
 
@@ -145,7 +133,7 @@
             prevButton.onclick = () => {
                 if (currentPage > 1) {
                     currentPage--;
-                    fetchMembers(currentPage);
+                    fetchTransactions(currentPage);
                 }
             };
             paginationContainer.appendChild(prevButton);
@@ -156,7 +144,7 @@
                 pageButton.textContent = i;
                 pageButton.onclick = () => {
                     currentPage = i;
-                    fetchMembers(currentPage);
+                    fetchTransactions(currentPage);
                 };
                 paginationContainer.appendChild(pageButton);
             }
@@ -167,7 +155,7 @@
             nextButton.onclick = () => {
                 if (currentPage < totalPages) {
                     currentPage++;
-                    fetchMembers(currentPage);
+                    fetchTransactions(currentPage);
                 }
             };
             paginationContainer.appendChild(nextButton);
@@ -177,62 +165,13 @@
             lastButton.textContent = 'Last';
             lastButton.onclick = () => {
                 currentPage = totalPages;
-                fetchMembers(currentPage);
+                fetchTransactions(currentPage);
             };
             paginationContainer.appendChild(lastButton);
         }
 
-        function toggleDropdown(event) {
-            event.stopPropagation();
-            const dropdownContent = event.currentTarget.nextElementSibling;
-            dropdownContent.classList.toggle('show');
-        }
-
-        window.onclick = function (event) {
-            if (!event.target.matches('.dropdown-button')) {
-                const dropdowns = document.getElementsByClassName("dropdown-content");
-                for (let i = 0; i < dropdowns.length; i++) {
-                    const openDropdown = dropdowns[i];
-                    if (openDropdown.classList.contains('show')) {
-                        openDropdown.classList.remove('show');
-                    }
-                }
-            }
-        }
-
-        async function searchMembers() {
-            currentPage = 1;
-            const searchTerm = document.getElementById('search-bar').value.toLowerCase();
-
-            if (searchTerm.trim() === '') {
-                fetchMembers(currentPage);
-                return;
-            }
-
-            try {
-                const response = await fetch(`http://localhost:3000/api/members/search?term=${encodeURIComponent(searchTerm)}&page=${currentPage}&pageSize=${pageSize}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                const data = await response.json();
-                if (Array.isArray(data.members)) {
-                    members = data.members;
-                    totalMembers = data.total;
-                    renderTable(members);
-                    renderPagination();
-                } else {
-                    console.error('Expected an array but got:', data);
-                    alert('เกิดข้อผิดพลาดในการค้นหาสมาชิก');
-                }
-            } catch (error) {
-                console.error('Error searching members:', error);
-                alert('เกิดข้อผิดพลาดในการค้นหาสมาชิก');
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
-            fetchMembers(currentPage);
+            fetchTransactions(currentPage);
         });
     </script>
 </head>
@@ -312,67 +251,55 @@
         <!-- Main Content -->
         <div class="w-5/6 bg-blue-700 text-white p-10">
             <h1 class="text-4xl font-bold mb-5">
-                จัดการสมาชิก
+                สมุดบัญชี
             </h1>
             <div class="bg-white text-black p-8 rounded-lg shadow-lg">
                 <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">
-                    สมาชิก
+                    รายการธุรกรรม
                 </h2>
-                <div class="mb-4 flex items-center">
-                    <input
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        id="search-bar" oninput="searchMembers()" placeholder="ค้นหาสมาชิก" type="text" />
-                    <a class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-2"
-                        href="create-member.html">
-                        เพิ่ม
-                    </a>
-                </div>
                 <div class="overflow-x-auto">
                     <div class="table-responsive-sm">
-                        <table aria-busy="false" aria-colcount="6" class="table b-table b-table-stacked-md w-full"
+                        <table aria-busy="false" aria-colcount="4" class="table b-table b-table-stacked-md w-full"
                             role="table">
                             <thead class="bg-gray-100" role="rowgroup">
                                 <tr role="row">
                                     <th aria-colindex="1"
                                         class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
                                         role="columnheader" scope="col">
-                                        รหัสสมาชิก
+                                        รหัสธุรกรรม
                                     </th>
                                     <th aria-colindex="2"
                                         class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
                                         role="columnheader" scope="col">
-                                        ชื่อ
+                                        วันที่
                                     </th>
                                     <th aria-colindex="3"
                                         class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
                                         role="columnheader" scope="col">
-                                        เครดิตเวลา(คะแนน)
+                                        รายละเอียด
                                     </th>
                                     <th aria-colindex="4"
                                         class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
                                         role="columnheader" scope="col">
-                                        สถานะ
-                                    </th>
-                                    <th aria-colindex="5"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        ล็อกอินไลน์
-                                    </th>
-                                    <th aria-colindex="6"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        การจัดการ
+                                        เครดิตเวลา
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody id="member-tbody" role="rowgroup">
-                                <!-- Members will be dynamically inserted here -->
+                            <tbody id="transaction-tbody" role="rowgroup">
+                                <!-- Transactions will be dynamically inserted here -->
                             </tbody>
                         </table>
                     </div>
                 </div>
                 <div class="flex items-center justify-center mt-5" id="pagination">
                     <!-- Pagination buttons will be dynamically inserted here -->
+                </div>
+                <div class="flex justify-center mt-4">
+                    <button
+                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        onclick="window.history.back()">
+                        ย้อนกลับ
+                    </button>
                 </div>
             </div>
         </div>

@@ -1,0 +1,339 @@
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>
+        ความสามารถ - Time Bank
+    </title>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <style>
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: white;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+            z-index: 1;
+            border-radius: 0.5rem;
+            overflow: hidden;
+        }
+
+        .dropdown-content.show {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .dropdown-item:hover {
+            background-color: #f1f1f1;
+        }
+
+        .dropdown-item b {
+            color: rgb(0, 123, 255);
+            transition: color 0.3s ease;
+        }
+
+        .dropdown-item:hover b {
+            color: rgb(0, 86, 179);
+        }
+
+        .dropdown-item b.red {
+            color: red;
+        }
+
+        .dropdown-item:hover b.red {
+            color: darkred;
+        }
+    </style>
+    <script>
+        let memberId = new URLSearchParams(window.location.search).get('memberId');
+        if (!memberId) {
+            alert('ไม่พบรหัสสมาชิกใน URL');
+            throw new Error('No memberId provided in the URL');
+        }
+
+        let skills = [];
+
+        async function fetchSkills() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/skills`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                const data = await response.json();
+                if (Array.isArray(data)) {
+                    skills = data;
+                    renderSkills(skills);
+                    renderCategoryButtons();
+                } else {
+                    console.error('Expected an array but got:', data);
+                    alert('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะ');
+                }
+            } catch (error) {
+                console.error('Error fetching skills:', error);
+                alert('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะ');
+            }
+        }
+
+        async function fetchMemberSkills() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/members/${memberId}/skills`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                const memberSkills = await response.json();
+                return memberSkills.skills.map(skill => skill.skill_id);
+            } catch (error) {
+                console.error('Error fetching member skills:', error);
+                alert('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะของสมาชิก');
+                return [];
+            }
+        }
+
+        async function renderSkills(data) {
+            const memberSkills = await fetchMemberSkills();
+            const skillContainer = document.getElementById('skill-container');
+            skillContainer.innerHTML = '';
+            const categories = [...new Set(data.map(skill => skill.category))];
+
+            function renderCategoryTree(categories, parentElement) {
+                if (categories.length === 0) return;
+
+                const midIndex = Math.floor(categories.length / 2);
+                const leftCategories = categories.slice(0, midIndex);
+                const rightCategories = categories.slice(midIndex + 1);
+                const currentCategory = categories[midIndex];
+
+                const categoryDiv = document.createElement('div');
+                categoryDiv.className = `bg-gray-100 p-6 rounded-lg category category-${currentCategory} w-3/4 mx-auto mb-5`;
+                categoryDiv.innerHTML = `
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold category-name">${currentCategory}</h3>
+                    </div>
+                `;
+
+                data.filter(skill => skill.category === currentCategory).forEach(skill => {
+                    const skillP = document.createElement('p');
+                    skillP.className = 'mb-2';
+                    skillP.innerHTML = `
+                        <label class="inline-flex items-center">
+                            <input type="checkbox" class="form-checkbox" value="${skill.skill_id}" ${memberSkills.includes(skill.skill_id) ? 'checked' : ''}>
+                            <span class="ml-2">${skill.name}</span>
+                        </label>
+                    `;
+                    categoryDiv.appendChild(skillP);
+                });
+
+                parentElement.appendChild(categoryDiv);
+
+                const leftDiv = document.createElement('div');
+                leftDiv.className = 'w-full';
+                parentElement.appendChild(leftDiv);
+                renderCategoryTree(leftCategories, leftDiv);
+
+                const rightDiv = document.createElement('div');
+                rightDiv.className = 'w-full';
+                parentElement.appendChild(rightDiv);
+                renderCategoryTree(rightCategories, rightDiv);
+            }
+
+            renderCategoryTree(categories, skillContainer);
+        }
+
+        function renderCategoryButtons() {
+            const categoryButtonsContainer = document.getElementById('category-buttons');
+            categoryButtonsContainer.innerHTML = '';
+
+            const categories = [...new Set(skills.map(skill => skill.category))];
+
+            const allButton = document.createElement('button');
+            allButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mx-1 rounded focus:outline-none focus:shadow-outline';
+            allButton.textContent = 'All';
+            allButton.onclick = () => showCategory('all');
+            categoryButtonsContainer.appendChild(allButton);
+
+            categories.forEach(category => {
+                const button = document.createElement('button');
+                button.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mx-1 rounded focus:outline-none focus:shadow-outline';
+                button.textContent = category;
+                button.onclick = () => showCategory(category);
+                categoryButtonsContainer.appendChild(button);
+            });
+        }
+
+        function showCategory(category) {
+            if (category === 'all') {
+                renderSkills(skills);
+            } else {
+                const filteredSkills = skills.filter(skill => skill.category === category);
+                renderSkills(filteredSkills);
+            }
+        }
+
+        async function saveSkills() {
+            const checkboxes = document.querySelectorAll('#skill-container input[type="checkbox"]');
+            const selectedSkills = Array.from(checkboxes).filter(checkbox => checkbox.checked).map(checkbox => checkbox.value);
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/members/${memberId}/skills`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ skills: selectedSkills })
+                });
+
+                if (response.ok) {
+                    alert('บันทึกทักษะสำเร็จ');
+                } else {
+                    alert('เกิดข้อผิดพลาดในการบันทึกทักษะ');
+                }
+            } catch (error) {
+                console.error('Error saving skills:', error);
+                alert('เกิดข้อผิดพลาดในการบันทึกทักษะ');
+            }
+        }
+
+        async function searchSkills() {
+            const searchTerm = document.getElementById('search-bar').value.toLowerCase();
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/skills/search?term=${encodeURIComponent(searchTerm)}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                const data = await response.json();
+                if (Array.isArray(data)) {
+                    renderSkills(data);
+                } else {
+                    console.error('Expected an array but got:', data);
+                    alert('เกิดข้อผิดพลาดในการค้นหาทักษะ');
+                }
+            } catch (error) {
+                console.error('Error searching skills:', error);
+                alert('เกิดข้อผิดพลาดในการค้นหาทักษะ');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', fetchSkills);
+    </script>
+</head>
+
+<body class="bg-gray-100">
+    <div class="flex">
+        <!-- Sidebar -->
+        <div class="w-1/6 bg-white h-screen p-5">
+            <div class="flex items-center mb-10">
+                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
+                    class="w-10 h-10 rounded-full" height="50" src="https://placehold.co/50x50" width="50" />
+                <span class="ml-3 text-xl font-bold text-blue-600">
+                    TIMEBANK
+                </span>
+            </div>
+            <nav>
+                <ul>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="login.html">
+                            <i class="fas fa-sign-in-alt mr-3">
+                            </i>
+                            Login
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="homepage.html">
+                            <i class="fas fa-home mr-3">
+                            </i>
+                            หน้าหลัก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="report.html">
+                            <i class="fas fa-chart-bar mr-3">
+                            </i>
+                            รายงาน
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="activity.html">
+                            <i class="fas fa-calendar-alt mr-3">
+                            </i>
+                            จัดการกิจกรรม
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="member.html">
+                            <i class="fas fa-users mr-3">
+                            </i>
+                            จัดการสมาชิก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="skillconf.html">
+                            <i class="fas fa-cogs mr-3">
+                            </i>
+                            จัดการหมวดหมู่ทักษะ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="fund.html">
+                            <i class="fas fa-hand-holding-usd mr-3">
+                            </i>
+                            จัดการกองทุนชุมชน
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        <!-- Main Content -->
+        <div class="w-5/6 bg-blue-700 text-white p-10">
+            <h1 class="text-4xl font-bold mb-5">
+                ความสามารถ
+            </h1>
+            <div class="bg-white text-black p-5 rounded-lg">
+                <div class="mb-4 flex items-center">
+                    <input
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="search-bar" oninput="searchSkills()" placeholder="ค้นหาทักษะหรือหมวดหมู่" type="text" />
+                </div>
+                <div class="flex justify-center mb-5" id="category-buttons">
+                    <!-- Category buttons will be dynamically inserted here -->
+                </div>
+                <div class="grid grid-cols-1 gap-5 justify-center" id="skill-container">
+                    <!-- Skills will be dynamically inserted here -->
+                </div>
+                <div class="flex justify-center mt-4 space-x-4">
+                    <button
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        onclick="saveSkills()">
+                        บันทึก
+                    </button>
+                    <button
+                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        onclick="window.history.back()">
+                        ย้อนกลับ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
