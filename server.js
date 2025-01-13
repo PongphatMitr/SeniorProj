@@ -8,6 +8,7 @@ const activityRoutes = require('./routes/activities');
 const skillRoutes = require('./routes/skills');
 const fundRoutes = require('./routes/funds');
 const communityConfigRoutes = require('./routes/communityConfig');
+const exchangeRatesRoutes = require('./routes/exchangeRates');
 const authMiddleware = require('./middleware/authMiddleware');
 
 dotenv.config();
@@ -18,6 +19,15 @@ const port = process.env.PORT || 3000;
 // PostgreSQL connection pool
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
+});
+
+pool.on('connect', () => {
+    console.log('Connected to the PostgreSQL database');
+});
+
+pool.on('error', (err) => {
+    console.error('Unexpected error on idle client', err);
+    process.exit(-1);
 });
 
 // Middleware to parse JSON bodies
@@ -33,9 +43,16 @@ app.use('/api/activities', authMiddleware, activityRoutes(pool));
 app.use('/api/skills', authMiddleware, skillRoutes(pool));
 app.use('/api/funds', authMiddleware, fundRoutes(pool));
 app.use('/api/community-config', authMiddleware, communityConfigRoutes(pool));
+app.use('/api/exchange-rates', authMiddleware, exchangeRatesRoutes(pool));
 
 app.get('/', (req, res) => {
     res.send('Welcome to Time Bank API');
+});
+
+// Global error handler
+app.use((err, req, res, next) => {
+    console.error(err.stack);
+    res.status(500).send('Something broke!');
 });
 
 app.listen(port, () => {

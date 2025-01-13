@@ -1,3 +1,16 @@
+-- Drop existing tables if they exist
+DROP TABLE IF EXISTS users CASCADE;
+DROP TABLE IF EXISTS members CASCADE;
+DROP TABLE IF EXISTS activities CASCADE;
+DROP TABLE IF EXISTS categories CASCADE;
+DROP TABLE IF EXISTS skills CASCADE;
+DROP TABLE IF EXISTS member_skills CASCADE;
+DROP TABLE IF EXISTS community_fund CASCADE;
+DROP TABLE IF EXISTS activity_participants CASCADE;
+DROP TABLE IF EXISTS transactions CASCADE;
+DROP TABLE IF EXISTS exchange_rates CASCADE;
+DROP TABLE IF EXISTS community_config CASCADE;
+
 -- Create the users table
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
@@ -87,21 +100,27 @@ CREATE TABLE transactions (
     FOREIGN KEY (member_id) REFERENCES members(member_id)
 );
 
+-- Create the exchange_rates table
+CREATE TABLE exchange_rates (
+    rate_id SERIAL PRIMARY KEY,
+    description VARCHAR(255) NOT NULL
+);
+
 -- Create the community_config table
 CREATE TABLE community_config (
     config_id SERIAL PRIMARY KEY,
     default_time_token INT DEFAULT 100,
-    exchange_rates JSONB DEFAULT '[
-        {"id": 1, "description": "1 โทเคนเวลา ต่อ 1 ชั่วโมง"},
-        {"id": 2, "description": "1 โทเคนเวลา ต่อ 1 กิจกรรม"}
-    ]'
+    default_exchange_rate_id INT,
+    FOREIGN KEY (default_exchange_rate_id) REFERENCES exchange_rates(rate_id)
 );
 
+-- Insert initial data into exchange_rates
+INSERT INTO exchange_rates (description) VALUES 
+('1 โทเคนเวลา ต่อ 1 ชั่วโมง'),
+('1 โทเคนเวลา ต่อ 1 กิจกรรม');
+
 -- Insert initial data into community_config
-INSERT INTO community_config (default_time_token, exchange_rates) VALUES (100, '[
-    {"id": 1, "description": "1 โทเคนเวลา ต่อ 1 ชั่วโมง"},
-    {"id": 2, "description": "1 โทเคนเวลา ต่อ 1 กิจกรรม"}
-]');
+INSERT INTO community_config (default_time_token, default_exchange_rate_id) VALUES (100, 1);
 
 -- Insert initial data into users
 INSERT INTO users (username, password, email, role) 
