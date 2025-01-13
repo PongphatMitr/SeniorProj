@@ -179,9 +179,13 @@ const memberRoutes = (pool) => {
         const { user_id, name, phone, address, branch, status } = req.body;
 
         try {
+            // Fetch default time token from community_config
+            const configResult = await pool.query('SELECT default_time_token FROM community_config LIMIT 1');
+            const defaultTimeToken = configResult.rows[0].default_time_token;
+
             const result = await pool.query(
-                'INSERT INTO members (user_id, name, phone, address, branch, status) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-                [user_id, name, phone, address, branch, status]
+                'INSERT INTO members (user_id, name, phone, address, branch, status, time_credits) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+                [user_id, name, phone, address, branch, status, defaultTimeToken]
             );
             res.status(201).json(result.rows[0]);
         } catch (err) {

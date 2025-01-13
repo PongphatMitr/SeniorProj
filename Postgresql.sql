@@ -87,6 +87,22 @@ CREATE TABLE transactions (
     FOREIGN KEY (member_id) REFERENCES members(member_id)
 );
 
+-- Create the community_config table
+CREATE TABLE community_config (
+    config_id SERIAL PRIMARY KEY,
+    default_time_token INT DEFAULT 100,
+    exchange_rates JSONB DEFAULT '[
+        {"id": 1, "description": "1 โทเคนเวลา ต่อ 1 ชั่วโมง"},
+        {"id": 2, "description": "1 โทเคนเวลา ต่อ 1 กิจกรรม"}
+    ]'
+);
+
+-- Insert initial data into community_config
+INSERT INTO community_config (default_time_token, exchange_rates) VALUES (100, '[
+    {"id": 1, "description": "1 โทเคนเวลา ต่อ 1 ชั่วโมง"},
+    {"id": 2, "description": "1 โทเคนเวลา ต่อ 1 กิจกรรม"}
+]');
+
 -- Insert initial data into users
 INSERT INTO users (username, password, email, role) 
 VALUES ('testuser', '$2a$10$y2yR9UyFAUfyYCiYqDxgteWBflWnsbYdlFZDmNPmn7P1.xUfbRFtu', 'testuser@example.com', 'Member');

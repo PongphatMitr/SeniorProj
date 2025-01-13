@@ -7,6 +7,7 @@ const memberRoutes = require('./routes/members');
 const activityRoutes = require('./routes/activities');
 const skillRoutes = require('./routes/skills');
 const fundRoutes = require('./routes/funds');
+const communityConfigRoutes = require('./routes/communityConfig');
 const authMiddleware = require('./middleware/authMiddleware');
 
 dotenv.config();
@@ -31,6 +32,7 @@ app.use('/api/members', authMiddleware, memberRoutes(pool));
 app.use('/api/activities', authMiddleware, activityRoutes(pool));
 app.use('/api/skills', authMiddleware, skillRoutes(pool));
 app.use('/api/funds', authMiddleware, fundRoutes(pool));
+app.use('/api/community-config', authMiddleware, communityConfigRoutes(pool));
 
 app.get('/', (req, res) => {
     res.send('Welcome to Time Bank API');
