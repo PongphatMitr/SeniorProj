@@ -58,6 +58,12 @@
                     };
                     resultsDropdown.appendChild(item);
                 });
+
+                // Show dropdown if there are results
+                resultsDropdown.classList.remove('hidden');
+            } else {
+                // Hide dropdown if input is empty
+                resultsDropdown.classList.add('hidden');
             }
         }
 
@@ -71,17 +77,21 @@
             const startTime = document.getElementById('start-time').value;
             const endDate = document.getElementById('end-date').value;
             const endTime = document.getElementById('end-time').value;
-            const maxParticipants = parseInt(document.getElementById('max-participants').value, 10);
+            const maxParticipantsInput = document.getElementById('max-participants').value;
+            const maxParticipants = parseInt(maxParticipantsInput, 10);
+            console.log('Max Participants Input:', maxParticipantsInput); // Debugging log
             const requesterName = document.getElementById('requester-name').value;
             const status = document.getElementById('status').value;
-            const timeTokensPerParticipant = parseInt(document.getElementById('time-tokens-per-participant').value, 10);
 
-            if (isNaN(maxParticipants) || isNaN(timeTokensPerParticipant)) {
-                alert('กรุณากรอกจำนวนผู้เข้าร่วมสูงสุดและจำนวนโทเค็นเวลาต่อผู้เข้าร่วมให้ถูกต้อง');
+            // Validate maxParticipants to ensure it's a positive integer
+            if (isNaN(maxParticipants) || maxParticipants <= 0) {
+                alert('กรุณากรอกจำนวนผู้เข้าร่วมสูงสุดให้ถูกต้อง');
                 return;
             }
-
-            const timeTokensRequired = maxParticipants * timeTokensPerParticipant;
+            if (!Number.isInteger(maxParticipants)) {
+                alert('กรุณากรอกจำนวนผู้เข้าร่วมสูงสุดเป็นตัวเลข');
+                return;
+            }
 
             const activityData = {
                 title,
@@ -94,9 +104,10 @@
                 max_participants: maxParticipants,
                 requester_name: requesterName,
                 status,
-                time_tokens_required: timeTokensRequired,
-                time_tokens_per_participant: timeTokensPerParticipant
             };
+
+            // Debugging: Log the activity data being sent
+            console.log('Activity Data:', activityData);
 
             try {
                 const response = await fetch('http://localhost:3000/api/activities', {
@@ -110,10 +121,7 @@
 
                 if (!response.ok) {
                     const errorData = await response.json();
-                    if (errorData.error === 'Not enough time credits') {
-                        alert(`มีโทเคนเวลาไม่เพียงพอ คุณมีโทเคนเวลา ${errorData.available_credits} โทเคน`);
-                        return;
-                    }
+                    console.error('Error response from server:', errorData);
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
@@ -132,11 +140,11 @@
 <body class="bg-gray-100">
     <div class="flex flex-col md:flex-row">
         <!-- Sidebar -->
-        <div class="w-full md:w-1/6 bg-white h-screen p-5">
+        <div class="w-1/6 bg-white h-screen p-5">
             <div class="flex items-center mb-10">
                 <img alt="Logo of Time Bank System, a clock with a handshake in the center"
                     class="w-10 h-10 rounded-full" height="50"
-                    src="https://storage.googleapis.com/a1aa/image/0evJInagqwwexUvOsHx1Vbr97igUPawzadfRGe7hUbautO3PB.jpg"
+                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
                     width="50" />
                 <span class="ml-3 text-xl font-bold text-blue-600">
                     TIMEBANK
@@ -193,6 +201,13 @@
                             จัดการกองทุนชุมชน
                         </a>
                     </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="commconf.html">
+                            <i class="fas fa-cog mr-3"></i>
+                            จัดการชุมชน
+                        </a>
+                    </li>
                 </ul>
             </nav>
         </div>
@@ -206,13 +221,27 @@
                     รายละเอียดกิจกรรม
                 </h2>
                 <form onsubmit="submitActivity(event)">
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="title">
-                            ชื่อกิจกรรม
-                        </label>
-                        <input id="title"
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            type="text" required />
+                    <div class="flex flex-wrap -mx-3 mb-4">
+                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="title">
+                                ชื่อกิจกรรม
+                            </label>
+                            <input id="title"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="text" required />
+                        </div>
+                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="requester-name">
+                                ชื่อผู้ขอ
+                            </label>
+                            <input id="requester-name"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="text" oninput="searchMembers()" required />
+                            <div id="search-results-dropdown"
+                                class="bg-white border border-gray-300 mt-1 rounded shadow-lg z-10 hidden dropdown-content">
+                                <!-- Search results will be dynamically inserted here -->
+                            </div>
+                        </div>
                     </div>
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="description">
@@ -276,29 +305,8 @@
                                 type="number" required />
                         </div>
                         <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="requester-name">
-                                ชื่อผู้ขอ
-                            </label>
-                            <input id="requester-name"
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="text" oninput="searchMembers()" required />
-                            <div id="search-results-dropdown"
-                                class="bg-white border border-gray-300 mt-1 rounded shadow-lg z-10">
-                                <!-- Search results will be dynamically inserted here -->
-                            </div>
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap -mx-3 mb-4">
-                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="time-tokens-per-participant">
-                                โทเค็นเวลาต่อผู้เข้าร่วม
-                            </label>
-                            <input id="time-tokens-per-participant"
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="number" required />
-                        </div>
-                        <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="status">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="status"
+                                style="margin-left: 10px;">
                                 สถานะ
                             </label>
                             <select id="status"
@@ -311,6 +319,10 @@
                         </div>
                     </div>
                     <div class="flex items-center justify-center">
+                        <button onclick="window.history.back();"
+                            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
+                            ย้อนกลับ
+                        </button>
                         <button
                             class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
                             type="submit">สร้างกิจกรรม</button>
