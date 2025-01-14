@@ -220,6 +220,41 @@ const memberRoutes = (pool) => {
         }
     });
 
+    // Delete a member by ID
+    router.delete('/:id', async (req, res) => {
+        const { id } = req.params;
+
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid member ID' });
+        }
+
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            // Delete related records in member_skills, activity_participants, and transactions
+            await client.query('DELETE FROM member_skills WHERE member_id = $1', [id]);
+            await client.query('DELETE FROM activity_participants WHERE member_id = $1', [id]);
+            await client.query('DELETE FROM transactions WHERE member_id = $1', [id]);
+
+            // Delete the member
+            const result = await client.query('DELETE FROM members WHERE member_id = $1 RETURNING *', [id]);
+            if (result.rowCount === 0) {
+                await client.query('ROLLBACK');
+                return res.status(404).json({ error: 'Member not found' });
+            }
+
+            await client.query('COMMIT');
+            res.status(200).json({ message: 'Member deleted successfully' });
+        } catch (err) {
+            await client.query('ROLLBACK');
+            console.error('Error:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        } finally {
+            client.release();
+        }
+    });
+
     return router;
 };
 
