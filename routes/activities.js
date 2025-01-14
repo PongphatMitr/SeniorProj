@@ -51,35 +51,10 @@ const activityRoutes = (pool) => {
         try {
             await client.query('BEGIN');
 
-            // Debugging: Log the requester name
-            console.log(`Requester Name: ${requester_name}`);
-
-            // Deduct time tokens from the requester
-            const requesterResult = await client.query('SELECT member_id, time_credits FROM members WHERE name = $1', [requester_name]);
-            if (requesterResult.rows.length === 0) {
-                throw new Error('Requester not found');
-            }
-
-            const requester = requesterResult.rows[0];
-            const totalTokensRequired = max_participants * time_tokens_per_participant;
-
-            if (requester.time_credits < totalTokensRequired) {
-                res.status(400).json({ error: 'Not enough time credits', available_credits: requester.time_credits });
-                return;
-            }
-
-            await client.query('UPDATE members SET time_credits = time_credits - $1 WHERE member_id = $2', [totalTokensRequired, requester.member_id]);
-
             // Create the activity
             const result = await client.query(
                 'INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_name, status, time_tokens_required, time_tokens_per_participant) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *',
-                [title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_name, status, totalTokensRequired, time_tokens_per_participant]
-            );
-
-            // Log the transaction
-            await client.query(
-                'INSERT INTO transactions (member_id, details, time_credits, transaction_type) VALUES ($1, $2, $3, $4)',
-                [requester.member_id, `Created activity: ${title}`, totalTokensRequired, 'spend']
+                [title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_name, status, time_tokens_required, time_tokens_per_participant]
             );
 
             await client.query('COMMIT');
@@ -194,16 +169,54 @@ const activityRoutes = (pool) => {
     router.post('/:activityId/approve', async (req, res) => {
         const { activityId } = req.params;
 
+        const client = await pool.connect();
         try {
-            const result = await pool.query(
+            await client.query('BEGIN');
+
+            // Fetch activity details
+            const activityResult = await client.query('SELECT * FROM activities WHERE activity_id = $1', [activityId]);
+            if (activityResult.rows.length === 0) {
+                throw new Error('Activity not found');
+            }
+
+            const activity = activityResult.rows[0];
+
+            // Update activity status
+            const result = await client.query(
                 'UPDATE activities SET status = $1 WHERE activity_id = $2 RETURNING *',
                 ['เสร็จสิ้น', activityId]
             );
 
+            // Deduct time tokens from the requester
+            const requesterResult = await client.query('SELECT member_id, time_credits FROM members WHERE name = $1', [activity.requester_name]);
+            if (requesterResult.rows.length === 0) {
+                throw new Error('Requester not found');
+            }
+
+            const requester = requesterResult.rows[0];
+            const totalTokensRequired = activity.time_tokens_required;
+
+            if (requester.time_credits < totalTokensRequired) {
+                res.status(400).json({ error: 'Not enough time credits', available_credits: requester.time_credits });
+                return;
+            }
+
+            await client.query('UPDATE members SET time_credits = time_credits - $1 WHERE member_id = $2', [totalTokensRequired, requester.member_id]);
+
+            // Log the transaction
+            await client.query(
+                'INSERT INTO transactions (member_id, details, time_credits, transaction_type) VALUES ($1, $2, $3, $4)',
+                [requester.member_id, `Approved activity: ${activity.title}`, totalTokensRequired, 'spend']
+            );
+
+            await client.query('COMMIT');
             res.json(result.rows[0]);
         } catch (err) {
+            await client.query('ROLLBACK');
             console.error('Error approving activity:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
+        } finally {
+            client.release();
         }
     });
 

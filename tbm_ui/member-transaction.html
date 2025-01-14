@@ -6,8 +6,7 @@
     <title>
         สมุดบัญชี - Time Bank
     </title>
-    <script src="https://cdn.tailwindcss.com">
-    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
     <style>
         .dropdown-content {
@@ -94,6 +93,7 @@
                 const row = document.createElement('tr');
                 row.id = `row-${index + 1}`;
                 row.className = 'hover:bg-gray-100';
+                const timeCreditsClass = transaction.transaction_type === 'earn' ? 'text-green-500' : 'text-red-500';
                 row.innerHTML = `
                     <td aria-colindex="1" data-label="รหัสธุรกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
                         ${transaction.transaction_id}
@@ -104,7 +104,7 @@
                     <td aria-colindex="3" data-label="รายละเอียด" role="cell" class="py-2 px-4 border-b border-gray-200">
                         ${transaction.details}
                     </td>
-                    <td aria-colindex="4" data-label="เครดิตเวลา" role="cell" class="py-2 px-4 border-b border-gray-200">
+                    <td aria-colindex="4" data-label="เครดิตเวลา" role="cell" class="py-2 px-4 border-b border-gray-200 ${timeCreditsClass}">
                         ${transaction.time_credits}
                     </td>
                 `;
