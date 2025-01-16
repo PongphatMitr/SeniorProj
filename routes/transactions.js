@@ -1,0 +1,30 @@
+const express = require('express');
+const dotenv = require('dotenv');
+
+dotenv.config();
+
+const transactionRoutes = (pool) => {
+    const router = express.Router();
+
+    // Get all transactions
+    router.get('/all', async (req, res) => {
+        const { page = 1, pageSize = 10 } = req.query;
+        const offset = (page - 1) * pageSize;
+
+        try {
+            const result = await pool.query(
+                'SELECT * FROM transactions ORDER BY date DESC LIMIT $1 OFFSET $2',
+                [pageSize, offset]
+            );
+            const totalResult = await pool.query('SELECT COUNT(*) FROM transactions');
+            res.json({ transactions: result.rows, total: parseInt(totalResult.rows[0].count, 10) });
+        } catch (err) {
+            console.error('Error:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+
+    return router;
+};
+
+module.exports = transactionRoutes;

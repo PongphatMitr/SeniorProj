@@ -18,13 +18,43 @@ const memberRoutes = (pool) => {
 
         try {
             const result = await pool.query(
-                'SELECT * FROM transactions WHERE member_id = $1 LIMIT $2 OFFSET $3',
+                `SELECT t.*, a.title AS activity_title, r.name AS requester_name, p.name AS participant_name
+                 FROM transactions t
+                 JOIN activities a ON t.activity_id = a.activity_id
+                 JOIN members r ON t.requester_id = r.member_id
+                 JOIN members p ON t.participant_id = p.member_id
+                 WHERE t.member_id = $1
+                 LIMIT $2 OFFSET $3`,
                 [id, pageSize, offset]
             );
             const totalResult = await pool.query(
                 'SELECT COUNT(*) FROM transactions WHERE member_id = $1',
                 [id]
             );
+            res.json({ transactions: result.rows, total: parseInt(totalResult.rows[0].count, 10) });
+        } catch (err) {
+            console.error('Error:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+
+    // Get all transactions
+    router.get('/transactions/all', async (req, res) => {
+        const { page = 1, pageSize = 10 } = req.query;
+        const offset = (page - 1) * pageSize;
+
+        try {
+            const result = await pool.query(
+                `SELECT t.*, a.title AS activity_title, r.name AS requester_name, p.name AS participant_name
+                 FROM transactions t
+                 JOIN activities a ON t.activity_id = a.activity_id
+                 JOIN members r ON t.requester_id = r.member_id
+                 JOIN members p ON t.participant_id = p.member_id
+                 ORDER BY t.date DESC, t.time DESC
+                 LIMIT $1 OFFSET $2`,
+                [pageSize, offset]
+            );
+            const totalResult = await pool.query('SELECT COUNT(*) FROM transactions');
             res.json({ transactions: result.rows, total: parseInt(totalResult.rows[0].count, 10) });
         } catch (err) {
             console.error('Error:', err.message);

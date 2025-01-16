@@ -3,9 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>
-        สมุดบัญชี - Time Bank
-    </title>
+    <title>ธุรกรรมทั้งหมด - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
     <style>
@@ -52,12 +50,6 @@
         }
     </style>
     <script>
-        let memberId = new URLSearchParams(window.location.search).get('memberId');
-        if (!memberId) {
-            alert('ไม่พบรหัสสมาชิกใน URL');
-            throw new Error('No memberId provided in the URL');
-        }
-
         let transactions = [];
         let currentPage = 1;
         const pageSize = 10;
@@ -65,11 +57,16 @@
 
         async function fetchTransactions(page) {
             try {
-                const response = await fetch(`http://localhost:3000/api/members/${memberId}/transactions?page=${page}&pageSize=${pageSize}`, {
+                const response = await fetch(`http://localhost:3000/api/members/transactions/all?page=${page}&pageSize=${pageSize}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
                 const data = await response.json();
                 if (Array.isArray(data.transactions)) {
                     transactions = data.transactions;
@@ -101,11 +98,20 @@
                     <td aria-colindex="2" data-label="วันที่" role="cell" class="py-2 px-4 border-b border-gray-200">
                         ${new Date(transaction.date).toLocaleDateString()}
                     </td>
-                    <td aria-colindex="3" data-label="รายละเอียด" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${transaction.details}
+                    <td aria-colindex="3" data-label="เวลา" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${transaction.time}
                     </td>
-                    <td aria-colindex="4" data-label="เครดิตเวลา" role="cell" class="py-2 px-4 border-b border-gray-200 ${timeCreditsClass}">
+                    <td aria-colindex="4" data-label="กิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${transaction.activity_title}
+                    </td>
+                    <td aria-colindex="5" data-label="เครดิตเวลา" role="cell" class="py-2 px-4 border-b border-gray-200 ${timeCreditsClass}">
                         ${transaction.time_credits}
+                    </td>
+                    <td aria-colindex="6" data-label="ชื่อผู้ขอ" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${transaction.requester_name}
+                    </td>
+                    <td aria-colindex="7" data-label="ชื่อผู้เข้าร่วม" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${transaction.participant_name}
                     </td>
                 `;
                 tbody.appendChild(row);
@@ -260,15 +266,15 @@
         <!-- Main Content -->
         <div class="w-5/6 bg-blue-700 text-white p-10">
             <h1 class="text-4xl font-bold mb-5">
-                สมุดบัญชี
+                ธุรกรรมทั้งหมด
             </h1>
             <div class="bg-white text-black p-8 rounded-lg shadow-lg">
                 <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">
-                    รายการธุรกรรม
+                    รายการธุรกรรมทั้งหมด
                 </h2>
                 <div class="overflow-x-auto">
                     <div class="table-responsive-sm">
-                        <table aria-busy="false" aria-colcount="4" class="table b-table b-table-stacked-md w-full"
+                        <table aria-busy="false" aria-colcount="7" class="table b-table b-table-stacked-md w-full"
                             role="table">
                             <thead class="bg-gray-100" role="rowgroup">
                                 <tr role="row">
@@ -285,12 +291,27 @@
                                     <th aria-colindex="3"
                                         class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
                                         role="columnheader" scope="col">
-                                        รายละเอียด
+                                        เวลา
                                     </th>
                                     <th aria-colindex="4"
                                         class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
                                         role="columnheader" scope="col">
+                                        กิจกรรม
+                                    </th>
+                                    <th aria-colindex="5"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
+                                        role="columnheader" scope="col">
                                         เครดิตเวลา
+                                    </th>
+                                    <th aria-colindex="6"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
+                                        role="columnheader" scope="col">
+                                        ชื่อผู้ขอ
+                                    </th>
+                                    <th aria-colindex="7"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
+                                        role="columnheader" scope="col">
+                                        ชื่อผู้เข้าร่วม
                                     </th>
                                 </tr>
                             </thead>
