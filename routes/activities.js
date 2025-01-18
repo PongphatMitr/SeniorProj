@@ -35,8 +35,17 @@ const activityRoutes = (pool) => {
         const { id } = req.params;
 
         try {
-            const result = await pool.query('SELECT * FROM activities WHERE activity_id = $1', [id]);
-            res.json(result.rows[0]);
+            const result = await pool.query(`
+                SELECT a.*, m.name as requester_name
+                FROM activities a
+                JOIN members m ON a.requester_id = m.member_id
+                WHERE a.activity_id = $1
+            `, [id]);
+            if (result.rows.length === 0) {
+                res.status(404).json({ error: 'Activity not found' });
+            } else {
+                res.json(result.rows[0]);
+            }
         } catch (err) {
             console.error('Error:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
@@ -45,7 +54,7 @@ const activityRoutes = (pool) => {
 
     // Create a new activity
     router.post('/', async (req, res) => {
-        const { title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_name, status, time_tokens_required, time_tokens_per_participant } = req.body;
+        const { title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, status, time_tokens_required, time_tokens_per_participant } = req.body;
 
         const client = await pool.connect();
         try {
@@ -53,8 +62,8 @@ const activityRoutes = (pool) => {
 
             // Create the activity
             const result = await client.query(
-                'INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_name, status, time_tokens_required, time_tokens_per_participant) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *',
-                [title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_name, status, time_tokens_required, time_tokens_per_participant]
+                'INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, status, time_tokens_required, time_tokens_per_participant) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *',
+                [title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, status, time_tokens_required, time_tokens_per_participant]
             );
 
             await client.query('COMMIT');
@@ -71,12 +80,12 @@ const activityRoutes = (pool) => {
     // Update an activity
     router.put('/:id', async (req, res) => {
         const { id } = req.params;
-        const { title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_name, status, time_tokens_required, time_tokens_per_participant } = req.body;
+        const { title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, status, time_tokens_required, time_tokens_per_participant } = req.body;
 
         try {
             const result = await pool.query(
-                'UPDATE activities SET title = $1, description = $2, location = $3, start_date = $4, start_time = $5, end_date = $6, end_time = $7, max_participants = $8, requester_name = $9, status = $10, time_tokens_required = $11, time_tokens_per_participant = $12 WHERE activity_id = $13 RETURNING *',
-                [title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_name, status, time_tokens_required, time_tokens_per_participant, id]
+                'UPDATE activities SET title = $1, description = $2, location = $3, start_date = $4, start_time = $5, end_date = $6, end_time = $7, max_participants = $8, requester_id = $9, status = $10, time_tokens_required = $11, time_tokens_per_participant = $12 WHERE activity_id = $13 RETURNING *',
+                [title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, status, time_tokens_required, time_tokens_per_participant, id]
             );
 
             res.json(result.rows[0]);
@@ -150,8 +159,8 @@ const activityRoutes = (pool) => {
 
             // Log the transaction
             await client.query(
-                'INSERT INTO transactions (member_id, details, time_credits, transaction_type) VALUES ($1, $2, $3, $4)',
-                [memberId, `Participated in activity: ${activity.title}`, activity.time_tokens_per_participant, 'earn']
+                'INSERT INTO transactions (member_id, activity_id, details, time_credits, transaction_type) VALUES ($1, $2, $3, $4, $5)',
+                [memberId, activityId, `Participated in activity: ${activity.title}`, activity.time_tokens_per_participant, 'earn']
             );
 
             await client.query('COMMIT');
@@ -188,7 +197,7 @@ const activityRoutes = (pool) => {
             );
 
             // Deduct time tokens from the requester
-            const requesterResult = await client.query('SELECT member_id, time_credits FROM members WHERE name = $1', [activity.requester_name]);
+            const requesterResult = await client.query('SELECT member_id, time_credits FROM members WHERE member_id = $1', [activity.requester_id]);
             if (requesterResult.rows.length === 0) {
                 throw new Error('Requester not found');
             }
@@ -205,8 +214,8 @@ const activityRoutes = (pool) => {
 
             // Log the transaction
             await client.query(
-                'INSERT INTO transactions (member_id, details, time_credits, transaction_type) VALUES ($1, $2, $3, $4)',
-                [requester.member_id, `Approved activity: ${activity.title}`, totalTokensRequired, 'spend']
+                'INSERT INTO transactions (member_id, activity_id, details, time_credits, transaction_type) VALUES ($1, $2, $3, $4, $5)',
+                [requester.member_id, activityId, `Approved activity: ${activity.title}`, totalTokensRequired, 'spend']
             );
 
             await client.query('COMMIT');

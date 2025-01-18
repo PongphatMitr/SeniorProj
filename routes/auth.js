@@ -2,6 +2,8 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
+const authMiddleware = require('../middleware/authMiddleware');
+
 dotenv.config();
 
 const authRoutes = (pool) => {
@@ -58,6 +60,40 @@ const authRoutes = (pool) => {
             });
 
             res.json({ token });
+        } catch (err) {
+            console.error('Error:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+
+    // Verify token
+    router.post('/verify', (req, res) => {
+        const token = req.headers['authorization'].split(' ')[1];
+        if (!token) {
+            return res.status(400).json({ error: 'Token is required' });
+        }
+
+        jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+            if (err) {
+                return res.status(400).json({ error: 'Invalid token' });
+            }
+            res.status(200).json({ message: 'Token is valid', user: decoded });
+        });
+    });
+
+    // Profile route
+    router.get('/profile', authMiddleware, async (req, res) => {
+        const userId = req.user.userId;
+
+        try {
+            const result = await pool.query('SELECT username, email, role FROM users WHERE user_id = $1', [userId]);
+            const user = result.rows[0];
+
+            if (!user) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+
+            res.json(user);
         } catch (err) {
             console.error('Error:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });

@@ -48,12 +48,19 @@
         .dropdown-item:hover b.red {
             color: darkred;
         }
+
+        th.sortable:hover {
+            cursor: pointer;
+            background-color: #f1f1f1;
+        }
     </style>
     <script>
         let transactions = [];
         let currentPage = 1;
         const pageSize = 10;
         let totalTransactions = 0;
+        let sortColumn = '';
+        let sortDirection = 'asc';
 
         async function fetchTransactions(page) {
             try {
@@ -71,6 +78,7 @@
                 if (Array.isArray(data.transactions)) {
                     transactions = data.transactions;
                     totalTransactions = data.total;
+                    await fetchActivityDescriptions();
                     renderTable(transactions);
                     renderPagination();
                 } else {
@@ -81,6 +89,35 @@
                 console.error('Error fetching transactions:', error);
                 alert('เกิดข้อผิดพลาดในการดึงข้อมูลธุรกรรม');
             }
+        }
+
+        async function fetchActivityDescriptions() {
+            const activityIds = transactions.map(transaction => transaction.activity_id);
+            const uniqueActivityIds = [...new Set(activityIds)];
+
+            const activityDescriptions = {};
+
+            for (const activityId of uniqueActivityIds) {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/activities/${activityId}`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    const activity = await response.json();
+                    activityDescriptions[activityId] = activity.description;
+                } catch (error) {
+                    console.error('Error fetching activity description:', error);
+                }
+            }
+
+            transactions = transactions.map(transaction => ({
+                ...transaction,
+                activity_description: activityDescriptions[transaction.activity_id] || 'No description available'
+            }));
         }
 
         function renderTable(data) {
@@ -101,17 +138,20 @@
                     <td aria-colindex="3" data-label="เวลา" role="cell" class="py-2 px-4 border-b border-gray-200">
                         ${transaction.time}
                     </td>
-                    <td aria-colindex="4" data-label="กิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${transaction.activity_title}
-                    </td>
-                    <td aria-colindex="5" data-label="เครดิตเวลา" role="cell" class="py-2 px-4 border-b border-gray-200 ${timeCreditsClass}">
+                    <td aria-colindex="4" data-label="เครดิตเวลา" role="cell" class="py-2 px-4 border-b border-gray-200 ${timeCreditsClass}">
                         ${transaction.time_credits}
                     </td>
-                    <td aria-colindex="6" data-label="ชื่อผู้ขอ" role="cell" class="py-2 px-4 border-b border-gray-200">
+                    <td aria-colindex="5" data-label="ชื่อผู้ขอ" role="cell" class="py-2 px-4 border-b border-gray-200">
                         ${transaction.requester_name}
                     </td>
-                    <td aria-colindex="7" data-label="ชื่อผู้เข้าร่วม" role="cell" class="py-2 px-4 border-b border-gray-200">
+                    <td aria-colindex="6" data-label="ชื่อผู้เข้าร่วม" role="cell" class="py-2 px-4 border-b border-gray-200">
                         ${transaction.participant_name}
+                    </td>
+                    <td aria-colindex="7" data-label="ธุรกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${transaction.activity_title}
+                    </td>
+                    <td aria-colindex="8" data-label="รายละเอียดธุรกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${transaction.activity_description}
                     </td>
                 `;
                 tbody.appendChild(row);
@@ -176,8 +216,33 @@
             paginationContainer.appendChild(lastButton);
         }
 
+        function sortTable(column) {
+            const direction = sortColumn === column && sortDirection === 'asc' ? 'desc' : 'asc';
+            sortColumn = column;
+            sortDirection = direction;
+
+            transactions.sort((a, b) => {
+                if (a[column] < b[column]) {
+                    return direction === 'asc' ? -1 : 1;
+                }
+                if (a[column] > b[column]) {
+                    return direction === 'asc' ? 1 : -1;
+                }
+                return 0;
+            });
+
+            renderTable(transactions);
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             fetchTransactions(currentPage);
+
+            document.querySelectorAll('th.sortable').forEach(header => {
+                header.addEventListener('click', () => {
+                    const column = header.getAttribute('data-column');
+                    sortTable(column);
+                });
+            });
         });
     </script>
 </head>
@@ -274,44 +339,49 @@
                 </h2>
                 <div class="overflow-x-auto">
                     <div class="table-responsive-sm">
-                        <table aria-busy="false" aria-colcount="7" class="table b-table b-table-stacked-md w-full"
+                        <table aria-busy="false" aria-colcount="8" class="table b-table b-table-stacked-md w-full"
                             role="table">
                             <thead class="bg-gray-100" role="rowgroup">
                                 <tr role="row">
                                     <th aria-colindex="1"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
+                                        data-column="transaction_id" role="columnheader" scope="col">
                                         รหัสธุรกรรม
                                     </th>
                                     <th aria-colindex="2"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
+                                        data-column="date" role="columnheader" scope="col">
                                         วันที่
                                     </th>
                                     <th aria-colindex="3"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
+                                        data-column="time" role="columnheader" scope="col">
                                         เวลา
                                     </th>
                                     <th aria-colindex="4"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        กิจกรรม
-                                    </th>
-                                    <th aria-colindex="5"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
+                                        data-column="time_credits" role="columnheader" scope="col">
                                         เครดิตเวลา
                                     </th>
-                                    <th aria-colindex="6"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
+                                    <th aria-colindex="5"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
+                                        data-column="requester_name" role="columnheader" scope="col">
                                         ชื่อผู้ขอ
                                     </th>
-                                    <th aria-colindex="7"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
+                                    <th aria-colindex="6"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
+                                        data-column="participant_name" role="columnheader" scope="col">
                                         ชื่อผู้เข้าร่วม
+                                    </th>
+                                    <th aria-colindex="7"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
+                                        data-column="activity_title" role="columnheader" scope="col">
+                                        ธุรกรรม
+                                    </th>
+                                    <th aria-colindex="8"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
+                                        data-column="activity_description" role="columnheader" scope="col">
+                                        รายละเอียดธุรกรรม
                                     </th>
                                 </tr>
                             </thead>

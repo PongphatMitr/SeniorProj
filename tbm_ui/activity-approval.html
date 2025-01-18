@@ -24,6 +24,8 @@
                 });
 
                 if (!response.ok) {
+                    const errorText = await response.text();
+                    console.error(`HTTP error! status: ${response.status}, response: ${errorText}`);
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
@@ -37,6 +39,7 @@
                     document.getElementById('activity-start-time').innerText = activity.start_time;
                     document.getElementById('activity-end-time').innerText = activity.end_time;
                     document.getElementById('activity-time-tokens').innerText = activity.time_tokens_required;
+                    document.getElementById('activity-requester-name').innerText = activity.requester_name;
 
                     // Fetch participants
                     const participantsResponse = await fetch(`http://localhost:3000/api/activities/${activityId}/participants`, {
@@ -46,13 +49,14 @@
                     });
 
                     if (!participantsResponse.ok) {
+                        const errorText = await participantsResponse.text();
+                        console.error(`HTTP error! status: ${participantsResponse.status}, response: ${errorText}`);
                         throw new Error(`HTTP error! status: ${participantsResponse.status}`);
                     }
 
                     const participants = await participantsResponse.json();
                     const participantsCount = Array.isArray(participants) ? participants.length : 0;
                     document.getElementById('activity-max-participants').innerText = `${participantsCount}/${activity.max_participants}`;
-                    document.getElementById('activity-requester-name').innerText = activity.requester_name;
                     document.getElementById('activity-status').innerText = activity.status;
                 } else {
                     alert('ไม่พบรายละเอียดกิจกรรม');
@@ -126,25 +130,82 @@
                 const activityId = new URLSearchParams(window.location.search).get('id');
                 window.location.href = `activity-participant.html?id=${activityId}`;
             });
-        });
-    </script>
-</head>
 
-<body class="bg-gray-100">
-    <div class="flex flex-col md:flex-row">
-        <!-- Sidebar -->
-        <div class="w-1/6 bg-white h-screen p-5">
-            <div class="flex items-center mb-10">
-                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
-                    class="w-10 h-10 rounded-full" height="50"
-                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
-                    width="50" />
-                <span class="ml-3 text-xl font-bold text-blue-600">
-                    TIMEBANK
-                </span>
-            </div>
-            <nav>
-                <ul>
+            updateSidebar();
+        });
+
+        function updateSidebar() {
+            const navList = document.getElementById('navList');
+            const token = localStorage.getItem('token');
+
+            if (token) {
+                navList.innerHTML = `
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="profile.html">
+                            <i class="fas fa-user mr-3"></i>
+                            โปรไฟล์
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="homepage.html">
+                            <i class="fas fa-home mr-3"></i>
+                            หน้าหลัก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="report.html">
+                            <i class="fas fa-chart-bar mr-3"></i>
+                            รายงาน
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="activity.html">
+                            <i class="fas fa-calendar-alt mr-3"></i>
+                            จัดการกิจกรรม
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="member.html">
+                            <i class="fas fa-users mr-3"></i>
+                            จัดการสมาชิก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="skillconf.html">
+                            <i class="fas fa-cogs mr-3"></i>
+                            จัดการหมวหมู่ทักษะ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="fund.html">
+                            <i class="fas fa-hand-holding-usd mr-3"></i>
+                            จัดการกองทุนชุมชน
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="commconf.html">
+                            <i class="fas fa-cog mr-3"></i>
+                            จัดการชุมชน
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="transaction.html">
+                            <i class="fas fa-exchange-alt mr-3"></i>
+                            ธุรกรรมทั้งหมด
+                        </a>
+                    </li>
+                `;
+            } else {
+                navList.innerHTML = `
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="login.html">
@@ -208,6 +269,28 @@
                             ธุรกรรมทั้งหมด
                         </a>
                     </li>
+                `;
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-gray-100">
+    <div class="flex flex-col md:flex-row">
+        <!-- Sidebar -->
+        <div class="w-1/6 bg-white h-screen p-5">
+            <div class="flex items-center mb-10">
+                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
+                    class="w-10 h-10 rounded-full" height="50"
+                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
+                    width="50" />
+                <span class="ml-3 text-xl font-bold text-blue-600">
+                    TIMEBANK
+                </span>
+            </div>
+            <nav>
+                <ul id="navList">
+                    <!-- Navigation items will be dynamically inserted here -->
                 </ul>
             </nav>
         </div>

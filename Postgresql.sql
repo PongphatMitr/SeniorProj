@@ -99,6 +99,7 @@ CREATE TABLE transactions (
     time TIME NOT NULL DEFAULT CURRENT_TIME,
     time_credits INT,
     transaction_type VARCHAR(10) NOT NULL CHECK (transaction_type IN ('earn', 'spend')),
+    details TEXT,
     requester_id INT,
     participant_id INT,
     FOREIGN KEY (member_id) REFERENCES members(member_id),
@@ -180,12 +181,12 @@ VALUES
 (4, 1);
 
 -- Insert initial data into transactions
-INSERT INTO transactions (member_id, activity_id, date, time, time_credits, transaction_type, requester_id, participant_id) 
+INSERT INTO transactions (member_id, activity_id, date, time, time_credits, transaction_type, details, requester_id, participant_id) 
 VALUES 
-(1, 1, '2023-01-01', '09:00:00', 1, 'earn', 1, 1),
-(1, 2, '2023-01-15', '10:00:00', 1, 'earn', 1, 1),
-(1, 3, '2023-01-30', '11:00:00', 1, 'earn', 1, 1),
-(1, 4, '2023-02-05', '08:00:00', 1, 'earn', 1, 1);
+(1, 1, '2023-01-01', '09:00:00', 1, 'earn', 'Participated in activity: กิจกรรมทำความสะอาดชุมชน', 1, 1),
+(1, 2, '2023-01-15', '10:00:00', 1, 'earn', 'Participated in activity: กิจกรรมสอนคอมพิวเตอร์', 1, 1),
+(1, 3, '2023-01-30', '11:00:00', 1, 'earn', 'Participated in activity: กิจกรรมทำอาหาร', 1, 1),
+(1, 4, '2023-02-05', '08:00:00', 1, 'earn', 'Participated in activity: กิจกรรมทำสวน', 1, 1);
 
 -- Insert initial data into community_fund
 INSERT INTO community_fund (total_hours, borrowed_hours) VALUES (200, 50);
