@@ -1,137 +1,189 @@
-<!DOCTYPE html>
 <html lang="th">
-
-<head>
-    <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>สมัครสมาชิก - Time Bank</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="style.css" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
-</head>
-
-<body class="page-register">
-    <div class="container">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="logo-section">
-                <img src="https://storage.googleapis.com/a1aa/image/GOMFBEaepyxe3E3gz2xaZviBDO0q04rV6Cz8h1wgcnNFaw5TA.jpg" alt="Logo" class="logo" />
-                <span class="brand-name">TIMEBANK</span>
-            </div>
-            <nav>
-                <ul id="sidebar-menu">
-                    <li>
-                        <a href="login.html" id="login-link">
-                            <i class="fas fa-sign-in-alt"></i>
-                            <span class="link-text">เข้าสู่ระบบ</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="HomePage.html">
-                            <i class="fas fa-home"></i>
-                            <span class="link-text">หน้าหลัก</span>
-                        </a>
-                    </li>
-                    <!-- การบริการ Dropdown -->
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle">
-                            <i class="fas fa-cogs"></i>
-                            <span class="link-text">การบริการ</span>
-                            <i class="fas fa-chevron-down dropdown-icon"></i>
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a href="service.html" class="sub-link">ยื่นข้อของานบริการ</a>
-                            </li>
-                        </ul>
-                    </li>
-                    <!-- การจัดการบัญชี Dropdown -->
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle">
-                            <i class="fas fa-user-circle"></i>
-                            <span class="link-text">การจัดการบัญชี</span>
-                            <i class="fas fa-chevron-down dropdown-icon"></i>
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a href="profile.html" class="sub-link">แก้ไขประวัติ</a>
-                            </li>
-                            <li>
-                                <a href="skillconf.html" class="sub-link">แก้ไขทักษะ</a>
-                            </li>
-                            <li>
-                                <a href="balance.html" class="sub-link">ยอดคงเหลือ</a>
-                            </li>
-                            <li>
-                                <a href="history.html" class="sub-link">ประวัติ</a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li>
-                        <a href="contact.html">
-                            <i class="fas fa-phone"></i>
-                            <span class="link-text">ติดต่อเรา</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
-
-        <!-- Main Content -->
-        <div class="center-wrapper">
-            <h1 class="site-title">สมัครสมาชิก</h1>
-            <div class="login-container">
-                <h2>ลงทะเบียน</h2>
-                <form id="registerForm">
-                    <input type="text" id="full-name" placeholder="ชื่อ-นามสกุล" required>
-                    <input type="email" id="email" placeholder="อีเมล" required>
-                    <input type="text" id="id-number" placeholder="เลขบัตรประชาชน" required>
-                    <input type="password" id="password" placeholder="รหัสผ่าน" required>
-                    <input type="password" id="confirm-password" placeholder="ยืนยันรหัสผ่าน" required>
-                    <button class="login-button" type="submit">ลงทะเบียน</button>
-                </form>
-                <p class="signup-text">
-                    มีบัญชีผู้ใช้อยู่แล้วใช่ไหม?
-                    <a href="login.html">เข้าสู่ระบบ</a>
-                </p>
-            </div>
-        </div>
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   สมัครสมาชิก - Time Bank
+  </title>
+  <script src="https://cdn.tailwindcss.com">
+  </script>
+  <link href="style.css" rel="stylesheet"/>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+ </head>
+ <body class="page-register">
+  <div class="container">
+   <!-- Sidebar -->
+   <div class="sidebar">
+    <div class="logo-section">
+     <img alt="Logo of Time Bank" class="logo" height="40" src="https://storage.googleapis.com/a1aa/image/Yiebhlq67w2QHSmY7n2xLuwnPff2GUNZnlYi9dQI5IbooYNoA.jpg" width="40"/>
+     <span class="brand-name">
+      TIMEBANK
+     </span>
     </div>
-
-    <script>
-        document.getElementById("registerForm").addEventListener("submit", (event) => {
+    <nav>
+     <ul id="sidebar-menu">
+      <li>
+       <a href="login.html" id="login-link">
+        <i class="fas fa-sign-in-alt">
+        </i>
+        <span class="link-text">
+         เข้าสู่ระบบ
+        </span>
+       </a>
+      </li>
+      <li>
+       <a href="HomePage.html">
+        <i class="fas fa-home">
+        </i>
+        <span class="link-text">
+         หน้าหลัก
+        </span>
+       </a>
+      </li>
+      <!-- การบริการ Dropdown -->
+      <li class="dropdown">
+       <a class="dropdown-toggle" href="#">
+        <i class="fas fa-cogs">
+        </i>
+        <span class="link-text">
+         การบริการ
+        </span>
+        <i class="fas fa-chevron-down dropdown-icon">
+        </i>
+       </a>
+       <ul class="dropdown-menu">
+        <li>
+         <a class="sub-link" href="service.html">
+          ยื่นข้อของานบริการ
+         </a>
+        </li>
+       </ul>
+      </li>
+      <!-- การจัดการบัญชี Dropdown -->
+      <li class="dropdown">
+       <a class="dropdown-toggle" href="#">
+        <i class="fas fa-user-circle">
+        </i>
+        <span class="link-text">
+         การจัดการบัญชี
+        </span>
+        <i class="fas fa-chevron-down dropdown-icon">
+        </i>
+       </a>
+       <ul class="dropdown-menu">
+        <li>
+         <a class="sub-link" href="profile.html">
+          แก้ไขประวัติ
+         </a>
+        </li>
+        <li>
+         <a class="sub-link" href="skillconf.html">
+          แก้ไขทักษะ
+         </a>
+        </li>
+        <li>
+         <a class="sub-link" href="balance.html">
+          ยอดคงเหลือ
+         </a>
+        </li>
+        <li>
+         <a class="sub-link" href="history.html">
+          ประวัติ
+         </a>
+        </li>
+       </ul>
+      </li>
+      <li>
+       <a href="contact.html">
+        <i class="fas fa-phone">
+        </i>
+        <span class="link-text">
+         ติดต่อเรา
+        </span>
+       </a>
+      </li>
+     </ul>
+    </nav>
+   </div>
+   <!-- Main Content -->
+   <div class="center-wrapper">
+    <h1 class="site-title">
+     สมัครสมาชิก
+    </h1>
+    <div class="login-container">
+     <h2>
+      ลงทะเบียน
+     </h2>
+     <form id="registerForm">
+      <input id="full-name" placeholder="ชื่อ-นามสกุล" required="" type="text"/>
+      <input id="email" placeholder="อีเมล" required="" type="email"/>
+      <input id="id-number" placeholder="เลขบัตรประชาชน" required="" type="text"/>
+      <input id="password" placeholder="รหัสผ่าน" required="" type="password"/>
+      <input id="confirm-password" placeholder="ยืนยันรหัสผ่าน" required="" type="password"/>
+      <button class="login-button" type="submit">
+       ลงทะเบียน
+      </button>
+     </form>
+     <p class="signup-text">
+      มีบัญชีผู้ใช้อยู่แล้วใช่ไหม?
+      <a href="login.html">
+       เข้าสู่ระบบ
+      </a>
+     </p>
+    </div>
+   </div>
+  </div>
+  <script>
+   document.getElementById("registerForm").addEventListener("submit", async (event) => {
             event.preventDefault();
-
             const password = document.getElementById("password").value;
             const confirmPassword = document.getElementById("confirm-password").value;
-
             if (password !== confirmPassword) {
                 alert("รหัสผ่านไม่ตรงกัน!");
                 return;
             }
 
-            // Simulate successful registration
-            alert("ลงทะเบียนสำเร็จ!");
+            const fullName = document.getElementById("full-name").value;
+            const email = document.getElementById("email").value;
+            const idNumber = document.getElementById("id-number").value;
 
-            // Store login state in localStorage
-            localStorage.setItem("isLoggedIn", "true");
+            if (!fullName || !email || !idNumber || !password) {
+                alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+                return;
+            }
 
-            // Redirect to homepage
-            window.location.href = "HomePage.html";
+            try {
+                const response = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ fullName, email, idNumber, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert("ลงทะเบียนสำเร็จ!");
+                    localStorage.setItem("isLoggedIn", "true");
+                    window.location.href = "HomePage.html";
+                } else {
+                    const errorData = await response.json();
+                    alert(`Error: ${errorData.error}`);
+                }
+            } catch (error) {
+                alert("An error occurred. Please try again later.");
+            }
         });
 
-        // Check login state and update sidebar
         document.addEventListener("DOMContentLoaded", () => {
             const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
-
             if (isLoggedIn) {
                 const loginLink = document.getElementById("login-link");
                 if (loginLink) {
-                    loginLink.parentElement.style.display = "none"; // Hide login link
+                    loginLink.parentElement.style.display = "none";
                 }
             }
         });
-    </script>
-</body>
-
+  </script>
+ </body>
 </html>
