@@ -19,13 +19,12 @@
             </div>
             <nav>
                 <ul>
-                    <li>
+                    <li id="auth-link">
                         <a href="login.html">
                             <i class="fas fa-sign-in-alt"></i>
                             <span class="link-text">Login</span>
                         </a>
                     </li>
-                    
                     <li>
                         <a href="HomePage.html">
                             <i class="fas fa-home"></i>
@@ -82,7 +81,7 @@
             <h1>TIME BANK</h1>
             <h2>ธนาคารเวลา คืออะไร ?</h2>
             <p class="description" style="font-size: 18px;">
-                เป็นรูปแบบกิจกรรม ที่ช่วยส่งเสริ/มให้ชุมชนดูแลซึ่งกันและกัน
+                เป็นรูปแบบกิจกรรม ที่ช่วยส่งเสริมให้ชุมชนดูแลซึ่งกันและกัน
                 ด้วยการแลกเปลี่ยนทักษะ ประสบการณ์ บริการขั้นพื้นฐาน และสามารถสะสมเวลาไว้ เสมือนเราออมเงิน
             </p>
             <h2>ข่าวสารประชาสัมพันธ์</h2>
@@ -101,7 +100,44 @@
         </div>
     </div>
 
-    <!-- Dropdown Toggle Script -->
+    <!-- Script to Handle Login/Logout -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const authLink = document.getElementById("auth-link");
+
+            // Check if user is logged in
+            const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+            // Update the auth link to Login/Logout based on login state
+            function updateAuthLink() {
+                if (isLoggedIn) {
+                    authLink.innerHTML = `
+                        <a href="#" id="logout-link">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span class="link-text">Logout</span>
+                        </a>
+                    `;
+                    const logoutLink = document.getElementById("logout-link");
+                    logoutLink.addEventListener("click", (e) => {
+                        e.preventDefault();
+                        localStorage.setItem("isLoggedIn", "false");
+                        alert("You have logged out.");
+                        location.reload();
+                    });
+                } else {
+                    authLink.innerHTML = `
+                        <a href="login.html">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span class="link-text">Login</span>
+                        </a>
+                    `;
+                }
+            }
+
+            updateAuthLink();
+        });
+    </script>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
@@ -125,7 +161,7 @@
             });
         });
     </script>
-    
+
 </body>
 
 </html>
