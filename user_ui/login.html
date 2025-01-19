@@ -3,11 +3,8 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>
-        Time Bank
-    </title>
-    <script src="https://cdn.tailwindcss.com">
-    </script>
+    <title>Time Bank</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="style.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
 </head>
@@ -25,85 +22,58 @@
                 </span>
             </div>
             <nav>
-                <ul>
+                <ul id="navList">
                     <li>
                         <a href="login.html">
-                            <i class="fas fa-sign-in-alt">
-                            </i>
-                            <span class="link-text">
-                                Login
-                            </span>
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span class="link-text">Login</span>
                         </a>
                     </li>
                     <li>
                         <a href="HomePage.html">
-                            <i class="fas fa-home">
-                            </i>
-                            <span class="link-text">
-                                หน้าหลัก
-                            </span>
+                            <i class="fas fa-home"></i>
+                            <span class="link-text">หน้าหลัก</span>
                         </a>
                     </li>
                     <!-- การบริการ Dropdown -->
                     <li class="dropdown">
                         <a class="dropdown-toggle" href="#">
-                            <i class="fas fa-cogs">
-                            </i>
-                            <span class="link-text">
-                                การบริการ
-                            </span>
-                            <i class="fas fa-chevron-down dropdown-icon">
-                            </i>
+                            <i class="fas fa-cogs"></i>
+                            <span class="link-text">การบริการ</span>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
                         </a>
                         <ul class="dropdown-menu">
                             <li>
-                                <a class="sub-link" href="service.html">
-                                    ยื่นข้อของานบริการ
-                                </a>
+                                <a class="sub-link" href="service.html">ยื่นข้อของานบริการ</a>
                             </li>
                         </ul>
                     </li>
                     <!-- การจัดการบัญชี Dropdown -->
                     <li class="dropdown">
                         <a class="dropdown-toggle" href="#">
-                            <i class="fas fa-user-circle">
-                            </i>
-                            <span class="link-text">
-                                การจัดการบัญชี
-                            </span>
-                            <i class="fas fa-chevron-down dropdown-icon">
-                            </i>
+                            <i class="fas fa-user-circle"></i>
+                            <span class="link-text">การจัดการบัญชี</span>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
                         </a>
                         <ul class="dropdown-menu">
                             <li>
-                                <a class="sub-link" href="profile.html">
-                                    แก้ไขประวัติ
-                                </a>
+                                <a class="sub-link" href="profile.html">แก้ไขประวัติ</a>
                             </li>
                             <li>
-                                <a class="sub-link" href="skillconf.html">
-                                    แก้ไขทักษะ
-                                </a>
+                                <a class="sub-link" href="skillconf.html">แก้ไขทักษะ</a>
                             </li>
                             <li>
-                                <a class="sub-link" href="balance.html">
-                                    ยอดคงเหลือ
-                                </a>
+                                <a class="sub-link" href="balance.html">ยอดคงเหลือ</a>
                             </li>
                             <li>
-                                <a class="sub-link" href="history.html">
-                                    ประวัติ
-                                </a>
+                                <a class="sub-link" href="history.html">ประวัติ</a>
                             </li>
                         </ul>
                     </li>
                     <li>
                         <a href="contact.html">
-                            <i class="fas fa-phone">
-                            </i>
-                            <span class="link-text">
-                                ติดต่อเรา
-                            </span>
+                            <i class="fas fa-phone"></i>
+                            <span class="link-text">ติดต่อเรา</span>
                         </a>
                     </li>
                 </ul>
@@ -111,84 +81,208 @@
         </div>
         <!-- Main Content -->
         <div class="center-wrapper">
-            <h1 class="site-title">
-                TIME BANK
-            </h1>
+            <h1 class="site-title">TIME BANK</h1>
             <div class="login-container">
-                <h2>
-                    Login
-                </h2>
-                <form id="login-form">
-                    <input id="username" placeholder="ชื่อผู้ใช้" required="" type="text" />
-                    <input id="password" placeholder="รหัสผ่าน" required="" type="password" />
-                    <button class="login-button" type="submit">
-                        เข้าสู่ระบบ
-                    </button>
+                <h2>Login</h2>
+                <form id="loginForm">
+                    <div class="mb-4">
+                        <input id="username" placeholder="ชื่อผู้ใช้" required="" type="text" class="input-field" />
+                    </div>
+                    <div class="mb-6">
+                        <input id="password" placeholder="รหัสผ่าน" required="" type="password" class="input-field" />
+                    </div>
+                    <div class="flex items-center justify-center">
+                        <button class="login-button" type="submit">เข้าสู่ระบบ</button>
+                    </div>
                 </form>
                 <p class="signup-text">
                     ไม่มีบัญชีผู้ใช้ ?
-                    <a href="register.html">
-                        สมัครสมาชิก
-                    </a>
+                    <a href="register.html">สมัครสมาชิก</a>
                 </p>
             </div>
         </div>
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
-                const sidebar = document.querySelector('.sidebar');
-
-                // Handle dropdown toggle click
-                dropdownToggles.forEach(toggle => {
-                    toggle.addEventListener('click', (e) => {
-                        e.preventDefault(); // Prevent default anchor behavior
-                        const parent = toggle.parentElement;
-                        parent.classList.toggle('open'); // Toggle the "open" class
-                    });
-                });
-
-                // Reset dropdowns when the mouse leaves the sidebar
-                sidebar.addEventListener('mouseleave', () => {
-                    const dropdowns = document.querySelectorAll('.dropdown');
-                    dropdowns.forEach(dropdown => {
-                        dropdown.classList.remove('open'); // Remove "open" class
-                    });
-                });
-
-                // Handle login form submission
-                const loginForm = document.getElementById('login-form');
-                loginForm.addEventListener('submit', async (e) => {
-                    e.preventDefault();
-                    const username = document.getElementById('username').value;
-                    const password = document.getElementById('password').value;
-
-                    try {
-                        const response = await fetch('/api/auth/login', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ username, password })
-                        });
-
-                        const data = await response.json();
-
-                        if (response.ok) {
-                            // Store the token in localStorage
-                            localStorage.setItem('token', data.token);
-                            // Redirect to the homepage
-                            window.location.href = 'HomePage.html';
-                        } else {
-                            alert(data.error);
-                        }
-                    } catch (error) {
-                        console.error('Error:', error);
-                        alert('An error occurred. Please try again.');
-                    }
-                });
-            });
-        </script>
     </div>
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/auth/login', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'An error occurred');
+                }
+
+                const data = await response.json();
+
+                // Save the token in localStorage
+                localStorage.setItem('token', data.token);
+                // Update the sidebar
+                updateSidebar(true);
+                // Redirect to the homepage or another page
+                window.location.href = 'HomePage.html';
+            } catch (error) {
+                console.error('Error:', error);
+                alert(error.message);
+            }
+        });
+
+        function updateSidebar(isLoggedIn) {
+            const navList = document.getElementById('navList');
+            if (isLoggedIn) {
+                navList.innerHTML = `
+                    <li>
+                        <a href="profile.html">
+                            <i class="fas fa-user"></i>
+                            <span class="link-text">โปรไฟล์</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="HomePage.html">
+                            <i class="fas fa-home"></i>
+                            <span class="link-text">หน้าหลัก</span>
+                        </a>
+                    </li>
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" href="#">
+                            <i class="fas fa-cogs"></i>
+                            <span class="link-text">การบริการ</span>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="sub-link" href="service.html">ยื่นข้อของานบริการ</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" href="#">
+                            <i class="fas fa-user-circle"></i>
+                            <span class="link-text">การจัดการบัญชี</span>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="sub-link" href="profile.html">แก้ไขประวัติ</a>
+                            </li>
+                            <li>
+                                <a class="sub-link" href="skillconf.html">แก้ไขทักษะ</a>
+                            </li>
+                            <li>
+                                <a class="sub-link" href="balance.html">ยอดคงเหลือ</a>
+                            </li>
+                            <li>
+                                <a class="sub-link" href="history.html">ประวัติ</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="contact.html">
+                            <i class="fas fa-phone"></i>
+                            <span class="link-text">ติดต่อเรา</span>
+                        </a>
+                    </li>
+                `;
+            } else {
+                navList.innerHTML = `
+                    <li>
+                        <a href="login.html">
+                            <i class="fas fa-sign-in-alt"></i>
+                            <span class="link-text">Login</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="HomePage.html">
+                            <i class="fas fa-home"></i>
+                            <span class="link-text">หน้าหลัก</span>
+                        </a>
+                    </li>
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" href="#">
+                            <i class="fas fa-cogs"></i>
+                            <span class="link-text">การบริการ</span>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="sub-link" href="service.html">ยื่นข้อของานบริการ</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li class="dropdown">
+                        <a class="dropdown-toggle" href="#">
+                            <i class="fas fa-user-circle"></i>
+                            <span class="link-text">การจัดการบัญชี</span>
+                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li>
+                                <a class="sub-link" href="profile.html">แก้ไขประวัติ</a>
+                            </li>
+                            <li>
+                                <a class="sub-link" href="skillconf.html">แก้ไขทักษะ</a>
+                            </li>
+                            <li>
+                                <a class="sub-link" href="balance.html">ยอดคงเหลือ</a>
+                            </li>
+                            <li>
+                                <a class="sub-link" href="history.html">ประวัติ</a>
+                            </li>
+                        </ul>
+                    </li>
+                    <li>
+                        <a href="contact.html">
+                            <i class="fas fa-phone"></i>
+                            <span class="link-text">ติดต่อเรา</span>
+                        </a>
+                    </li>
+                `;
+            }
+        }
+
+        async function checkLoginStatus() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const response = await fetch('http://localhost:3000/api/auth/verify', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        updateSidebar(true);
+                    } else {
+                        localStorage.removeItem('token');
+                        updateSidebar(false);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    localStorage.removeItem('token');
+                    updateSidebar(false);
+                }
+            } else {
+                updateSidebar(false);
+            }
+        }
+
+        // Check if the user is already logged in
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLoginStatus();
+        });
+    </script>
 </body>
 
 </html>
