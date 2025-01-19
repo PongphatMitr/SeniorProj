@@ -1,15 +1,16 @@
-<html lang="en">
+<!DOCTYPE html>
+<html lang="th">
 
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Time Bank</title>
+    <title>สมัครสมาชิก - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="style.css" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
 </head>
 
-<body class="page-login">
+<body class="page-register">
     <div class="container">
         <!-- Sidebar -->
         <div class="sidebar">
@@ -18,14 +19,13 @@
                 <span class="brand-name">TIMEBANK</span>
             </div>
             <nav>
-                <ul>
+                <ul id="sidebar-menu">
                     <li>
-                        <a href="login.html">
+                        <a href="login.html" id="login-link">
                             <i class="fas fa-sign-in-alt"></i>
-                            <span class="link-text">Login</span>
+                            <span class="link-text">เข้าสู่ระบบ</span>
                         </a>
                     </li>
-                    
                     <li>
                         <a href="HomePage.html">
                             <i class="fas fa-home"></i>
@@ -76,46 +76,62 @@
                 </ul>
             </nav>
         </div>
-        
+
         <!-- Main Content -->
         <div class="center-wrapper">
-            <h1 class="site-title">TIME BANK</h1>
+            <h1 class="site-title">สมัครสมาชิก</h1>
             <div class="login-container">
-                <h2>Login</h2>
-                <form>
-                    <input type="text" id="id-number" placeholder="เลขบัตรประจำตัวประชาชน">
-                    <input type="password" id="password" placeholder="รหัสผ่าน">
-                    <button class="login-button" type="button">เข้าสู่ระบบ</button>
+                <h2>ลงทะเบียน</h2>
+                <form id="registerForm">
+                    <input type="text" id="full-name" placeholder="ชื่อ-นามสกุล" required>
+                    <input type="email" id="email" placeholder="อีเมล" required>
+                    <input type="text" id="id-number" placeholder="เลขบัตรประชาชน" required>
+                    <input type="password" id="password" placeholder="รหัสผ่าน" required>
+                    <input type="password" id="confirm-password" placeholder="ยืนยันรหัสผ่าน" required>
+                    <button class="login-button" type="submit">ลงทะเบียน</button>
                 </form>
                 <p class="signup-text">
-                    ไม่มีบัญชีผู้ใช้ ?
-                    <a href="register.html">สมัครสมาชิก</a>
+                    มีบัญชีผู้ใช้อยู่แล้วใช่ไหม?
+                    <a href="login.html">เข้าสู่ระบบ</a>
                 </p>
             </div>
         </div>
-        <script>
-            document.addEventListener('DOMContentLoaded', () => {
-                const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
-                const sidebar = document.querySelector('.sidebar');
-        
-                // Handle dropdown toggle click
-                dropdownToggles.forEach(toggle => {
-                    toggle.addEventListener('click', (e) => {
-                        e.preventDefault(); // Prevent default anchor behavior
-                        const parent = toggle.parentElement;
-                        parent.classList.toggle('open'); // Toggle the "open" class
-                    });
-                });
-        
-                // Reset dropdowns when the mouse leaves the sidebar
-                sidebar.addEventListener('mouseleave', () => {
-                    const dropdowns = document.querySelectorAll('.dropdown');
-                    dropdowns.forEach(dropdown => {
-                        dropdown.classList.remove('open'); // Remove "open" class
-                    });
-                });
-            });
-        </script>
+    </div>
+
+    <script>
+        document.getElementById("registerForm").addEventListener("submit", (event) => {
+            event.preventDefault();
+
+            const password = document.getElementById("password").value;
+            const confirmPassword = document.getElementById("confirm-password").value;
+
+            if (password !== confirmPassword) {
+                alert("รหัสผ่านไม่ตรงกัน!");
+                return;
+            }
+
+            // Simulate successful registration
+            alert("ลงทะเบียนสำเร็จ!");
+
+            // Store login state in localStorage
+            localStorage.setItem("isLoggedIn", "true");
+
+            // Redirect to homepage
+            window.location.href = "HomePage.html";
+        });
+
+        // Check login state and update sidebar
+        document.addEventListener("DOMContentLoaded", () => {
+            const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+
+            if (isLoggedIn) {
+                const loginLink = document.getElementById("login-link");
+                if (loginLink) {
+                    loginLink.parentElement.style.display = "none"; // Hide login link
+                }
+            }
+        });
+    </script>
 </body>
 
 </html>
