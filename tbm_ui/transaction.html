@@ -234,34 +234,116 @@
             renderTable(transactions);
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchTransactions(currentPage);
+        async function checkLoginStatus() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const response = await fetch('http://localhost:3000/api/auth/verify', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
 
-            document.querySelectorAll('th.sortable').forEach(header => {
-                header.addEventListener('click', () => {
-                    const column = header.getAttribute('data-column');
-                    sortTable(column);
-                });
-            });
-        });
-    </script>
-</head>
+                    if (response.ok) {
+                        updateSidebar(true);
+                    } else {
+                        localStorage.removeItem('token');
+                        updateSidebar(false);
+                        const goToLogin = confirm('Session expired. Do you want to go to the login page?');
+                        if (goToLogin) {
+                            window.location.href = 'login.html';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    localStorage.removeItem('token');
+                    updateSidebar(false);
+                    const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
+                    if (goToLogin) {
+                        window.location.href = 'login.html';
+                    }
+                }
+            } else {
+                updateSidebar(false);
+                const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
+                if (goToLogin) {
+                    window.location.href = 'login.html';
+                }
+            }
+        }
 
-<body class="bg-gray-100">
-    <div class="flex">
-        <!-- Sidebar -->
-        <div class="w-1/6 bg-white h-screen p-5">
-            <div class="flex items-center mb-10">
-                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
-                    class="w-10 h-10 rounded-full" height="50"
-                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
-                    width="50" />
-                <span class="ml-3 text-xl font-bold text-blue-600">
-                    TIMEBANK
-                </span>
-            </div>
-            <nav>
-                <ul>
+        function updateSidebar(isLoggedIn) {
+            const navList = document.getElementById('navList');
+            if (isLoggedIn) {
+                navList.innerHTML = `
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="profile.html">
+                            <i class="fas fa-user mr-3"></i>
+                            โปรไฟล์
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="homepage.html">
+                            <i class="fas fa-home mr-3"></i>
+                            หน้าหลัก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="report.html">
+                            <i class="fas fa-chart-bar mr-3"></i>
+                            รายงาน
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="activity.html">
+                            <i class="fas fa-calendar-alt mr-3"></i>
+                            จัดการกิจกรรม
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="member.html">
+                            <i class="fas fa-users mr-3"></i>
+                            จัดการสมาชิก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="skillconf.html">
+                            <i class="fas fa-cogs mr-3"></i>
+                            จัดการหมวหมู่ทักษะ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="fund.html">
+                            <i class="fas fa-hand-holding-usd mr-3"></i>
+                            จัดการกองทุนชุมชน
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="commconf.html">
+                            <i class="fas fa-cog mr-3"></i>
+                            จัดการชุมชน
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="transaction.html">
+                            <i class="fas fa-exchange-alt mr-3"></i>
+                            ธุรกรรมทั้งหมด
+                        </a>
+                    </li>
+                `;
+            } else {
+                navList.innerHTML = `
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="login.html">
@@ -325,85 +407,177 @@
                             ธุรกรรมทั้งหมด
                         </a>
                     </li>
-                </ul>
-            </nav>
-        </div>
-        <!-- Main Content -->
-        <div class="w-5/6 bg-blue-700 text-white p-10">
-            <h1 class="text-4xl font-bold mb-5">
-                ธุรกรรมทั้งหมด
-            </h1>
-            <div class="bg-white text-black p-8 rounded-lg shadow-lg">
-                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">
-                    รายการธุรกรรมทั้งหมด
-                </h2>
-                <div class="overflow-x-auto">
-                    <div class="table-responsive-sm">
-                        <table aria-busy="false" aria-colcount="8" class="table b-table b-table-stacked-md w-full"
-                            role="table">
-                            <thead class="bg-gray-100" role="rowgroup">
-                                <tr role="row">
-                                    <th aria-colindex="1"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
-                                        data-column="transaction_id" role="columnheader" scope="col">
-                                        รหัสธุรกรรม
-                                    </th>
-                                    <th aria-colindex="2"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
-                                        data-column="date" role="columnheader" scope="col">
-                                        วันที่
-                                    </th>
-                                    <th aria-colindex="3"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
-                                        data-column="time" role="columnheader" scope="col">
-                                        เวลา
-                                    </th>
-                                    <th aria-colindex="4"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
-                                        data-column="time_credits" role="columnheader" scope="col">
-                                        เครดิตเวลา
-                                    </th>
-                                    <th aria-colindex="5"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
-                                        data-column="requester_name" role="columnheader" scope="col">
-                                        ชื่อผู้ขอ
-                                    </th>
-                                    <th aria-colindex="6"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
-                                        data-column="participant_name" role="columnheader" scope="col">
-                                        ชื่อผู้เข้าร่วม
-                                    </th>
-                                    <th aria-colindex="7"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
-                                        data-column="activity_title" role="columnheader" scope="col">
-                                        ธุรกรรม
-                                    </th>
-                                    <th aria-colindex="8"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
-                                        data-column="activity_description" role="columnheader" scope="col">
-                                        รายละเอียดธุรกรรม
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody id="transaction-tbody" role="rowgroup">
-                                <!-- Transactions will be dynamically inserted here -->
-                            </tbody>
-                        </table>
-                    </div>
+                `;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLoginStatus();
+            fetchTransactions(currentPage);
+
+            document.querySelectorAll('th.sortable').forEach(header => {
+                header.addEventListener('click', () => {
+                    const column = header.getAttribute('data-column');
+                    sortTable(column);
+                });
+            });
+        });
+    </script>
+</head>
+
+<body class="bg-gray-100">
+    <div class="flex flex-col md:flex-row">
+        <!-- Sidebar -->
+        <div class="w-1/6 bg-white h-screen p-5">
+            <div class="flex items-center mb-10">
+                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
+                    class="w-10 h-10 rounded-full" height="50"
+                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
+                    width="50" />
+                <span class="ml-3 text-xl font-bold text-blue-600">
+                    TIMEBANK
+                </span>
+            </div>
+            <nav>
+                <ul id="navList">
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="login.html">
+                            <i class="fas fa-sign-in-alt mr-3"></i>
+                            Login
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="homepage.html">
+                            <i class="fas fa-home mr-3"></i>
+                            หน้าหลัก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                        href="report.html">
+                        <i class="fas fa-chart-bar mr-3"></i>
+                        รายงาน
+                    </a>
+                </li>
+                <li class="mb-5">
+                    <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                        href="activity.html">
+                        <i class="fas fa-calendar-alt mr-3"></i>
+                        จัดการกิจกรรม
+                    </a>
+                </li>
+                <li class="mb-5">
+                    <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                        href="member.html">
+                        <i class="fas fa-users mr-3"></i>
+                        จัดการสมาชิก
+                    </a>
+                </li>
+                <li class="mb-5">
+                    <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                        href="skillconf.html">
+                        <i class="fas fa-cogs mr-3"></i>
+                        จัดการหมวหมู่ทักษะ
+                    </a>
+                </li>
+                <li class="mb-5">
+                    <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                        href="fund.html">
+                        <i class="fas fa-hand-holding-usd mr-3"></i>
+                        จัดการกองทุนชุมชน
+                    </a>
+                </li>
+                <li class="mb-5">
+                    <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                        href="commconf.html">
+                        <i class="fas fa-cog mr-3"></i>
+                        จัดการชุมชน
+                    </a>
+                </li>
+                <li class="mb-5">
+                    <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                        href="transaction.html">
+                        <i class="fas fa-exchange-alt mr-3"></i>
+                        ธุรกรรมทั้งหมด
+                    </a>
+                </li>
+            </ul>
+        </nav>
+    </div>
+    <!-- Main Content -->
+    <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
+        <h1 class="text-4xl font-bold mb-5">ธุรกรรมทั้งหมด</h1>
+        <div class="bg-white text-black p-8 rounded-lg shadow-lg">
+            <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">รายการธุรกรรมทั้งหมด</h2>
+            <div class="overflow-x-auto">
+                <div class="table-responsive-sm">
+                    <table aria-busy="false" aria-colcount="8" class="table b-table b-table-stacked-md w-full"
+                        role="table">
+                        <thead class="bg-gray-100" role="rowgroup">
+                            <tr role="row">
+                                <th aria-colindex="1"
+                                    class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
+                                    data-column="transaction_id" role="columnheader" scope="col">
+                                    รหัสธุรกรรม
+                                </th>
+                                <th aria-colindex="2"
+                                    class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
+                                    data-column="date" role="columnheader" scope="col">
+                                    วันที่
+                                </th>
+                                <th aria-colindex="3"
+                                    class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
+                                    data-column="time" role="columnheader" scope="col">
+                                    เวลา
+                                </th>
+                                <th aria-colindex="4"
+                                    class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
+                                    data-column="time_credits" role="columnheader" scope="col">
+                                    เครดิตเวลา
+                                </th>
+                                <th aria-colindex="5"
+                                    class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
+                                    data-column="requester_name" role="columnheader" scope="col">
+                                    ชื่อผู้ขอ
+                                </th>
+                                <th aria-colindex="6"
+                                    class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
+                                    data-column="participant_name" role="columnheader" scope="col">
+                                    ชื่อผู้เข้าร่วม
+                                </th>
+                                <th aria-colindex="7"
+                                    class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
+                                    data-column="activity_title" role="columnheader" scope="col">
+                                    ธุรกรรม
+                                </th>
+                                <th aria-colindex="8"
+                                    class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
+                                    data-column="activity_description" role="columnheader" scope="col">
+                                    รายละเอียดธุรกรรม
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="transaction-tbody" role="rowgroup">
+                            <!-- Transactions will be dynamically inserted here -->
+                        </tbody>
+                    </table>
                 </div>
-                <div class="flex items-center justify-center mt-5" id="pagination">
-                    <!-- Pagination buttons will be dynamically inserted here -->
-                </div>
-                <div class="flex justify-center mt-4">
-                    <button
-                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                        onclick="window.history.back()">
-                        ย้อนกลับ
-                    </button>
-                </div>
+            </div>
+            <div class="flex items-center justify-center mt-5" id="pagination">
+                <!-- Pagination buttons will be dynamically inserted here -->
+            </div>
+            <div class="flex justify-center mt-4">
+                <button
+                    class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                    onclick="window.history.back()">
+                    ย้อนกลับ
+                </button>
             </div>
         </div>
     </div>
+</div>
 </body>
 
 </html>

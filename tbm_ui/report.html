@@ -6,10 +6,217 @@
     <title>รายงาน - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <script>
+        async function fetchReportData() {
+            try {
+                const response = await fetch('http://localhost:3000/api/report', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                const data = await response.json();
+                if (data) {
+                    document.getElementById('total-members').textContent = `${data.totalMembers} คน`;
+                    document.getElementById('total-skills').textContent = `${data.totalSkills} ทักษะ`;
+                    document.getElementById('total-time-credits').textContent = `${data.totalTimeCredits} ชั่วโมง`;
+                    document.getElementById('borrowed-time-credits').textContent = `${data.borrowedTimeCredits} ชั่วโมง`;
+                    document.getElementById('community-balance').textContent = `${data.communityBalance} ชั่วโมง`;
+                } else {
+                    console.error('Expected data but got:', data);
+                    alert('เกิดข้อผิดพลาดในการดึงข้อมูลรายงาน');
+                }
+            } catch (error) {
+                console.error('Error fetching report data:', error);
+                alert('เกิดข้อผิดพลาดในการดึงข้อมูลรายงาน');
+            }
+        }
+
+        async function checkLoginStatus() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const response = await fetch('http://localhost:3000/api/auth/verify', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        updateSidebar(true);
+                    } else {
+                        localStorage.removeItem('token');
+                        updateSidebar(false);
+                        const goToLogin = confirm('Session expired. Do you want to go to the login page?');
+                        if (goToLogin) {
+                            window.location.href = 'login.html';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    localStorage.removeItem('token');
+                    updateSidebar(false);
+                    const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
+                    if (goToLogin) {
+                        window.location.href = 'login.html';
+                    }
+                }
+            } else {
+                updateSidebar(false);
+                const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
+                if (goToLogin) {
+                    window.location.href = 'login.html';
+                }
+            }
+        }
+
+        function updateSidebar(isLoggedIn) {
+            const navList = document.getElementById('navList');
+            if (isLoggedIn) {
+                navList.innerHTML = `
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="profile.html">
+                            <i class="fas fa-user mr-3"></i>
+                            โปรไฟล์
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="homepage.html">
+                            <i class="fas fa-home mr-3"></i>
+                            หน้าหลัก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="report.html">
+                            <i class="fas fa-chart-bar mr-3"></i>
+                            รายงาน
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="activity.html">
+                            <i class="fas fa-calendar-alt mr-3"></i>
+                            จัดการกิจกรรม
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="member.html">
+                            <i class="fas fa-users mr-3"></i>
+                            จัดการสมาชิก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="skillconf.html">
+                            <i class="fas fa-cogs mr-3"></i>
+                            จัดการหมวหมู่ทักษะ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="fund.html">
+                            <i class="fas fa-hand-holding-usd mr-3"></i>
+                            จัดการกองทุนชุมชน
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="commconf.html">
+                            <i class="fas fa-cog mr-3"></i>
+                            จัดการชุมชน
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="transaction.html">
+                            <i class="fas fa-exchange-alt mr-3"></i>
+                            ธุรกรรมทั้งหมด
+                        </a>
+                    </li>
+                `;
+            } else {
+                navList.innerHTML = `
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="login.html">
+                            <i class="fas fa-sign-in-alt mr-3"></i>
+                            Login
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="homepage.html">
+                            <i class="fas fa-home mr-3"></i>
+                            หน้าหลัก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="report.html">
+                            <i class="fas fa-chart-bar mr-3"></i>
+                            รายงาน
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="activity.html">
+                            <i class="fas fa-calendar-alt mr-3"></i>
+                            จัดการกิจกรรม
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="member.html">
+                            <i class="fas fa-users mr-3"></i>
+                            จัดการสมาชิก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="skillconf.html">
+                            <i class="fas fa-cogs mr-3"></i>
+                            จัดการหมวหมู่ทักษะ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="fund.html">
+                            <i class="fas fa-hand-holding-usd mr-3"></i>
+                            จัดการกองทุนชุมชน
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="commconf.html">
+                            <i class="fas fa-cog mr-3"></i>
+                            จัดการชุมชน
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="transaction.html">
+                            <i class="fas fa-exchange-alt mr-3"></i>
+                            ธุรกรรมทั้งหมด
+                        </a>
+                    </li>
+                `;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLoginStatus();
+            fetchReportData();
+        });
+    </script>
 </head>
 
 <body class="bg-gray-100">
-    <div class="flex">
+    <div class="flex flex-col md:flex-row">
         <!-- Sidebar -->
         <div class="w-1/6 bg-white h-screen p-5">
             <div class="flex items-center mb-10">
@@ -22,7 +229,7 @@
                 </span>
             </div>
             <nav>
-                <ul>
+                <ul id="navList">
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="login.html">
@@ -90,28 +297,28 @@
             </nav>
         </div>
         <!-- Main Content -->
-        <div class="w-4/5 bg-blue-700 text-white p-10">
+        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
             <h1 class="text-4xl font-bold mb-5">รายงาน</h1>
             <div class="grid grid-cols-2 gap-5">
                 <div class="bg-white text-black p-8 rounded-lg shadow-lg">
                     <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">จำนวนสมาชิก</h2>
-                    <p class="text-4xl font-bold text-center text-blue-600">150 คน</p>
+                    <p id="total-members" class="text-4xl font-bold text-center text-blue-600">Loading...</p>
                 </div>
                 <div class="bg-white text-black p-8 rounded-lg shadow-lg">
                     <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">จำนวนทักษะ</h2>
-                    <p class="text-4xl font-bold text-center text-blue-600">75 ทักษะ</p>
+                    <p id="total-skills" class="text-4xl font-bold text-center text-blue-600">Loading...</p>
                 </div>
                 <div class="bg-white text-black p-8 rounded-lg shadow-lg">
                     <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">จำนวนเครดิตเวลา</h2>
-                    <p class="text-4xl font-bold text-center text-blue-600">500 ชั่วโมง</p>
+                    <p id="total-time-credits" class="text-4xl font-bold text-center text-blue-600">Loading...</p>
                 </div>
                 <div class="bg-white text-black p-8 rounded-lg shadow-lg">
                     <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">จำนวนเครดิตเวลาที่กู้</h2>
-                    <p class="text-4xl font-bold text-center text-red-600">100 ชั่วโมง</p>
+                    <p id="borrowed-time-credits" class="text-4xl font-bold text-center text-red-600">Loading...</p>
                 </div>
                 <div class="bg-white text-black p-8 rounded-lg shadow-lg">
                     <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">ยอดคงเหลือในชุมชน</h2>
-                    <p class="text-4xl font-bold text-center text-blue-600">400 ชั่วโมง</p>
+                    <p id="community-balance" class="text-4xl font-bold text-center text-blue-600">Loading...</p>
                 </div>
             </div>
         </div>
