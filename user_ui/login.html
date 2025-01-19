@@ -3,9 +3,12 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Time Bank</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="style.css" />
+    <title>
+        Time Bank
+    </title>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <link href="style.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
 </head>
 
@@ -14,82 +17,119 @@
         <!-- Sidebar -->
         <div class="sidebar">
             <div class="logo-section">
-                <img src="https://storage.googleapis.com/a1aa/image/GOMFBEaepyxe3E3gz2xaZviBDO0q04rV6Cz8h1wgcnNFaw5TA.jpg" alt="Logo" class="logo" />
-                <span class="brand-name">TIMEBANK</span>
+                <img alt="Logo of Time Bank" class="logo" height="100"
+                    src="https://storage.googleapis.com/a1aa/image/NHidmIYeN712Ca7AEWMy8kxlYbN3zCQfJckLwqGzOTgsvtGUA.jpg"
+                    width="100" />
+                <span class="brand-name">
+                    TIMEBANK
+                </span>
             </div>
             <nav>
                 <ul>
                     <li>
                         <a href="login.html">
-                            <i class="fas fa-sign-in-alt"></i>
-                            <span class="link-text">Login</span>
+                            <i class="fas fa-sign-in-alt">
+                            </i>
+                            <span class="link-text">
+                                Login
+                            </span>
                         </a>
                     </li>
-                    
                     <li>
                         <a href="HomePage.html">
-                            <i class="fas fa-home"></i>
-                            <span class="link-text">หน้าหลัก</span>
+                            <i class="fas fa-home">
+                            </i>
+                            <span class="link-text">
+                                หน้าหลัก
+                            </span>
                         </a>
                     </li>
                     <!-- การบริการ Dropdown -->
                     <li class="dropdown">
-                        <a href="#" class="dropdown-toggle">
-                            <i class="fas fa-cogs"></i>
-                            <span class="link-text">การบริการ</span>
-                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        <a class="dropdown-toggle" href="#">
+                            <i class="fas fa-cogs">
+                            </i>
+                            <span class="link-text">
+                                การบริการ
+                            </span>
+                            <i class="fas fa-chevron-down dropdown-icon">
+                            </i>
                         </a>
                         <ul class="dropdown-menu">
                             <li>
-                                <a href="service.html" class="sub-link">ยื่นข้อของานบริการ</a>
+                                <a class="sub-link" href="service.html">
+                                    ยื่นข้อของานบริการ
+                                </a>
                             </li>
                         </ul>
                     </li>
                     <!-- การจัดการบัญชี Dropdown -->
                     <li class="dropdown">
-                        <a href="#" class="dropdown-toggle">
-                            <i class="fas fa-user-circle"></i>
-                            <span class="link-text">การจัดการบัญชี</span>
-                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                        <a class="dropdown-toggle" href="#">
+                            <i class="fas fa-user-circle">
+                            </i>
+                            <span class="link-text">
+                                การจัดการบัญชี
+                            </span>
+                            <i class="fas fa-chevron-down dropdown-icon">
+                            </i>
                         </a>
                         <ul class="dropdown-menu">
                             <li>
-                                <a href="profile.html" class="sub-link">แก้ไขประวัติ</a>
+                                <a class="sub-link" href="profile.html">
+                                    แก้ไขประวัติ
+                                </a>
                             </li>
                             <li>
-                                <a href="skillconf.html" class="sub-link">แก้ไขทักษะ</a>
+                                <a class="sub-link" href="skillconf.html">
+                                    แก้ไขทักษะ
+                                </a>
                             </li>
                             <li>
-                                <a href="balance.html" class="sub-link">ยอดคงเหลือ</a>
+                                <a class="sub-link" href="balance.html">
+                                    ยอดคงเหลือ
+                                </a>
                             </li>
                             <li>
-                                <a href="history.html" class="sub-link">ประวัติ</a>
+                                <a class="sub-link" href="history.html">
+                                    ประวัติ
+                                </a>
                             </li>
                         </ul>
                     </li>
                     <li>
                         <a href="contact.html">
-                            <i class="fas fa-phone"></i>
-                            <span class="link-text">ติดต่อเรา</span>
+                            <i class="fas fa-phone">
+                            </i>
+                            <span class="link-text">
+                                ติดต่อเรา
+                            </span>
                         </a>
                     </li>
                 </ul>
             </nav>
         </div>
-        
         <!-- Main Content -->
         <div class="center-wrapper">
-            <h1 class="site-title">TIME BANK</h1>
+            <h1 class="site-title">
+                TIME BANK
+            </h1>
             <div class="login-container">
-                <h2>Login</h2>
-                <form>
-                    <input type="text" id="id-number" placeholder="เลขบัตรประจำตัวประชาชน">
-                    <input type="password" id="password" placeholder="รหัสผ่าน">
-                    <button class="login-button" type="button">เข้าสู่ระบบ</button>
+                <h2>
+                    Login
+                </h2>
+                <form id="login-form">
+                    <input id="username" placeholder="ชื่อผู้ใช้" required="" type="text" />
+                    <input id="password" placeholder="รหัสผ่าน" required="" type="password" />
+                    <button class="login-button" type="submit">
+                        เข้าสู่ระบบ
+                    </button>
                 </form>
                 <p class="signup-text">
                     ไม่มีบัญชีผู้ใช้ ?
-                    <a href="register.html">สมัครสมาชิก</a>
+                    <a href="register.html">
+                        สมัครสมาชิก
+                    </a>
                 </p>
             </div>
         </div>
@@ -97,7 +137,7 @@
             document.addEventListener('DOMContentLoaded', () => {
                 const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
                 const sidebar = document.querySelector('.sidebar');
-        
+
                 // Handle dropdown toggle click
                 dropdownToggles.forEach(toggle => {
                     toggle.addEventListener('click', (e) => {
@@ -106,7 +146,7 @@
                         parent.classList.toggle('open'); // Toggle the "open" class
                     });
                 });
-        
+
                 // Reset dropdowns when the mouse leaves the sidebar
                 sidebar.addEventListener('mouseleave', () => {
                     const dropdowns = document.querySelectorAll('.dropdown');
@@ -114,8 +154,41 @@
                         dropdown.classList.remove('open'); // Remove "open" class
                     });
                 });
+
+                // Handle login form submission
+                const loginForm = document.getElementById('login-form');
+                loginForm.addEventListener('submit', async (e) => {
+                    e.preventDefault();
+                    const username = document.getElementById('username').value;
+                    const password = document.getElementById('password').value;
+
+                    try {
+                        const response = await fetch('/api/auth/login', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ username, password })
+                        });
+
+                        const data = await response.json();
+
+                        if (response.ok) {
+                            // Store the token in localStorage
+                            localStorage.setItem('token', data.token);
+                            // Redirect to the homepage
+                            window.location.href = 'HomePage.html';
+                        } else {
+                            alert(data.error);
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('An error occurred. Please try again.');
+                    }
+                });
             });
         </script>
+    </div>
 </body>
 
 </html>
