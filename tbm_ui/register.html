@@ -155,6 +155,17 @@
         </div>
         <!-- Main Content -->
         <div class="flex-1 flex items-center justify-center bg-blue-700">
+            <!-- Language Toggle Switch -->
+            <div class="absolute top-5 right-5">
+                <div class="toggle-container" id="languageToggle">
+                    <span class="toggle-label active" id="lang-th" data-lang="th">
+                        ภาษาไทย
+                    </span>
+                    <span class="toggle-label" id="lang-en" data-lang="en">
+                        English
+                    </span>
+                </div>
+            </div>
             <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
                 <h1 class="text-4xl font-bold text-center text-blue-900 mb-8">
                     TIME BANK
@@ -226,6 +237,165 @@
             </div>
         </div>
     </div>
+
+    <style>
+        /* Toggle container */
+             .toggle-container {
+                 display: flex;
+                 background-color: #E5E7EB;
+                 border-radius: 20px; /* Increase border radius for larger container */
+                 padding: 6px; /* Larger padding for better spacing */
+                 align-items: center;
+                 justify-content: space-between;
+                 width: 180px; /* Increase width for a larger toggle */
+             }
+     
+             /* Labels */
+             .toggle-label {
+                 flex: 1;
+                 text-align: center;
+                 font-size: 0.9rem;
+                 font-weight: 500;
+                 color: gray;
+                 cursor: pointer;
+                 transition: all 0.3s ease;
+                 border-radius: 9999px;
+                 padding: 5px;
+             }
+     
+             .toggle-label.active {
+                 background-color: white;
+                 color: #1D4ED8; /* Blue for active text */
+                 font-weight: bold;
+                 box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+             }
+     
+             /* Disabled Label */
+             .toggle-label.disabled {
+                 pointer-events: none; /* Make it unclickable */
+                 background-color: white;
+                 color: #6B7280; /* Light gray text */
+                 font-weight: bold;
+             }
+       </style>
+
+       <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const langTh = document.getElementById('lang-th');
+            const langEn = document.getElementById('lang-en');
+            const toggleSwitch = document.getElementById('language-toggle'); // Reference to the toggle switch
+            const navList = document.querySelectorAll('ul li a');
+            const registerForm = document.getElementById('registerForm');
+    
+            const translations = {
+                thai: {
+                    nav: ['เข้าสู่ระบบ', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวดหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
+                    register: 'ลงทะเบียน',
+                    username: 'ชื่อผู้ใช้',
+                    email: 'อีเมล',
+                    password: 'รหัสผ่าน',
+                    confirmPassword: 'ยืนยันรหัสผ่าน',
+                    role: 'บทบาท',
+                    roles: ['สมาชิก', 'ผู้จัดการธนาคารเวลา', 'ผู้ดูแลระบบ'],
+                    alreadyAccount: 'มีบัญชีอยู่แล้ว?',
+                    login: 'เข้าสู่ระบบ'
+                },
+                english: {
+                    nav: ['Login', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
+                    register: 'Register',
+                    username: 'Username',
+                    email: 'Email',
+                    password: 'Password',
+                    confirmPassword: 'Confirm Password',
+                    role: 'Role',
+                    roles: ['Member', 'TimeBankManager', 'Admin'],
+                    alreadyAccount: 'Already have an account?',
+                    login: 'Login'
+                }
+            };
+    
+            let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
+    
+            function updateContent(lang) {
+                const langData = translations[lang];
+    
+                // Update navigation menu
+                navList.forEach((link, index) => {
+                    link.innerHTML = `<i class="${link.querySelector('i').className}"></i> ${langData.nav[index]}`;
+                });
+    
+                // Update form labels and placeholders
+                document.querySelector('h2').textContent = langData.register;
+                registerForm.querySelector('label[for="username"]').textContent = langData.username;
+                registerForm.querySelector('label[for="email"]').textContent = langData.email;
+                registerForm.querySelector('label[for="password"]').textContent = langData.password;
+                registerForm.querySelector('label[for="confirmPassword"]').textContent = langData.confirmPassword;
+                registerForm.querySelector('label[for="role"]').textContent = langData.role;
+    
+                // Update role options
+                const roleSelect = document.getElementById('role');
+                roleSelect.innerHTML = '';
+                langData.roles.forEach(role => {
+                    const option = document.createElement('option');
+                    option.value = role;
+                    option.textContent = role;
+                    roleSelect.appendChild(option);
+                });
+    
+                // Update footer text
+                document.querySelector('.text-center p').innerHTML = `${langData.alreadyAccount} <a class="text-blue-500" href="login.html">${langData.login}</a>`;
+    
+                // Highlight active language
+                if (lang === 'thai') {
+                    langTh.classList.add('active');
+                    langEn.classList.remove('active');
+                } else {
+                    langEn.classList.add('active');
+                    langTh.classList.remove('active');
+                }
+    
+                // Sync toggle switch state if toggleSwitch exists
+                if (toggleSwitch) {
+                    toggleSwitch.checked = lang === 'english';
+                }
+    
+                // Store selected language
+                localStorage.setItem('selectedLanguage', lang);
+            }
+    
+            // Event listeners for buttons
+            langTh.addEventListener('click', () => {
+                if (currentLang !== 'thai') {
+                    currentLang = 'thai';
+                    updateContent(currentLang);
+                }
+            });
+    
+            langEn.addEventListener('click', () => {
+                if (currentLang !== 'english') {
+                    currentLang = 'english';
+                    updateContent(currentLang);
+                }
+            });
+    
+            // Sync toggle switch with content
+            if (toggleSwitch) {
+                toggleSwitch.checked = currentLang === 'english';
+                toggleSwitch.addEventListener('change', () => {
+                    currentLang = toggleSwitch.checked ? 'english' : 'thai';
+                    updateContent(currentLang);
+                });
+            }
+    
+            // Initialize content
+            updateContent(currentLang);
+        });
+    </script>
+    
+    <script src="selected-language.js"></script>
+
+
+    
 </body>
 
 </html>

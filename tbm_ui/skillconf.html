@@ -268,69 +268,80 @@
 
         function updateSidebar(isLoggedIn) {
             const navList = document.getElementById('navList');
+        
+            // Translations for navigation menu
+            const translations = {
+                thai: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
+                english: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
+            };
+        
+            // Get the current language from localStorage or default to 'thai'
+            const currentLang = localStorage.getItem('selectedLanguage') || 'thai';
+            const navItems = translations[currentLang]; // Get navigation items based on the selected language
+        
             if (isLoggedIn) {
                 navList.innerHTML = `
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="profile.html">
                             <i class="fas fa-user mr-3"></i>
-                            โปรไฟล์
+                            ${navItems[0]}
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="homepage.html">
                             <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
+                            ${navItems[1]}
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="report.html">
                             <i class="fas fa-chart-bar mr-3"></i>
-                            รายงาน
+                            ${navItems[2]}
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="activity.html">
                             <i class="fas fa-calendar-alt mr-3"></i>
-                            จัดการกิจกรรม
+                            ${navItems[3]}
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="member.html">
                             <i class="fas fa-users mr-3"></i>
-                            จัดการสมาชิก
+                            ${navItems[4]}
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="skillconf.html">
                             <i class="fas fa-cogs mr-3"></i>
-                            จัดการหมวหมู่ทักษะ
+                            ${navItems[5]}
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="fund.html">
                             <i class="fas fa-hand-holding-usd mr-3"></i>
-                            จัดการกองทุนชุมชน
+                            ${navItems[6]}
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="commconf.html">
                             <i class="fas fa-cog mr-3"></i>
-                            จัดการชุมชน
+                            ${navItems[7]}
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="transaction.html">
                             <i class="fas fa-exchange-alt mr-3"></i>
-                            ธุรกรรมทั้งหมด
+                            ${navItems[8]}
                         </a>
                     </li>
                 `;
@@ -340,68 +351,69 @@
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="login.html">
                             <i class="fas fa-sign-in-alt mr-3"></i>
-                            Login
+                            ${currentLang === 'thai' ? 'เข้าสู่ระบบ' : 'Login'}
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="homepage.html">
                             <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
+                            ${navItems[1]}
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="report.html">
                             <i class="fas fa-chart-bar mr-3"></i>
-                            รายงาน
+                            ${navItems[2]}
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="activity.html">
                             <i class="fas fa-calendar-alt mr-3"></i>
-                            จัดการกิจกรรม
+                            ${navItems[3]}
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="member.html">
                             <i class="fas fa-users mr-3"></i>
-                            จัดการสมาชิก
+                            ${navItems[4]}
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="skillconf.html">
                             <i class="fas fa-cogs mr-3"></i>
-                            จัดการหมวหมู่ทักษะ
+                            ${navItems[5]}
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="fund.html">
                             <i class="fas fa-hand-holding-usd mr-3"></i>
-                            จัดการกองทุนชุมชน
+                            ${navItems[6]}
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="commconf.html">
                             <i class="fas fa-cog mr-3"></i>
-                            จัดการชุมชน
+                            ${navItems[7]}
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="transaction.html">
                             <i class="fas fa-exchange-alt mr-3"></i>
-                            ธุรกรรมทั้งหมด
+                            ${navItems[8]}
                         </a>
                     </li>
                 `;
             }
         }
+        
 
         document.addEventListener('DOMContentLoaded', () => {
             checkLoginStatus();
@@ -493,6 +505,18 @@
         </div>
         <!-- Main Content -->
         <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
+            <!-- Language Toggle Switch -->
+            <div class="absolute top-5 right-5">
+                <div class="toggle-container" id="languageToggle">
+                    <span class="toggle-label active" id="lang-th" data-lang="th">
+                        ภาษาไทย
+                    </span>
+                    <span class="toggle-label" id="lang-en" data-lang="en">
+                        English
+                    </span>
+                </div>
+            </div>
+
             <h1 class="text-4xl font-bold mb-5">จัดการหมวดหมู่ทักษะ</h1>
             <div class="flex justify-center">
                 <div class="bg-white text-black p-5 rounded-lg w-full md:w-3/4 lg:w-2/3">
@@ -514,6 +538,131 @@
             </div>
         </div>
     </div>
+
+    <style>
+        /* Toggle container */
+             .toggle-container {
+                 display: flex;
+                 background-color: #E5E7EB;
+                 border-radius: 20px; /* Increase border radius for larger container */
+                 padding: 6px; /* Larger padding for better spacing */
+                 align-items: center;
+                 justify-content: space-between;
+                 width: 180px; /* Increase width for a larger toggle */
+             }
+     
+             /* Labels */
+             .toggle-label {
+                 flex: 1;
+                 text-align: center;
+                 font-size: 0.9rem;
+                 font-weight: 500;
+                 color: gray;
+                 cursor: pointer;
+                 transition: all 0.3s ease;
+                 border-radius: 9999px;
+                 padding: 5px;
+             }
+     
+             .toggle-label.active {
+                 background-color: white;
+                 color: #1D4ED8; /* Blue for active text */
+                 font-weight: bold;
+                 box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+             }
+     
+             /* Disabled Label */
+             .toggle-label.disabled {
+                 pointer-events: none; /* Make it unclickable */
+                 background-color: white;
+                 color: #6B7280; /* Light gray text */
+                 font-weight: bold;
+             }
+       </style>
+
+       <script src="selected-language.js"></script>
+
+       <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const langThai = document.getElementById('lang-th');
+            const langEnglish = document.getElementById('lang-en');
+    
+            const translations = {
+                thai: {
+                    pageTitle: 'จัดการหมวดหมู่ทักษะ - Time Bank',
+                    mainHeading: 'จัดการหมวดหมู่ทักษะ',
+                    searchPlaceholder: 'ค้นหาทักษะหรือหมวดหมู่',
+                    addButton: 'เพิ่ม',
+                    nav: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
+
+                },
+                english: {
+                    pageTitle: 'Skill Categories Management - Time Bank',
+                    mainHeading: 'Skill Categories Management',
+                    searchPlaceholder: 'Search skills or categories',
+                    addButton: 'Add',
+                    nav: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
+
+                }
+            };
+    
+            let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
+    
+            const updateContent = (lang) => {
+                const langData = translations[lang];
+    
+                // Update page title
+                document.title = langData.pageTitle;
+    
+                // Update main heading
+                document.querySelector('h1').textContent = langData.mainHeading;
+    
+                // Update search placeholder
+                document.getElementById('search-bar').placeholder = langData.searchPlaceholder;
+    
+                // Update add button text
+                document.querySelector('button[onclick="window.location.href=\'create-skill.html\'"]').textContent = langData.addButton;
+    
+                // Update navigation
+                const navLinks = document.querySelectorAll('nav ul li a');
+                langData.nav.forEach((text, index) => {
+                    if (navLinks[index]) {
+                        const icon = navLinks[index].querySelector('i');
+                        navLinks[index].innerHTML = '';
+                        if (icon) navLinks[index].appendChild(icon);
+                        navLinks[index].appendChild(document.createTextNode(text));
+                    }
+                });
+    
+                // Update active toggle state
+                if (lang === 'thai') {
+                    langThai.classList.add('active');
+                    langEnglish.classList.remove('active');
+                } else {
+                    langEnglish.classList.add('active');
+                    langThai.classList.remove('active');
+                }
+            };
+    
+            // Language toggle event listeners
+            langThai.addEventListener('click', () => {
+                currentLang = 'thai';
+                localStorage.setItem('selectedLanguage', currentLang);
+                updateContent(currentLang);
+            });
+    
+            langEnglish.addEventListener('click', () => {
+                currentLang = 'english';
+                localStorage.setItem('selectedLanguage', currentLang);
+                updateContent(currentLang);
+            });
+    
+            // Initialize content on page load
+            updateContent(currentLang);
+        });
+    </script>
+    
+
 </body>
 
 </html>
