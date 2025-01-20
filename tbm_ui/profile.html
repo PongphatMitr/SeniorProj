@@ -91,6 +91,18 @@
         </div>
         <!-- Main Content -->
         <div class="flex-1 flex items-center justify-center bg-blue-700">
+            <!-- Language Toggle Switch -->
+            <div class="absolute top-5 right-5">
+                <div class="toggle-container" id="languageToggle">
+                    <span class="toggle-label active" id="lang-th" data-lang="th">
+                        ภาษาไทย
+                    </span>
+                    <span class="toggle-label" id="lang-en" data-lang="en">
+                        English
+                    </span>
+                </div>
+            </div>
+
             <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
                 <h1 class="text-4xl font-bold text-center text-blue-900 mb-8">โปรไฟล์</h1>
                 <div id="profileInfo" class="text-center">
@@ -144,6 +156,173 @@
             window.location.href = 'login.html';
         }
     </script>
+
+    <style>
+        /* Toggle container */
+             .toggle-container {
+                 display: flex;
+                 background-color: #E5E7EB;
+                 border-radius: 20px; /* Increase border radius for larger container */
+                 padding: 6px; /* Larger padding for better spacing */
+                 align-items: center;
+                 justify-content: space-between;
+                 width: 180px; /* Increase width for a larger toggle */
+             }
+     
+             /* Labels */
+             .toggle-label {
+                 flex: 1;
+                 text-align: center;
+                 font-size: 0.9rem;
+                 font-weight: 500;
+                 color: gray;
+                 cursor: pointer;
+                 transition: all 0.3s ease;
+                 border-radius: 9999px;
+                 padding: 5px;
+             }
+     
+             .toggle-label.active {
+                 background-color: white;
+                 color: #1D4ED8; /* Blue for active text */
+                 font-weight: bold;
+                 box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+             }
+     
+             /* Disabled Label */
+             .toggle-label.disabled {
+                 pointer-events: none; /* Make it unclickable */
+                 background-color: white;
+                 color: #6B7280; /* Light gray text */
+                 font-weight: bold;
+             }
+       </style>
+
+       <script src="selected-language.js"></script>
+
+       <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const langThai = document.getElementById('lang-th');
+            const langEnglish = document.getElementById('lang-en');
+    
+            const translations = {
+                thai: {
+                    pageTitle: 'โปรไฟล์ - Time Bank',
+                    profileHeading: 'โปรไฟล์',
+                    username: 'ชื่อผู้ใช้',
+                    email: 'อีเมล',
+                    role: 'บทบาท',
+                    logout: 'ออกจากระบบ',
+                    nav: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
+                },
+                english: {
+                    pageTitle: 'Profile - Time Bank',
+                    profileHeading: 'Profile',
+                    username: 'Username',
+                    email: 'Email',
+                    role: 'Role',
+                    logout: 'Logout',
+                    nav: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
+                }
+            };
+    
+            let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
+    
+            const updateContent = (lang) => {
+                const langData = translations[lang];
+    
+                // Update page title
+                document.title = langData.pageTitle;
+    
+                // Update body attribute
+                document.documentElement.lang = lang === 'thai' ? 'th' : 'en';
+    
+                // Update profile heading
+                document.querySelector('h1').textContent = langData.profileHeading;
+    
+                // Update profile information dynamically if it exists
+                const profileInfo = document.getElementById('profileInfo');
+                if (profileInfo.innerHTML) {
+                    const profileData = JSON.parse(localStorage.getItem('profileData'));
+                    profileInfo.innerHTML = `
+                        <p class="text-gray-700 text-lg"><strong>${langData.username}:</strong> ${profileData?.username || ''}</p>
+                        <p class="text-gray-700 text-lg"><strong>${langData.email}:</strong> ${profileData?.email || ''}</p>
+                        <p class="text-gray-700 text-lg"><strong>${langData.role}:</strong> ${profileData?.role || ''}</p>
+                    `;
+                }
+    
+                // Update logout button text
+                document.querySelector('button[onclick="logout()"]').textContent = langData.logout;
+    
+                // Update navigation menu
+                const navItems = document.querySelectorAll('#navList li a');
+                langData.nav.forEach((text, index) => {
+                    if (navItems[index]) {
+                        const icon = navItems[index].querySelector('i');
+                        navItems[index].innerHTML = '';
+                        if (icon) navItems[index].appendChild(icon);
+                        navItems[index].append(` ${text}`);
+                    }
+                });
+    
+                // Update active toggle state
+                if (lang === 'thai') {
+                    langThai.classList.add('active');
+                    langEnglish.classList.remove('active');
+                } else {
+                    langEnglish.classList.add('active');
+                    langThai.classList.remove('active');
+                }
+            };
+    
+            // Fetch and store profile data locally
+            const token = localStorage.getItem('token');
+            if (token) {
+                fetch('http://localhost:3000/api/auth/profile', {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                })
+                    .then((response) => {
+                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                        return response.json();
+                    })
+                    .then((data) => {
+                        localStorage.setItem('profileData', JSON.stringify(data));
+                        updateContent(currentLang);
+                    })
+                    .catch((error) => {
+                        console.error('Error fetching profile:', error);
+                        alert('An error occurred. Please try again.');
+                        logout();
+                    });
+            }
+    
+            // Language toggle event listeners
+            langThai.addEventListener('click', () => {
+                currentLang = 'thai';
+                localStorage.setItem('selectedLanguage', currentLang);
+                updateContent(currentLang);
+            });
+    
+            langEnglish.addEventListener('click', () => {
+                currentLang = 'english';
+                localStorage.setItem('selectedLanguage', currentLang);
+                updateContent(currentLang);
+            });
+    
+            // Initialize content on page load
+            updateContent(currentLang);
+        });
+    
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('profileData');
+            window.location.href = 'login.html';
+        }
+    </script>
+    
+
 </body>
 
 </html>

@@ -1,127 +1,144 @@
 <html lang="en">
-
-<head>
-    <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Time Bank</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
-</head>
-
-<body class="bg-gray-100">
-    <div class="flex h-screen">
-        <!-- Sidebar -->
-        <div class="w-1/6 bg-white h-screen p-5">
-            <div class="flex items-center mb-10">
-                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
-                    class="w-10 h-10 rounded-full" height="50"
-                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
-                    width="50" />
-                <span class="ml-3 text-xl font-bold text-blue-600">
-                    TIMEBANK
-                </span>
-            </div>
-            <nav>
-                <ul id="navList">
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="login.html">
-                            <i class="fas fa-sign-in-alt mr-3"></i>
-                            Login
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="report.html">
-                            <i class="fas fa-chart-bar mr-3"></i>
-                            รายงาน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="activity.html">
-                            <i class="fas fa-calendar-alt mr-3"></i>
-                            จัดการกิจกรรม
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="member.html">
-                            <i class="fas fa-users mr-3"></i>
-                            จัดการสมาชิก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="skillconf.html">
-                            <i class="fas fa-cogs mr-3"></i>
-                            จัดการหมวหมู่ทักษะ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="fund.html">
-                            <i class="fas fa-hand-holding-usd mr-3"></i>
-                            จัดการกองทุนชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="commconf.html">
-                            <i class="fas fa-cog mr-3"></i>
-                            จัดการชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="transaction.html">
-                            <i class="fas fa-exchange-alt mr-3"></i>
-                            ธุรกรรมทั้งหมด
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
-        <!-- Main Content -->
-        <div class="flex-1 flex items-center justify-center bg-blue-700">
-            <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
-                <h1 class="text-4xl font-bold text-center text-blue-900 mb-8">TIME BANK</h1>
-                <h2 class="text-2xl font-bold text-center text-blue-900 mb-6">Login</h2>
-                <form id="loginForm">
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="username">Username</label>
-                        <input
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            id="username" type="text" placeholder="Username" />
-                    </div>
-                    <div class="mb-6">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="password">Password</label>
-                        <input
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
-                            id="password" type="password" placeholder="Password" />
-                    </div>
-                    <div class="flex items-center justify-center">
-                        <button
-                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                            type="submit">Login</button>
-                    </div>
-                </form>
-                <div class="text-center mt-4">
-                    <p class="text-gray-700">Don't have an account? <a class="text-blue-500"
-                            href="register.html">Register</a></p>
-                </div>
-            </div>
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   Time Bank
+  </title>
+  <script src="https://cdn.tailwindcss.com">
+  </script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+ </head>
+ <body class="bg-gray-100">
+  <div class="flex h-screen">
+   <!-- Sidebar -->
+   <div class="w-1/6 bg-white h-screen p-5">
+    <div class="flex items-center mb-10">
+     <img alt="Logo of Time Bank System, a clock with a handshake in the center" class="w-10 h-10 rounded-full" height="50" src="https://storage.googleapis.com/a1aa/image/Gxl4DYX3U4IhAh5kISMvWwYM6Peu5t0ZvFH2MlBpiQhZOXDKA.jpg" width="50"/>
+     <span class="ml-3 text-xl font-bold text-blue-600">
+      TIMEBANK
+     </span>
+    </div>
+    <nav>
+     <ul id="navList">
+      <li class="mb-5">
+       <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="login.html">
+        <i class="fas fa-sign-in-alt mr-3">
+        </i>
+        Login
+       </a>
+      </li>
+      <li class="mb-5">
+       <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="homepage.html">
+        <i class="fas fa-home mr-3">
+        </i>
+        หน้าหลัก
+       </a>
+      </li>
+      <li class="mb-5">
+       <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="report.html">
+        <i class="fas fa-chart-bar mr-3">
+        </i>
+        รายงาน
+       </a>
+      </li>
+      <li class="mb-5">
+       <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="activity.html">
+        <i class="fas fa-calendar-alt mr-3">
+        </i>
+        จัดการกิจกรรม
+       </a>
+      </li>
+      <li class="mb-5">
+       <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="member.html">
+        <i class="fas fa-users mr-3">
+        </i>
+        จัดการสมาชิก
+       </a>
+      </li>
+      <li class="mb-5">
+       <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="skillconf.html">
+        <i class="fas fa-cogs mr-3">
+        </i>
+        จัดการหมวหมู่ทักษะ
+       </a>
+      </li>
+      <li class="mb-5">
+       <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="fund.html">
+        <i class="fas fa-hand-holding-usd mr-3">
+        </i>
+        จัดการกองทุนชุมชน
+       </a>
+      </li>
+      <li class="mb-5">
+       <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="commconf.html">
+        <i class="fas fa-cog mr-3">
+        </i>
+        จัดการชุมชน
+       </a>
+      </li>
+      <li class="mb-5">
+       <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="transaction.html">
+        <i class="fas fa-exchange-alt mr-3">
+        </i>
+        ธุรกรรมทั้งหมด
+       </a>
+      </li>
+     </ul>
+    </nav>
+   </div>
+   <!-- Main Content -->
+   <div class="flex-1 flex items-center justify-center bg-blue-700">
+    <!-- Language Toggle Switch -->
+    <div class="absolute top-5 right-5">
+        <div class="toggle-container" id="languageToggle">
+            <span class="toggle-label active" id="lang-th" data-lang="th">
+                ภาษาไทย
+            </span>
+            <span class="toggle-label" id="lang-en" data-lang="en">
+                English
+            </span>
         </div>
     </div>
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', async function (event) {
+    <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+     <h1 class="text-4xl font-bold text-center text-blue-900 mb-8">
+      TIME BANK
+     </h1>
+     <h2 class="text-2xl font-bold text-center text-blue-900 mb-6">
+      Login
+     </h2>
+     <form id="loginForm">
+      <div class="mb-4">
+       <label class="block text-gray-700 text-sm font-bold mb-2" for="username">
+        Username
+       </label>
+       <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="username" placeholder="Username" type="text"/>
+      </div>
+      <div class="mb-6">
+       <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
+        Password
+       </label>
+       <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" id="password" placeholder="Password" type="password"/>
+      </div>
+      <div class="flex items-center justify-center">
+       <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+        Login
+       </button>
+      </div>
+     </form>
+     <div class="text-center mt-4">
+      <p class="text-gray-700">
+       Don't have an account?
+       <a class="text-blue-500" href="register.html">
+        Register
+       </a>
+      </p>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+   document.getElementById('loginForm').addEventListener('submit', async function (event) {
             event.preventDefault();
 
             const username = document.getElementById('username').value;
@@ -324,7 +341,134 @@
         document.addEventListener('DOMContentLoaded', () => {
             checkLoginStatus();
         });
-    </script>
-</body>
+  </script>
 
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const langTh = document.getElementById('lang-th');
+        const langEn = document.getElementById('lang-en');
+        const navList = document.querySelectorAll('#navList a');
+        const toggleSwitch = document.getElementById('language-toggle'); // If a toggle switch exists
+
+        const translations = {
+            thai: {
+                nav: ['เข้าสู่ระบบ', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวดหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
+                login: 'เข้าสู่ระบบ',
+                username: 'ชื่อผู้ใช้',
+                password: 'รหัสผ่าน',
+                noAccount: 'ยังไม่มีบัญชี? <a class="text-blue-500" href="register.html">ลงทะเบียน</a>'
+            },
+            english: {
+                nav: ['Login', 'Homepage', 'Reports', 'Manage Activities', 'Manage Members', 'Manage Skills', 'Manage Funds', 'Manage Community', 'Transactions'],
+                login: 'Login',
+                username: 'Username',
+                password: 'Password',
+                noAccount: "Don't have an account? <a class='text-blue-500' href='register.html'>Register</a>"
+            }
+        };
+
+        let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
+
+        // Function to update content dynamically
+        function updateContent(lang) {
+            const langData = translations[lang];
+            navList.forEach((link, index) => {
+                link.innerHTML = `<i class="${link.querySelector('i').className}"></i> ${langData.nav[index]}`;
+            });
+
+            document.querySelector('h2').textContent = langData.login;
+            document.querySelector('label[for="username"]').textContent = langData.username;
+            document.querySelector('label[for="password"]').textContent = langData.password;
+            document.querySelector('.text-center p').innerHTML = langData.noAccount;
+
+            if (lang === 'thai') {
+                langTh.classList.add('active');
+                langEn.classList.remove('active');
+            } else {
+                langEn.classList.add('active');
+                langTh.classList.remove('active');
+            }
+
+            // Sync toggle switch state if toggleSwitch exists
+            if (toggleSwitch) {
+                toggleSwitch.checked = lang === 'english';
+            }
+        }
+
+        // Event listeners for buttons
+        langTh.addEventListener('click', () => {
+            if (currentLang !== 'thai') {
+                currentLang = 'thai';
+                localStorage.setItem('selectedLanguage', currentLang);
+                updateContent(currentLang);
+            }
+        });
+
+        langEn.addEventListener('click', () => {
+            if (currentLang !== 'english') {
+                currentLang = 'english';
+                localStorage.setItem('selectedLanguage', currentLang);
+                updateContent(currentLang);
+            }
+        });
+
+        // Sync toggle switch with content
+        if (toggleSwitch) {
+            toggleSwitch.checked = currentLang === 'english';
+            toggleSwitch.addEventListener('change', () => {
+                currentLang = toggleSwitch.checked ? 'english' : 'thai';
+                localStorage.setItem('selectedLanguage', currentLang);
+                updateContent(currentLang);
+            });
+        }
+
+        // Initialize the content on page load
+        updateContent(currentLang);
+    });
+</script>
+
+<style>
+    /* Toggle container */
+         .toggle-container {
+             display: flex;
+             background-color: #E5E7EB;
+             border-radius: 20px; /* Increase border radius for larger container */
+             padding: 6px; /* Larger padding for better spacing */
+             align-items: center;
+             justify-content: space-between;
+             width: 180px; /* Increase width for a larger toggle */
+         }
+ 
+         /* Labels */
+         .toggle-label {
+             flex: 1;
+             text-align: center;
+             font-size: 0.9rem;
+             font-weight: 500;
+             color: gray;
+             cursor: pointer;
+             transition: all 0.3s ease;
+             border-radius: 9999px;
+             padding: 5px;
+         }
+ 
+         .toggle-label.active {
+             background-color: white;
+             color: #1D4ED8; /* Blue for active text */
+             font-weight: bold;
+             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+         }
+ 
+         /* Disabled Label */
+         .toggle-label.disabled {
+             pointer-events: none; /* Make it unclickable */
+             background-color: white;
+             color: #6B7280; /* Light gray text */
+             font-weight: bold;
+         }
+   </style>
+
+<script src="selected-language.js"></script>
+
+ </body>
 </html>
