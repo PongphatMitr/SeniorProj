@@ -204,99 +204,6 @@ body, ul {
 }
 
 
-/* Main Content Service */
-.page-service {
-    margin-top: 55px;
-    margin-bottom: 55px;
-    margin-left: 470px; /* Space for collapsed sidebar */
-    min-height: 100vh; /* Ensure it fills the viewport */
-    display: flex;
-    max-width: 1000px; /* Same as service page form */
-    border-radius: 16px;
-    flex-direction: column;
-    justify-content: center; /* Center vertically */
-    align-items: center; /* Center horizontally */
-    background-color: #f8fafc; /* Light background for contrast */
-    color: #1f2937; /* Dark text color for readability */
-    padding: 20px;
-    box-sizing: border-box; /* Ensure padding doesn't overflow */
-}
-
-.page-service h1 {
-    font-size: 2.5rem;
-    color: #2563eb; /* Primary color */
-    font-weight: bolder;
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-.page-service h2 {
-    font-size: 1.5rem;
-    font-weight: bold;
-    color: #374151; /* Secondary color */
-    margin-bottom: 20px;
-    text-align: center;
-}
-
-.page-service form {
-    margin-top: 20px;
-    margin-bottom: 60px;
-    max-width: 900px; /* Same as service page form */
-    width: 100%; /* Full-width on smaller screens */
-    background: white;
-    border-radius: 10px; /* Consistent rounded corners */
-    padding: 20px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
-}
-
-.page-service form div {
-    margin-bottom: 10px;
-}
-
-.page-service form label {
-    display: block;
-    margin-bottom: 8px;
-    font-weight: bold;
-    color: #1f2937; /* Text color */
-}
-
-.page-service form input,
-.page-service form textarea,
-.page-service form button {
-    width: 100%; /* Full width inputs */
-    padding: 10px;
-    font-size: 1rem;
-    border: 1px solid #d1d5db;
-    border-radius: 5px;
-    box-sizing: border-box; /* Consistent box model */
-}
-
-.page-service form input:focus,
-.page-service form textarea:focus {
-    border-color: #2563eb;
-    outline: none;
-    box-shadow: 0 0 5px rgba(37, 99, 235, 0.2); /* Focus glow */
-}
-
-.page-service form textarea {
-    height: 100px;
-    resize: vertical; /* Allow vertical resizing */
-}
-
-.page-service form button {
-    background-color: #2563eb;
-    color: white;
-    font-weight: bold;
-    border: none;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.page-service form button:hover {
-    background-color: #1d4ed8; /* Darker shade on hover */
-}
-
-/* Main Content Profile Page*/
 /* Main Content Profile Page */
 .page-profile {
     margin-top: 80px;
@@ -809,4 +716,11 @@ body, ul {
 
 .signup-text a:hover {
     text-decoration: underline;
+}
+
+a.disabled {
+    pointer-events: none;
+    color: #aaa;
+    opacity: 0.5;
+    text-decoration: none;
 }

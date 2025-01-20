@@ -11,74 +11,6 @@
 
 <body class="page-login">
     <div class="container">
-        <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="logo-section">
-                <img alt="Logo of Time Bank" class="logo" height="100"
-                    src="https://storage.googleapis.com/a1aa/image/NHidmIYeN712Ca7AEWMy8kxlYbN3zCQfJckLwqGzOTgsvtGUA.jpg"
-                    width="100" />
-                <span class="brand-name">
-                    TIMEBANK
-                </span>
-            </div>
-            <nav>
-                <ul id="navList">
-                    <li>
-                        <a href="login.html">
-                            <i class="fas fa-sign-in-alt"></i>
-                            <span class="link-text">Login</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="HomePage.html">
-                            <i class="fas fa-home"></i>
-                            <span class="link-text">หน้าหลัก</span>
-                        </a>
-                    </li>
-                    <!-- การบริการ Dropdown -->
-                    <li class="dropdown">
-                        <a class="dropdown-toggle" href="#">
-                            <i class="fas fa-cogs"></i>
-                            <span class="link-text">การบริการ</span>
-                            <i class="fas fa-chevron-down dropdown-icon"></i>
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a class="sub-link" href="service.html">ยื่นข้อของานบริการ</a>
-                            </li>
-                        </ul>
-                    </li>
-                    <!-- การจัดการบัญชี Dropdown -->
-                    <li class="dropdown">
-                        <a class="dropdown-toggle" href="#">
-                            <i class="fas fa-user-circle"></i>
-                            <span class="link-text">การจัดการบัญชี</span>
-                            <i class="fas fa-chevron-down dropdown-icon"></i>
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a class="sub-link" href="profile.html">แก้ไขประวัติ</a>
-                            </li>
-                            <li>
-                                <a class="sub-link" href="skillconf.html">แก้ไขทักษะ</a>
-                            </li>
-                            <li>
-                                <a class="sub-link" href="balance.html">ยอดคงเหลือ</a>
-                            </li>
-                            <li>
-                                <a class="sub-link" href="history.html">ประวัติ</a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li>
-                        <a href="contact.html">
-                            <i class="fas fa-phone"></i>
-                            <span class="link-text">ติดต่อเรา</span>
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
         <!-- Main Content -->
         <div class="center-wrapper">
             <h1 class="site-title">TIME BANK</h1>
@@ -97,7 +29,7 @@
                 </form>
                 <p class="signup-text">
                     ไม่มีบัญชีผู้ใช้ ?
-                    <a href="register.html">สมัครสมาชิก</a>
+                    <a href="register.html" id="signup-link">สมัครสมาชิก</a>
                 </p>
             </div>
         </div>
@@ -128,8 +60,6 @@
                 // Save the token in localStorage
                 localStorage.setItem('token', data.token);
                 // Update the sidebar
-                updateSidebar(true);
-                // Redirect to the homepage or another page
                 window.location.href = 'HomePage.html';
             } catch (error) {
                 console.error('Error:', error);
@@ -137,152 +67,36 @@
             }
         });
 
-        function updateSidebar(isLoggedIn) {
-            const navList = document.getElementById('navList');
-            if (isLoggedIn) {
-                navList.innerHTML = `
-                    <li>
-                        <a href="profile.html">
-                            <i class="fas fa-user"></i>
-                            <span class="link-text">โปรไฟล์</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="HomePage.html">
-                            <i class="fas fa-home"></i>
-                            <span class="link-text">หน้าหลัก</span>
-                        </a>
-                    </li>
-                    <li class="dropdown">
-                        <a class="dropdown-toggle" href="#">
-                            <i class="fas fa-cogs"></i>
-                            <span class="link-text">การบริการ</span>
-                            <i class="fas fa-chevron-down dropdown-icon"></i>
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a class="sub-link" href="service.html">ยื่นข้อของานบริการ</a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li class="dropdown">
-                        <a class="dropdown-toggle" href="#">
-                            <i class="fas fa-user-circle"></i>
-                            <span class="link-text">การจัดการบัญชี</span>
-                            <i class="fas fa-chevron-down dropdown-icon"></i>
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a class="sub-link" href="profile.html">แก้ไขประวัติ</a>
-                            </li>
-                            <li>
-                                <a class="sub-link" href="skillconf.html">แก้ไขทักษะ</a>
-                            </li>
-                            <li>
-                                <a class="sub-link" href="balance.html">ยอดคงเหลือ</a>
-                            </li>
-                            <li>
-                                <a class="sub-link" href="history.html">ประวัติ</a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li>
-                        <a href="contact.html">
-                            <i class="fas fa-phone"></i>
-                            <span class="link-text">ติดต่อเรา</span>
-                        </a>
-                    </li>
-                `;
-            } else {
-                navList.innerHTML = `
-                    <li>
-                        <a href="login.html">
-                            <i class="fas fa-sign-in-alt"></i>
-                            <span class="link-text">Login</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="HomePage.html">
-                            <i class="fas fa-home"></i>
-                            <span class="link-text">หน้าหลัก</span>
-                        </a>
-                    </li>
-                    <li class="dropdown">
-                        <a class="dropdown-toggle" href="#">
-                            <i class="fas fa-cogs"></i>
-                            <span class="link-text">การบริการ</span>
-                            <i class="fas fa-chevron-down dropdown-icon"></i>
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a class="sub-link" href="service.html">ยื่นข้อของานบริการ</a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li class="dropdown">
-                        <a class="dropdown-toggle" href="#">
-                            <i class="fas fa-user-circle"></i>
-                            <span class="link-text">การจัดการบัญชี</span>
-                            <i class="fas fa-chevron-down dropdown-icon"></i>
-                        </a>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a class="sub-link" href="profile.html">แก้ไขประวัติ</a>
-                            </li>
-                            <li>
-                                <a class="sub-link" href="skillconf.html">แก้ไขทักษะ</a>
-                            </li>
-                            <li>
-                                <a class="sub-link" href="balance.html">ยอดคงเหลือ</a>
-                            </li>
-                            <li>
-                                <a class="sub-link" href="history.html">ประวัติ</a>
-                            </li>
-                        </ul>
-                    </li>
-                    <li>
-                        <a href="contact.html">
-                            <i class="fas fa-phone"></i>
-                            <span class="link-text">ติดต่อเรา</span>
-                        </a>
-                    </li>
-                `;
-            }
-        }
-
-        async function checkLoginStatus() {
-            const token = localStorage.getItem('token');
-            if (token) {
-                try {
-                    const response = await fetch('http://localhost:3000/api/auth/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-
-                    if (response.ok) {
-                        updateSidebar(true);
-                    } else {
-                        localStorage.removeItem('token');
-                        updateSidebar(false);
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    localStorage.removeItem('token');
-                    updateSidebar(false);
-                }
-            } else {
-                updateSidebar(false);
-            }
-        }
-
-        // Check if the user is already logged in
-        document.addEventListener('DOMContentLoaded', () => {
-            checkLoginStatus();
+        document.getElementById('signup-link').addEventListener('click', (e) => {
+            console.log('Sign-up link clicked:', e.target.href);
         });
     </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
+            const sidebar = document.querySelector('.sidebar');
+    
+            // Handle dropdown toggle click
+            dropdownToggles.forEach(toggle => {
+                toggle.addEventListener('click', (e) => {
+                    e.preventDefault(); // Prevent default anchor behavior
+                    const parent = toggle.parentElement;
+                    parent.classList.toggle('open'); // Toggle the "open" class
+                });
+            });
+    
+            // Reset dropdowns when the mouse leaves the sidebar
+            sidebar.addEventListener('mouseleave', () => {
+                const dropdowns = document.querySelectorAll('.dropdown');
+                dropdowns.forEach(dropdown => {
+                    dropdown.classList.remove('open'); // Remove "open" class
+                });
+            });
+        });
+    </script>
+    
+
 </body>
 
 </html>
