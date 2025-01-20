@@ -264,17 +264,17 @@
 
         function updateSidebar(isLoggedIn) {
             const navList = document.getElementById('navList');
-        
+
             // Translations for navigation menu
             const translations = {
                 thai: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
                 english: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
             };
-        
+
             // Get the current language from localStorage or default to 'thai'
             const currentLang = localStorage.getItem('selectedLanguage') || 'thai';
             const navItems = translations[currentLang]; // Get navigation items based on the selected language
-        
+
             if (isLoggedIn) {
                 navList.innerHTML = `
                     <li class="mb-5">
@@ -657,52 +657,58 @@
     </div>
     <style>
         /* Toggle container */
-             .toggle-container {
-                 display: flex;
-                 background-color: #E5E7EB;
-                 border-radius: 20px; /* Increase border radius for larger container */
-                 padding: 6px; /* Larger padding for better spacing */
-                 align-items: center;
-                 justify-content: space-between;
-                 width: 180px; /* Increase width for a larger toggle */
-             }
-     
-             /* Labels */
-             .toggle-label {
-                 flex: 1;
-                 text-align: center;
-                 font-size: 0.9rem;
-                 font-weight: 500;
-                 color: gray;
-                 cursor: pointer;
-                 transition: all 0.3s ease;
-                 border-radius: 9999px;
-                 padding: 5px;
-             }
-     
-             .toggle-label.active {
-                 background-color: white;
-                 color: #1D4ED8; /* Blue for active text */
-                 font-weight: bold;
-                 box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-             }
-     
-             /* Disabled Label */
-             .toggle-label.disabled {
-                 pointer-events: none; /* Make it unclickable */
-                 background-color: white;
-                 color: #6B7280; /* Light gray text */
-                 font-weight: bold;
-             }
-       </style>
+        .toggle-container {
+            display: flex;
+            background-color: #E5E7EB;
+            border-radius: 20px;
+            /* Increase border radius for larger container */
+            padding: 6px;
+            /* Larger padding for better spacing */
+            align-items: center;
+            justify-content: space-between;
+            width: 180px;
+            /* Increase width for a larger toggle */
+        }
 
-       <script src="selected-language.js"></script>
+        /* Labels */
+        .toggle-label {
+            flex: 1;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: gray;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 9999px;
+            padding: 5px;
+        }
 
-       <script>
+        .toggle-label.active {
+            background-color: white;
+            color: #1D4ED8;
+            /* Blue for active text */
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Disabled Label */
+        .toggle-label.disabled {
+            pointer-events: none;
+            /* Make it unclickable */
+            background-color: white;
+            color: #6B7280;
+            /* Light gray text */
+            font-weight: bold;
+        }
+    </style>
+
+    <script src="selected-language.js"></script>
+
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
             const langThai = document.getElementById('lang-th');
             const langEnglish = document.getElementById('lang-en');
-    
+
             const translations = {
                 thai: {
                     pageTitle: 'สร้างกิจกรรม - Time Bank',
@@ -763,19 +769,19 @@
                     nav: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
                 },
             };
-    
+
             let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
-    
+
             const updateContent = (lang) => {
                 const langData = translations[lang];
-    
+
                 // Update page title
                 document.title = langData.pageTitle;
-    
+
                 // Update headings
                 document.querySelector('h1').textContent = langData.mainHeading;
                 document.querySelector('h2').textContent = langData.subHeading;
-    
+
                 // Update labels
                 document.querySelector('label[for="title"]').textContent = langData.labels.title;
                 document.querySelector('label[for="requester-name"]').textContent = langData.labels.requesterName;
@@ -789,13 +795,13 @@
                 document.querySelector('label[for="status"]').textContent = langData.labels.status;
                 document.querySelector('label[for="time-tokens-required"]').textContent = langData.labels.timeTokensRequired;
                 document.querySelector('label[for="time-tokens-per-participant"]').textContent = langData.labels.timeTokensPerParticipant;
-    
+
                 // Update placeholders
                 document.getElementById('title').placeholder = langData.placeholders.title;
                 document.getElementById('requester-name').placeholder = langData.placeholders.requesterName;
                 document.getElementById('description').placeholder = langData.placeholders.description;
                 document.getElementById('location').placeholder = langData.placeholders.location;
-    
+
                 // Update status options
                 const statusSelect = document.getElementById('status');
                 statusSelect.innerHTML = '';
@@ -805,11 +811,11 @@
                     statusOption.textContent = option;
                     statusSelect.appendChild(statusOption);
                 });
-    
+
                 // Update button text
                 document.querySelector('button[onclick="window.history.back();"]').textContent = langData.labels.backButton;
                 document.querySelector('button[type="submit"]').textContent = langData.labels.submitButton;
-    
+
                 // Update navigation
                 const navItems = navList.querySelectorAll('a');
                 navItems.forEach((link, index) => {
@@ -818,7 +824,7 @@
                     if (icon) link.appendChild(icon); // Re-add the icon
                     link.append(` ${langData.nav[index]}`); // Add translated text
                 });
-    
+
                 // Update language toggle styles
                 if (lang === 'thai') {
                     langThai.classList.add('active');
@@ -828,33 +834,32 @@
                     langThai.classList.remove('active');
                 }
             };
-    
+
             // Add event listeners for language toggle
             langThai.addEventListener('click', () => {
                 currentLang = 'thai';
                 localStorage.setItem('selectedLanguage', currentLang);
                 updateContent(currentLang);
             });
-    
+
             langEnglish.addEventListener('click', () => {
                 currentLang = 'english';
                 localStorage.setItem('selectedLanguage', currentLang);
                 updateContent(currentLang);
             });
-    
+
             // Initialize content on page load
             updateContent(currentLang);
         });
     </script>
-    
 
     <script>
         // Other functions like fetchMembers, fetchCommunityConfig, etc.
-    
+
         // Updated submitActivity function
         async function submitActivity(event) {
             event.preventDefault();
-    
+
             const title = document.getElementById('title').value;
             const description = document.getElementById('description').value;
             const location = document.getElementById('location').value;
@@ -870,16 +875,16 @@
             const timeTokensRequired = parseFloat(timeTokensRequiredInput);
             const timeTokensPerParticipantInput = document.getElementById('time-tokens-per-participant').value;
             const timeTokensPerParticipant = parseFloat(timeTokensPerParticipantInput);
-    
+
             // Map English status to Thai
             const statusMap = {
                 Upcoming: 'กำลังจะเริ่ม',
                 Completed: 'เสร็จสิ้น',
                 Cancelled: 'ยกเลิก',
             };
-    
+
             const mappedStatus = statusMap[status] || status; // Use Thai if already in Thai
-    
+
             const activityData = {
                 title,
                 description,
@@ -894,7 +899,7 @@
                 time_tokens_required: timeTokensRequired,
                 time_tokens_per_participant: timeTokensPerParticipant,
             };
-    
+
             try {
                 const response = await fetch('http://localhost:3000/api/activities', {
                     method: 'POST',
@@ -904,13 +909,13 @@
                     },
                     body: JSON.stringify(activityData),
                 });
-    
+
                 if (!response.ok) {
                     const errorData = await response.json();
                     console.error('Error response from server:', errorData);
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-    
+
                 alert('Activity created successfully!');
                 window.location.href = 'activity.html';
             } catch (error) {
@@ -918,11 +923,9 @@
                 alert('An error occurred while creating the activity. Please try again.');
             }
         }
-    
+
         // Other event listeners or logic
     </script>
-    
-    
 </body>
 
 </html>

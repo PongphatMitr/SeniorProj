@@ -203,17 +203,17 @@
 
         function updateSidebar(isLoggedIn) {
             const navList = document.getElementById('navList');
-        
+
             // Translations for navigation menu
             const translations = {
                 thai: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
                 english: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
             };
-        
+
             // Get the current language from localStorage or default to 'thai'
             const currentLang = localStorage.getItem('selectedLanguage') || 'thai';
             const navItems = translations[currentLang]; // Get navigation items based on the selected language
-        
+
             if (isLoggedIn) {
                 navList.innerHTML = `
                     <li class="mb-5">
@@ -348,7 +348,20 @@
                 `;
             }
         }
-        
+
+        function searchActivities() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const filteredActivities = activities.filter(activity => {
+                return (
+                    (activity.activity_id && activity.activity_id.toString().includes(searchTerm)) ||
+                    (activity.title && activity.title.toLowerCase().includes(searchTerm)) ||
+                    (activity.description && activity.description.toLowerCase().includes(searchTerm)) ||
+                    (activity.location && activity.location.toLowerCase().includes(searchTerm)) ||
+                    (activity.requester_id && activity.requester_id.toString().includes(searchTerm))
+                );
+            });
+            renderTable(filteredActivities);
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             checkLoginStatus();
@@ -394,9 +407,9 @@
             <div class="bg-white text-black p-8 rounded-lg shadow-lg">
                 <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">กิจกรรม</h2>
                 <div class="mb-4 flex items-center">
-                    <input
+                    <input id="search-input"
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        type="text" placeholder="ค้นหากิจกรรม" />
+                        type="text" placeholder="ค้นหากิจกรรม" oninput="searchActivities()" />
                     <a href="create-activity.html"
                         class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-2">เพิ่ม</a>
                 </div>
@@ -443,49 +456,54 @@
 
     <style>
         /* Toggle container */
-             .toggle-container {
-                 display: flex;
-                 background-color: #E5E7EB;
-                 border-radius: 20px; /* Increase border radius for larger container */
-                 padding: 6px; /* Larger padding for better spacing */
-                 align-items: center;
-                 justify-content: space-between;
-                 width: 180px; /* Increase width for a larger toggle */
-             }
-     
-             /* Labels */
-             .toggle-label {
-                 flex: 1;
-                 text-align: center;
-                 font-size: 0.9rem;
-                 font-weight: 500;
-                 color: gray;
-                 cursor: pointer;
-                 transition: all 0.3s ease;
-                 border-radius: 9999px;
-                 padding: 5px;
-             }
-     
-             .toggle-label.active {
-                 background-color: white;
-                 color: #1D4ED8; /* Blue for active text */
-                 font-weight: bold;
-                 box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-             }
-     
-             /* Disabled Label */
-             .toggle-label.disabled {
-                 pointer-events: none; /* Make it unclickable */
-                 background-color: white;
-                 color: #6B7280; /* Light gray text */
-                 font-weight: bold;
-             }
-       </style>
+        .toggle-container {
+            display: flex;
+            background-color: #E5E7EB;
+            border-radius: 20px;
+            /* Increase border radius for larger container */
+            padding: 6px;
+            /* Larger padding for better spacing */
+            align-items: center;
+            justify-content: space-between;
+            width: 180px;
+            /* Increase width for a larger toggle */
+        }
 
-       <script src="selected-language.js"></script>
+        /* Labels */
+        .toggle-label {
+            flex: 1;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: gray;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 9999px;
+            padding: 5px;
+        }
 
-       
-       <script>
+        .toggle-label.active {
+            background-color: white;
+            color: #1D4ED8;
+            /* Blue for active text */
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Disabled Label */
+        .toggle-label.disabled {
+            pointer-events: none;
+            /* Make it unclickable */
+            background-color: white;
+            color: #6B7280;
+            /* Light gray text */
+            font-weight: bold;
+        }
+    </style>
+
+    <script src="selected-language.js"></script>
+
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
             const langThai = document.getElementById('lang-th');
             const langEnglish = document.getElementById('lang-en');
@@ -495,7 +513,7 @@
             const searchPlaceholder = document.querySelector('input[placeholder]');
             const addButton = document.querySelector('a[href="create-activity.html"]');
             const tableHeaders = document.querySelectorAll('th');
-    
+
             const translations = {
                 thai: {
                     mainHeading: 'จัดการกิจกรรม',
@@ -514,23 +532,23 @@
                     tableHeaders: ['Activity', 'Date', 'Status', 'Participants', 'Actions'],
                 },
             };
-    
+
             let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
-    
+
             const updateContent = (lang) => {
                 const langData = translations[lang];
-    
+
                 // Update static text
                 mainHeading.textContent = langData.mainHeading;
                 subHeading.textContent = langData.subHeading;
                 searchPlaceholder.placeholder = langData.searchPlaceholder;
                 addButton.textContent = langData.addButton;
-    
+
                 // Update table headers
                 tableHeaders.forEach((header, index) => {
                     header.textContent = langData.tableHeaders[index];
                 });
-    
+
                 // Update navigation
                 const navItems = navList.querySelectorAll('a');
                 navItems.forEach((link, index) => {
@@ -539,7 +557,7 @@
                     if (icon) link.appendChild(icon); // Re-add the icon
                     link.append(` ${langData.nav[index]}`); // Add translated text
                 });
-    
+
                 // Update language toggle styles
                 if (lang === 'thai') {
                     langThai.classList.add('active');
@@ -549,29 +567,24 @@
                     langThai.classList.remove('active');
                 }
             };
-    
+
             // Add event listeners for language toggle
             langThai.addEventListener('click', () => {
                 currentLang = 'thai';
                 localStorage.setItem('selectedLanguage', currentLang);
                 updateContent(currentLang);
             });
-    
+
             langEnglish.addEventListener('click', () => {
                 currentLang = 'english';
                 localStorage.setItem('selectedLanguage', currentLang);
                 updateContent(currentLang);
             });
-    
+
             // Initialize content on page load
             updateContent(currentLang);
         });
     </script>
-    
-    
-    
-    
-
 </body>
 
 </html>
