@@ -36,11 +36,12 @@
                 event.preventDefault();
 
                 const fullName = document.getElementById('full-name').value;
+                const username = document.getElementById('username').value;
                 const email = document.getElementById('email').value;
                 const idNumber = document.getElementById('id-number').value;
                 const password = document.getElementById('password').value;
                 const confirmPassword = document.getElementById('confirm-password').value;
-                const role = document.getElementById('role').value;
+                const role = "Member"; // Set role to Member by default
 
                 if (password !== confirmPassword) {
                     alert('รหัสผ่านไม่ตรงกัน!');
@@ -53,7 +54,7 @@
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ fullName, email, idNumber, password, role })
+                        body: JSON.stringify({ fullName, username, email, idNumber, password, role })
                     });
 
                     const data = await response.json();
@@ -149,15 +150,11 @@
                 <h2>ลงทะเบียน</h2>
                 <form id="registerForm">
                     <input id="full-name" placeholder="ชื่อ-นามสกุล" required="" type="text" />
+                    <input id="username" placeholder="ชื่อผู้ใช้" required="" type="text" />
                     <input id="email" placeholder="อีเมล" required="" type="email" />
                     <input id="id-number" placeholder="เลขบัตรประชาชน" required="" type="text" />
                     <input id="password" placeholder="รหัสผ่าน" required="" type="password" />
                     <input id="confirm-password" placeholder="ยืนยันรหัสผ่าน" required="" type="password" />
-                    <select id="role" required="">
-                        <option value="Member">Member</option>
-                        <option value="TimeBankManager">TimeBankManager</option>
-                        <option value="Admin">Admin</option>
-                    </select>
                     <button class="login-button" type="submit">ลงทะเบียน</button>
                 </form>
                 <p class="signup-text">
