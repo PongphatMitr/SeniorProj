@@ -6,6 +6,7 @@
     <title>รายงาน - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <script>
         async function fetchReportData() {
             try {
@@ -16,11 +17,32 @@
                 });
                 const data = await response.json();
                 if (data) {
-                    document.getElementById('total-members').textContent = `${data.totalMembers} คน`;
-                    document.getElementById('total-skills').textContent = `${data.totalSkills} ทักษะ`;
-                    document.getElementById('total-time-credits').textContent = `${data.totalTimeCredits} ชั่วโมง`;
-                    document.getElementById('borrowed-time-credits').textContent = `${data.borrowedTimeCredits} ชั่วโมง`;
-                    document.getElementById('community-balance').textContent = `${data.communityBalance} ชั่วโมง`;
+                    document.getElementById('total-transactions').textContent = `${data.totalTransactions} รายการ`;
+                    document.getElementById('total-activities').textContent = `${data.totalActivities} กิจกรรม`;
+
+                    // Top Ranking Members
+                    const topMembersContainer = document.getElementById('top-members');
+                    topMembersContainer.innerHTML = '';
+                    data.topMembers.forEach(member => {
+                        const div = document.createElement('div');
+                        div.className = 'flex justify-center text-2xl text-center text-blue-600 mb-2';
+                        const name = document.createElement('span');
+                        name.className = 'mr-2';
+                        name.textContent = member.name;
+                        const count = document.createElement('span');
+                        count.textContent = `${member.activity_count} กิจกรรม`;
+                        div.appendChild(name);
+                        div.appendChild(count);
+                        topMembersContainer.appendChild(div);
+                    });
+
+                    // Total Volume Flow
+                    document.getElementById('total-volume').textContent = `${data.totalTransactions} รายการ`;
+
+                    // Daily, Monthly, Yearly Volume Flow
+                    updateVolumeFlow(data.dailyVolume, 'daily');
+                    updateVolumeFlow(data.monthlyVolume, 'monthly');
+                    updateVolumeFlow(data.yearlyVolume, 'yearly');
                 } else {
                     console.error('Expected data but got:', data);
                     alert('เกิดข้อผิดพลาดในการดึงข้อมูลรายงาน');
@@ -29,6 +51,16 @@
                 console.error('Error fetching report data:', error);
                 alert('เกิดข้อผิดพลาดในการดึงข้อมูลรายงาน');
             }
+        }
+
+        function updateVolumeFlow(volumeData, type) {
+            const container = document.getElementById(`${type}-volume`);
+            container.innerHTML = '';
+            const count = volumeData.reduce((acc, item) => acc + parseInt(item[`${type}_volume`]), 0);
+            const p = document.createElement('p');
+            p.textContent = `${count} รายการ`;
+            p.className = 'text-2xl text-center text-blue-600';
+            container.appendChild(p);
         }
 
         async function checkLoginStatus() {
@@ -208,17 +240,33 @@
             }
         }
 
+        function showVolume(type) {
+            document.getElementById('total-volume').style.display = 'none';
+            document.getElementById('daily-volume').style.display = 'none';
+            document.getElementById('monthly-volume').style.display = 'none';
+            document.getElementById('yearly-volume').style.display = 'none';
+
+            if (type === 'daily') {
+                document.getElementById('daily-volume').style.display = 'block';
+            } else if (type === 'monthly') {
+                document.getElementById('monthly-volume').style.display = 'block';
+            } else if (type === 'yearly') {
+                document.getElementById('yearly-volume').style.display = 'block';
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             checkLoginStatus();
             fetchReportData();
+            showVolume('daily'); // Default to daily volume
         });
     </script>
 </head>
 
-<body class="bg-gray-100">
+<body class="bg-gray-100 font-roboto">
     <div class="flex flex-col md:flex-row">
         <!-- Sidebar -->
-        <div class="w-1/6 bg-white h-screen p-5">
+        <div class="w-full md:w-1/6 bg-white h-screen p-5">
             <div class="flex items-center mb-10">
                 <img alt="Logo of Time Bank System, a clock with a handshake in the center"
                     class="w-10 h-10 rounded-full" height="50"
@@ -299,26 +347,41 @@
         <!-- Main Content -->
         <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
             <h1 class="text-4xl font-bold mb-5">รายงาน</h1>
-            <div class="grid grid-cols-2 gap-5">
+            <div class="flex justify-center mb-4">
+                <button onclick="showVolume('daily')"
+                    class="bg-blue-500 text-white px-4 py-2 rounded mr-2">รายวัน</button>
+                <button onclick="showVolume('monthly')"
+                    class="bg-blue-500 text-white px-4 py-2 rounded mr-2">รายเดือน</button>
+                <button onclick="showVolume('yearly')" class="bg-blue-500 text-white px-4 py-2 rounded">รายปี</button>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
                 <div class="bg-white text-black p-8 rounded-lg shadow-lg">
-                    <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">จำนวนสมาชิก</h2>
-                    <p id="total-members" class="text-4xl font-bold text-center text-blue-600">Loading...</p>
+                    <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">จำนวนธุรกรรม</h2>
+                    <p id="total-transactions" class="text-2xl text-center text-blue-600">Loading...</p>
                 </div>
                 <div class="bg-white text-black p-8 rounded-lg shadow-lg">
-                    <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">จำนวนทักษะ</h2>
-                    <p id="total-skills" class="text-4xl font-bold text-center text-blue-600">Loading...</p>
+                    <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">จำนวนกิจกรรม</h2>
+                    <p id="total-activities" class="text-2xl text-center text-blue-600">Loading...</p>
                 </div>
                 <div class="bg-white text-black p-8 rounded-lg shadow-lg">
-                    <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">จำนวนเครดิตเวลา</h2>
-                    <p id="total-time-credits" class="text-4xl font-bold text-center text-blue-600">Loading...</p>
+                    <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">ปริมาณการไหล</h2>
+                    <p id="total-volume" class="text-2xl text-center text-blue-600" style="display: none;">
+                        Loading...</p>
+                    <div id="daily-volume" class="hidden" style="display: block;">
+                        <p class="text-2xl text-center text-blue-600">Loading...</p>
+                    </div>
+                    <div id="monthly-volume" class="hidden" style="display: none;">
+                        <p class="text-2xl text-center text-blue-600">Loading...</p>
+                    </div>
+                    <div id="yearly-volume" class="hidden" style="display: none;">
+                        <p class="text-2xl text-center text-blue-600">Loading...</p>
+                    </div>
                 </div>
                 <div class="bg-white text-black p-8 rounded-lg shadow-lg">
-                    <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">จำนวนเครดิตเวลาที่กู้</h2>
-                    <p id="borrowed-time-credits" class="text-4xl font-bold text-center text-red-600">Loading...</p>
-                </div>
-                <div class="bg-white text-black p-8 rounded-lg shadow-lg">
-                    <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">ยอดคงเหลือในชุมชน</h2>
-                    <p id="community-balance" class="text-4xl font-bold text-center text-blue-600">Loading...</p>
+                    <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">สมาชิกที่ทำกิจกรรมมากที่สุด</h2>
+                    <div id="top-members" class="text-center text-blue-600">
+                        <p class="text-2xl text-center text-blue-600">Loading...</p>
+                    </div>
                 </div>
             </div>
         </div>

@@ -28,7 +28,6 @@
                     console.error(`HTTP error! status: ${response.status}, response: ${errorText}`);
                     if (response.status === 404) {
                         alert('ไม่พบกิจกรรมที่ระบุ');
-                        window.location.href = 'activity.html';
                     } else if (response.status === 400 && errorText.includes('Invalid token')) {
                         alert('Invalid token. Redirecting to login page.');
                         localStorage.removeItem('token');

@@ -325,17 +325,17 @@
 
         function updateSidebar(isLoggedIn) {
             const navList = document.getElementById('navList');
-        
+
             // Translations for navigation menu
             const translations = {
                 thai: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
                 english: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
             };
-        
+
             // Get the current language from localStorage or default to 'thai'
             const currentLang = localStorage.getItem('selectedLanguage') || 'thai';
             const navItems = translations[currentLang]; // Get navigation items based on the selected language
-        
+
             if (isLoggedIn) {
                 navList.innerHTML = `
                     <li class="mb-5">
@@ -417,7 +417,7 @@
                             <i class="fas fa-home mr-3"></i>
                             ${navItems[1]}
                         </a>
-                    </li>
+                                        </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="report.html">
@@ -470,11 +470,11 @@
                 `;
             }
         }
-        
 
         document.addEventListener('DOMContentLoaded', () => {
             checkLoginStatus();
-            fetchActivities();
+            fetchCommunityConfig();
+            fetchMembers(currentPage);
         });
     </script>
 </head>
@@ -577,52 +577,58 @@
 
     <style>
         /* Toggle container */
-             .toggle-container {
-                 display: flex;
-                 background-color: #E5E7EB;
-                 border-radius: 20px; /* Increase border radius for larger container */
-                 padding: 6px; /* Larger padding for better spacing */
-                 align-items: center;
-                 justify-content: space-between;
-                 width: 180px; /* Increase width for a larger toggle */
-             }
-     
-             /* Labels */
-             .toggle-label {
-                 flex: 1;
-                 text-align: center;
-                 font-size: 0.9rem;
-                 font-weight: 500;
-                 color: gray;
-                 cursor: pointer;
-                 transition: all 0.3s ease;
-                 border-radius: 9999px;
-                 padding: 5px;
-             }
-     
-             .toggle-label.active {
-                 background-color: white;
-                 color: #1D4ED8; /* Blue for active text */
-                 font-weight: bold;
-                 box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-             }
-     
-             /* Disabled Label */
-             .toggle-label.disabled {
-                 pointer-events: none; /* Make it unclickable */
-                 background-color: white;
-                 color: #6B7280; /* Light gray text */
-                 font-weight: bold;
-             }
-       </style>
+        .toggle-container {
+            display: flex;
+            background-color: #E5E7EB;
+            border-radius: 20px;
+            /* Increase border radius for larger container */
+            padding: 6px;
+            /* Larger padding for better spacing */
+            align-items: center;
+            justify-content: space-between;
+            width: 180px;
+            /* Increase width for a larger toggle */
+        }
 
-       <script src="selected-language.js"></script>
+        /* Labels */
+        .toggle-label {
+            flex: 1;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: gray;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 9999px;
+            padding: 5px;
+        }
 
-       <script>
+        .toggle-label.active {
+            background-color: white;
+            color: #1D4ED8;
+            /* Blue for active text */
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Disabled Label */
+        .toggle-label.disabled {
+            pointer-events: none;
+            /* Make it unclickable */
+            background-color: white;
+            color: #6B7280;
+            /* Light gray text */
+            font-weight: bold;
+        }
+    </style>
+
+    <script src="selected-language.js"></script>
+
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
             const langThai = document.getElementById('lang-th');
             const langEnglish = document.getElementById('lang-en');
-    
+
             const translations = {
                 thai: {
                     pageTitle: 'จัดการสมาชิก - Time Bank',
@@ -663,25 +669,25 @@
                     ]
                 }
             };
-    
+
             let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
-    
+
             const updateContent = (lang) => {
                 const langData = translations[lang];
-    
+
                 // Update page title
                 document.title = langData.pageTitle;
-    
+
                 // Update headings
                 document.querySelector('h1').textContent = langData.mainHeading;
                 document.querySelector('h2').textContent = langData.subHeading;
-    
+
                 // Update search bar placeholder
                 document.getElementById('search-bar').placeholder = langData.searchPlaceholder;
-    
+
                 // Update "Add" button text
                 document.querySelector('a[href="create-member.html"]').textContent = langData.addButton;
-    
+
                 // Update table headers
                 const tableHeaders = document.querySelectorAll('thead th');
                 langData.tableHeaders.forEach((header, index) => {
@@ -689,7 +695,7 @@
                         tableHeaders[index].textContent = header;
                     }
                 });
-    
+
                 // Update navigation bar text (leave icons intact)
                 const navItems = langData.nav;
                 const navLinks = document.querySelectorAll('nav ul li a');
@@ -703,7 +709,7 @@
                         navLinks[index].appendChild(document.createTextNode(navText)); // Add the translated text
                     }
                 });
-    
+
                 // Update active language toggle
                 if (lang === 'thai') {
                     langThai.classList.add('active');
@@ -713,26 +719,24 @@
                     langThai.classList.remove('active');
                 }
             };
-    
+
             // Event listeners for language toggle
             langThai.addEventListener('click', () => {
                 currentLang = 'thai';
                 localStorage.setItem('selectedLanguage', currentLang);
                 updateContent(currentLang);
             });
-    
+
             langEnglish.addEventListener('click', () => {
                 currentLang = 'english';
                 localStorage.setItem('selectedLanguage', currentLang);
                 updateContent(currentLang);
             });
-    
+
             // Initialize content on page load
             updateContent(currentLang);
         });
     </script>
-    
-    
 </body>
 
 </html>

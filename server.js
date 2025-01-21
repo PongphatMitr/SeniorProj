@@ -10,6 +10,7 @@ const fundRoutes = require('./routes/funds');
 const communityConfigRoutes = require('./routes/communityConfig');
 const exchangeRatesRoutes = require('./routes/exchangeRates');
 const transactionRoutes = require('./routes/transactions');
+const reportRoutes = require('./routes/reportRoutes'); // Import the new report routes
 const authMiddleware = require('./middleware/authMiddleware');
 
 dotenv.config();
@@ -46,6 +47,7 @@ app.use('/api/funds', authMiddleware, fundRoutes(pool));
 app.use('/api/community-config', authMiddleware, communityConfigRoutes(pool));
 app.use('/api/exchange-rates', authMiddleware, exchangeRatesRoutes(pool));
 app.use('/api/transactions', authMiddleware, transactionRoutes(pool));
+app.use('/api/report', authMiddleware, reportRoutes(pool)); // Use the new report routes
 
 app.get('/', (req, res) => {
     res.send('Welcome to Time Bank API');

@@ -76,6 +76,7 @@
                     `;
                     item.onclick = () => {
                         document.getElementById('requester-name').value = member.name;
+                        document.getElementById('requester-id').value = member.member_id;
                         resultsDropdown.innerHTML = '';
                     };
                     resultsDropdown.appendChild(item);
@@ -151,7 +152,7 @@
             const endTime = document.getElementById('end-time').value;
             const maxParticipantsInput = document.getElementById('max-participants').value;
             const maxParticipants = parseInt(maxParticipantsInput, 10);
-            const requesterName = document.getElementById('requester-name').value;
+            const requesterId = document.getElementById('requester-id').value;
             const status = document.getElementById('status').value;
             const timeTokensRequiredInput = document.getElementById('time-tokens-required').value;
             const timeTokensRequired = parseFloat(timeTokensRequiredInput);
@@ -189,7 +190,7 @@
                 end_date: endDate,
                 end_time: endTime,
                 max_participants: maxParticipants,
-                requester_name: requesterName,
+                requester_id: requesterId,
                 status,
                 time_tokens_required: timeTokensRequired,
                 time_tokens_per_participant: timeTokensPerParticipant
@@ -547,6 +548,7 @@
                                 class="bg-white border border-gray-300 mt-1 rounded shadow-lg z-10 hidden dropdown-content">
                                 <!-- Search results will be dynamically inserted here -->
                             </div>
+                            <input id="requester-id" type="hidden" />
                         </div>
                     </div>
                     <div class="mb-4">
@@ -869,7 +871,7 @@
             const endTime = document.getElementById('end-time').value;
             const maxParticipantsInput = document.getElementById('max-participants').value;
             const maxParticipants = parseInt(maxParticipantsInput, 10);
-            const requesterName = document.getElementById('requester-name').value;
+            const requesterId = document.getElementById('requester-id').value;
             const status = document.getElementById('status').value;
             const timeTokensRequiredInput = document.getElementById('time-tokens-required').value;
             const timeTokensRequired = parseFloat(timeTokensRequiredInput);
@@ -894,7 +896,7 @@
                 end_date: endDate,
                 end_time: endTime,
                 max_participants: maxParticipants,
-                requester_name: requesterName,
+                requester_id: requesterId,
                 status: mappedStatus, // Use mapped status
                 time_tokens_required: timeTokensRequired,
                 time_tokens_per_participant: timeTokensPerParticipant,
