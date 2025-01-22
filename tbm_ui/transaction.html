@@ -76,8 +76,8 @@
 
                 const data = await response.json();
                 if (Array.isArray(data.transactions)) {
-                    transactions = data.transactions;
-                    totalTransactions = data.total;
+                    transactions = data.transactions.filter(transaction => transaction.time_credits !== null);
+                    totalTransactions = transactions.length;
                     await fetchActivityDescriptions();
                     renderTable(transactions);
                     renderPagination();
@@ -142,15 +142,12 @@
                         ${transaction.time_credits}
                     </td>
                     <td aria-colindex="5" data-label="ชื่อผู้ขอ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${transaction.requester_name}
+                        ${transaction.requester_name || ''}
                     </td>
-                    <td aria-colindex="6" data-label="ชื่อผู้เข้าร่วม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${transaction.participant_name}
+                    <td aria-colindex="6" data-label="ธุรกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${transaction.activity_title || ''}
                     </td>
-                    <td aria-colindex="7" data-label="ธุรกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${transaction.activity_title}
-                    </td>
-                    <td aria-colindex="8" data-label="รายละเอียดธุรกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
+                    <td aria-colindex="7" data-label="รายละเอียดธุรกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
                         ${transaction.activity_description}
                     </td>
                 `;
@@ -234,6 +231,9 @@
             renderTable(transactions);
         }
 
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLoginStatus();
+            fetchTransactions(currentPage);
 
             document.querySelectorAll('th.sortable').forEach(header => {
                 header.addEventListener('click', () => {
@@ -241,200 +241,195 @@
                     sortTable(column);
                 });
             });
+        });
 
-            async function checkLoginStatus() {
-                const token = localStorage.getItem('token');
-                if (token) {
-                    try {
-                        const response = await fetch('http://localhost:3000/api/auth/verify', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${token}`
-                            }
-                        });
-    
-                        if (response.ok) {
-                            updateSidebar(true);
-                        } else {
-                            localStorage.removeItem('token');
-                            updateSidebar(false);
-                            const goToLogin = confirm('Session expired. Do you want to go to the login page?');
-                            if (goToLogin) {
-                                window.location.href = 'login.html';
-                            }
+        async function checkLoginStatus() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const response = await fetch('http://localhost:3000/api/auth/verify', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
                         }
-                    } catch (error) {
-                        console.error('Error:', error);
+                    });
+
+                    if (response.ok) {
+                        updateSidebar(true);
+                    } else {
                         localStorage.removeItem('token');
                         updateSidebar(false);
-                        const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
+                        const goToLogin = confirm('Session expired. Do you want to go to the login page?');
                         if (goToLogin) {
                             window.location.href = 'login.html';
                         }
                     }
-                } else {
+                } catch (error) {
+                    console.error('Error:', error);
+                    localStorage.removeItem('token');
                     updateSidebar(false);
-                    const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
+                    const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
                     if (goToLogin) {
                         window.location.href = 'login.html';
                     }
                 }
-            }
-    
-            function updateSidebar(isLoggedIn) {
-                const navList = document.getElementById('navList');
-            
-                // Translations for navigation menu
-                const translations = {
-                    thai: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
-                    english: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
-                };
-            
-                // Get the current language from localStorage or default to 'thai'
-                const currentLang = localStorage.getItem('selectedLanguage') || 'thai';
-                const navItems = translations[currentLang]; // Get navigation items based on the selected language
-            
-                if (isLoggedIn) {
-                    navList.innerHTML = `
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                                href="profile.html">
-                                <i class="fas fa-user mr-3"></i>
-                                ${navItems[0]}
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                                href="homepage.html">
-                                <i class="fas fa-home mr-3"></i>
-                                ${navItems[1]}
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                                href="report.html">
-                                <i class="fas fa-chart-bar mr-3"></i>
-                                ${navItems[2]}
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                                href="activity.html">
-                                <i class="fas fa-calendar-alt mr-3"></i>
-                                ${navItems[3]}
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                                href="member.html">
-                                <i class="fas fa-users mr-3"></i>
-                                ${navItems[4]}
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                                href="skillconf.html">
-                                <i class="fas fa-cogs mr-3"></i>
-                                ${navItems[5]}
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                                href="fund.html">
-                                <i class="fas fa-hand-holding-usd mr-3"></i>
-                                ${navItems[6]}
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                                href="commconf.html">
-                                <i class="fas fa-cog mr-3"></i>
-                                ${navItems[7]}
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                                href="transaction.html">
-                                <i class="fas fa-exchange-alt mr-3"></i>
-                                ${navItems[8]}
-                            </a>
-                        </li>
-                    `;
-                } else {
-                    navList.innerHTML = `
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                                href="login.html">
-                                <i class="fas fa-sign-in-alt mr-3"></i>
-                                ${currentLang === 'thai' ? 'เข้าสู่ระบบ' : 'Login'}
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                                href="homepage.html">
-                                <i class="fas fa-home mr-3"></i>
-                                ${navItems[1]}
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                                href="report.html">
-                                <i class="fas fa-chart-bar mr-3"></i>
-                                ${navItems[2]}
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                                href="activity.html">
-                                <i class="fas fa-calendar-alt mr-3"></i>
-                                ${navItems[3]}
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                                href="member.html">
-                                <i class="fas fa-users mr-3"></i>
-                                ${navItems[4]}
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                                href="skillconf.html">
-                                <i class="fas fa-cogs mr-3"></i>
-                                ${navItems[5]}
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                                href="fund.html">
-                                <i class="fas fa-hand-holding-usd mr-3"></i>
-                                ${navItems[6]}
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                                href="commconf.html">
-                                <i class="fas fa-cog mr-3"></i>
-                                ${navItems[7]}
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                                href="transaction.html">
-                                <i class="fas fa-exchange-alt mr-3"></i>
-                                ${navItems[8]}
-                            </a>
-                        </li>
-                    `;
+            } else {
+                updateSidebar(false);
+                const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
+                if (goToLogin) {
+                    window.location.href = 'login.html';
                 }
             }
-            
-    
-            document.addEventListener('DOMContentLoaded', () => {
-                checkLoginStatus();
-                fetchTransactions(currentPage);
-            });
+        }
+
+        function updateSidebar(isLoggedIn) {
+            const navList = document.getElementById('navList');
+
+            // Translations for navigation menu
+            const translations = {
+                thai: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
+                english: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
+            };
+
+            // Get the current language from localStorage or default to 'thai'
+            const currentLang = localStorage.getItem('selectedLanguage') || 'thai';
+            const navItems = translations[currentLang]; // Get navigation items based on the selected language
+
+            if (isLoggedIn) {
+                navList.innerHTML = `
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="profile.html">
+                            <i class="fas fa-user mr-3"></i>
+                            ${navItems[0]}
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="homepage.html">
+                            <i class="fas fa-home mr-3"></i>
+                            ${navItems[1]}
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="report.html">
+                            <i class="fas fa-chart-bar mr-3"></i>
+                            ${navItems[2]}
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="activity.html">
+                            <i class="fas fa-calendar-alt mr-3"></i>
+                            ${navItems[3]}
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="member.html">
+                            <i class="fas fa-users mr-3"></i>
+                            ${navItems[4]}
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="skillconf.html">
+                            <i class="fas fa-cogs mr-3"></i>
+                            ${navItems[5]}
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="fund.html">
+                            <i class="fas fa-hand-holding-usd mr-3"></i>
+                            ${navItems[6]}
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="commconf.html">
+                            <i class="fas fa-cog mr-3"></i>
+                            ${navItems[7]}
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="transaction.html">
+                            <i class="fas fa-exchange-alt mr-3"></i>
+                            ${navItems[8]}
+                        </a>
+                    </li>
+                `;
+            } else {
+                navList.innerHTML = `
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="login.html">
+                            <i class="fas fa-sign-in-alt mr-3"></i>
+                            ${currentLang === 'thai' ? 'เข้าสู่ระบบ' : 'Login'}
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="homepage.html">
+                            <i class="fas fa-home mr-3"></i>
+                            ${navItems[1]}
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="report.html">
+                            <i class="fas fa-chart-bar mr-3"></i>
+                            ${navItems[2]}
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="activity.html">
+                            <i class="fas fa-calendar-alt mr-3"></i>
+                            ${navItems[3]}
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="member.html">
+                            <i class="fas fa-users mr-3"></i>
+                            ${navItems[4]}
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="skillconf.html">
+                            <i class="fas fa-cogs mr-3"></i>
+                            ${navItems[5]}
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="fund.html">
+                            <i class="fas fa-hand-holding-usd mr-3"></i>
+                            ${navItems[6]}
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="commconf.html">
+                            <i class="fas fa-cog mr-3"></i>
+                            ${navItems[7]}
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="transaction.html">
+                            <i class="fas fa-exchange-alt mr-3"></i>
+                            ${navItems[8]}
+                        </a>
+                    </li>
+                `;
+            }
+        }
     </script>
 </head>
 
@@ -469,324 +464,322 @@
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                        href="report.html">
-                        <i class="fas fa-chart-bar mr-3"></i>
-                        รายงาน
-                    </a>
-                </li>
-                <li class="mb-5">
-                    <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                        href="activity.html">
-                        <i class="fas fa-calendar-alt mr-3"></i>
-                        จัดการกิจกรรม
-                    </a>
-                </li>
-                <li class="mb-5">
-                    <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                        href="member.html">
-                        <i class="fas fa-users mr-3"></i>
-                        จัดการสมาชิก
-                    </a>
-                </li>
-                <li class="mb-5">
-                    <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                        href="skillconf.html">
-                        <i class="fas fa-cogs mr-3"></i>
-                        จัดการหมวหมู่ทักษะ
-                    </a>
-                </li>
-                <li class="mb-5">
-                    <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                        href="fund.html">
-                        <i class="fas fa-hand-holding-usd mr-3"></i>
-                        จัดการกองทุนชุมชน
-                    </a>
-                </li>
-                <li class="mb-5">
-                    <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                        href="commconf.html">
-                        <i class="fas fa-cog mr-3"></i>
-                        จัดการชุมชน
-                    </a>
-                </li>
-                <li class="mb-5">
-                    <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                        href="transaction.html">
-                        <i class="fas fa-exchange-alt mr-3"></i>
-                        ธุรกรรมทั้งหมด
-                    </a>
-                </li>
-            </ul>
-        </nav>
-    </div>
-    <!-- Main Content -->
-    <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
-        <!-- Language Toggle Switch -->
-        <div class="absolute top-5 right-5">
-            <div class="toggle-container" id="languageToggle">
-                <span class="toggle-label active" id="lang-th" data-lang="th">
-                    ภาษาไทย
-                </span>
-                <span class="toggle-label" id="lang-en" data-lang="en">
-                    English
-                </span>
-            </div>
+                            href="report.html">
+                            <i class="fas fa-chart-bar mr-3"></i>
+                            รายงาน
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="activity.html">
+                            <i class="fas fa-calendar-alt mr-3"></i>
+                            จัดการกิจกรรม
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="member.html">
+                            <i class="fas fa-users mr-3"></i>
+                            จัดการสมาชิก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="skillconf.html">
+                            <i class="fas fa-cogs mr-3"></i>
+                            จัดการหมวหมู่ทักษะ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="fund.html">
+                            <i class="fas fa-hand-holding-usd mr-3"></i>
+                            จัดการกองทุนชุมชน
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="commconf.html">
+                            <i class="fas fa-cog mr-3"></i>
+                            จัดการชุมชน
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="transaction.html">
+                            <i class="fas fa-exchange-alt mr-3"></i>
+                            ธุรกรรมทั้งหมด
+                        </a>
+                    </li>
+                </ul>
+            </nav>
         </div>
-
-        <h1 class="text-4xl font-bold mb-5">ธุรกรรมทั้งหมด</h1>
-        <div class="bg-white text-black p-8 rounded-lg shadow-lg">
-            <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">รายการธุรกรรมทั้งหมด</h2>
-            <div class="overflow-x-auto">
-                <div class="table-responsive-sm">
-                    <table aria-busy="false" aria-colcount="8" class="table b-table b-table-stacked-md w-full"
-                        role="table">
-                        <thead class="bg-gray-100" role="rowgroup">
-                            <tr role="row">
-                                <th aria-colindex="1"
-                                    class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
-                                    data-column="transaction_id" role="columnheader" scope="col">
-                                    รหัสธุรกรรม
-                                </th>
-                                <th aria-colindex="2"
-                                    class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
-                                    data-column="date" role="columnheader" scope="col">
-                                    วันที่
-                                </th>
-                                <th aria-colindex="3"
-                                    class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
-                                    data-column="time" role="columnheader" scope="col">
-                                    เวลา
-                                </th>
-                                <th aria-colindex="4"
-                                    class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
-                                    data-column="time_credits" role="columnheader" scope="col">
-                                    เครดิตเวลา
-                                </th>
-                                <th aria-colindex="5"
-                                    class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
-                                    data-column="requester_name" role="columnheader" scope="col">
-                                    ชื่อผู้ขอ
-                                </th>
-                                <th aria-colindex="6"
-                                    class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
-                                    data-column="participant_name" role="columnheader" scope="col">
-                                    ชื่อผู้เข้าร่วม
-                                </th>
-                                <th aria-colindex="7"
-                                    class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
-                                    data-column="activity_title" role="columnheader" scope="col">
-                                    ธุรกรรม
-                                </th>
-                                <th aria-colindex="8"
-                                    class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
-                                    data-column="activity_description" role="columnheader" scope="col">
-                                    รายละเอียดธุรกรรม
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody id="transaction-tbody" role="rowgroup">
-                            <!-- Transactions will be dynamically inserted here -->
-                        </tbody>
-                    </table>
+        <!-- Main Content -->
+        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
+            <!-- Language Toggle Switch -->
+            <div class="absolute top-5 right-5">
+                <div class="toggle-container" id="languageToggle">
+                    <span class="toggle-label active" id="lang-th" data-lang="th">
+                        ภาษาไทย
+                    </span>
+                    <span class="toggle-label" id="lang-en" data-lang="en">
+                        English
+                    </span>
                 </div>
             </div>
-            <div class="flex items-center justify-center mt-5" id="pagination">
-                <!-- Pagination buttons will be dynamically inserted here -->
-            </div>
-            <div class="flex justify-center mt-4">
-                <button
-                    class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                    onclick="window.history.back()">
-                    ย้อนกลับ
-                </button>
+
+            <h1 class="text-4xl font-bold mb-5">ธุรกรรมทั้งหมด</h1>
+            <div class="bg-white text-black p-8 rounded-lg shadow-lg">
+                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">รายการธุรกรรมทั้งหมด</h2>
+                <div class="overflow-x-auto">
+                    <div class="table-responsive-sm">
+                        <table aria-busy="false" aria-colcount="7" class="table b-table b-table-stacked-md w-full"
+                            role="table">
+                            <thead class="bg-gray-100" role="rowgroup">
+                                <tr role="row">
+                                    <th aria-colindex="1"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
+                                        data-column="transaction_id" role="columnheader" scope="col">
+                                        รหัสธุรกรรม
+                                    </th>
+                                    <th aria-colindex="2"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
+                                        data-column="date" role="columnheader" scope="col">
+                                        วันที่
+                                    </th>
+                                    <th aria-colindex="3"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
+                                        data-column="time" role="columnheader" scope="col">
+                                        เวลา
+                                    </th>
+                                    <th aria-colindex="4"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
+                                        data-column="time_credits" role="columnheader" scope="col">
+                                        เครดิตเวลา
+                                    </th>
+                                    <th aria-colindex="5"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
+                                        data-column="requester_name" role="columnheader" scope="col">
+                                        ชื่อผู้ขอ
+                                    </th>
+                                    <th aria-colindex="6"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
+                                        data-column="activity_title" role="columnheader" scope="col">
+                                        ธุรกรรม
+                                    </th>
+                                    <th aria-colindex="7"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
+                                        data-column="activity_description" role="columnheader" scope="col">
+                                        รายละเอียดธุรกรรม
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="transaction-tbody" role="rowgroup">
+                                <!-- Transactions will be dynamically inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="flex items-center justify-center mt-5" id="pagination">
+                    <!-- Pagination buttons will be dynamically inserted here -->
+                </div>
+                <div class="flex justify-center mt-4">
+                    <button
+                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        onclick="window.history.back()">
+                        ย้อนกลับ
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-<style>
-    /* Toggle container */
-         .toggle-container {
-             display: flex;
-             background-color: #E5E7EB;
-             border-radius: 20px; /* Increase border radius for larger container */
-             padding: 6px; /* Larger padding for better spacing */
-             align-items: center;
-             justify-content: space-between;
-             width: 180px; /* Increase width for a larger toggle */
-         }
- 
-         /* Labels */
-         .toggle-label {
-             flex: 1;
-             text-align: center;
-             font-size: 0.9rem;
-             font-weight: 500;
-             color: gray;
-             cursor: pointer;
-             transition: all 0.3s ease;
-             border-radius: 9999px;
-             padding: 5px;
-         }
- 
-         .toggle-label.active {
-             background-color: white;
-             color: #1D4ED8; /* Blue for active text */
-             font-weight: bold;
-             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-         }
- 
-         /* Disabled Label */
-         .toggle-label.disabled {
-             pointer-events: none; /* Make it unclickable */
-             background-color: white;
-             color: #6B7280; /* Light gray text */
-             font-weight: bold;
-         }
-   </style>
+    <style>
+        /* Toggle container */
+        .toggle-container {
+            display: flex;
+            background-color: #E5E7EB;
+            border-radius: 20px;
+            /* Increase border radius for larger container */
+            padding: 6px;
+            /* Larger padding for better spacing */
+            align-items: center;
+            justify-content: space-between;
+            width: 180px;
+            /* Increase width for a larger toggle */
+        }
 
-   <script src="selected-language.js"></script>
+        /* Labels */
+        .toggle-label {
+            flex: 1;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: gray;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 9999px;
+            padding: 5px;
+        }
 
-   <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // Language toggle setup
-        const langThai = document.getElementById('lang-th');
-        const langEnglish = document.getElementById('lang-en');
-        const mainHeading = document.querySelector('h1');
-        const subHeading = document.querySelector('.text-3xl.font-bold.mb-6.text-center.text-blue-700');
-        const tableHeaders = document.querySelectorAll('thead th');
-        const backButton = document.querySelector('button[onclick="window.history.back()"]');
-        const navItems = document.querySelectorAll('#navList li a');
+        .toggle-label.active {
+            background-color: white;
+            color: #1D4ED8;
+            /* Blue for active text */
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
 
-        // Translations
-        const translations = {
-            thai: {
-                pageTitle: 'ธุรกรรมทั้งหมด - Time Bank',
-                mainHeading: 'ธุรกรรมทั้งหมด',
-                subHeading: 'รายการธุรกรรมทั้งหมด',
-                tableHeaders: ['รหัสธุรกรรม', 'วันที่', 'เวลา', 'เครดิตเวลา', 'ชื่อผู้ขอ', 'ชื่อผู้เข้าร่วม', 'ธุรกรรม', 'รายละเอียดธุรกรรม'],
-                backButton: 'ย้อนกลับ',
-                nav: [
-                    'โปรไฟล์',
-                    'หน้าหลัก',
-                    'รายงาน',
-                    'จัดการกิจกรรม',
-                    'จัดการสมาชิก',
-                    'จัดการหมวดหมู่ทักษะ',
-                    'จัดการกองทุนชุมชน',
-                    'จัดการชุมชน',
-                    'ธุรกรรมทั้งหมด'
-                ],
-                toggleLabels: ['ภาษาไทย', 'English']
-            },
-            english: {
-                pageTitle: 'All Transactions - Time Bank',
-                mainHeading: 'All Transactions',
-                subHeading: 'Transactions List',
-                tableHeaders: ['Transaction ID', 'Date', 'Time', 'Time Credits', 'Requester Name', 'Participant Name', 'Transaction', 'Transaction Details'],
-                backButton: 'Go Back',
-                nav: [
-                    'Profile',
-                    'Homepage',
-                    'Reports Overview',
-                    'Activities Management',
-                    'Members Management',
-                    'Skills Management',
-                    'Fund Management',
-                    'Community Management',
-                    'Transactions'
-                ],
-                toggleLabels: ['ภาษาไทย', 'English']
-            }
-        };
+        /* Disabled Label */
+        .toggle-label.disabled {
+            pointer-events: none;
+            /* Make it unclickable */
+            background-color: white;
+            color: #6B7280;
+            /* Light gray text */
+            font-weight: bold;
+        }
+    </style>
 
-        // Current language
-        let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
+    <script src="selected-language.js"></script>
 
-        // Function to update language content
-        const updateContent = (lang) => {
-            const langData = translations[lang];
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Language toggle setup
+            const langThai = document.getElementById('lang-th');
+            const langEnglish = document.getElementById('lang-en');
+            const mainHeading = document.querySelector('h1');
+            const subHeading = document.querySelector('.text-3xl.font-bold.mb-6.text-center.text-blue-700');
+            const tableHeaders = document.querySelectorAll('thead th');
+            const backButton = document.querySelector('button[onclick="window.history.back()"]');
+            const navItems = document.querySelectorAll('#navList li a');
 
-            document.title = langData.pageTitle;
-            mainHeading.textContent = langData.mainHeading;
-            subHeading.textContent = langData.subHeading;
-
-            // Update table headers
-            tableHeaders.forEach((header, index) => {
-                header.textContent = langData.tableHeaders[index];
-            });
-
-            // Update back button
-            backButton.textContent = langData.backButton;
-
-            // Update navigation items
-            const navLinks = document.querySelectorAll('nav ul li a');
-            langData.nav.forEach((text, index) => {
-                if (navLinks[index]) {
-                    const icon = navLinks[index].querySelector('i');
-                    navLinks[index].innerHTML = '';
-                    if (icon) navLinks[index].appendChild(icon);
-                    navLinks[index].appendChild(document.createTextNode(text));
+            // Translations
+            const translations = {
+                thai: {
+                    pageTitle: 'ธุรกรรมทั้งหมด - Time Bank',
+                    mainHeading: 'ธุรกรรมทั้งหมด',
+                    subHeading: 'รายการธุรกรรมทั้งหมด',
+                    tableHeaders: ['รหัสธุรกรรม', 'วันที่', 'เวลา', 'เครดิตเวลา', 'ชื่อผู้ขอ', 'ธุรกรรม', 'รายละเอียดธุรกรรม'],
+                    backButton: 'ย้อนกลับ',
+                    nav: [
+                        'โปรไฟล์',
+                        'หน้าหลัก',
+                        'รายงาน',
+                        'จัดการกิจกรรม',
+                        'จัดการสมาชิก',
+                        'จัดการหมวดหมู่ทักษะ',
+                        'จัดการกองทุนชุมชน',
+                        'จัดการชุมชน',
+                        'ธุรกรรมทั้งหมด'
+                    ],
+                    toggleLabels: ['ภาษาไทย', 'English']
+                },
+                english: {
+                    pageTitle: 'All Transactions - Time Bank',
+                    mainHeading: 'All Transactions',
+                    subHeading: 'Transactions List',
+                    tableHeaders: ['Transaction ID', 'Date', 'Time', 'Time Credits', 'Requester Name', 'Transaction', 'Transaction Details'],
+                    backButton: 'Go Back',
+                    nav: [
+                        'Profile',
+                        'Homepage',
+                        'Reports Overview',
+                        'Activities Management',
+                        'Members Management',
+                        'Skills Management',
+                        'Fund Management',
+                        'Community Management',
+                        'Transactions'
+                    ],
+                    toggleLabels: ['ภาษาไทย', 'English']
                 }
+            };
+
+            // Current language
+            let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
+
+            // Function to update language content
+            const updateContent = (lang) => {
+                const langData = translations[lang];
+
+                document.title = langData.pageTitle;
+                mainHeading.textContent = langData.mainHeading;
+                subHeading.textContent = langData.subHeading;
+
+                // Update table headers
+                tableHeaders.forEach((header, index) => {
+                    header.textContent = langData.tableHeaders[index];
+                });
+
+                // Update back button
+                backButton.textContent = langData.backButton;
+
+                // Update navigation items
+                const navLinks = document.querySelectorAll('nav ul li a');
+                langData.nav.forEach((text, index) => {
+                    if (navLinks[index]) {
+                        const icon = navLinks[index].querySelector('i');
+                        navLinks[index].innerHTML = '';
+                        if (icon) navLinks[index].appendChild(icon);
+                        navLinks[index].appendChild(document.createTextNode(text));
+                    }
+                });
+
+                // Update toggle labels
+                langThai.textContent = langData.toggleLabels[0];
+                langEnglish.textContent = langData.toggleLabels[1];
+
+                // Highlight active language
+                if (lang === 'thai') {
+                    langThai.classList.add('active');
+                    langEnglish.classList.remove('active');
+                } else {
+                    langEnglish.classList.add('active');
+                    langThai.classList.remove('active');
+                }
+
+                // Save language
+                localStorage.setItem('selectedLanguage', lang);
+            };
+
+            // Event listeners for language toggles
+            langThai.addEventListener('click', () => {
+                currentLang = 'thai';
+                updateContent(currentLang);
             });
 
-            // Update toggle labels
-            langThai.textContent = langData.toggleLabels[0];
-            langEnglish.textContent = langData.toggleLabels[1];
+            langEnglish.addEventListener('click', () => {
+                currentLang = 'english';
+                updateContent(currentLang);
+            });
 
-            // Highlight active language
-            if (lang === 'thai') {
-                langThai.classList.add('active');
-                langEnglish.classList.remove('active');
-            } else {
-                langEnglish.classList.add('active');
-                langThai.classList.remove('active');
-            }
-
-            // Save language
-            localStorage.setItem('selectedLanguage', lang);
-        };
-
-        // Event listeners for language toggles
-        langThai.addEventListener('click', () => {
-            currentLang = 'thai';
+            // Initialize language
             updateContent(currentLang);
-        });
 
-        langEnglish.addEventListener('click', () => {
-            currentLang = 'english';
-            updateContent(currentLang);
-        });
+            // Sorting table functionality
+            const sortTable = (column) => {
+                const direction = sortColumn === column && sortDirection === 'asc' ? 'desc' : 'asc';
+                sortColumn = column;
+                sortDirection = direction;
 
-        // Initialize language
-        updateContent(currentLang);
+                transactions.sort((a, b) => {
+                    if (a[column] < b[column]) return direction === 'asc' ? -1 : 1;
+                    if (a[column] > b[column]) return direction === 'asc' ? 1 : -1;
+                    return 0;
+                });
 
-        // Sorting table functionality
-        const sortTable = (column) => {
-            const direction = sortColumn === column && sortDirection === 'asc' ? 'desc' : 'asc';
-            sortColumn = column;
-            sortDirection = direction;
+                renderTable(transactions);
+            };
 
-            transactions.sort((a, b) => {
-                if (a[column] < b[column]) return direction === 'asc' ? -1 : 1;
-                if (a[column] > b[column]) return direction === 'asc' ? 1 : -1;
-                return 0;
-            });
-
-            renderTable(transactions);
-        };
-
-        document.querySelectorAll('th.sortable').forEach(header => {
-            header.addEventListener('click', () => {
-                const column = header.getAttribute('data-column');
-                sortTable(column);
+            document.querySelectorAll('th.sortable').forEach(header => {
+                header.addEventListener('click', () => {
+                    const column = header.getAttribute('data-column');
+                    sortTable(column);
+                });
             });
         });
-    });
-</script>
-
-
-
+    </script>
 </body>
 
 </html>

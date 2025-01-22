@@ -18,17 +18,18 @@ const memberRoutes = (pool) => {
 
         try {
             const result = await pool.query(
-                `SELECT t.*, a.title AS activity_title, r.name AS requester_name, p.name AS participant_name
+                `SELECT t.*, a.title AS activity_title, 
+                        COALESCE(r.name, '') AS requester_name
                  FROM transactions t
-                 JOIN activities a ON t.activity_id = a.activity_id
-                 JOIN members r ON t.requester_id = r.member_id
-                 JOIN members p ON t.participant_id = p.member_id
-                 WHERE t.member_id = $1
+                 LEFT JOIN activities a ON t.activity_id = a.activity_id
+                 LEFT JOIN members r ON a.requester_id = r.member_id
+                 WHERE t.member_id = $1 OR t.requester_id = $1 OR t.participant_id = $1
+                 ORDER BY t.date DESC, t.time DESC
                  LIMIT $2 OFFSET $3`,
                 [id, pageSize, offset]
             );
             const totalResult = await pool.query(
-                'SELECT COUNT(*) FROM transactions WHERE member_id = $1',
+                'SELECT COUNT(*) FROM transactions WHERE member_id = $1 OR requester_id = $1 OR participant_id = $1',
                 [id]
             );
             res.json({ transactions: result.rows, total: parseInt(totalResult.rows[0].count, 10) });

@@ -208,20 +208,37 @@ const activityRoutes = (pool) => {
 
             const activity = activityResult.rows[0];
 
+            // Fetch current number of participants
+            const participantsResult = await client.query('SELECT COUNT(*) FROM activity_participants WHERE activity_id = $1', [activityId]);
+            const currentParticipants = parseInt(participantsResult.rows[0].count, 10);
+
+            // Fetch exchange rate from community config
+            const configResult = await client.query(`
+                SELECT cc.default_exchange_rate_id, er.description
+                FROM community_config cc
+                JOIN exchange_rates er ON cc.default_exchange_rate_id = er.rate_id
+                LIMIT 1
+            `);
+            if (configResult.rows.length === 0) {
+                throw new Error('Community config not found');
+            }
+
+            const exchangeRate = parseInt(configResult.rows[0].description.split(' ')[0], 10); // Assuming the description is in the format '1 token per X hours'
+
             // Update activity status
             const result = await client.query(
                 'UPDATE activities SET status = $1 WHERE activity_id = $2 RETURNING *',
                 ['เสร็จสิ้น', activityId]
             );
 
-            // Deduct time tokens from the requester
+            // Deduct time tokens from the requester based on current participants and exchange rate
             const requesterResult = await client.query('SELECT member_id, time_credits FROM members WHERE member_id = $1', [activity.requester_id]);
             if (requesterResult.rows.length === 0) {
                 throw new Error('Requester not found');
             }
 
             const requester = requesterResult.rows[0];
-            const totalTokensRequired = activity.time_tokens_required;
+            const totalTokensRequired = currentParticipants * exchangeRate;
 
             if (requester.time_credits < totalTokensRequired) {
                 res.status(400).json({ error: 'Not enough time credits', available_credits: requester.time_credits });

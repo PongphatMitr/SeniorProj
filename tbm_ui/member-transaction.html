@@ -62,6 +62,12 @@
                     <td aria-colindex="4" data-label="เครดิตเวลา" role="cell" class="py-2 px-4 border-b border-gray-200 ${timeCreditsClass}">
                         ${transaction.time_credits}
                     </td>
+                    <td aria-colindex="5" data-label="ชื่อกิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${transaction.activity_title || ''}
+                    </td>
+                    <td aria-colindex="6" data-label="ชื่อผู้ขอ" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${transaction.requester_name || ''}
+                    </td>
                 `;
                 tbody.appendChild(row);
             });
@@ -397,7 +403,7 @@
                 <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">รายการธุรกรรม</h2>
                 <div class="overflow-x-auto">
                     <div class="table-responsive-sm">
-                        <table aria-busy="false" aria-colcount="4" class="table b-table b-table-stacked-md w-full"
+                        <table aria-busy="false" aria-colcount="6" class="table b-table b-table-stacked-md w-full"
                             role="table">
                             <thead class="bg-gray-100" role="rowgroup">
                                 <tr role="row">
@@ -420,6 +426,16 @@
                                         class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
                                         role="columnheader" scope="col">
                                         เครดิตเวลา
+                                    </th>
+                                    <th aria-colindex="5"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
+                                        role="columnheader" scope="col">
+                                        ชื่อกิจกรรม
+                                    </th>
+                                    <th aria-colindex="6"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
+                                        role="columnheader" scope="col">
+                                        ชื่อผู้ขอ
                                     </th>
                                 </tr>
                             </thead>

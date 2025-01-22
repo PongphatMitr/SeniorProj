@@ -13,7 +13,15 @@ const transactionRoutes = (pool) => {
 
         try {
             const result = await pool.query(
-                'SELECT * FROM transactions ORDER BY date DESC LIMIT $1 OFFSET $2',
+                `SELECT t.*, a.title AS activity_title, 
+                        COALESCE(r.name, '') AS requester_name, 
+                        COALESCE(p.name, '') AS participant_name
+                 FROM transactions t
+                 LEFT JOIN activities a ON t.activity_id = a.activity_id
+                 LEFT JOIN members r ON t.requester_id = r.member_id
+                 LEFT JOIN members p ON t.participant_id = p.member_id
+                 ORDER BY t.date DESC, t.time DESC
+                 LIMIT $1 OFFSET $2`,
                 [pageSize, offset]
             );
             const totalResult = await pool.query('SELECT COUNT(*) FROM transactions');
