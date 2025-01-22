@@ -25,7 +25,7 @@
                     topMembersContainer.innerHTML = '';
                     data.topMembers.forEach(member => {
                         const div = document.createElement('div');
-                        div.className = 'flex justify-center text-2xl text-center text-blue-600 mb-2';
+                        div.className = 'flex justify-between text-lg text-blue-600 mb-2';
                         const name = document.createElement('span');
                         name.className = 'mr-2';
                         name.textContent = member.name;
@@ -55,12 +55,14 @@
 
         function updateVolumeFlow(volumeData, type) {
             const container = document.getElementById(`${type}-volume`);
-            container.innerHTML = '';
-            const count = volumeData.reduce((acc, item) => acc + parseInt(item[`${type}_volume`]), 0);
-            const p = document.createElement('p');
-            p.textContent = `${count} รายการ`;
-            p.className = 'text-2xl text-center text-blue-600';
-            container.appendChild(p);
+            if (container) {
+                container.innerHTML = '';
+                const count = volumeData.reduce((acc, item) => acc + parseInt(item[`${type}_volume`]), 0);
+                const p = document.createElement('p');
+                p.textContent = `${count} รายการ`;
+                p.className = 'text-lg text-center text-blue-600';
+                container.appendChild(p);
+            }
         }
 
         async function checkLoginStatus() {
@@ -241,18 +243,14 @@
         }
 
         function showVolume(type) {
-            document.getElementById('total-volume').style.display = 'none';
-            document.getElementById('daily-volume').style.display = 'none';
-            document.getElementById('monthly-volume').style.display = 'none';
-            document.getElementById('yearly-volume').style.display = 'none';
+            const volumeSections = document.querySelectorAll('.volume-section');
+            volumeSections.forEach(section => {
+                section.style.display = 'none';
+            });
 
-            if (type === 'daily') {
-                document.getElementById('daily-volume').style.display = 'block';
-            } else if (type === 'monthly') {
-                document.getElementById('monthly-volume').style.display = 'block';
-            } else if (type === 'yearly') {
-                document.getElementById('yearly-volume').style.display = 'block';
-            }
+            document.querySelectorAll(`.${type}-volume`).forEach(section => {
+                section.style.display = 'block';
+            });
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -349,38 +347,143 @@
             <h1 class="text-4xl font-bold mb-5">รายงาน</h1>
             <div class="flex justify-center mb-4">
                 <button onclick="showVolume('daily')"
-                    class="bg-blue-500 text-white px-4 py-2 rounded mr-2">รายวัน</button>
+                    class="bg-white text-blue-500 border border-blue-500 px-4 py-2 rounded mr-2">รายวัน</button>
                 <button onclick="showVolume('monthly')"
-                    class="bg-blue-500 text-white px-4 py-2 rounded mr-2">รายเดือน</button>
-                <button onclick="showVolume('yearly')" class="bg-blue-500 text-white px-4 py-2 rounded">รายปี</button>
+                    class="bg-white text-blue-500 border border-blue-500 px-4 py-2 rounded mr-2">รายเดือน</button>
+                <button onclick="showVolume('yearly')"
+                    class="bg-white text-blue-500 border border-blue-500 px-4 py-2 rounded">รายปี</button>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-5">
-                <div class="bg-white text-black p-8 rounded-lg shadow-lg">
-                    <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">จำนวนธุรกรรม</h2>
-                    <p id="total-transactions" class="text-2xl text-center text-blue-600">Loading...</p>
-                </div>
-                <div class="bg-white text-black p-8 rounded-lg shadow-lg">
-                    <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">จำนวนกิจกรรม</h2>
-                    <p id="total-activities" class="text-2xl text-center text-blue-600">Loading...</p>
-                </div>
-                <div class="bg-white text-black p-8 rounded-lg shadow-lg">
-                    <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">ปริมาณการไหล</h2>
-                    <p id="total-volume" class="text-2xl text-center text-blue-600" style="display: none;">
-                        Loading...</p>
-                    <div id="daily-volume" class="hidden" style="display: block;">
-                        <p class="text-2xl text-center text-blue-600">Loading...</p>
-                    </div>
-                    <div id="monthly-volume" class="hidden" style="display: none;">
-                        <p class="text-2xl text-center text-blue-600">Loading...</p>
-                    </div>
-                    <div id="yearly-volume" class="hidden" style="display: none;">
-                        <p class="text-2xl text-center text-blue-600">Loading...</p>
+            <div class="flex flex-col md:flex-row gap-5">
+                <div class="bg-white text-black p-4 rounded-lg shadow-lg md:w-1/4 h-full">
+                    <h2 class="text-xl font-bold mb-4 text-center text-blue-700">สมาชิกที่ทำกิจกรรมมากที่สุด</h2>
+                    <div id="top-members" class="text-blue-600">
+                        <p class="text-lg text-center text-blue-600">Loading...</p>
                     </div>
                 </div>
-                <div class="bg-white text-black p-8 rounded-lg shadow-lg">
-                    <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">สมาชิกที่ทำกิจกรรมมากที่สุด</h2>
-                    <div id="top-members" class="text-center text-blue-600">
-                        <p class="text-2xl text-center text-blue-600">Loading...</p>
+                <div class="flex flex-col gap-5 flex-1">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        <div class="bg-white text-black p-4 rounded-lg shadow-lg">
+                            <h2 class="text-xl font-bold mb-4 text-center text-blue-700">จำนวนธุรกรรม</h2>
+                            <p id="total-transactions" class="text-lg text-center text-blue-600">Loading...</p>
+                            <div class="daily-volume volume-section hidden" style="display: block;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                            <div class="monthly-volume volume-section hidden" style="display: none;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                            <div class="yearly-volume volume-section hidden" style="display: none;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                        </div>
+                        <div class="bg-white text-black p-4 rounded-lg shadow-lg">
+                            <h2 class="text-xl font-bold mb-4 text-center text-blue-700">จำนวนกิจกรรม</h2>
+                            <p id="total-activities" class="text-lg text-center text-blue-600">Loading...</p>
+                            <div class="daily-volume volume-section hidden" style="display: block;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                            <div class="monthly-volume volume-section hidden" style="display: none;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                            <div class="yearly-volume volume-section hidden" style="display: none;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                        </div>
+                        <div class="bg-white text-black p-4 rounded-lg shadow-lg">
+                            <h2 class="text-xl font-bold mb-4 text-center text-blue-700">ปริมาณการไหล</h2>
+                            <p id="total-volume" class="text-lg text-center text-blue-600" style="display: none;">
+                                Loading...</p>
+                            <div class="daily-volume volume-section hidden" style="display: block;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                            <div class="monthly-volume volume-section hidden" style="display: none;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                            <div class="yearly-volume volume-section hidden" style="display: none;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mt-5">
+                        <div class="bg-white text-black p-4 rounded-lg shadow-lg">
+                            <h2 class="text-xl font-bold mb-4 text-center text-blue-700">Box 1</h2>
+                            <p class="text-lg text-center text-blue-600">Content 1</p>
+                            <div class="daily-volume volume-section hidden" style="display: block;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                            <div class="monthly-volume volume-section hidden" style="display: none;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                            <div class="yearly-volume volume-section hidden" style="display: none;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                        </div>
+                        <div class="bg-white text-black p-4 rounded-lg shadow-lg">
+                            <h2 class="text-xl font-bold mb-4 text-center text-blue-700">Box 2</h2>
+                            <p class="text-lg text-center text-blue-600">Content 2</p>
+                            <div class="daily-volume volume-section hidden" style="display: block;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                            <div class="monthly-volume volume-section hidden" style="display: none;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                            <div class="yearly-volume volume-section hidden" style="display: none;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                        </div>
+                        <div class="bg-white text-black p-4 rounded-lg shadow-lg">
+                            <h2 class="text-xl font-bold mb-4 text-center text-blue-700">Box 3</h2>
+                            <p class="text-lg text-center text-blue-600">Content 3</p>
+                            <div class="daily-volume volume-section hidden" style="display: block;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                            <div class="monthly-volume volume-section hidden" style="display: none;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                            <div class="yearly-volume volume-section hidden" style="display: none;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mt-5">
+                        <div class="bg-white text-black p-4 rounded-lg shadow-lg">
+                            <h2 class="text-xl font-bold mb-4 text-center text-blue-700">Box 4</h2>
+                            <p class="text-lg text-center text-blue-600">Content 4</p>
+                            <div class="daily-volume volume-section hidden" style="display: block;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                            <div class="monthly-volume volume-section hidden" style="display: none;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                            <div class="yearly-volume volume-section hidden" style="display: none;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                        </div>
+                        <div class="bg-white text-black p-4 rounded-lg shadow-lg">
+                            <h2 class="text-xl font-bold mb-4 text-center text-blue-700">Box 5</h2>
+                            <p class="text-lg text-center text-blue-600">Content 5</p>
+                            <div class="daily-volume volume-section hidden" style="display: block;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                            <div class="monthly-volume volume-section hidden" style="display: none;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                            <div class="yearly-volume volume-section hidden" style="display: none;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                        </div>
+                        <div class="bg-white text-black p-4 rounded-lg shadow-lg">
+                            <h2 class="text-xl font-bold mb-4 text-center text-blue-700">Box 6</h2>
+                            <p class="text-lg text-center text-blue-600">Content 6</p>
+                            <div class="daily-volume volume-section hidden" style="display: block;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                            <div class="monthly-volume volume-section hidden" style="display: none;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                            <div class="yearly-volume volume-section hidden" style="display: none;">
+                                <p class="text-lg text-center text-blue-600">Loading...</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
