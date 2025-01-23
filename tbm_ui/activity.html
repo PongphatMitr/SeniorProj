@@ -46,7 +46,7 @@
 
         async function fetchActivities() {
             try {
-                const response = await fetch('http://localhost:3000/api/activities', {
+                const response = await fetch('http://localhost:3000/api/activities/all', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -54,7 +54,7 @@
                 const data = await response.json();
 
                 if (response.ok) {
-                    activities = data;
+                    activities = data.activities;
                     updateActivityStatus();
                     await fetchParticipants();
                     renderTable(activities);
@@ -520,7 +520,7 @@
                     subHeading: 'กิจกรรม',
                     searchPlaceholder: 'ค้นหากิจกรรม',
                     addButton: 'เพิ่ม',
-                    nav: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
+                    nav: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวดหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
                     tableHeaders: ['กิจกรรม', 'วันที่', 'สถานะ', 'จำนวนผู้เข้าร่วม', 'การจัดการ'],
                 },
                 english: {
