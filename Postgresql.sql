@@ -1,6 +1,5 @@
 -- Drop existing tables if they exist
 DROP TABLE IF EXISTS users CASCADE;
-DROP TABLE IF EXISTS members CASCADE;
 DROP TABLE IF EXISTS activities CASCADE;
 DROP TABLE IF EXISTS categories CASCADE;
 DROP TABLE IF EXISTS skills CASCADE;
@@ -11,29 +10,31 @@ DROP TABLE IF EXISTS transactions CASCADE;
 DROP TABLE IF EXISTS exchange_rates CASCADE;
 DROP TABLE IF EXISTS community_config CASCADE;
 
--- Create the users table
+-- Drop enum types if they exist (run this first)
+DROP TYPE IF EXISTS user_status CASCADE;
+DROP TYPE IF EXISTS activity_status CASCADE;
+
+-- Create enum types
+CREATE TYPE user_status AS ENUM ('active', 'inactive', 'suspended','pending_approval');
+CREATE TYPE activity_status AS ENUM ('กำลังจะเริ่ม', 'เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา');
+
+-- Create the users table with enum status
 CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
     username VARCHAR(50) NOT NULL,
     password VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL,
-    role VARCHAR(50) NOT NULL CHECK (role IN ('Member', 'TimeBankManager', 'Admin'))
-);
-
--- Create the members table
-CREATE TABLE members (
-    member_id SERIAL PRIMARY KEY,
-    user_id INT NOT NULL,
+    role VARCHAR(50) NOT NULL CHECK (role IN ('Member', 'TimeBankManager', 'Admin')),
     name VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
     address TEXT,
     branch VARCHAR(50),
     time_credits INT DEFAULT 0,
-    status VARCHAR(20) NOT NULL CHECK (status IN ('active', 'inactive')),
-    FOREIGN KEY (user_id) REFERENCES users(user_id)
+    status user_status DEFAULT 'active' NOT NULL,  -- Changed to enum type
+    created_at TIMESTAMP DEFAULT NOW()
 );
 
--- Create the activities table
+-- Create the activities table with enum status
 CREATE TABLE activities (
     activity_id SERIAL PRIMARY KEY,
     title VARCHAR(100) NOT NULL,
@@ -45,10 +46,10 @@ CREATE TABLE activities (
     end_time TIME,
     max_participants INT,
     requester_id INT,
-    status VARCHAR(20) NOT NULL CHECK (status IN ('กำลังจะเริ่ม', 'เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา')),
+    status activity_status NOT NULL,  -- Changed to enum type
     time_tokens_required INT DEFAULT 0,
     time_tokens_per_participant INT DEFAULT 0,
-    FOREIGN KEY (requester_id) REFERENCES members(member_id)
+    FOREIGN KEY (requester_id) REFERENCES users(user_id)
 );
 
 -- Create the categories table
@@ -65,12 +66,12 @@ CREATE TABLE skills (
     FOREIGN KEY (category_id) REFERENCES categories(category_id)
 );
 
--- Create the member_skills table to handle many-to-many relationship between members and skills
+-- Create the member_skills table to handle many-to-many relationship between users and skills
 CREATE TABLE member_skills (
-    member_id INT NOT NULL,
+    user_id INT NOT NULL,
     skill_id INT NOT NULL,
-    PRIMARY KEY (member_id, skill_id),
-    FOREIGN KEY (member_id) REFERENCES members(member_id),
+    PRIMARY KEY (user_id, skill_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (skill_id) REFERENCES skills(skill_id)
 );
 
@@ -81,19 +82,19 @@ CREATE TABLE community_fund (
     borrowed_hours INT DEFAULT 0
 );
 
--- Create the activity_participants table to handle many-to-many relationship between activities and members
+-- Create the activity_participants table to handle many-to-many relationship between activities and users
 CREATE TABLE activity_participants (
     activity_id INT NOT NULL,
-    member_id INT NOT NULL,
-    PRIMARY KEY (activity_id, member_id),
+    user_id INT NOT NULL,
+    PRIMARY KEY (activity_id, user_id),
     FOREIGN KEY (activity_id) REFERENCES activities(activity_id),
-    FOREIGN KEY (member_id) REFERENCES members(member_id)
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
 );
 
 -- Create the transactions table
 CREATE TABLE transactions (
     transaction_id SERIAL PRIMARY KEY,
-    member_id INT NOT NULL,
+    user_id INT NOT NULL,
     activity_id INT NOT NULL,
     date DATE NOT NULL DEFAULT CURRENT_DATE,
     time TIME NOT NULL DEFAULT CURRENT_TIME,
@@ -102,10 +103,10 @@ CREATE TABLE transactions (
     details TEXT,
     requester_id INT,
     participant_id INT,
-    FOREIGN KEY (member_id) REFERENCES members(member_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
     FOREIGN KEY (activity_id) REFERENCES activities(activity_id),
-    FOREIGN KEY (requester_id) REFERENCES members(member_id),
-    FOREIGN KEY (participant_id) REFERENCES members(member_id)
+    FOREIGN KEY (requester_id) REFERENCES users(user_id),
+    FOREIGN KEY (participant_id) REFERENCES users(user_id)
 );
 
 -- Create the exchange_rates table
@@ -131,13 +132,10 @@ INSERT INTO exchange_rates (description) VALUES
 INSERT INTO community_config (default_time_token, default_exchange_rate_id) VALUES (100, 1);
 
 -- Insert initial data into users
-INSERT INTO users (username, password, email, role) 
-VALUES ('testuser', '$2a$10$y2yR9UyFAUfyYCiYqDxgteWBflWnsbYdlFZDmNPmn7P1.xUfbRFtu', 'testuser@example.com', 'Member');
-
--- Insert initial data into members
-INSERT INTO members (user_id, name, phone, address, branch, time_credits, status) 
-VALUES (1, 'Test User', '1234567890', '123 Test St, Test City', 'Test Branch', 10, 'active');
-
+INSERT INTO users (username, password, email, role, name, phone, address, branch, time_credits, status) 
+VALUES ('testuser', '$2a$10$y2yR9UyFAUfyYCiYqDxgteWBflWnsbYdlFZDmNPmn7P1.xUfbRFtu', 
+        'testuser@example.com', 'Member', 'Test User', '1234567890', 
+        '123 Test St, Test City', 'Test Branch', 10, 'active');
 -- Insert initial data into activities
 INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, status, time_tokens_required, time_tokens_per_participant) 
 VALUES 
@@ -165,7 +163,7 @@ VALUES
 ('การทำสวน', 4);
 
 -- Insert initial data into member_skills
-INSERT INTO member_skills (member_id, skill_id) 
+INSERT INTO member_skills (user_id, skill_id) 
 VALUES 
 (1, 1),
 (1, 2),
@@ -173,7 +171,7 @@ VALUES
 (1, 4);
 
 -- Insert initial data into activity_participants
-INSERT INTO activity_participants (activity_id, member_id) 
+INSERT INTO activity_participants (activity_id, user_id) 
 VALUES 
 (1, 1),
 (2, 1),
@@ -181,7 +179,7 @@ VALUES
 (4, 1);
 
 -- Insert initial data into transactions
-INSERT INTO transactions (member_id, activity_id, date, time, time_credits, transaction_type, details, requester_id, participant_id) 
+INSERT INTO transactions (user_id, activity_id, date, time, time_credits, transaction_type, details, requester_id, participant_id) 
 VALUES 
 (1, 1, '2023-01-01', '09:00:00', 1, 'earn', 'Participated in activity: กิจกรรมทำความสะอาดชุมชน', 1, 1),
 (1, 2, '2023-01-15', '10:00:00', 1, 'earn', 'Participated in activity: กิจกรรมสอนคอมพิวเตอร์', 1, 1),

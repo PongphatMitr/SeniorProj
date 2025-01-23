@@ -120,8 +120,14 @@
         document.getElementById('loginForm').addEventListener('submit', async function (event) {
             event.preventDefault();
 
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+
+            // Basic client-side validation
+            if (!username || !password) {
+                alert('Please fill in both username and password');
+                return;
+            }
 
             try {
                 const response = await fetch('http://localhost:3000/api/auth/login', {
@@ -134,23 +140,28 @@
 
                 const data = await response.json();
 
-                if (response.ok) {
-                    // Save the token in localStorage
-                    localStorage.setItem('token', data.token);
-                    // Update the sidebar
-                    updateSidebar(true);
-                    // Redirect to the homepage or another page
-                    window.location.href = 'homepage.html';
-                } else {
-                    console.error('Error:', data);
-                    alert(data.error);
+                if (!response.ok) {
+                    // Handle specific error cases
+                    if (response.status === 401) {
+                        alert('Invalid username or password');
+                    } else {
+                        alert(data.error || 'Login failed');
+                    }
+                    return;
                 }
+
+                // Store token and user data
+                localStorage.setItem('token', data.token);
+                localStorage.setItem('user', JSON.stringify(data.user));
+
+                // Redirect to homepage
+                window.location.href = 'report.html';
+
             } catch (error) {
-                console.error('Error:', error);
-                alert('An error occurred. Please try again.');
+                console.error('Login Error:', error);
+                alert('Connection error. Please try again.');
             }
         });
-
         function updateSidebar(isLoggedIn) {
             const navList = document.getElementById('navList');
             if (isLoggedIn) {
