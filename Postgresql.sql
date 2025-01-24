@@ -136,6 +136,7 @@ INSERT INTO users (username, password, email, role, name, phone, address, branch
 VALUES ('testuser', '$2a$10$y2yR9UyFAUfyYCiYqDxgteWBflWnsbYdlFZDmNPmn7P1.xUfbRFtu', 
         'testuser@example.com', 'Member', 'Test User', '1234567890', 
         '123 Test St, Test City', 'Test Branch', 10, 'active');
+
 -- Insert initial data into activities
 INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, status, time_tokens_required, time_tokens_per_participant) 
 VALUES 

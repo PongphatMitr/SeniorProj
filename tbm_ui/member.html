@@ -55,6 +55,8 @@
         let currentPage = 1;
         const pageSize = 10;
         let totalMembers = 0;
+        let sortField = '';
+        let sortOrder = 'asc';
 
         async function fetchCommunityConfig() {
             try {
@@ -76,9 +78,9 @@
             }
         }
 
-        async function fetchMembers(page, searchTerm = '') {
+        async function fetchMembers(page, searchTerm = '', sortField = '', sortOrder = 'asc') {
             try {
-                const response = await fetch(`http://localhost:3000/api/members?page=${page}&pageSize=${pageSize}&search=${encodeURIComponent(searchTerm)}`, {
+                const response = await fetch(`http://localhost:3000/api/members?page=${page}&pageSize=${pageSize}&search=${encodeURIComponent(searchTerm)}&sortField=${sortField}&sortOrder=${sortOrder}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -108,32 +110,35 @@
                 row.className = 'hover:bg-gray-100';
                 row.innerHTML = `
                     <td aria-colindex="1" data-label="รหัสสมาชิก" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${member.member_id}
+                        ${member.user_id}
                     </td>
-                    <td aria-colindex="2" data-label="ชื่อ" role="cell" class="py-2 px-4 border-b border-gray-200">
+                    <td aria-colindex="2" data-label="ชื่อผู้ใช้" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${member.username}
+                    </td>
+                    <td aria-colindex="3" data-label="ชื่อ" role="cell" class="py-2 px-4 border-b border-gray-200">
                         ${member.name}
                     </td>
-                    <td aria-colindex="3" data-label="เครดิตเวลา(คะแนน)" role="cell" class="py-2 px-4 border-b border-gray-200">
+                    <td aria-colindex="4" data-label="เครดิตเวลา(คะแนน)" role="cell" class="py-2 px-4 border-b border-gray-200">
                         ${member.time_credits}
                     </td>
-                    <td aria-colindex="4" data-label="สถานะ" role="cell" class="py-2 px-4 border-b border-gray-200">
+                    <td aria-colindex="5" data-label="สถานะ" role="cell" class="py-2 px-4 border-b border-gray-200">
                         <span class="badge badge-success" style="width: 100px;">${member.status === 'active' ? 'ปกติ' : 'ไม่ปกติ'}</span>
                     </td>
-                    <td aria-colindex="5" data-label="ล็อกอินไลน์" role="cell" class="py-2 px-4 border-b border-gray-200">
+                    <td aria-colindex="6" data-label="ล็อกอินไลน์" role="cell" class="py-2 px-4 border-b border-gray-200">
                         <span class="badge badge-success" style="width: 100px;">ล็อกอินเเล้ว</span>
                     </td>
-                    <td aria-colindex="6" data-label="การจัดการ" role="cell" class="py-2 px-4 border-b border-gray-200">
+                    <td aria-colindex="7" data-label="การจัดการ" role="cell" class="py-2 px-4 border-b border-gray-200">
                         <div class="relative">
                             <button id="dropdown-${index + 1}__BV_toggle_" aria-haspopup="menu" aria-expanded="false" type="button"
                                 class="btn bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
                                 onclick="toggleDropdown(event, ${index + 1})">เลือก</button>
                             <ul role="menu" tabindex="-1" aria-labelledby="dropdown-${index + 1}__BV_toggle_" class="dropdown-content">
-                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="member-profile.html?memberId=${member.member_id}" target="_self"><b>โปรไฟล์</b></a></li>
-                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="member-transaction.html?memberId=${member.member_id}" target="_self"><b>สมุดบัญชี</b></a></li>
-                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="member-skills.html?memberId=${member.member_id}" target="_self"><b>ความสามารถ</b></a></li>
+                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="member-profile.html?memberId=${member.user_id}" target="_self"><b>โปรไฟล์</b></a></li>
+                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="member-transaction.html?memberId=${member.user_id}" target="_self"><b>สมุดบัญชี</b></a></li>
+                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="member-skills.html?memberId=${member.user_id}" target="_self"><b>ความสามารถ</b></a></li>
                                 <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self"><b>PDF</b></a></li>
                                 <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self"><b>วันที่สะดวกทำงาน</b></a></li>
-                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self" onclick="confirmAndRemove(event, 'row-${index + 1}', ${member.member_id})"><b class="red">ลบสมาชิก</b></a></li>
+                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self" onclick="confirmAndRemove(event, 'row-${index + 1}', ${member.user_id})"><b class="red">ลบสมาชิก</b></a></li>
                             </ul>
                         </div>
                     </td>
@@ -153,7 +158,7 @@
             firstButton.textContent = 'First';
             firstButton.onclick = () => {
                 currentPage = 1;
-                fetchMembers(currentPage);
+                fetchMembers(currentPage, '', sortField, sortOrder);
             };
             paginationContainer.appendChild(firstButton);
 
@@ -163,7 +168,7 @@
             prevButton.onclick = () => {
                 if (currentPage > 1) {
                     currentPage--;
-                    fetchMembers(currentPage);
+                    fetchMembers(currentPage, '', sortField, sortOrder);
                 }
             };
             paginationContainer.appendChild(prevButton);
@@ -174,7 +179,7 @@
                 pageButton.textContent = i;
                 pageButton.onclick = () => {
                     currentPage = i;
-                    fetchMembers(currentPage);
+                    fetchMembers(currentPage, '', sortField, sortOrder);
                 };
                 paginationContainer.appendChild(pageButton);
             }
@@ -185,7 +190,7 @@
             nextButton.onclick = () => {
                 if (currentPage < totalPages) {
                     currentPage++;
-                    fetchMembers(currentPage);
+                    fetchMembers(currentPage, '', sortField, sortOrder);
                 }
             };
             paginationContainer.appendChild(nextButton);
@@ -195,7 +200,7 @@
             lastButton.textContent = 'Last';
             lastButton.onclick = () => {
                 currentPage = totalPages;
-                fetchMembers(currentPage);
+                fetchMembers(currentPage, '', sortField, sortOrder);
             };
             paginationContainer.appendChild(lastButton);
         }
@@ -226,12 +231,12 @@
             const searchTerm = document.getElementById('search-bar').value.toLowerCase();
 
             if (searchTerm.trim() === '') {
-                fetchMembers(currentPage);
+                fetchMembers(currentPage, '', sortField, sortOrder);
                 return;
             }
 
             try {
-                const response = await fetch(`http://localhost:3000/api/members/search?term=${encodeURIComponent(searchTerm)}&page=${currentPage}&pageSize=${pageSize}`, {
+                const response = await fetch(`http://localhost:3000/api/members/search?term=${encodeURIComponent(searchTerm)}&page=${currentPage}&pageSize=${pageSize}&sortField=${sortField}&sortOrder=${sortOrder}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -274,6 +279,16 @@
                     alert("เกิดข้อผิดพลาดในการลบสมาชิก");
                 }
             }
+        }
+
+        function sortTable(field) {
+            if (sortField === field) {
+                sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+            } else {
+                sortField = field;
+                sortOrder = 'asc';
+            }
+            fetchMembers(currentPage, '', sortField, sortOrder);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -406,18 +421,11 @@
                 navList.innerHTML = `
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="login.html">
-                            <i class="fas fa-sign-in-alt mr-3"></i>
-                            ${currentLang === 'thai' ? 'เข้าสู่ระบบ' : 'Login'}
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="homepage.html">
+                        href="homepage.html">
                             <i class="fas fa-home mr-3"></i>
                             ${navItems[1]}
                         </a>
-                                        </li>
+                    </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="report.html">
@@ -526,36 +534,41 @@
                 </div>
                 <div class="overflow-x-auto">
                     <div class="table-responsive-sm">
-                        <table aria-busy="false" aria-colcount="6" class="table b-table b-table-stacked-md w-full"
+                        <table aria-busy="false" aria-colcount="7" class="table b-table b-table-stacked-md w-full"
                             role="table">
                             <thead class="bg-gray-100" role="rowgroup">
                                 <tr role="row">
                                     <th aria-colindex="1"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        รหัสสมาชิก
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
+                                        role="columnheader" scope="col" onclick="sortTable('user_id')">
+                                        รหัสสมาชิก <i class="fas fa-sort"></i>
                                     </th>
                                     <th aria-colindex="2"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        ชื่อ
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
+                                        role="columnheader" scope="col" onclick="sortTable('username')">
+                                        ชื่อผู้ใช้ <i class="fas fa-sort"></i>
                                     </th>
                                     <th aria-colindex="3"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        เครดิตเวลา(คะแนน)
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
+                                        role="columnheader" scope="col" onclick="sortTable('name')">
+                                        ชื่อ <i class="fas fa-sort"></i>
                                     </th>
                                     <th aria-colindex="4"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        สถานะ
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
+                                        role="columnheader" scope="col" onclick="sortTable('time_credits')">
+                                        เครดิตเวลา(คะแนน) <i class="fas fa-sort"></i>
                                     </th>
                                     <th aria-colindex="5"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
+                                        role="columnheader" scope="col" onclick="sortTable('status')">
+                                        สถานะ <i class="fas fa-sort"></i>
+                                    </th>
+                                    <th aria-colindex="6"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
                                         role="columnheader" scope="col">
                                         ล็อกอินไลน์
                                     </th>
-                                    <th aria-colindex="6" class
+                                    <th aria-colindex="7" class
                                         class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
                                         role="columnheader" scope="col">
                                         การจัดการ
@@ -636,7 +649,7 @@
                     subHeading: 'สมาชิก',
                     searchPlaceholder: 'ค้นหาสมาชิก',
                     addButton: 'เพิ่ม',
-                    tableHeaders: ['รหัสสมาชิก', 'ชื่อ', 'เครดิตเวลา(คะแนน)', 'สถานะ', 'ล็อกอินไลน์', 'การจัดการ'],
+                    tableHeaders: ['รหัสสมาชิก', 'ชื่อผู้ใช้', 'ชื่อ', 'เครดิตเวลา(คะแนน)', 'สถานะ', 'ล็อกอินไลน์', 'การจัดการ'],
                     nav: [
                         'โปรไฟล์',
                         'หน้าหลัก',
@@ -655,7 +668,7 @@
                     subHeading: 'Members',
                     searchPlaceholder: 'Search Members',
                     addButton: 'Add',
-                    tableHeaders: ['Member ID', 'Name', 'Time Credits', 'Status', 'LINE Login', 'Actions'],
+                    tableHeaders: ['Member ID', 'Username', 'Name', 'Time Credits', 'Status', 'LINE Login', 'Actions'],
                     nav: [
                         'Profile',
                         'Homepage',
