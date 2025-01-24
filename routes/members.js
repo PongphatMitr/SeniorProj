@@ -75,17 +75,17 @@ const memberRoutes = (pool) => {
 
         try {
             const result = await pool.query(
-                `SELECT u.user_id, u.name, u.email, array_agg(s.name) as skills
-                 FROM users u
-                 LEFT JOIN member_skills ms ON u.user_id = ms.user_id
-                 LEFT JOIN skills s ON ms.skill_id = s.skill_id
-                 WHERE LOWER(u.name) LIKE LOWER($1) OR CAST(u.user_id AS TEXT) LIKE $1
-                 GROUP BY u.user_id, u.name, u.email
-                 LIMIT $2 OFFSET $3`,
+                `SELECT u.user_id, u.username, u.name, u.email, array_agg(s.name) as skills
+             FROM users u
+             LEFT JOIN member_skills ms ON u.user_id = ms.user_id
+             LEFT JOIN skills s ON ms.skill_id = s.skill_id
+             WHERE LOWER(u.name) LIKE LOWER($1) OR LOWER(u.username) LIKE LOWER($1) OR CAST(u.user_id AS TEXT) LIKE $1
+             GROUP BY u.user_id, u.username, u.name, u.email
+             LIMIT $2 OFFSET $3`,
                 [`%${term}%`, pageSize, offset]
             );
             const totalResult = await pool.query(
-                `SELECT COUNT(*) FROM users WHERE LOWER(name) LIKE LOWER($1) OR CAST(user_id AS TEXT) LIKE $1`,
+                `SELECT COUNT(*) FROM users WHERE LOWER(name) LIKE LOWER($1) OR LOWER(username) LIKE LOWER($1) OR CAST(user_id AS TEXT) LIKE $1`,
                 [`%${term}%`]
             );
             res.json({ members: result.rows, total: parseInt(totalResult.rows[0].count, 10) });
