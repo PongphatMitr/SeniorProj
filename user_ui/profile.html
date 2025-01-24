@@ -3,139 +3,401 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Edit Profile - Time Bank</title>
+    <title>โปรไฟล์สมาชิก - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="style.css" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const memberId = urlParams.get('memberId');
+
+            if (!memberId) {
+                console.error('No memberId provided in the URL');
+                alert('ไม่พบรหัสสมาชิกใน URL');
+                return;
+            }
+
+            console.log('Member ID:', memberId); // Debugging line
+            fetchMemberProfile(memberId);
+        });
+
+        async function fetchMemberProfile(memberId) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/members/${memberId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const member = await response.json();
+                renderMemberProfile(member);
+            } catch (error) {
+                console.error('Error fetching member profile:', error);
+                alert('เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์สมาชิก');
+            }
+        }
+
+        function renderMemberProfile(member) {
+            document.getElementById('member-name').textContent = member.name || 'N/A';
+            document.getElementById('member-phone').textContent = member.phone || 'N/A';
+            document.getElementById('member-address').textContent = member.address || 'N/A';
+            document.getElementById('member-branch').textContent = member.branch || 'N/A';
+            document.getElementById('member-time-credits').textContent = member.time_credits || 'N/A';
+            document.getElementById('member-status').textContent = member.status === 'active' ? 'ปกติ' : 'ไม่ปกติ';
+        }
+
+        function enableEditing() {
+            const fields = ['member-name', 'member-phone', 'member-address', 'member-branch', 'member-time-credits', 'member-status'];
+            fields.forEach(field => {
+                const element = document.getElementById(field);
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.value = element.textContent;
+                input.className = 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
+                element.parentNode.replaceChild(input, element);
+                input.id = field;
+            });
+
+            const editButton = document.getElementById('edit-button');
+            editButton.textContent = 'บันทึก';
+            editButton.onclick = () => saveChanges(memberId);
+        }
+
+        async function saveChanges(memberId) {
+            const member = {
+                name: document.getElementById('member-name').value,
+                phone: document.getElementById('member-phone').value,
+                address: document.getElementById('member-address').value,
+                branch: document.getElementById('member-branch').value,
+                time_credits: document.getElementById('member-time-credits').value,
+                status: document.getElementById('member-status').value === 'ปกติ' ? 'active' : 'inactive'
+            };
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/members/${memberId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(member)
+                });
+
+                if (response.ok) {
+                    renderMemberProfile(member);
+                    const fields = ['member-name', 'member-phone', 'member-address', 'member-branch', 'member-time-credits', 'member-status'];
+                    fields.forEach(field => {
+                        const element = document.getElementById(field);
+                        const p = document.createElement('p');
+                        p.textContent = element.value;
+                        p.className = 'text-gray-700 text-lg';
+                        element.parentNode.replaceChild(p, element);
+                        p.id = field;
+                    });
+
+                    const editButton = document.getElementById('edit-button');
+                    editButton.textContent = 'แก้ไข';
+                    editButton.onclick = enableEditing;
+                } else {
+                    alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+                }
+            } catch (error) {
+                console.error('Error saving member profile:', error);
+                alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+            }
+        }
+
+        async function checkLoginStatus() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const response = await fetch('http://localhost:3000/api/auth/verify', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        updateSidebar(true);
+                    } else {
+                        localStorage.removeItem('token');
+                        updateSidebar(false);
+                        const goToLogin = confirm('Session expired. Do you want to go to the login page?');
+                        if (goToLogin) {
+                            window.location.href = 'login.html';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    localStorage.removeItem('token');
+                    updateSidebar(false);
+                    const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
+                    if (goToLogin) {
+                        window.location.href = 'login.html';
+                    }
+                }
+            } else {
+                updateSidebar(false);
+                const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
+                if (goToLogin) {
+                    window.location.href = 'login.html';
+                }
+            }
+        }
+
+        function updateSidebar(isLoggedIn) {
+            const navList = document.getElementById('navList');
+            if (isLoggedIn) {
+                navList.innerHTML = `
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="log-out.html">
+                            <i class="fas fa-user mr-3"></i>
+                            โปรไฟล์
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="homepage.html">
+                            <i class="fas fa-home mr-3"></i>
+                            หน้าหลัก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="service.html">
+                            <i class="fas fa-clipboard-list mr-3"></i>
+                            ยื่นข้อของานบริการ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="profile.html">
+                            <i class="fas fa-user-edit mr-3"></i>
+                            แก้ไขประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="skillconf.html">
+                            <i class="fas fa-tools mr-3"></i>
+                            แก้ไขทักษะ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="balance.html">
+                            <i class="fas fa-wallet mr-3"></i>
+                            ยอดคงเหลือ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="history.html">
+                            <i class="fas fa-history mr-3"></i>
+                            ประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="contact.html">
+                            <i class="fas fa-phone mr-3"></i>
+                            ติดต่อเรา
+                        </a>
+                    </li>
+                `;
+            } else {
+                navList.innerHTML = `
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="login.html">
+                            <i class="fas fa-sign-in-alt mr-3"></i>
+                            Login
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="homepage.html">
+                            <i class="fas fa-home mr-3"></i>
+                            หน้าหลัก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="service.html">
+                            <i class="fas fa-clipboard-list mr-3"></i>
+                            ยื่นข้อของานบริการ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="profile.html">
+                            <i class="fas fa-user-edit mr-3"></i>
+                            แก้ไขประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="skillconf.html">
+                            <i class="fas fa-tools mr-3"></i>
+                            แก้ไขทักษะ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="balance.html">
+                            <i class="fas fa-wallet mr-3"></i>
+                            ยอดคงเหลือ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="history.html">
+                            <i class="fas fa-history mr-3"></i>
+                            ประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="contact.html">
+                            <i class="fas fa-phone mr-3"></i>
+                            ติดต่อเรา
+                        </a>
+                    </li>
+                `;
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLoginStatus();
+        });
+    </script>
 </head>
 
-<body>
-    <div class="container">
+<body class="bg-gray-100">
+    <div class="flex flex-col md:flex-row">
         <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="logo-section">
-                <img src="https://storage.googleapis.com/a1aa/image/GOMFBEaepyxe3E3gz2xaZviBDO0q04rV6Cz8h1wgcnNFaw5TA.jpg" alt="Logo" class="logo" />
-                <span class="brand-name">TIMEBANK</span>
+        <div class="w-full md:w-1/6 bg-white h-screen p-5">
+            <div class="flex items-center mb-10">
+                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
+                    class="w-10 h-10 rounded-full" height="50"
+                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
+                    width="50" />
+                <span class="ml-3 text-xl font-bold text-blue-600">
+                    TIMEBANK
+                </span>
             </div>
             <nav>
-                <ul>
-                    <li>
-                        <a href="login.html">
-                            <i class="fas fa-sign-in-alt"></i>
-                            <span class="link-text">Login</span>
+                <ul id="navList">
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="log-out.html">
+                            <i class="fas fa-user mr-3"></i>
+                            โปรไฟล์
                         </a>
                     </li>
-                    <li>
-                        <a href="HomePage.html">
-                            <i class="fas fa-home"></i>
-                            <span class="link-text">หน้าหลัก</span>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="homepage.html">
+                            <i class="fas fa-home mr-3"></i>
+                            หน้าหลัก
                         </a>
                     </li>
-                    <!-- การบริการ Dropdown -->
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle">
-                            <i class="fas fa-cogs"></i>
-                            <span class="link-text">การบริการ</span>
-                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="service.html">
+                            <i class="fas fa-clipboard-list mr-3"></i>
+                            ยื่นข้อของานบริการ
                         </a>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a href="service.html" class="sub-link">ยื่นข้อของานบริการ</a>
-                            </li>
-                        </ul>
                     </li>
-                    <!-- การจัดการบัญชี Dropdown -->
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle">
-                            <i class="fas fa-user-circle"></i>
-                            <span class="link-text">การจัดการบัญชี</span>
-                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="profile.html">
+                            <i class="fas fa-user-edit mr-3"></i>
+                            แก้ไขประวัติ
                         </a>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a href="profile.html" class="sub-link">แก้ไขประวัติ</a>
-                            </li>
-                            <li>
-                                <a href="skillconf.html" class="sub-link">แก้ไขทักษะ</a>
-                            </li>
-                            <li>
-                                <a href="balance.html" class="sub-link">ยอดคงเหลือ</a>
-                            </li>
-                            <li>
-                                <a href="history.html" class="sub-link">ประวัติ</a>
-                            </li>
-                        </ul>
                     </li>
-                    <li>
-                        <a href="contact.html">
-                            <i class="fas fa-phone"></i>
-                            <span class="link-text">ติดต่อเรา</span>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="skillconf.html">
+                            <i class="fas fa-tools mr-3"></i>
+                            แก้ไขทักษะ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="balance.html">
+                            <i class="fas fa-wallet mr-3"></i>
+                            ยอดคงเหลือ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="history.html">
+                            <i class="fas fa-history mr-3"></i>
+                            ประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="contact.html">
+                            <i class="fas fa-phone mr-3"></i>
+                            ติดต่อเรา
                         </a>
                     </li>
                 </ul>
             </nav>
         </div>
-
         <!-- Main Content -->
-        <div class="page-profile">
-            <form>
-                <h1 class="text-4xl font-bold mb-6 text-center">แก้ไขประวัติ</h1>
-                <div class="mb-4">
-                    <label for="name">ชื่อ</label>
-                    <input id="name" type="text" placeholder="ชื่อ" />
+        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10 flex justify-center items-center">
+            <div class="bg-white text-black p-8 rounded-lg shadow-lg w-full max-w-3xl">
+                <h1 class="text-4xl font-bold mb-5 text-center">โปรไฟล์สมาชิก</h1>
+                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">ข้อมูลสมาชิก</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="member-name">ชื่อ:</label>
+                        <p class="text-gray-700 text-lg" id="member-name"></p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="member-phone">เบอร์โทร:</label>
+                        <p class="text-gray-700 text-lg" id="member-phone"></p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="member-address">ที่อยู่:</label>
+                        <p class="text-gray-700 text-lg" id="member-address"></p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="member-branch">สาขา:</label>
+                        <p class="text-gray-700 text-lg" id="member-branch"></p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="member-time-credits">เครดิตเวลา:</label>
+                        <p class="text-gray-700 text-lg" id="member-time-credits"></p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="member-status">สถานะ:</label>
+                        <p class="text-gray-700 text-lg" id="member-status"></p>
+                    </div>
                 </div>
-                <div class="mb-4">
-                    <label for="email">อีเมล</label>
-                    <input id="email" type="email" placeholder="อีเมล" />
+                <div class="flex justify-center mt-4 space-x-4">
+                    <button
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        id="edit-button" onclick="enableEditing()">
+                        แก้ไข
+                    </button>
+                    <button
+                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        onclick="window.history.back()">
+                        ย้อนกลับ
+                    </button>
                 </div>
-                <div class="mb-4">
-                    <label for="phone">เบอร์โทรศัพท์</label>
-                    <input id="phone" type="text" placeholder="เบอร์โทรศัพท์" />
-                </div>
-                <div class="mb-4">
-                    <label for="address">ที่อยู่</label>
-                    <textarea id="address" placeholder="ที่อยู่"></textarea>
-                </div>
-                <div class="mb-4">
-                    <label for="branch">สาขา</label>
-                    <select id="branch">
-                        <option value="central">สาขากลาง</option>
-                        <option value="north">สาขาเหนือ</option>
-                        <option value="northeast">สาขาอีสาน</option>
-                        <option value="east">สาขาตะวันออก</option>
-                        <option value="west">สาขาตะวันตก</option>
-                        <option value="south">สาขาใต้</option>
-                    </select>
-                </div>
-                <div class="flex items-center justify-center">
-                    <button type="submit">บันทึก</button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
-            const sidebar = document.querySelector('.sidebar');
-    
-            // Handle dropdown toggle click
-            dropdownToggles.forEach(toggle => {
-                toggle.addEventListener('click', (e) => {
-                    e.preventDefault(); // Prevent default anchor behavior
-                    const parent = toggle.parentElement;
-                    parent.classList.toggle('open'); // Toggle the "open" class
-                });
-            });
-    
-            // Reset dropdowns when the mouse leaves the sidebar
-            sidebar.addEventListener('mouseleave', () => {
-                const dropdowns = document.querySelectorAll('.dropdown');
-                dropdowns.forEach(dropdown => {
-                    dropdown.classList.remove('open'); // Remove "open" class
-                });
-            });
-        });
-    </script>
 </body>
 
 </html>

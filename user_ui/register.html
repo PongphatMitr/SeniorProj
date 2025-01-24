@@ -1,14 +1,12 @@
-<!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>สมัครสมาชิก - Time Bank</title>
+    <title>Register</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="style.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
-    <script>
+    <!-- <script>
         async function checkLoginStatus() {
             const token = localStorage.getItem('token');
             if (token) {
@@ -20,6 +18,10 @@
                             'Authorization': `Bearer ${token}`
                         }
                     });
+
+                    if (response.ok) {
+                        window.location.href = 'homepage.html';
+                    }
                 } catch (error) {
                     console.error('Error:', error);
                 }
@@ -32,16 +34,14 @@
             document.getElementById('registerForm').addEventListener('submit', async function (event) {
                 event.preventDefault();
 
-                const fullName = document.getElementById('full-name').value;
                 const username = document.getElementById('username').value;
                 const email = document.getElementById('email').value;
-                const idNumber = document.getElementById('id-number').value;
                 const password = document.getElementById('password').value;
-                const confirmPassword = document.getElementById('confirm-password').value;
-                const role = "Member"; // Default role
+                const confirmPassword = document.getElementById('confirmPassword').value;
+                const role = document.getElementById('role').value;
 
                 if (password !== confirmPassword) {
-                    alert('รหัสผ่านไม่ตรงกัน!');
+                    alert('Passwords do not match.');
                     return;
                 }
 
@@ -51,51 +51,244 @@
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ fullName, username, email, idNumber, password, role })
+                        body: JSON.stringify({ username, email, password, role })
                     });
 
                     const data = await response.json();
 
                     if (response.ok) {
-                        alert('ลงทะเบียนสำเร็จ! กรุณาเข้าสู่ระบบ');
-                        window.location.href = 'login.html'; // Redirect to login page
+                        alert('Registration successful! Please login.');
+                        window.location.href = 'login.html';
                     } else {
                         console.error('Error:', data);
-                        alert(data.error || 'การลงทะเบียนล้มเหลว กรุณาลองใหม่');
+                        alert(data.error);
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    alert('เกิดข้อผิดพลาด กรุณาลองใหม่');
+                    alert('An error occurred. Please try again.');
                 }
             });
         });
-    </script>
+    </script> -->
 </head>
 
-<body class="page-register">
-    <div class="container">
-
+<body class="bg-gray-100">
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="w-1/6 bg-white h-screen p-5">
+            <div class="flex items-center mb-10">
+                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
+                    class="w-10 h-10 rounded-full" height="50"
+                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
+                    width="50" />
+                <span class="ml-3 text-xl font-bold text-blue-600">
+                    TIMEBANK
+                </span>
+            </div>
+            <nav>
+                <ul>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="homepage.html">
+                            <i class="fas fa-home mr-3"></i>
+                            หน้าหลัก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="service.html">
+                            <i class="fas fa-clipboard-list mr-3"></i>
+                            ยื่นข้อของานบริการ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="profile.html">
+                            <i class="fas fa-user-edit mr-3"></i>
+                            แก้ไขประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="skillconf.html">
+                            <i class="fas fa-tools mr-3"></i>
+                            แก้ไขทักษะ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="balance.html">
+                            <i class="fas fa-wallet mr-3"></i>
+                            ยอดคงเหลือ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="history.html">
+                            <i class="fas fa-history mr-3"></i>
+                            ประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="contact.html">
+                            <i class="fas fa-phone mr-3"></i>
+                            ติดต่อเรา
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
         <!-- Main Content -->
-        <div class="center-wrapper">
-            <h1 class="site-title">สมัครสมาชิก</h1>
-            <div class="login-container">
-                <h2>ลงทะเบียน</h2>
+        <div class="flex-1 flex items-center justify-center bg-blue-700">
+            <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+                <h1 class="text-4xl font-bold text-center text-blue-900 mb-8">TIME BANK</h1>
+                <h2 class="text-2xl font-bold text-center text-blue-900 mb-6">Register</h2>
                 <form id="registerForm">
-                    <input id="full-name" placeholder="ชื่อ-นามสกุล" required type="text" class="input-field" />
-                    <input id="username" placeholder="ชื่อผู้ใช้" required type="text" class="input-field" />
-                    <input id="email" placeholder="อีเมล" required type="email" class="input-field" />
-                    <input id="id-number" placeholder="เลขบัตรประชาชน" required type="text" class="input-field" />
-                    <input id="password" placeholder="รหัสผ่าน" required type="password" class="input-field" />
-                    <input id="confirm-password" placeholder="ยืนยันรหัสผ่าน" required type="password" class="input-field" />
-                    <button class="login-button" type="submit">ลงทะเบียน</button>
+                    <div class="mb-4 flex space-x-4">
+                        <div class="w-1/2">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="username">Username</label>
+                            <input
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="username" placeholder="Username" type="text" />
+                        </div>
+                        <div class="w-1/2">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="email">Email</label>
+                            <input
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="email" placeholder="Email" type="email" />
+                        </div>
+                    </div>
+                    <div class="mb-4 flex space-x-4">
+                        <div class="w-1/2">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="password">Password</label>
+                            <input
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="password" placeholder="Password" type="password" />
+                        </div>
+                        <div class="w-1/2">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="confirmPassword">Confirm
+                                Password</label>
+                            <input
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="confirmPassword" placeholder="Confirm Password" type="password" />
+                        </div>
+                    </div>
+                    <div class="mb-4 flex space-x-4">
+                        <div class="w-1/2">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="name">Name</label>
+                            <input
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="name" placeholder="Name" type="text" required />
+                        </div>
+                        <div class="w-1/2">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="phone">Phone</label>
+                            <input
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="phone" placeholder="Phone" type="text" />
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="address">Address</label>
+                        <textarea
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="address" placeholder="Address"></textarea>
+                    </div>
+                    <div class="mb-4 flex space-x-4">
+                        <div class="w-1/2">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="branch">Branch</label>
+                            <input
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="branch" placeholder="Branch" type="text" />
+                        </div>
+                        <div class="w-1/2">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="role">Role</label>
+                            <select
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="role">
+                                <option value="Member">Member</option>
+                                <option value="TimeBankManager">TimeBankManager</option>
+                                <option value="Admin">Admin</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-center">
+                        <button
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                            type="submit">Register</button>
+                    </div>
                 </form>
-                <p class="signup-text">
-                    มีบัญชีผู้ใช้อยู่แล้วใช่ไหม?
-                    <a href="login.html">เข้าสู่ระบบ</a>
-                </p>
+                <div class="text-center mt-4">
+                    <p class="text-gray-700">Already have an account? <a class="text-blue-500"
+                            href="login.html">Login</a></p>
+                </div>
             </div>
         </div>
     </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            // Get all form values
+            const formData = {
+                username: document.getElementById('username').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                password: document.getElementById('password').value.trim(),
+                confirmPassword: document.getElementById('confirmPassword').value.trim(),
+                name: document.getElementById('name').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                address: document.getElementById('address').value.trim(),
+                branch: document.getElementById('branch').value.trim(),
+                role: document.getElementById('role').value
+            };
+
+            // Client-side validation
+            const errors = [];
+            if (!formData.name) errors.push('Name is required');
+            if (!formData.phone) errors.push('Phone is required');
+            if (!/^\d{10}$/.test(formData.phone)) errors.push('Phone must be 10 digits');
+            if (formData.password !== formData.confirmPassword) errors.push('Passwords do not match');
+            if (formData.password.length < 8) errors.push('Password must be at least 8 characters');
+
+            if (errors.length > 0) {
+                alert(errors.join('\n'));
+                return;
+            }
+
+            try {
+                const response = await fetch('http://localhost:3000/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        username: formData.username,
+                        password: formData.password,
+                        email: formData.email,
+                        role: formData.role,
+                        name: formData.name,
+                        phone: formData.phone,
+                        address: formData.address,
+                        branch: formData.branch
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'Registration failed');
+                }
+
+                alert('Registration successful! Please login.');
+                window.location.href = 'login.html';
+            } catch (error) {
+                console.error('Registration Error:', error);
+                alert(error.message || 'An error occurred. Please try again.');
+            }
+        });
+    </script>
+    
 </body>
 
 </html>

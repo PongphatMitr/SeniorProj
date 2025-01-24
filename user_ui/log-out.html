@@ -3,15 +3,13 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>
-        Contact Us - Time Bank
-    </title>
+    <title>Profile - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
 </head>
 
 <body class="bg-gray-100">
-    <div class="flex flex-col md:flex-row">
+    <div class="flex h-screen">
         <!-- Sidebar -->
         <div class="w-1/6 bg-white h-screen p-5">
             <div class="flex items-center mb-10">
@@ -84,31 +82,63 @@
                 </ul>
             </nav>
         </div>
-
         <!-- Main Content -->
-        <div class="w-5/6 bg-blue-700 text-white p-10">
-            <h1 class="text-4xl font-bold text-center mb-8">
-                TIME BANK
-            </h1>
-            <div class="max-w-4xl mx-auto">
-                <h2 class="text-3xl font-bold mb-6">
-                    ติดต่อเรา
-                </h2>
-                <form class="space-y-4">
-                    <div class="flex space-x-4">
-                        <input class="w-1/2 p-4 rounded-md text-black" placeholder="ชื่อ" type="text" />
-                        <input class="w-1/2 p-4 rounded-md text-black" placeholder="อีเมล" type="email" />
-                    </div>
-                    <input class="w-full p-4 rounded-md text-black" placeholder="หัวข้อ" type="text" />
-                    <textarea class="w-full p-4 rounded-md text-black h-32" placeholder="ข้อความ"></textarea>
-                    <button class="bg-blue-700 hover:bg-blue-800 text-white py-2 px-6 rounded-md" type="submit">
-                        ส่งข้อความ
-                    </button>
-                </form>
+        <div class="flex-1 flex items-center justify-center bg-blue-700">
+            <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+                <h1 class="text-4xl font-bold text-center text-blue-900 mb-8">โปรไฟล์</h1>
+                <div id="profileInfo" class="text-center">
+                    <!-- Profile information will be dynamically inserted here -->
+                </div>
+                <div class="flex items-center justify-center mt-6">
+                    <button
+                        class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        onclick="logout()">Logout</button>
+                </div>
             </div>
         </div>
     </div>
-    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Fetch user profile information
+            fetch('http://localhost:3000/api/auth/profile', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    const profileInfo = document.getElementById('profileInfo');
+                    profileInfo.innerHTML = `
+                        <p class="text-gray-700 text-lg"><strong>Username:</strong> ${data.username}</p>
+                        <p class="text-gray-700 text-lg"><strong>Email:</strong> ${data.email}</p>
+                        <p class="text-gray-700 text-lg"><strong>Role:</strong> ${data.role}</p>
+                    `;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                    logout();
+                });
+        });
+
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
+        }
+    </script>
+
+
 </body>
 
 </html>

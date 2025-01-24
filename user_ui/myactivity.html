@@ -46,28 +46,33 @@
 
         async function fetchActivities() {
             try {
-                console.log('Fetching activities...');
                 const response = await fetch('http://localhost:3000/api/activities', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-                console.log('Response status:', response.status);
                 const data = await response.json();
-                console.log('Response data:', data);
 
                 if (response.ok) {
-                    activities = data.activities;
+                    activities = data;
                     updateActivityStatus();
                     await fetchParticipants();
                     renderTable(activities);
                 } else {
                     console.error('Error:', data);
                     alert('Error fetching activities. Please try again.');
+                    const goToLogin = confirm('Do you want to go to the login page?');
+                    if (goToLogin) {
+                        window.location.href = 'login.html';
+                    }
                 }
             } catch (error) {
                 console.error('Error fetching activities:', error);
                 alert('Error fetching activities. Please try again.');
+                const goToLogin = confirm('Do you want to go to the login page?');
+                if (goToLogin) {
+                    window.location.href = 'login.html';
+                }
             }
         }
 
@@ -291,30 +296,17 @@
 
                     if (response.ok) {
                         updateSidebar(true);
-                        fetchActivities(); // Fetch activities only if the user is logged in
                     } else {
                         localStorage.removeItem('token');
                         updateSidebar(false);
-                        const goToLogin = confirm('Session expired. Do you want to go to the login page?');
-                        if (goToLogin) {
-                            window.location.href = 'login.html';
-                        }
                     }
                 } catch (error) {
                     console.error('Error:', error);
                     localStorage.removeItem('token');
                     updateSidebar(false);
-                    const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
-                    if (goToLogin) {
-                        window.location.href = 'login.html';
-                    }
                 }
             } else {
                 updateSidebar(false);
-                const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
-                if (goToLogin) {
-                    window.location.href = 'login.html';
-                }
             }
         }
 
@@ -334,14 +326,15 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             checkLoginStatus();
+            fetchActivities();
         });
     </script>
 </head>
 
 <body class="bg-gray-100">
-    <div class="flex flex-col md:flex-row">
+    <div class="flex">
         <!-- Sidebar -->
-        <div class="w-full md:w-1/6 bg-white h-screen p-5">
+        <div class="w-1/6 bg-white h-screen p-5">
             <div class="flex items-center mb-10">
                 <img alt="Logo of Time Bank System, a clock with a handshake in the center"
                     class="w-10 h-10 rounded-full" height="50"
@@ -358,24 +351,23 @@
             </nav>
         </div>
         <!-- Main Content -->
-        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
-            <h1 class="text-3xl font-bold mb-6 text-center">กิจกรรมชุมชน</h1>
+        <div class="w-5/6 bg-blue-700 text-white p-10">
             <div class="flex items-center justify-between border-b pb-2 mb-5">
-                <a href="myactivity.html" class="text-3xl font-bold mb-5 text-white-600 hover:text-black underline hover:underline-offset-2 flex items-center">
-                    <i class="fas fa-clipboard-list text-3xl mr-3"></i> กิจกรรมของฉัน
+                <a class="text-4xl font-bold mb-5 text-white-600">
+                    กิจกรรมของฉัน
                 </a>
-            </div>
-            
+            </div>            
             <div class="bg-white text-black p-8 rounded-lg shadow-lg">
                 <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">กิจกรรม</h2>
                 <div class="mb-4 flex items-center">
                     <input id="search-input"
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                         type="text" placeholder="ค้นหากิจกรรม" oninput="searchActivities()" />
-                    <a href="create-service.html" 
+                        <a href="create-service.html" 
                         class="bg-green-500 hover:bg-green-700 text-white text-center font-semibold text-sm py-1.5 px-3 rounded focus:outline-none focus:shadow-outline ml-2">
                         สร้างกิจกรรม
-                    </a>
+                     </a>
+                     
                 </div>
                 <div class="overflow-x-auto">
                     <div class="table-responsive-sm">

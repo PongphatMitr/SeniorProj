@@ -1,41 +1,126 @@
 <html lang="en">
-
-<head>
-    <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Time Bank</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="style.css" rel="stylesheet" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
-</head>
-
-<body class="page-login">
-    <div class="container">
-        <!-- Main Content -->
-        <div class="center-wrapper">
-            <h1 class="site-title">TIME BANK</h1>
-            <div class="login-container">
-                <h2>Login</h2>
-                <form id="loginForm">
-                    <div class="mb-4">
-                        <input id="username" placeholder="ชื่อผู้ใช้" required="" type="text" class="input-field" />
-                    </div>
-                    <div class="mb-6">
-                        <input id="password" placeholder="รหัสผ่าน" required="" type="password" class="input-field" />
-                    </div>
-                    <div class="flex items-center justify-center">
-                        <button class="login-button" type="submit">เข้าสู่ระบบ</button>
-                    </div>
-                </form>
-                <p class="signup-text">
-                    ไม่มีบัญชีผู้ใช้ ?
-                    <a href="register.html" id="signup-link">สมัครสมาชิก</a>
-                </p>
-            </div>
-        </div>
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   Time Bank
+  </title>
+  <script src="https://cdn.tailwindcss.com">
+  </script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+ </head>
+ <body class="bg-gray-100">
+  <div class="flex h-screen">
+   <!-- Sidebar -->
+   <div class="w-1/6 bg-white h-screen p-5">
+    <div class="flex items-center mb-10">
+     <img alt="Logo of Time Bank System, a clock with a handshake in the center" class="w-10 h-10 rounded-full" height="50" src="https://storage.googleapis.com/a1aa/image/Gxl4DYX3U4IhAh5kISMvWwYM6Peu5t0ZvFH2MlBpiQhZOXDKA.jpg" width="50"/>
+     <span class="ml-3 text-xl font-bold text-blue-600">
+      TIMEBANK
+     </span>
     </div>
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', async function (event) {
+    <nav>
+        <ul id="navList">
+            <li class="mb-5">
+                <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                    href="log-out.html">
+                    <i class="fas fa-user mr-3"></i>
+                    โปรไฟล์
+                </a>
+            </li>
+            <li class="mb-5">
+                <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                    href="homepage.html">
+                    <i class="fas fa-home mr-3"></i>
+                    หน้าหลัก
+                </a>
+            </li>
+            <li class="mb-5">
+                <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                    href="service.html">
+                    <i class="fas fa-clipboard-list mr-3"></i>
+                    ยื่นข้อของานบริการ
+                </a>
+            </li>
+            <li class="mb-5">
+                <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                    href="profile.html">
+                    <i class="fas fa-user-edit mr-3"></i>
+                    แก้ไขประวัติ
+                </a>
+            </li>
+            <li class="mb-5">
+                <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                    href="skillconf.html">
+                    <i class="fas fa-tools mr-3"></i>
+                    แก้ไขทักษะ
+                </a>
+            </li>
+            <li class="mb-5">
+                <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                    href="balance.html">
+                    <i class="fas fa-wallet mr-3"></i>
+                    ยอดคงเหลือ
+                </a>
+            </li>
+            <li class="mb-5">
+                <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                    href="history.html">
+                    <i class="fas fa-history mr-3"></i>
+                    ประวัติ
+                </a>
+            </li>
+            <li class="mb-5">
+                <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                    href="contact.html">
+                    <i class="fas fa-phone mr-3"></i>
+                    ติดต่อเรา
+                </a>
+            </li>
+        </ul>
+       </nav>       
+   </div>
+   <!-- Main Content -->
+   <div class="flex-1 flex items-center justify-center bg-blue-700">
+    <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+     <h1 class="text-4xl font-bold text-center text-blue-900 mb-8">
+      TIME BANK
+     </h1>
+     <h2 class="text-2xl font-bold text-center text-blue-900 mb-6">
+      Login
+     </h2>
+     <form id="loginForm">
+      <div class="mb-4">
+       <label class="block text-gray-700 text-sm font-bold mb-2" for="username">
+        Username
+       </label>
+       <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="username" placeholder="Username" type="text"/>
+      </div>
+      <div class="mb-6">
+       <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
+        Password
+       </label>
+       <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" id="password" placeholder="Password" type="password"/>
+      </div>
+      <div class="flex items-center justify-center">
+       <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">
+        Login
+       </button>
+      </div>
+     </form>
+     <div class="text-center mt-4">
+      <p class="text-gray-700">
+       Don't have an account?
+       <a class="text-blue-500" href="register.html">
+        Register
+       </a>
+      </p>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+   document.getElementById('loginForm').addEventListener('submit', async function (event) {
             event.preventDefault();
 
             const username = document.getElementById('username').value;
@@ -50,53 +135,180 @@
                     body: JSON.stringify({ username, password })
                 });
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'An error occurred');
-                }
-
                 const data = await response.json();
 
-                // Save the token in localStorage
-                localStorage.setItem('token', data.token);
-                // Update the sidebar
-                window.location.href = 'HomePage.html';
+                if (response.ok) {
+                    // Save the token in localStorage
+                    localStorage.setItem('token', data.token);
+                    // Update the sidebar
+                    updateSidebar(true);
+                    // Redirect to the homepage or another page
+                    window.location.href = 'homepage.html';
+                } else {
+                    console.error('Error:', data);
+                    alert(data.error);
+                }
             } catch (error) {
                 console.error('Error:', error);
-                alert(error.message);
+                alert('An error occurred. Please try again.');
             }
         });
 
-        document.getElementById('signup-link').addEventListener('click', (e) => {
-            console.log('Sign-up link clicked:', e.target.href);
-        });
-    </script>
+        function updateSidebar(isLoggedIn) {
+            const navList = document.getElementById('navList');
+            if (isLoggedIn) {
+                navList.innerHTML = `
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="log-out.html">
+                            <i class="fas fa-user mr-3"></i>
+                            โปรไฟล์
+                        </a>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="homepage.html">
+                            <i class="fas fa-home mr-3"></i>
+                            หน้าหลัก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="service.html">
+                            <i class="fas fa-clipboard-list mr-3"></i>
+                            ยื่นข้อของานบริการ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="profile.html">
+                            <i class="fas fa-user-edit mr-3"></i>
+                            แก้ไขประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="skillconf.html">
+                            <i class="fas fa-tools mr-3"></i>
+                            แก้ไขทักษะ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="balance.html">
+                            <i class="fas fa-wallet mr-3"></i>
+                            ยอดคงเหลือ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="history.html">
+                            <i class="fas fa-history mr-3"></i>
+                            ประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="contact.html">
+                            <i class="fas fa-phone mr-3"></i>
+                            ติดต่อเรา
+                        </a>
+                    </li>
+                `;
+            } else {
+                navList.innerHTML = `
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="login.html">
+                            <i class="fas fa-sign-in-alt mr-3"></i>
+                            Login
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="homepage.html">
+                            <i class="fas fa-home mr-3"></i>
+                            หน้าหลัก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="service.html">
+                            <i class="fas fa-clipboard-list mr-3"></i>
+                            ยื่นข้อของานบริการ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="profile.html">
+                            <i class="fas fa-user-edit mr-3"></i>
+                            แก้ไขประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="skillconf.html">
+                            <i class="fas fa-tools mr-3"></i>
+                            แก้ไขทักษะ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="balance.html">
+                            <i class="fas fa-wallet mr-3"></i>
+                            ยอดคงเหลือ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="history.html">
+                            <i class="fas fa-history mr-3"></i>
+                            ประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="contact.html">
+                            <i class="fas fa-phone mr-3"></i>
+                            ติดต่อเรา
+                        </a>
+                    </li>
+                `;
+            }
+        }
 
-    <script>
+        async function checkLoginStatus() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const response = await fetch('http://localhost:3000/api/auth/verify', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        updateSidebar(true);
+                    } else {
+                        localStorage.removeItem('token');
+                        updateSidebar(false);
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    localStorage.removeItem('token');
+                    updateSidebar(false);
+                }
+            } else {
+                updateSidebar(false);
+            }
+        }
+
+        // Check if the user is already logged in
         document.addEventListener('DOMContentLoaded', () => {
-            const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
-            const sidebar = document.querySelector('.sidebar');
-    
-            // Handle dropdown toggle click
-            dropdownToggles.forEach(toggle => {
-                toggle.addEventListener('click', (e) => {
-                    e.preventDefault(); // Prevent default anchor behavior
-                    const parent = toggle.parentElement;
-                    parent.classList.toggle('open'); // Toggle the "open" class
-                });
-            });
-    
-            // Reset dropdowns when the mouse leaves the sidebar
-            sidebar.addEventListener('mouseleave', () => {
-                const dropdowns = document.querySelectorAll('.dropdown');
-                dropdowns.forEach(dropdown => {
-                    dropdown.classList.remove('open'); // Remove "open" class
-                });
-            });
+            checkLoginStatus();
         });
-    </script>
-    
+  </script>
 
-</body>
-
+ </body>
 </html>

@@ -5,73 +5,79 @@
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>ยอดคงเหลือ - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="style.css" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
 </head>
 
-<body>
-    <div class="container">
+<body class="bg-gray-100">
+    <div class="flex flex-col md:flex-row">
         <!-- Sidebar -->
-        <div class="sidebar">
-            <div class="logo-section">
-                <img src="https://storage.googleapis.com/a1aa/image/GOMFBEaepyxe3E3gz2xaZviBDO0q04rV6Cz8h1wgcnNFaw5TA.jpg" alt="Logo" class="logo" />
-                <span class="brand-name">TIMEBANK</span>
+        <div class="w-full md:w-1/6 bg-white h-screen p-5">
+            <div class="flex items-center mb-10">
+                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
+                    class="w-10 h-10 rounded-full" height="50"
+                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
+                    width="50" />
+                <span class="ml-3 text-xl font-bold text-blue-600">
+                    TIMEBANK
+                </span>
             </div>
             <nav>
-                <ul>
-                    <li>
-                        <a href="login.html">
-                            <i class="fas fa-sign-in-alt"></i>
-                            <span class="link-text">Login</span>
+                <ul id="navList">
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="log-out.html">
+                            <i class="fas fa-user mr-3"></i>
+                            โปรไฟล์
                         </a>
                     </li>
-                    
-                    <li>
-                        <a href="HomePage.html">
-                            <i class="fas fa-home"></i>
-                            <span class="link-text">หน้าหลัก</span>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="homepage.html">
+                            <i class="fas fa-home mr-3"></i>
+                            หน้าหลัก
                         </a>
                     </li>
-                    <!-- การบริการ Dropdown -->
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle">
-                            <i class="fas fa-cogs"></i>
-                            <span class="link-text">การบริการ</span>
-                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="service.html">
+                            <i class="fas fa-clipboard-list mr-3"></i>
+                            ยื่นข้อของานบริการ
                         </a>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a href="service.html" class="sub-link">ยื่นข้อของานบริการ</a>
-                            </li>
-                        </ul>
                     </li>
-                    <!-- การจัดการบัญชี Dropdown -->
-                    <li class="dropdown">
-                        <a href="#" class="dropdown-toggle">
-                            <i class="fas fa-user-circle"></i>
-                            <span class="link-text">การจัดการบัญชี</span>
-                            <i class="fas fa-chevron-down dropdown-icon"></i>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="profile.html">
+                            <i class="fas fa-user-edit mr-3"></i>
+                            แก้ไขประวัติ
                         </a>
-                        <ul class="dropdown-menu">
-                            <li>
-                                <a href="profile.html" class="sub-link">แก้ไขประวัติ</a>
-                            </li>
-                            <li>
-                                <a href="skillconf.html" class="sub-link">แก้ไขทักษะ</a>
-                            </li>
-                            <li>
-                                <a href="balance.html" class="sub-link">ยอดคงเหลือ</a>
-                            </li>
-                            <li>
-                                <a href="history.html" class="sub-link">ประวัติ</a>
-                            </li>
-                        </ul>
                     </li>
-                    <li>
-                        <a href="contact.html">
-                            <i class="fas fa-phone"></i>
-                            <span class="link-text">ติดต่อเรา</span>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="skillconf.html">
+                            <i class="fas fa-tools mr-3"></i>
+                            แก้ไขทักษะ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="balance.html">
+                            <i class="fas fa-wallet mr-3"></i>
+                            ยอดคงเหลือ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="history.html">
+                            <i class="fas fa-history mr-3"></i>
+                            ประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="contact.html">
+                            <i class="fas fa-phone mr-3"></i>
+                            ติดต่อเรา
                         </a>
                     </li>
                 </ul>
@@ -79,48 +85,27 @@
         </div>
 
         <!-- Main Content -->
-        <div class="page-balance">
-            <h1 class="text-4xl font-bold mb-5">ยอดคงเหลือ</h1>
-            <div class="balance-section">
-                <div class="mb-4">
-                    <h2 class="text-3xl font-bold mb-6 text-center">ยอดคงเหลือปัจจุบัน</h2>
-                    <div class="balance-details">
-                        <div class="text-center">
-                            <p class="text-2xl font-semibold">จำนวนชั่วโมงที่สะสม</p>
-                            <p class="text-4xl font-bold mt-2 text-blue">50 ชั่วโมง</p>
-                        </div>
-                        <div class="text-center">
-                            <p class="text-2xl font-semibold">จำนวนชั่วโมงที่ยืม</p>
-                            <p class="text-4xl font-bold mt-2 text-red">10 ชั่วโมง</p>
+        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10 flex justify-center items-center">
+            <div class="bg-white text-black p-8 rounded-lg shadow-lg w-full max-w-3xl">
+                <h1 class="text-4xl font-bold mb-5 text-center">ยอดคงเหลือ</h1>
+                <div class="balance-section">
+                    <div class="mb-4">
+                        <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">ยอดคงเหลือปัจจุบัน</h2>
+                        <div class="balance-details grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="text-center">
+                                <p class="text-2xl font-semibold">จำนวนชั่วโมงที่สะสม</p>
+                                <p class="text-4xl font-bold mt-2 text-blue-600">50 ชั่วโมง</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-2xl font-semibold">จำนวนชั่วโมงที่ยืม</p>
+                                <p class="text-4xl font-bold mt-2 text-red-600">10 ชั่วโมง</p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const dropdownToggles = document.querySelectorAll('.dropdown-toggle');
-            const sidebar = document.querySelector('.sidebar');
-    
-            // Handle dropdown toggle click
-            dropdownToggles.forEach(toggle => {
-                toggle.addEventListener('click', (e) => {
-                    e.preventDefault(); // Prevent default anchor behavior
-                    const parent = toggle.parentElement;
-                    parent.classList.toggle('open'); // Toggle the "open" class
-                });
-            });
-    
-            // Reset dropdowns when the mouse leaves the sidebar
-            sidebar.addEventListener('mouseleave', () => {
-                const dropdowns = document.querySelectorAll('.dropdown');
-                dropdowns.forEach(dropdown => {
-                    dropdown.classList.remove('open'); // Remove "open" class
-                });
-            });
-        });
-    </script>
 </body>
 
 </html>
