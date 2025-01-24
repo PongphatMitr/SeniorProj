@@ -11,7 +11,7 @@ const activityRoutes = (pool) => {
         const { activityId, memberId } = req.params;
 
         try {
-            await pool.query('DELETE FROM activity_participants WHERE activity_id = $1 AND member_id = $2', [activityId, memberId]);
+            await pool.query('DELETE FROM activity_participants WHERE activity_id = $1 AND user_id = $2', [activityId, memberId]);
             res.status(204).send();
         } catch (err) {
             console.error('Error:', err.message);
@@ -29,7 +29,7 @@ const activityRoutes = (pool) => {
                 `SELECT a.*, 
                         COALESCE(r.name, '') AS requester_name
                  FROM activities a
-                 LEFT JOIN members r ON a.requester_id = r.member_id
+                 LEFT JOIN users r ON a.requester_id = r.user_id
                  ORDER BY a.start_date DESC, a.start_time DESC
                  LIMIT $1 OFFSET $2`,
                 [parseInt(pageSize), parseInt(offset)]
@@ -37,7 +37,7 @@ const activityRoutes = (pool) => {
             const totalResult = await pool.query('SELECT COUNT(*) FROM activities');
             res.json({ activities: result.rows, total: parseInt(totalResult.rows[0].count, 10) });
         } catch (err) {
-            console.error('Error:', err.message);
+            console.error('Error fetching activities:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
@@ -50,7 +50,7 @@ const activityRoutes = (pool) => {
             const result = await pool.query(`
                 SELECT a.*, m.name as requester_name
                 FROM activities a
-                JOIN members m ON a.requester_id = m.member_id
+                JOIN users m ON a.requester_id = m.user_id
                 WHERE a.activity_id = $1
             `, [id]);
             if (result.rows.length === 0) {
@@ -144,14 +144,13 @@ const activityRoutes = (pool) => {
 
         try {
             const participants = await pool.query(`
-                   SELECT m.member_id, m.name, u.email, array_agg(s.name) as skills
+                   SELECT u.user_id, u.name, u.email, array_agg(s.name) as skills
                    FROM activity_participants ap
-                   JOIN members m ON ap.member_id = m.member_id
-                   JOIN users u ON m.user_id = u.user_id
-                   JOIN member_skills ms ON m.member_id = ms.member_id
+                   JOIN users u ON ap.user_id = u.user_id
+                   JOIN member_skills ms ON u.user_id = ms.user_id
                    JOIN skills s ON ms.skill_id = s.skill_id
                    WHERE ap.activity_id = $1
-                   GROUP BY m.member_id, m.name, u.email
+                   GROUP BY u.user_id, u.name, u.email
                `, [activityId]);
 
             res.json(participants.rows);
@@ -180,16 +179,16 @@ const activityRoutes = (pool) => {
 
             // Add participant to the activity
             const result = await client.query(
-                'INSERT INTO activity_participants (activity_id, member_id) VALUES ($1, $2) RETURNING *',
+                'INSERT INTO activity_participants (activity_id, user_id) VALUES ($1, $2) RETURNING *',
                 [activityId, memberId]
             );
 
             // Credit time tokens to the participant
-            await client.query('UPDATE members SET time_credits = time_credits + $1 WHERE member_id = $2', [activity.time_tokens_per_participant, memberId]);
+            await client.query('UPDATE users SET time_credits = time_credits + $1 WHERE user_id = $2', [activity.time_tokens_per_participant, memberId]);
 
             // Log the transaction
             await client.query(
-                'INSERT INTO transactions (member_id, activity_id, details, time_credits, transaction_type) VALUES ($1, $2, $3, $4, $5)',
+                'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type) VALUES ($1, $2, $3, $4, $5)',
                 [memberId, activityId, `Participated in activity: ${activity.title}`, activity.time_tokens_per_participant, 'earn']
             );
 
@@ -244,7 +243,7 @@ const activityRoutes = (pool) => {
             );
 
             // Deduct time tokens from the requester based on current participants and exchange rate
-            const requesterResult = await client.query('SELECT member_id, time_credits FROM members WHERE member_id = $1', [activity.requester_id]);
+            const requesterResult = await client.query('SELECT user_id, time_credits FROM users WHERE user_id = $1', [activity.requester_id]);
             if (requesterResult.rows.length === 0) {
                 throw new Error('Requester not found');
             }
@@ -257,12 +256,12 @@ const activityRoutes = (pool) => {
                 return;
             }
 
-            await client.query('UPDATE members SET time_credits = time_credits - $1 WHERE member_id = $2', [totalTokensRequired, requester.member_id]);
+            await client.query('UPDATE users SET time_credits = time_credits - $1 WHERE user_id = $2', [totalTokensRequired, requester.user_id]);
 
             // Log the transaction
             await client.query(
-                'INSERT INTO transactions (member_id, activity_id, details, time_credits, transaction_type) VALUES ($1, $2, $3, $4, $5)',
-                [requester.member_id, activityId, `Approved activity: ${activity.title}`, totalTokensRequired, 'spend']
+                'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type) VALUES ($1, $2, $3, $4, $5)',
+                [requester.user_id, activityId, `Approved activity: ${activity.title}`, totalTokensRequired, 'spend']
             );
 
             await client.query('COMMIT');
