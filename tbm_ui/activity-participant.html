@@ -53,7 +53,7 @@
                     <td class="py-4 px-6 border-b border-gray-200">${participant.email}</td>
                     <td class="py-4 px-6 border-b border-gray-200">${participant.skills.join(', ')}</td>
                     <td class="py-4 px-6 border-b border-gray-200">
-                        <button class="bg-red-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" onclick="removeParticipant(${participant.member_id})">ลบ</button>
+                        <button class="bg-red-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" onclick="removeParticipant(${participant.user_id})">ลบ</button>
                     </td>
                 `;
                 tbody.appendChild(row);
@@ -91,7 +91,7 @@
             const dropdown = document.getElementById('search-results-dropdown');
             dropdown.innerHTML = '';
             data.forEach((member) => {
-                const isParticipant = participants.some(participant => participant.member_id === member.member_id);
+                const isParticipant = participants.some(participant => participant.user_id === member.user_id);
                 const item = document.createElement('div');
                 item.className = 'py-2 px-4 hover:bg-gray-200 cursor-pointer';
                 item.innerHTML = `
@@ -101,7 +101,7 @@
                             <p class="text-gray-500 text-sm">${member.email}</p>
                             <p class="text-gray-500 text-sm">${member.skills.join(', ')}</p>
                         </div>
-                        ${isParticipant ? '<span class="text-green-500 font-bold">เข้าร่วมแล้ว</span>' : `<button class="bg-green-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline" onclick="addParticipant(${member.member_id})">เพิ่ม</button>`}
+                        ${isParticipant ? '<span class="text-green-500 font-bold">เข้าร่วมแล้ว</span>' : `<button class="bg-green-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline" onclick="addParticipant(${member.user_id})">เพิ่ม</button>`}
                     </div>
                 `;
                 dropdown.appendChild(item);
@@ -117,7 +117,7 @@
             dropdown.appendChild(item);
         }
 
-        async function addParticipant(memberId) {
+        async function addParticipant(userId) {
             const urlParams = new URLSearchParams(window.location.search);
             const activityId = urlParams.get('id');
 
@@ -128,7 +128,7 @@
                         'Authorization': `Bearer ${localStorage.getItem('token')}`,
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ memberId })
+                    body: JSON.stringify({ memberId: userId })
                 });
 
                 if (!response.ok) {
@@ -143,14 +143,14 @@
             }
         }
 
-        async function removeParticipant(memberId) {
+        async function removeParticipant(userId) {
             const urlParams = new URLSearchParams(window.location.search);
             const activityId = urlParams.get('id');
 
-            console.log(`Removing participant with memberId: ${memberId} from activityId: ${activityId}`);
+            console.log(`Removing participant with userId: ${userId} from activityId: ${activityId}`);
 
             try {
-                const response = await fetch(`http://localhost:3000/api/activities/${activityId}/participants/${memberId}`, {
+                const response = await fetch(`http://localhost:3000/api/activities/${activityId}/participants/${userId}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
