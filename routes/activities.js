@@ -144,11 +144,11 @@ const activityRoutes = (pool) => {
 
         try {
             const participants = await pool.query(`
-                   SELECT u.user_id, u.name, u.email, array_agg(s.name) as skills
+                   SELECT u.user_id, u.name, u.email, COALESCE(array_agg(s.name) FILTER (WHERE s.name IS NOT NULL), '{}') as skills
                    FROM activity_participants ap
                    JOIN users u ON ap.user_id = u.user_id
-                   JOIN member_skills ms ON u.user_id = ms.user_id
-                   JOIN skills s ON ms.skill_id = s.skill_id
+                   LEFT JOIN member_skills ms ON u.user_id = ms.user_id
+                   LEFT JOIN skills s ON ms.skill_id = s.skill_id
                    WHERE ap.activity_id = $1
                    GROUP BY u.user_id, u.name, u.email
                `, [activityId]);

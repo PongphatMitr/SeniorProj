@@ -51,7 +51,7 @@
                 row.innerHTML = `
                     <td class="py-4 px-6 border-b border-gray-200">${participant.name}</td>
                     <td class="py-4 px-6 border-b border-gray-200">${participant.email}</td>
-                    <td class="py-4 px-6 border-b border-gray-200">${participant.skills.join(', ')}</td>
+                    <td class="py-4 px-6 border-b border-gray-200">${participant.skills.length > 0 ? participant.skills.join(', ') : '-'}</td>
                     <td class="py-4 px-6 border-b border-gray-200">
                         <button class="bg-red-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" onclick="removeParticipant(${participant.user_id})">ลบ</button>
                     </td>
@@ -99,7 +99,7 @@
                         <div>
                             <p class="text-gray-700">${member.name}</p>
                             <p class="text-gray-500 text-sm">${member.email}</p>
-                            <p class="text-gray-500 text-sm">${member.skills.join(', ')}</p>
+                            <p class="text-gray-500 text-sm">${member.skills.length > 0 ? member.skills.join(', ') : '-'}</p>
                         </div>
                         ${isParticipant ? '<span class="text-green-500 font-bold">เข้าร่วมแล้ว</span>' : `<button class="bg-green-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline" onclick="addParticipant(${member.user_id})">เพิ่ม</button>`}
                     </div>
@@ -318,7 +318,7 @@
 <body class="bg-gray-100">
     <div class="flex flex-col md:flex-row">
         <!-- Sidebar -->
-        <div class="w-1/6 bg-white h-screen p-5">
+        <div class="w-full md:w-1/6 bg-white h-screen p-5">
             <div class="flex items-center mb-10">
                 <img alt="Logo of Time Bank System, a clock with a handshake in the center"
                     class="w-10 h-10 rounded-full" height="50"

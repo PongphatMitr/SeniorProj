@@ -62,13 +62,17 @@ const authRoutes = (pool) => {
             // Hash password
             const hashedPassword = await bcrypt.hash(password, 10);
 
-            // Update the registration query to include status
+            // Fetch default time token from community_config
+            const configResult = await pool.query('SELECT default_time_token FROM community_config LIMIT 1');
+            const defaultTimeToken = configResult.rows[0].default_time_token;
+
+            // Update the registration query to include status and time_credits
             const result = await pool.query(
                 `INSERT INTO users 
-    (username, password, email, role, name, phone, address, branch, status) 
-    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, DEFAULT) 
-    RETURNING user_id, username, email, role, name, phone, address, branch, status, created_at`,
-                [username, hashedPassword, email, role, name, phone, address, branch]
+                (username, password, email, role, name, phone, address, branch, time_credits, status) 
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, DEFAULT) 
+                RETURNING user_id, username, email, role, name, phone, address, branch, time_credits, status, created_at`,
+                [username, hashedPassword, email, role, name, phone, address, branch, defaultTimeToken]
             );
 
             res.status(201).json(result.rows[0]);
