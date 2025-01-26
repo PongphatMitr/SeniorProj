@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -17,11 +18,9 @@
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-
                 const data = await response.json();
                 members = data.members;
             } catch (error) {
@@ -37,11 +36,9 @@
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-
                 const data = await response.json();
                 exchangeRate = data.default_exchange_rate_description;
                 console.log('Exchange Rate:', exchangeRate);
@@ -55,13 +52,8 @@
             const searchTerm = document.getElementById('requester-name').value.toLowerCase();
             const resultsDropdown = document.getElementById('search-results-dropdown');
             resultsDropdown.innerHTML = '';
-
             if (searchTerm) {
-                const filteredMembers = members.filter(member =>
-                    member.name.toLowerCase().includes(searchTerm) ||
-                    member.member_id.toString().includes(searchTerm)
-                );
-
+                const filteredMembers = members.filter(member => member.name.toLowerCase().includes(searchTerm) || member.user_id.toString().includes(searchTerm));
                 filteredMembers.forEach(member => {
                     const item = document.createElement('div');
                     item.className = 'py-2 px-4 hover:bg-gray-200 cursor-pointer';
@@ -69,80 +61,58 @@
                         <div class="flex justify-between items-center">
                             <div>
                                 <p class="text-gray-700">${member.name}</p>
-                                <p class="text-gray-500 text-sm">ID: ${member.member_id}</p>
+                                <p class="text-gray-500 text-sm">ID: ${member.user_id}</p>
                                 <p class="text-gray-500 text-sm">โทเค็นเวลา: ${member.time_credits}</p>
                             </div>
                         </div>
                     `;
                     item.onclick = () => {
                         document.getElementById('requester-name').value = member.name;
-                        document.getElementById('requester-id').value = member.member_id;
+                        document.getElementById('requester-id').value = member.user_id;
                         resultsDropdown.innerHTML = '';
                     };
                     resultsDropdown.appendChild(item);
                 });
-
-                // Show dropdown if there are results
                 resultsDropdown.classList.remove('hidden');
             } else {
-                // Hide dropdown if input is empty
                 resultsDropdown.classList.add('hidden');
             }
         }
 
         function calculateTimeTokens() {
-            // Get input values
             const maxParticipants = parseInt(document.getElementById('max-participants').value, 10);
             const startDate = document.getElementById('start-date').value;
             const endDate = document.getElementById('end-date').value;
             const startTime = document.getElementById('start-time').value;
             const endTime = document.getElementById('end-time').value;
 
-            // Check for invalid inputs and reset output fields if necessary
-            if (
-                isNaN(maxParticipants) ||
-                maxParticipants <= 0 ||
-                !startDate ||
-                !endDate ||
-                !startTime ||
-                !endTime ||
-                !exchangeRate
-            ) {
+            if (isNaN(maxParticipants) || maxParticipants <= 0 || !startDate || !endDate || !startTime || !endTime || !exchangeRate) {
                 document.getElementById('time-tokens-required').value = '0.00';
                 document.getElementById('time-tokens-per-participant').value = '0.00';
                 return;
             }
 
-            // Parse date and time inputs
             const startDateTime = new Date(`${startDate}T${startTime}`);
             const endDateTime = new Date(`${endDate}T${endTime}`);
-
-            // Calculate the duration in hours
             const durationInHours = Math.max(0, (endDateTime - startDateTime) / (1000 * 60 * 60));
 
-            // Variables to hold calculation results
             let timeTokensRequired = 0;
             let timeTokensPerParticipant = 0;
 
-            // Calculate based on exchange rate
             if (exchangeRate === '1 โทเคนเวลา ต่อ 1 ชั่วโมง') {
-                // Rate 1: Tokens depend on the duration
                 timeTokensPerParticipant = durationInHours;
                 timeTokensRequired = maxParticipants * durationInHours;
             } else if (exchangeRate === '1 โทเคนเวลา ต่อ 1 กิจกรรม') {
-                // Rate 2: Fixed tokens regardless of duration
                 timeTokensPerParticipant = 1;
                 timeTokensRequired = maxParticipants;
             }
 
-            // Update the output fields
             document.getElementById('time-tokens-required').value = timeTokensRequired.toFixed(2);
             document.getElementById('time-tokens-per-participant').value = timeTokensPerParticipant.toFixed(2);
         }
 
         async function submitActivity(event) {
             event.preventDefault();
-
             const title = document.getElementById('title').value;
             const description = document.getElementById('description').value;
             const location = document.getElementById('location').value;
@@ -159,7 +129,6 @@
             const timeTokensPerParticipantInput = document.getElementById('time-tokens-per-participant').value;
             const timeTokensPerParticipant = parseFloat(timeTokensPerParticipantInput);
 
-            // Validate maxParticipants to ensure it's a positive integer
             if (isNaN(maxParticipants) || maxParticipants <= 0) {
                 alert('กรุณากรอกจำนวนผู้เข้าร่วมสูงสุดให้ถูกต้อง');
                 return;
@@ -168,14 +137,10 @@
                 alert('กรุณากรอกจำนวนผู้เข้าร่วมสูงสุดเป็นตัวเลข');
                 return;
             }
-
-            // Validate timeTokensRequired to ensure it's a positive number
             if (isNaN(timeTokensRequired) || timeTokensRequired < 0) {
                 alert('กรุณากรอกจำนวนโทเค็นเวลาที่ต้องการให้ถูกต้อง');
                 return;
             }
-
-            // Validate timeTokensPerParticipant to ensure it's a positive number
             if (isNaN(timeTokensPerParticipant) || timeTokensPerParticipant < 0) {
                 alert('กรุณากรอกจำนวนโทเค็นเวลาต่อผู้เข้าร่วมให้ถูกต้อง');
                 return;
@@ -196,7 +161,6 @@
                 time_tokens_per_participant: timeTokensPerParticipant
             };
 
-            // Debugging: Log the activity data being sent
             console.log('Activity Data:', activityData);
 
             try {
@@ -208,58 +172,16 @@
                     },
                     body: JSON.stringify(activityData)
                 });
-
                 if (!response.ok) {
                     const errorData = await response.json();
                     console.error('Error response from server:', errorData);
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-
                 alert('สร้างกิจกรรมเรียบร้อยแล้ว!');
-                window.location.href = 'service.html'; // Redirect to the activity management page
+                window.location.href = 'activity.html';
             } catch (error) {
                 console.error('Error creating activity:', error);
                 alert('เกิดข้อผิดพลาดในการสร้างกิจกรรม กรุณาลองใหม่อีกครั้ง');
-            }
-        }
-
-        async function checkLoginStatus() {
-            const token = localStorage.getItem('token');
-            if (token) {
-                try {
-                    const response = await fetch('http://localhost:3000/api/auth/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-
-                    if (response.ok) {
-                        updateSidebar(true);
-                    } else {
-                        localStorage.removeItem('token');
-                        updateSidebar(false);
-                        const goToLogin = confirm('Session expired. Do you want to go to the login page?');
-                        if (goToLogin) {
-                            window.location.href = 'login.html';
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    localStorage.removeItem('token');
-                    updateSidebar(false);
-                    const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
-                    if (goToLogin) {
-                        window.location.href = 'login.html';
-                    }
-                }
-            } else {
-                updateSidebar(false);
-                const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
-                if (goToLogin) {
-                    window.location.href = 'login.html';
-                }
             }
         }
 
@@ -386,18 +308,65 @@
             }
         }
 
+        async function checkLoginStatus() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const response = await fetch('http://localhost:3000/api/auth/verify', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        updateSidebar(true);
+                        fetchActivities(); // Fetch activities only if the user is logged in
+                    } else {
+                        localStorage.removeItem('token');
+                        updateSidebar(false);
+                        const goToLogin = confirm('Session expired. Do you want to go to the login page?');
+                        if (goToLogin) {
+                            window.location.href = 'login.html';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    localStorage.removeItem('token');
+                    updateSidebar(false);
+                    const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
+                    if (goToLogin) {
+                        window.location.href = 'login.html';
+                    }
+                }
+            } else {
+                updateSidebar(false);
+                const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
+                if (goToLogin) {
+                    window.location.href = 'login.html';
+                }
+            }
+        }
+
+        function searchActivities() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const filteredActivities = activities.filter(activity => {
+                return (
+                    (activity.activity_id && activity.activity_id.toString().includes(searchTerm)) ||
+                    (activity.title && activity.title.toLowerCase().includes(searchTerm)) ||
+                    (activity.description && activity.description.toLowerCase().includes(searchTerm)) ||
+                    (activity.location && activity.location.toLowerCase().includes(searchTerm)) ||
+                    (activity.requester_id && activity.requester_id.toString().includes(searchTerm))
+                );
+            });
+            renderTable(filteredActivities);
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             checkLoginStatus();
-            fetchMembers();
-            fetchCommunityConfig();
-            // Add event listeners to input fields to trigger calculateTimeTokens
-            document.getElementById('max-participants').addEventListener('input', calculateTimeTokens);
-            document.getElementById('start-date').addEventListener('input', calculateTimeTokens);
-            document.getElementById('end-date').addEventListener('input', calculateTimeTokens);
-            document.getElementById('start-time').addEventListener('input', calculateTimeTokens);
-            document.getElementById('end-time').addEventListener('input', calculateTimeTokens);
         });
-    </script>
+        </script>
 </head>
 
 <body class="bg-gray-100">
@@ -407,40 +376,86 @@
             <div class="flex items-center mb-10">
                 <img alt="Logo of Time Bank System, a clock with a handshake in the center"
                     class="w-10 h-10 rounded-full" height="50"
-                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
-                    width="50" />
-                <span class="ml-3 text-xl font-bold text-blue-600">
-                    TIMEBANK
-                </span>
+                    src="https://storage.googleapis.com/a1aa/image/JaxOKaMKHJqGHJDHlmCWQKBMBfv2lD9sfUrO418JFJjqfSRoA.jpg"
+                    width="50">
+                <span class="ml-3 text-xl font-bold text-blue-600">TIMEBANK</span>
             </div>
             <nav>
                 <ul id="navList">
-
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="login.html">
+                            <i class="fas fa-sign-in-alt mr-3"></i>
+                            เข้าสู่ระบบ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="homepage.html">
+                            <i class="fas fa-home mr-3"></i>
+                            หน้าหลัก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="service.html">
+                            <i class="fas fa-clipboard-list mr-3"></i>
+                            ยื่นข้อของานบริการ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="profile.html">
+                            <i class="fas fa-user-edit mr-3"></i>
+                            แก้ไขประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="skillconf.html">
+                            <i class="fas fa-tools mr-3"></i>
+                            แก้ไขทักษะ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="balance.html">
+                            <i class="fas fa-wallet mr-3"></i>
+                            ยอดคงเหลือ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="history.html">
+                            <i class="fas fa-history mr-3"></i>
+                            ประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="contact.html">
+                            <i class="fas fa-phone mr-3"></i>
+                            ติดต่อเรา
+                        </a>
+                    </li>
                 </ul>
             </nav>
         </div>
         <!-- Main Content -->
         <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
-            <h1 class="text-4xl font-bold mb-5">
-                สร้างกิจกรรม
-            </h1>
+            <h1 class="text-4xl font-bold mb-5"> สร้างกิจกรรม </h1>
             <div class="bg-white text-black p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
-                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">
-                    รายละเอียดกิจกรรม
-                </h2>
+                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700"> รายละเอียดกิจกรรม </h2>
                 <form onsubmit="submitActivity(event)">
                     <div class="flex flex-wrap -mx-3 mb-4">
                         <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="title">
-                                ชื่อกิจกรรม
-                            </label>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="title"> ชื่อกิจกรรม </label>
                             <input id="title"
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 type="text" required />
                         </div>
                         <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="requester-name">
-                                ชื่อผู้ขอ
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="requester-name"> ชื่อผู้ขอ
                             </label>
                             <input id="requester-name"
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -453,33 +468,27 @@
                         </div>
                     </div>
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="description">
-                            รายละเอียด
-                        </label>
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="description"> รายละเอียด </label>
                         <textarea id="description"
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             required></textarea>
                     </div>
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="location">
-                            สถานที่
-                        </label>
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="location"> สถานที่ </label>
                         <input id="location"
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             type="text" required />
                     </div>
                     <div class="flex flex-wrap -mx-3 mb-4">
                         <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="start-date">
-                                วันที่เริ่มต้น
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="start-date"> วันที่เริ่มต้น
                             </label>
                             <input id="start-date"
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 type="date" required />
                         </div>
                         <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="start-time">
-                                เวลาเริ่มต้น
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="start-time"> เวลาเริ่มต้น
                             </label>
                             <input id="start-time"
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -488,16 +497,14 @@
                     </div>
                     <div class="flex flex-wrap -mx-3 mb-4">
                         <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="end-date">
-                                วันที่สิ้นสุด
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="end-date"> วันที่สิ้นสุด
                             </label>
                             <input id="end-date"
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 type="date" required />
                         </div>
                         <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="end-time">
-                                เวลาสิ้นสุด
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="end-time"> เวลาสิ้นสุด
                             </label>
                             <input id="end-time"
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -507,17 +514,14 @@
                     <div class="flex flex-wrap -mx-3 mb-4">
                         <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="max-participants">
-                                จำนวนผู้เข้าร่วมสูงสุด
-                            </label>
+                                จำนวนผู้เข้าร่วมสูงสุด </label>
                             <input id="max-participants"
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 type="number" oninput="calculateTimeTokens()" required />
                         </div>
                         <div class="w-full md:w-1/2 px-3">
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="status"
-                                style="margin-left: 10px;">
-                                สถานะ
-                            </label>
+                                style="margin-left: 10px;"> สถานะ </label>
                             <select id="status"
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 required>
@@ -530,26 +534,23 @@
                     <div class="flex flex-wrap -mx-3 mb-4">
                         <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="time-tokens-required">
-                                จำนวนโทเค็นเวลาที่ต้องการ
-                            </label>
+                                จำนวนโทเค็นเวลาที่ต้องการ </label>
                             <input id="time-tokens-required"
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="number" readonly />
+                                type="text" readonly />
                         </div>
                         <div class="w-full md:w-1/2 px-3">
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="time-tokens-per-participant">
-                                จำนวนโทเค็นเวลาต่อผู้เข้าร่วม
-                            </label>
+                                จำนวนโทเค็นเวลาต่อผู้เข้าร่วม </label>
                             <input id="time-tokens-per-participant"
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="number" readonly />
+                                type="text" readonly />
                         </div>
                     </div>
                     <div class="flex items-center justify-center">
                         <button onclick="window.history.back();"
                             class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            ย้อนกลับ
-                        </button>
+                            ย้อนกลับ </button>
                         <button
                             class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
                             type="submit">สร้างกิจกรรม</button>
@@ -558,80 +559,6 @@
             </div>
         </div>
     </div>
-
-    <script>
-        // Other functions like fetchMembers, fetchCommunityConfig, etc.
-
-        // Updated submitActivity function
-        async function submitActivity(event) {
-            event.preventDefault();
-
-            const title = document.getElementById('title').value;
-            const description = document.getElementById('description').value;
-            const location = document.getElementById('location').value;
-            const startDate = document.getElementById('start-date').value;
-            const startTime = document.getElementById('start-time').value;
-            const endDate = document.getElementById('end-date').value;
-            const endTime = document.getElementById('end-time').value;
-            const maxParticipantsInput = document.getElementById('max-participants').value;
-            const maxParticipants = parseInt(maxParticipantsInput, 10);
-            const requesterId = document.getElementById('requester-id').value;
-            const status = document.getElementById('status').value;
-            const timeTokensRequiredInput = document.getElementById('time-tokens-required').value;
-            const timeTokensRequired = parseFloat(timeTokensRequiredInput);
-            const timeTokensPerParticipantInput = document.getElementById('time-tokens-per-participant').value;
-            const timeTokensPerParticipant = parseFloat(timeTokensPerParticipantInput);
-
-            // Map English status to Thai
-            const statusMap = {
-                Upcoming: 'กำลังจะเริ่ม',
-                Completed: 'เสร็จสิ้น',
-                Cancelled: 'ยกเลิก',
-            };
-
-            const mappedStatus = statusMap[status] || status; // Use Thai if already in Thai
-
-            const activityData = {
-                title,
-                description,
-                location,
-                start_date: startDate,
-                start_time: startTime,
-                end_date: endDate,
-                end_time: endTime,
-                max_participants: maxParticipants,
-                requester_id: requesterId,
-                status: mappedStatus, // Use mapped status
-                time_tokens_required: timeTokensRequired,
-                time_tokens_per_participant: timeTokensPerParticipant,
-            };
-
-            try {
-                const response = await fetch('http://localhost:3000/api/activities', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                    },
-                    body: JSON.stringify(activityData),
-                });
-
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    console.error('Error response from server:', errorData);
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                alert('Activity created successfully!');
-                window.location.href = 'service.html';
-            } catch (error) {
-                console.error('Error creating activity:', error);
-                alert('An error occurred while creating the activity. Please try again.');
-            }
-        }
-
-        // Other event listeners or logic
-    </script>
 </body>
 
 </html>

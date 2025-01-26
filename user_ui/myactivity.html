@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>จัดการกิจกรรม - Time Bank</title>
+    <title>กิจกรรมของฉัน - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
     <style>
@@ -17,6 +17,7 @@
             width: 80px;
         }
     </style>
+
     <script>
         let activities = [];
         let sortOrder = {
@@ -45,36 +46,39 @@
         }
 
         async function fetchActivities() {
-            try {
-                const response = await fetch('http://localhost:3000/api/activities', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                const data = await response.json();
-
-                if (response.ok) {
-                    activities = data;
-                    updateActivityStatus();
-                    await fetchParticipants();
-                    renderTable(activities);
-                } else {
-                    console.error('Error:', data);
-                    alert('Error fetching activities. Please try again.');
-                    const goToLogin = confirm('Do you want to go to the login page?');
-                    if (goToLogin) {
-                        window.location.href = 'login.html';
-                    }
-                }
-            } catch (error) {
-                console.error('Error fetching activities:', error);
-                alert('Error fetching activities. Please try again.');
-                const goToLogin = confirm('Do you want to go to the login page?');
-                if (goToLogin) {
-                    window.location.href = 'login.html';
-                }
-            }
+    try {
+        console.log('Fetching activities...');
+        
+        const userId = localStorage.getItem('user_id'); // Assumes the user's ID is stored in localStorage
+        if (!userId) {
+            alert('User ID not found. Please log in again.');
+            return;
         }
+
+        const response = await fetch(`http://localhost:3000/api/members/${userId}/activities`, {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+            },
+        });
+
+        console.log('Response status:', response.status);
+        const data = await response.json();
+        console.log('Response data:', data);
+
+        if (response.ok) {
+            activities = data.activities;
+            updateActivityStatus();
+            renderTable(activities);
+        } else {
+            console.error('Error:', data);
+            alert('Error fetching activities. Please try again.');
+        }
+    } catch (error) {
+        console.error('Error fetching activities:', error);
+        alert('Error fetching activities. Please try again.');
+    }
+}
+
 
         async function fetchParticipants() {
             for (let activity of activities) {
@@ -296,17 +300,30 @@
 
                     if (response.ok) {
                         updateSidebar(true);
+                        fetchActivities(); // Fetch activities only if the user is logged in
                     } else {
                         localStorage.removeItem('token');
                         updateSidebar(false);
+                        const goToLogin = confirm('Session expired. Do you want to go to the login page?');
+                        if (goToLogin) {
+                            window.location.href = 'login.html';
+                        }
                     }
                 } catch (error) {
                     console.error('Error:', error);
                     localStorage.removeItem('token');
                     updateSidebar(false);
+                    const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
+                    if (goToLogin) {
+                        window.location.href = 'login.html';
+                    }
                 }
             } else {
                 updateSidebar(false);
+                const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
+                if (goToLogin) {
+                    window.location.href = 'login.html';
+                }
             }
         }
 
@@ -326,15 +343,14 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             checkLoginStatus();
-            fetchActivities();
         });
     </script>
 </head>
 
 <body class="bg-gray-100">
-    <div class="flex">
+    <div class="flex flex-col md:flex-row">
         <!-- Sidebar -->
-        <div class="w-1/6 bg-white h-screen p-5">
+        <div class="w-full md:w-1/6 bg-white h-screen p-5">
             <div class="flex items-center mb-10">
                 <img alt="Logo of Time Bank System, a clock with a handshake in the center"
                     class="w-10 h-10 rounded-full" height="50"
@@ -350,8 +366,9 @@
                 </ul>
             </nav>
         </div>
+
         <!-- Main Content -->
-        <div class="w-5/6 bg-blue-700 text-white p-10">
+        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
             <div class="flex items-center justify-between border-b pb-2 mb-5">
                 <a class="text-4xl font-bold mb-5 text-white-600">
                     กิจกรรมของฉัน
@@ -391,24 +408,24 @@
                                         สถานะ <i class="fas fa-sort"></i>
                                     </th>
                                     <th role="columnheader" scope="col" aria-colindex="4"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                        จำนวนผู้เข้าร่วม
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="5"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                        การจัดการ
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody id="activity-tbody" role="rowgroup">
-                                <!-- Activities will be dynamically inserted here -->
-                            </tbody>
-                        </table>
-                    </div>
+                                    class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                    จำนวนผู้เข้าร่วม
+                                </th>
+                                <th role="columnheader" scope="col" aria-colindex="5"
+                                    class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                    การจัดการ
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody id="activity-tbody" role="rowgroup">
+                            <!-- Activities will be dynamically inserted here -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
+</div>
 </body>
 
-</html>
+</html
