@@ -217,8 +217,8 @@ const activityRoutes = (pool) => {
             const activity = activityResult.rows[0];
 
             // Fetch current number of participants
-            const participantsResult = await client.query('SELECT COUNT(*) FROM activity_participants WHERE activity_id = $1', [activityId]);
-            const currentParticipants = parseInt(participantsResult.rows[0].count, 10);
+            const participantsResult = await client.query('SELECT user_id FROM activity_participants WHERE activity_id = $1', [activityId]);
+            const participants = participantsResult.rows;
 
             // Fetch exchange rate from community config
             const configResult = await client.query(`
@@ -246,7 +246,7 @@ const activityRoutes = (pool) => {
             }
 
             const requester = requesterResult.rows[0];
-            const totalTokensRequired = currentParticipants * exchangeRate;
+            const totalTokensRequired = participants.length * exchangeRate;
 
             if (requester.time_credits < totalTokensRequired) {
                 res.status(400).json({ error: 'Not enough time credits', available_credits: requester.time_credits });
@@ -255,11 +255,22 @@ const activityRoutes = (pool) => {
 
             await client.query('UPDATE users SET time_credits = time_credits - $1 WHERE user_id = $2', [totalTokensRequired, requester.user_id]);
 
-            // Log the transaction
+            // Log the transaction for the requester
             await client.query(
                 'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type) VALUES ($1, $2, $3, $4, $5)',
                 [requester.user_id, activityId, `Approved activity: ${activity.title}`, totalTokensRequired, 'spend']
             );
+
+            // Add time credits to each participant
+            for (const participant of participants) {
+                await client.query('UPDATE users SET time_credits = time_credits + $1 WHERE user_id = $2', [activity.time_tokens_per_participant, participant.user_id]);
+
+                // Log the transaction for each participant
+                await client.query(
+                    'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type) VALUES ($1, $2, $3, $4, $5)',
+                    [participant.user_id, activityId, `Earned time credits for activity: ${activity.title}`, activity.time_tokens_per_participant, 'earn']
+                );
+            }
 
             await client.query('COMMIT');
             res.json(result.rows[0]);

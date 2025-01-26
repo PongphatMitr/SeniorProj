@@ -44,10 +44,10 @@ module.exports = (pool) => {
 
             // Top ranking members active in doing activities
             const topMembersResult = await client.query(`
-                SELECT m.name, COUNT(ap.activity_id) AS activity_count
-                FROM members m
-                JOIN activity_participants ap ON m.member_id = ap.member_id
-                GROUP BY m.name
+                SELECT u.name, COUNT(ap.activity_id) AS activity_count
+                FROM users u
+                JOIN activity_participants ap ON u.user_id = ap.user_id
+                GROUP BY u.name
                 ORDER BY activity_count DESC
                 LIMIT 10
             `);
