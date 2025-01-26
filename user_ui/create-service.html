@@ -178,10 +178,49 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
                 alert('สร้างกิจกรรมเรียบร้อยแล้ว!');
-                window.location.href = 'activity.html';
+                window.location.href = 'myactivity.html';
             } catch (error) {
                 console.error('Error creating activity:', error);
                 alert('เกิดข้อผิดพลาดในการสร้างกิจกรรม กรุณาลองใหม่อีกครั้ง');
+            }
+        }
+
+        async function checkLoginStatus() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const response = await fetch('http://localhost:3000/api/auth/verify', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+                    if (response.ok) {
+                        updateSidebar(true);
+                    } else {
+                        localStorage.removeItem('token');
+                        updateSidebar(false);
+                        const goToLogin = confirm('Session expired. Do you want to go to the login page?');
+                        if (goToLogin) {
+                            window.location.href = 'login.html';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    localStorage.removeItem('token');
+                    updateSidebar(false);
+                    const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
+                    if (goToLogin) {
+                        window.location.href = 'login.html';
+                    }
+                }
+            } else {
+                updateSidebar(false);
+                const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
+                if (goToLogin) {
+                    window.location.href = 'login.html';
+                }
             }
         }
 
@@ -308,65 +347,17 @@
             }
         }
 
-        async function checkLoginStatus() {
-            const token = localStorage.getItem('token');
-            if (token) {
-                try {
-                    const response = await fetch('http://localhost:3000/api/auth/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-
-                    if (response.ok) {
-                        updateSidebar(true);
-                        fetchActivities(); // Fetch activities only if the user is logged in
-                    } else {
-                        localStorage.removeItem('token');
-                        updateSidebar(false);
-                        const goToLogin = confirm('Session expired. Do you want to go to the login page?');
-                        if (goToLogin) {
-                            window.location.href = 'login.html';
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    localStorage.removeItem('token');
-                    updateSidebar(false);
-                    const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
-                    if (goToLogin) {
-                        window.location.href = 'login.html';
-                    }
-                }
-            } else {
-                updateSidebar(false);
-                const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
-                if (goToLogin) {
-                    window.location.href = 'login.html';
-                }
-            }
-        }
-
-        function searchActivities() {
-            const searchTerm = document.getElementById('search-input').value.toLowerCase();
-            const filteredActivities = activities.filter(activity => {
-                return (
-                    (activity.activity_id && activity.activity_id.toString().includes(searchTerm)) ||
-                    (activity.title && activity.title.toLowerCase().includes(searchTerm)) ||
-                    (activity.description && activity.description.toLowerCase().includes(searchTerm)) ||
-                    (activity.location && activity.location.toLowerCase().includes(searchTerm)) ||
-                    (activity.requester_id && activity.requester_id.toString().includes(searchTerm))
-                );
-            });
-            renderTable(filteredActivities);
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
             checkLoginStatus();
+            fetchMembers();
+            fetchCommunityConfig();
+            document.getElementById('max-participants').addEventListener('input', calculateTimeTokens);
+            document.getElementById('start-date').addEventListener('input', calculateTimeTokens);
+            document.getElementById('end-date').addEventListener('input', calculateTimeTokens);
+            document.getElementById('start-time').addEventListener('input', calculateTimeTokens);
+            document.getElementById('end-time').addEventListener('input', calculateTimeTokens);
         });
-        </script>
+    </script>
 </head>
 
 <body class="bg-gray-100">
