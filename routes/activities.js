@@ -183,9 +183,6 @@ const activityRoutes = (pool) => {
                 [activityId, memberId]
             );
 
-            // Credit time tokens to the participant
-            await client.query('UPDATE users SET time_credits = time_credits + $1 WHERE user_id = $2', [activity.time_tokens_per_participant, memberId]);
-
             // Log the transaction
             await client.query(
                 'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type) VALUES ($1, $2, $3, $4, $5)',
