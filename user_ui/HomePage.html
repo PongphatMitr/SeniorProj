@@ -162,9 +162,9 @@
                     if (!response.ok) {
                         throw new Error('Failed to fetch user details');
                     }
-        
+                        
                     const member = await response.json(); // Adjust based on your backend response
-                    const memberId = member.userId || member.user_id; // Use the correct field for memberId from the response
+                    const memberId = member.user_id; // Use the correct field for memberId from the response
         
                     navList.innerHTML = `
                         <li class="mb-5">
