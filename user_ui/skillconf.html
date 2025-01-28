@@ -7,17 +7,34 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
     <script>
-        let memberId = new URLSearchParams(window.location.search).get('memberId');
-        if (!memberId) {
-            alert('ไม่พบรหัสสมาชิกใน URL');
-            throw new Error('No memberId provided in the URL');
+        let memberId;
+
+        async function fetchMemberId() {
+            try {
+                const response = await fetch('http://localhost:3000/api/user/auth/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                const data = await response.json();
+                if (data && data.user_id) {
+                    memberId = data.user_id;
+                    fetchSkills();
+                } else {
+                    alert('ไม่พบรหัสสมาชิก');
+                    throw new Error('No memberId found in the profile response');
+                }
+            } catch (error) {
+                console.error('Error fetching member ID:', error);
+                alert('เกิดข้อผิดพลาดในการดึงข้อมูลรหัสสมาชิก');
+            }
         }
 
         let skills = [];
 
         async function fetchSkills() {
             try {
-                const response = await fetch(`http://localhost:3000/api/user/userskills`, {
+                const response = await fetch(`http://localhost:3000/api/user/skills`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -233,6 +250,13 @@
                             ประวัติ
                         </a>
                     </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="contact.html">
+                            <i class="fas fa-phone mr-3"></i>
+                            ติดต่อเรา
+                        </a>
+                    </li>
                 `;
             } else {
                 navList.innerHTML = `
@@ -251,7 +275,7 @@
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                        <a class="flex items-center text-gray-700 hover:text-blue-hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="service.html">
                             <i class="fas fa-chart-bar mr-3"></i>
                             ยื่นข้อของานบริการ
@@ -303,6 +327,7 @@
 
                     if (response.ok) {
                         updateSidebar(true);
+                        fetchMemberId();
                     } else {
                         localStorage.removeItem('token');
                         updateSidebar(false);
@@ -319,7 +344,6 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             checkLoginStatus();
-            fetchSkills();
         });
     </script>
 </head>
