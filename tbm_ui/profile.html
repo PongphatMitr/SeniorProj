@@ -23,69 +23,7 @@
             </div>
             <nav>
                 <ul id="navList">
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="profile.html">
-                            <i class="fas fa-user mr-3"></i>
-                            โปรไฟล์
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="report.html">
-                            <i class="fas fa-chart-bar mr-3"></i>
-                            รายงาน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="activity.html">
-                            <i class="fas fa-calendar-alt mr-3"></i>
-                            จัดการกิจกรรม
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="member.html">
-                            <i class="fas fa-users mr-3"></i>
-                            จัดการสมาชิก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="skillconf.html">
-                            <i class="fas fa-cogs mr-3"></i>
-                            จัดการหมวหมู่ทักษะ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="fund.html">
-                            <i class="fas fa-hand-holding-usd mr-3"></i>
-                            จัดการกองทุนชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="commconf.html">
-                            <i class="fas fa-cog mr-3"></i>
-                            จัดการชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="transaction.html">
-                            <i class="fas fa-exchange-alt mr-3"></i>
-                            ธุรกรรมทั้งหมด
-                        </a>
-                    </li>
+                    <!-- Navigation items will be dynamically inserted here -->
                 </ul>
             </nav>
         </div>
@@ -116,6 +54,7 @@
             </div>
         </div>
     </div>
+    <script src="navbar.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const token = localStorage.getItem('token');
@@ -149,6 +88,9 @@
                     alert('An error occurred. Please try again.');
                     logout();
                 });
+
+            // Initialize the sidebar
+            checkLoginStatus();
         });
 
         function logout() {
@@ -327,8 +269,6 @@
             window.location.href = 'login.html';
         }
     </script>
-
-
 </body>
 
 </html>

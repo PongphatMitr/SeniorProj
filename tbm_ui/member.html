@@ -58,6 +58,109 @@
             color: darkgreen;
         }
     </style>
+</head>
+
+<body class="bg-gray-100">
+    <div class="flex">
+        <!-- Sidebar -->
+        <div class="w-1/6 bg-white h-screen p-5">
+            <div class="flex items-center mb-10">
+                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
+                    class="w-10 h-10 rounded-full" height="50"
+                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
+                    width="50" />
+                <span class="ml-3 text-xl font-bold text-blue-600">
+                    TIMEBANK
+                </span>
+            </div>
+            <nav>
+                <ul id="navList">
+                    <!-- Navigation items will be dynamically inserted here -->
+                </ul>
+            </nav>
+        </div>
+        <!-- Main Content -->
+        <div class="w-5/6 bg-blue-700 text-white p-10">
+            <!-- Language Toggle Switch -->
+            <div class="absolute top-5 right-5">
+                <div class="toggle-container" id="languageToggle">
+                    <span class="toggle-label active" id="lang-th" data-lang="th">
+                        ภาษาไทย
+                    </span>
+                    <span class="toggle-label" id="lang-en" data-lang="en">
+                        English
+                    </span>
+                </div>
+            </div>
+
+            <h1 class="text-4xl font-bold mb-5">จัดการสมาชิก</h1>
+            <div class="bg-white text-black p-8 rounded-lg shadow-lg">
+                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">สมาชิก</h2>
+                <div class="mb-4 flex items-center">
+                    <input
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="search-bar" oninput="searchMembers()" placeholder="ค้นหาสมาชิก" type="text" />
+                    <a class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-2"
+                        href="create-member.html">
+                        เพิ่ม
+                    </a>
+                </div>
+                <div class="overflow-x-auto">
+                    <div class="table-responsive-sm">
+                        <table aria-busy="false" aria-colcount="7" class="table b-table b-table-stacked-md w-full"
+                            role="table">
+                            <thead class="bg-gray-100" role="rowgroup">
+                                <tr role="row">
+                                    <th aria-colindex="1"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
+                                        role="columnheader" scope="col" onclick="sortTable('user_id')">
+                                        รหัสสมาชิก <i class="fas fa-sort"></i>
+                                    </th>
+                                    <th aria-colindex="2"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
+                                        role="columnheader" scope="col" onclick="sortTable('username')">
+                                        ชื่อผู้ใช้ <i class="fas fa-sort"></i>
+                                    </th>
+                                    <th aria-colindex="3"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
+                                        role="columnheader" scope="col" onclick="sortTable('name')">
+                                        ชื่อ <i class="fas fa-sort"></i>
+                                    </th>
+                                    <th aria-colindex="4"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
+                                        role="columnheader" scope="col" onclick="sortTable('time_credits')">
+                                        เครดิตเวลา(คะแนน) <i class="fas fa-sort"></i>
+                                    </th>
+                                    <th aria-colindex="5"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
+                                        role="columnheader" scope="col" onclick="sortTable('status')">
+                                        สถานะ <i class="fas fa-sort"></i>
+                                    </th>
+                                    <th aria-colindex="6"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
+                                        role="columnheader" scope="col">
+                                        ล็อกอินไลน์
+                                    </th>
+                                    <th aria-colindex="7" class
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
+                                        role="columnheader" scope="col">
+                                        การจัดการ
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="member-tbody" role="rowgroup">
+                                <!-- Members will be dynamically inserted here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="flex items-center justify-center mt-5" id="pagination">
+                    <!-- Pagination buttons will be dynamically inserted here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="navbar.js"></script>
     <script>
         let defaultTimeToken = 100;
@@ -334,157 +437,6 @@
             fetchMembers(currentPage);
         });
     </script>
-</head>
-
-<body class="bg-gray-100">
-    <div class="flex">
-        <!-- Sidebar -->
-        <div class="w-1/6 bg-white h-screen p-5">
-            <div class="flex items-center mb-10">
-                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
-                    class="w-10 h-10 rounded-full" height="50"
-                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
-                    width="50" />
-                <span class="ml-3 text-xl font-bold text-blue-600">
-                    TIMEBANK
-                </span>
-            </div>
-            <nav>
-                <ul id="navList">
-                    <!-- Navigation items will be dynamically inserted here -->
-                </ul>
-            </nav>
-        </div>
-        <!-- Main Content -->
-        <div class="w-5/6 bg-blue-700 text-white p-10">
-            <!-- Language Toggle Switch -->
-            <div class="absolute top-5 right-5">
-                <div class="toggle-container" id="languageToggle">
-                    <span class="toggle-label active" id="lang-th" data-lang="th">
-                        ภาษาไทย
-                    </span>
-                    <span class="toggle-label" id="lang-en" data-lang="en">
-                        English
-                    </span>
-                </div>
-            </div>
-
-            <h1 class="text-4xl font-bold mb-5">จัดการสมาชิก</h1>
-            <div class="bg-white text-black p-8 rounded-lg shadow-lg">
-                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">สมาชิก</h2>
-                <div class="mb-4 flex items-center">
-                    <input
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        id="search-bar" oninput="searchMembers()" placeholder="ค้นหาสมาชิก" type="text" />
-                    <a class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-2"
-                        href="create-member.html">
-                        เพิ่ม
-                    </a>
-                </div>
-                <div class="overflow-x-auto">
-                    <div class="table-responsive-sm">
-                        <table aria-busy="false" aria-colcount="7" class="table b-table b-table-stacked-md w-full"
-                            role="table">
-                            <thead class="bg-gray-100" role="rowgroup">
-                                <tr role="row">
-                                    <th aria-colindex="1"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
-                                        role="columnheader" scope="col" onclick="sortTable('user_id')">
-                                        รหัสสมาชิก <i class="fas fa-sort"></i>
-                                    </th>
-                                    <th aria-colindex="2"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
-                                        role="columnheader" scope="col" onclick="sortTable('username')">
-                                        ชื่อผู้ใช้ <i class="fas fa-sort"></i>
-                                    </th>
-                                    <th aria-colindex="3"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
-                                        role="columnheader" scope="col" onclick="sortTable('name')">
-                                        ชื่อ <i class="fas fa-sort"></i>
-                                    </th>
-                                    <th aria-colindex="4"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
-                                        role="columnheader" scope="col" onclick="sortTable('time_credits')">
-                                        เครดิตเวลา(คะแนน) <i class="fas fa-sort"></i>
-                                    </th>
-                                    <th aria-colindex="5"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
-                                        role="columnheader" scope="col" onclick="sortTable('status')">
-                                        สถานะ <i class="fas fa-sort"></i>
-                                    </th>
-                                    <th aria-colindex="6"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
-                                        role="columnheader" scope="col">
-                                        ล็อกอินไลน์
-                                    </th>
-                                    <th aria-colindex="7" class
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        การจัดการ
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody id="member-tbody" role="rowgroup">
-                                <!-- Members will be dynamically inserted here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                <div class="flex items-center justify-center mt-5" id="pagination">
-                    <!-- Pagination buttons will be dynamically inserted here -->
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <style>
-        /* Toggle container */
-        .toggle-container {
-            display: flex;
-            background-color: #E5E7EB;
-            border-radius: 20px;
-            /* Increase border radius for larger container */
-            padding: 6px;
-            /* Larger padding for better spacing */
-            align-items: center;
-            justify-content: space-between;
-            width: 180px;
-            /* Increase width for a larger toggle */
-        }
-
-        /* Labels */
-        .toggle-label {
-            flex: 1;
-            text-align: center;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: gray;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border-radius: 9999px;
-            padding: 5px;
-        }
-
-        .toggle-label.active {
-            background-color: white;
-            color: #1D4ED8;
-            /* Blue for active text */
-            font-weight: bold;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Disabled Label */
-        .toggle-label.disabled {
-            pointer-events: none;
-            /* Make it unclickable */
-            background-color: white;
-            color: #6B7280;
-            /* Light gray text */
-            font-weight: bold;
-        }
-    </style>
-
-    <script src="selected-language.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {

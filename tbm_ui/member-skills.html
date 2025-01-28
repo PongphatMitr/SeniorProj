@@ -6,6 +6,58 @@
     <title>ความสามารถ - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+</head>
+
+<body class="bg-gray-100">
+    <div class="flex flex-col md:flex-row">
+        <!-- Sidebar -->
+        <div class="w-1/6 bg-white h-screen p-5">
+            <div class="flex items-center mb-10">
+                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
+                    class="w-10 h-10 rounded-full" height="50"
+                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
+                    width="50" />
+                <span class="ml-3 text-xl font-bold text-blue-600">
+                    TIMEBANK
+                </span>
+            </div>
+            <nav>
+                <ul id="navList">
+                    <!-- Navigation items will be dynamically inserted here -->
+                </ul>
+            </nav>
+        </div>
+        <!-- Main Content -->
+        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
+            <h1 class="text-4xl font-bold mb-5">ความสามารถ</h1>
+            <div class="bg-white text-black p-5 rounded-lg">
+                <div class="mb-4 flex items-center">
+                    <input
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="search-bar" oninput="searchSkills()" placeholder="ค้นหาทักษะหรือหมวดหมู่" type="text" />
+                </div>
+                <div class="flex justify-center mb-5" id="category-buttons">
+                    <!-- Category buttons will be dynamically inserted here -->
+                </div>
+                <div class="grid grid-cols-1 gap-5 justify-center" id="skill-container">
+                    <!-- Skills will be dynamically inserted here -->
+                </div>
+                <div class="flex justify-center mt-4 space-x-4">
+                    <button
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        onclick="saveSkills()">
+                        บันทึก
+                    </button>
+                    <button
+                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        onclick="window.history.back()">
+                        ย้อนกลับ
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         let memberId = new URLSearchParams(window.location.search).get('memberId');
         if (!memberId) {
@@ -220,261 +272,12 @@
             }
         }
 
-        function updateSidebar(isLoggedIn) {
-            const navList = document.getElementById('navList');
-            if (isLoggedIn) {
-                navList.innerHTML = `
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="profile.html">
-                            <i class="fas fa-user mr-3"></i>
-                            โปรไฟล์
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="report.html">
-                            <i class="fas fa-chart-bar mr-3"></i>
-                            รายงาน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="activity.html">
-                            <i class="fas fa-calendar-alt mr-3"></i>
-                            จัดการกิจกรรม
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="member.html">
-                            <i class="fas fa-users mr-3"></i>
-                            จัดการสมาชิก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="skillconf.html">
-                            <i class="fas fa-cogs mr-3"></i>
-                            จัดการหมวหมู่ทักษะ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="fund.html">
-                            <i class="fas fa-hand-holding-usd mr-3"></i>
-                            จัดการกองทุนชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="commconf.html">
-                            <i class="fas fa-cog mr-3"></i>
-                            จัดการชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="transaction.html">
-                            <i class="fas fa-exchange-alt mr-3"></i>
-                            ธุรกรรมทั้งหมด
-                        </a>
-                    </li>
-                `;
-            } else {
-                navList.innerHTML = `
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="login.html">
-                            <i class="fas fa-sign-in-alt mr-3"></i>
-                            Login
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="report.html">
-                            <i class="fas fa-chart-bar mr-3"></i>
-                            รายงาน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="activity.html">
-                            <i class="fas fa-calendar-alt mr-3"></i>
-                            จัดการกิจกรรม
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="member.html">
-                            <i class="fas fa-users mr-3"></i>
-                            จัดการสมาชิก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="skillconf.html">
-                            <i class="fas fa-cogs mr-3"></i>
-                            จัดการหมวหมู่ทักษะ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="fund.html">
-                            <i class="fas fa-hand-holding-usd mr-3"></i>
-                            จัดการกองทุนชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="commconf.html">
-                            <i class="fas fa-cog mr-3"></i>
-                            จัดการชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="transaction.html">
-                            <i class="fas fa-exchange-alt mr-3"></i>
-                            ธุรกรรมทั้งหมด
-                        </a>
-                    </li>
-                `;
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
             checkLoginStatus();
             fetchSkills();
         });
     </script>
-</head>
-
-<body class="bg-gray-100">
-    <div class="flex flex-col md:flex-row">
-        <!-- Sidebar -->
-        <div class="w-1/6 bg-white h-screen p-5">
-            <div class="flex items-center mb-10">
-                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
-                    class="w-10 h-10 rounded-full" height="50"
-                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
-                    width="50" />
-                <span class="ml-3 text-xl font-bold text-blue-600">
-                    TIMEBANK
-                </span>
-            </div>
-            <nav>
-                <ul id="navList">
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="login.html">
-                            <i class="fas fa-sign-in-alt mr-3"></i>
-                            Login
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="report.html">
-                            <i class="fas fa-chart-bar mr-3"></i>
-                            รายงาน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="activity.html">
-                            <i class="fas fa-calendar-alt mr-3"></i>
-                            จัดการกิจกรรม
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="member.html">
-                            <i class="fas fa-users mr-3"></i>
-                            จัดการสมาชิก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="skillconf.html">
-                            <i class="fas fa-cogs mr-3"></i>
-                            จัดการหมวหมู่ทักษะ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="fund.html">
-                            <i class="fas fa-hand-holding-usd mr-3"></i>
-                            จัดการกองทุนชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="commconf.html">
-                            <i class="fas fa-cog mr-3"></i>
-                            จัดการชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="transaction.html">
-                            <i class="fas fa-exchange-alt mr-3"></i>
-                            ธุรกรรมทั้งหมด
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
-        <!-- Main Content -->
-        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
-            <h1 class="text-4xl font-bold mb-5">ความสามารถ</h1>
-            <div class="bg-white text-black p-5 rounded-lg">
-                <div class="mb-4 flex items-center">
-                    <input
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        id="search-bar" oninput="searchSkills()" placeholder="ค้นหาทักษะหรือหมวดหมู่" type="text" />
-                </div>
-                <div class="flex justify-center mb-5" id="category-buttons">
-                    <!-- Category buttons will be dynamically inserted here -->
-                </div>
-                <div class="grid grid-cols-1 gap-5 justify-center" id="skill-container">
-                    <!-- Skills will be dynamically inserted here -->
-                </div>
-                <div class="flex justify-center mt-4 space-x-4">
-                    <button
-                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                        onclick="saveSkills()">
-                        บันทึก
-                    </button>
-                    <button
-                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                        onclick="window.history.back()">
-                        ย้อนกลับ
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <script src="navbar.js"></script>
 </body>
 
 </html>
