@@ -3,8 +3,8 @@ const dotenv = require('dotenv');
 const { Pool } = require('pg');
 const cors = require('cors');
 const authMiddleware = require('./middleware/authMiddleware');
-const tbmRoutes = require('./server-tbm');
-const userRoutes = require('./server-user');
+const tbmRoutes = require('./routes/tbm/server-tbm');
+const userRoutes = require('./routes/user/server-user');
 
 dotenv.config();
 

@@ -1,12 +1,12 @@
 const express = require('express');
-const memberRoutes = require('./routes/tbm/members');
-const activityRoutes = require('./routes/tbm/activities');
-const skillRoutes = require('./routes/tbm/skills');
-const fundRoutes = require('./routes/tbm/funds');
-const communityConfigRoutes = require('./routes/tbm/communityConfig');
-const exchangeRatesRoutes = require('./routes/tbm/exchangeRates');
-const transactionRoutes = require('./routes/tbm/transactions');
-const reportRoutes = require('./routes/tbm/reportRoutes');
+const memberRoutes = require('./members');
+const activityRoutes = require('./activities');
+const skillRoutes = require('./skills');
+const fundRoutes = require('./funds');
+const communityConfigRoutes = require('./communityConfig');
+const exchangeRatesRoutes = require('./exchangeRates');
+const transactionRoutes = require('./transactions');
+const reportRoutes = require('./reportRoutes');
 
 const router = express.Router();
 
