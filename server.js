@@ -2,15 +2,15 @@ const express = require('express');
 const dotenv = require('dotenv');
 const { Pool } = require('pg');
 const cors = require('cors');
-const authRoutes = require('./routes/auth');
-const memberRoutes = require('./routes/members');
-const activityRoutes = require('./routes/activities');
-const skillRoutes = require('./routes/skills');
-const fundRoutes = require('./routes/funds');
-const communityConfigRoutes = require('./routes/communityConfig');
-const exchangeRatesRoutes = require('./routes/exchangeRates');
-const transactionRoutes = require('./routes/transactions');
-const reportRoutes = require('./routes/reportRoutes'); // Import the new report routes
+const authRoutes = require('./routes/tbm/auth');
+const memberRoutes = require('./routes/tbm/members');
+const activityRoutes = require('./routes/tbm/activities');
+const skillRoutes = require('./routes/tbm/skills');
+const fundRoutes = require('./routes/tbm/funds');
+const communityConfigRoutes = require('./routes/tbm/communityConfig');
+const exchangeRatesRoutes = require('./routes/tbm/exchangeRates');
+const transactionRoutes = require('./routes/tbm/transactions');
+const reportRoutes = require('./routes/tbm/reportRoutes'); // Import the new report routes
 const authMiddleware = require('./middleware/authMiddleware');
 
 dotenv.config();

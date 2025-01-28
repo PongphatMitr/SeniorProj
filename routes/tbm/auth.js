@@ -2,7 +2,7 @@ const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const dotenv = require('dotenv');
-const authMiddleware = require('../middleware/authMiddleware');
+const authMiddleware = require('../../middleware/authMiddleware');
 
 dotenv.config();
 
