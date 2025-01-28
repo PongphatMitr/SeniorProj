@@ -47,19 +47,35 @@ const activityRoutes = (pool) => {
         const { id } = req.params;
 
         try {
-            const result = await pool.query(`
+            const activityResult = await pool.query(`
                 SELECT a.*, m.name as requester_name
                 FROM activities a
                 JOIN users m ON a.requester_id = m.user_id
                 WHERE a.activity_id = $1
             `, [id]);
-            if (result.rows.length === 0) {
-                res.status(404).json({ error: 'Activity not found' });
-            } else {
-                res.json(result.rows[0]);
+
+            if (activityResult.rows.length === 0) {
+                return res.status(404).json({ error: 'Activity not found' });
             }
+
+            const activity = activityResult.rows[0];
+
+            // Fetch participants for the activity
+            const participantsResult = await pool.query(`
+                SELECT p.participant_id, u.name as participant_name
+                FROM activity_participants p
+                JOIN users u ON p.participant_id = u.user_id
+                WHERE p.activity_id = $1
+            `, [id]);
+
+            const participants = participantsResult.rows;
+
+            // Add participants to the activity response
+            activity.participants = participants;
+
+            res.json(activity);
         } catch (err) {
-            console.error('Error:', err.message);
+            console.error('Error fetching activity:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });

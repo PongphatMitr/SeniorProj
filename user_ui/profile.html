@@ -7,23 +7,15 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
     <script>
+        let globalUserId = null; // Global variable to store user_id
+
         document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            const memberId = urlParams.get('memberId');
-
-            if (!memberId) {
-                console.error('No memberId provided in the URL');
-                alert('ไม่พบรหัสสมาชิกใน URL');
-                return;
-            }
-
-            console.log('Member ID:', memberId); // Debugging line
-            fetchMemberProfile(memberId);
+            fetchMemberProfile();
         });
 
-        async function fetchMemberProfile(memberId) {
+        async function fetchMemberProfile() {
             try {
-                const response = await fetch(`http://localhost:3000/api/members/${memberId}`, {
+                const response = await fetch(`http://localhost:3000/api/auth/profile`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -32,7 +24,9 @@
                     throw new Error('Network response was not ok');
                 }
                 const member = await response.json();
+                globalUserId = member.user_id; // Store user_id globally
                 renderMemberProfile(member);
+                console.log('Member:', member);
             } catch (error) {
                 console.error('Error fetching member profile:', error);
                 alert('เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์สมาชิก');
@@ -48,10 +42,20 @@
             document.getElementById('member-status').textContent = member.status === 'active' ? 'ปกติ' : 'ไม่ปกติ';
         }
 
+        let originalData = {}; // To store the old data
+
         function enableEditing() {
-            const fields = ['member-name', 'member-phone', 'member-address', 'member-branch', 'member-time-credits', 'member-status'];
+            if (!globalUserId) {
+                alert('User ID not available. Please refresh the page.');
+                return;
+            }
+
+            const fields = ['member-name', 'member-phone', 'member-address'];
+            originalData = {}; // Clear previous data
+
             fields.forEach(field => {
                 const element = document.getElementById(field);
+                originalData[field] = element.textContent;
                 const input = document.createElement('input');
                 input.type = 'text';
                 input.value = element.textContent;
@@ -61,22 +65,45 @@
             });
 
             const editButton = document.getElementById('edit-button');
+            const backButton = document.getElementById('back-button');
+
             editButton.textContent = 'บันทึก';
-            editButton.onclick = () => saveChanges(memberId);
+            editButton.onclick = saveChanges;
+
+            backButton.style.display = 'inline-block';
+            backButton.onclick = () => revertChanges(fields);
         }
 
-        async function saveChanges(memberId) {
+        function revertChanges(fields) {
+            fields.forEach(field => {
+                const element = document.getElementById(field);
+                const p = document.createElement('p');
+                p.textContent = originalData[field];
+                p.className = 'text-gray-700 text-lg';
+                element.parentNode.replaceChild(p, element);
+                p.id = field;
+            });
+
+            const editButton = document.getElementById('edit-button');
+            const backButton = document.getElementById('back-button');
+
+            // Reset the "แก้ไข" button
+            editButton.textContent = 'แก้ไข';
+            editButton.onclick = enableEditing;
+
+            // Hide the "ย้อนกลับ" button
+            backButton.style.display = 'none';
+        }
+
+        async function saveChanges() {
             const member = {
                 name: document.getElementById('member-name').value,
                 phone: document.getElementById('member-phone').value,
-                address: document.getElementById('member-address').value,
-                branch: document.getElementById('member-branch').value,
-                time_credits: document.getElementById('member-time-credits').value,
-                status: document.getElementById('member-status').value === 'ปกติ' ? 'active' : 'inactive'
+                address: document.getElementById('member-address').value
             };
 
             try {
-                const response = await fetch(`http://localhost:3000/api/members/${memberId}`, {
+                const response = await fetch(`http://localhost:3000/api/auth/profile`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -87,7 +114,7 @@
 
                 if (response.ok) {
                     renderMemberProfile(member);
-                    const fields = ['member-name', 'member-phone', 'member-address', 'member-branch', 'member-time-credits', 'member-status'];
+                    const fields = ['member-name', 'member-phone', 'member-address'];
                     fields.forEach(field => {
                         const element = document.getElementById(field);
                         const p = document.createElement('p');
@@ -100,6 +127,12 @@
                     const editButton = document.getElementById('edit-button');
                     editButton.textContent = 'แก้ไข';
                     editButton.onclick = enableEditing;
+
+                    const backButton = document.getElementById('back-button');
+                    backButton.style.display = 'none';
+
+                    // Fetch the updated profile data again
+                    fetchMemberProfile();
                 } else {
                     alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
                 }
@@ -149,67 +182,90 @@
             }
         }
 
-        function updateSidebar(isLoggedIn) {
+
+        async function updateSidebar(isLoggedIn) {
             const navList = document.getElementById('navList');
+
             if (isLoggedIn) {
-                navList.innerHTML = `
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="log-out.html">
-                            <i class="fas fa-user mr-3"></i>
-                            โปรไฟล์
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="service.html">
-                            <i class="fas fa-clipboard-list mr-3"></i>
-                            ยื่นข้อของานบริการ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="profile.html">
-                            <i class="fas fa-user-edit mr-3"></i>
-                            แก้ไขประวัติ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="skillconf.html">
-                            <i class="fas fa-tools mr-3"></i>
-                            แก้ไขทักษะ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="balance.html">
-                            <i class="fas fa-wallet mr-3"></i>
-                            ยอดคงเหลือ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="history.html">
-                            <i class="fas fa-history mr-3"></i>
-                            ประวัติ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="contact.html">
-                            <i class="fas fa-phone mr-3"></i>
-                            ติดต่อเรา
-                        </a>
-                    </li>
-                `;
+                try {
+                    // Fetch user details to get the memberId
+                    const response = await fetch('http://localhost:3000/api/auth/verify', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch user details');
+                    }
+
+                    const member = await response.json(); // Adjust based on your backend response
+                    const memberId = member.user_id; // Use the correct field for memberId from the response
+
+                    navList.innerHTML = `
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                                href="log-out.html">
+                                <i class="fas fa-user mr-3"></i>
+                                โปรไฟล์
+                            </a>
+                        </li>
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                                href="homepage.html">
+                                <i class="fas fa-home mr-3"></i>
+                                หน้าหลัก
+                            </a>
+                        </li>
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                                href="service.html">
+                                <i class="fas fa-clipboard-list mr-3"></i>
+                                ยื่นข้อของานบริการ
+                            </a>
+                        </li>
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                                href="profile.html">
+                                <i class="fas fa-user-edit mr-3"></i>
+                                แก้ไขประวัติ
+                            </a>
+                        </li>
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                                href="skillconf.html">
+                                <i class="fas fa-tools mr-3"></i>
+                                แก้ไขทักษะ
+                            </a>
+                        </li>
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                                href="balance.html">
+                                <i class="fas fa-wallet mr-3"></i>
+                                ยอดคงเหลือ
+                            </a>
+                        </li>
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                                href="history.html">
+                                <i class="fas fa-history mr-3"></i>
+                                ประวัติ
+                            </a>
+                        </li>
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                                href="contact.html">
+                                <i class="fas fa-phone mr-3"></i>
+                                ติดต่อเรา
+                            </a>
+                        </li>
+                    `;
+                } catch (error) {
+                    console.error('Error fetching user details:', error);
+                    alert('An error occurred while loading user data. Please log in again.');
+                }
             } else {
                 navList.innerHTML = `
                     <li class="mb-5">
@@ -391,49 +447,30 @@
                     </button>
                     <button
                         class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        id="back-button"
+                        style="display: none;"
                         onclick="window.history.back()">
                         ย้อนกลับ
                     </button>
                 </div>
+                <div class="mt-8">
+                    <h2 class="text-2xl font-bold text-center text-blue-700 mb-4">เข้าสู่ระบบผ่าน LINE</h2>
+                    <div class="flex flex-col items-center">
+                        <!-- Display the QR code image -->
+                        <img id="line-qr-code" src="QRcodeLine.jpg" alt="QR Code for LINE Login" class="mb-4 w-32 h-32" />
+                
+                        <!-- Fallback clickable link -->
+                        <p class="text-gray-600 text-sm">
+                            สแกน QR Code เพื่อเข้าสู่ระบบผ่าน LINE  <!--หรือ  -->
+                            <!-- <a id="line-link" href="https://liff.line.me/your-liff-id" target="_blank" class="text-blue-500 underline">คลิกที่นี่</a> -->
+                        </p>
+                    </div>
+                </div>
+                
             </div>
         </div>
     </div>
 
-    <script>
-    async function fetchMemberDetails() {
-        try {
-            const response = await fetch('http://localhost:3000/api/auth/verify', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                },
-            });
-
-            if (!response.ok) {
-                throw new Error('Failed to fetch user details');
-            }
-
-            const member = await response.json(); // Adjust based on your backend API response
-            return member; // Should include `user_id`
-        } catch (error) {
-            console.error('Error fetching member details:', error);
-            return null;
-        }
-    }
-
-    document.addEventListener('DOMContentLoaded', async () => {
-        const member = await fetchMemberDetails();
-
-        if (member && member.user_id) {
-            const profileLink = document.getElementById('profileLink');
-            profileLink.href = `profile.html?memberId=${member.user_id}`;
-        } else {
-            console.error('Failed to set profile link due to missing member details.');
-            alert('An error occurred. Please log in again.');
-        }
-    });
-</script>
 </body>
 
 </html>

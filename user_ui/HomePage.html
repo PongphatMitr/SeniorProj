@@ -162,9 +162,9 @@
                     if (!response.ok) {
                         throw new Error('Failed to fetch user details');
                     }
-        
+                        
                     const member = await response.json(); // Adjust based on your backend response
-                    const memberId = member.userId || member.user_id; // Use the correct field for memberId from the response
+                    const memberId = member.user_id; // Use the correct field for memberId from the response
         
                     navList.innerHTML = `
                         <li class="mb-5">
@@ -190,7 +190,7 @@
                         </li>
                         <li class="mb-5">
                             <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="profile.html?memberId=${memberId}">
+                                href="profile.html">
                                 <i class="fas fa-user-edit mr-3"></i>
                                 แก้ไขประวัติ
                             </a>

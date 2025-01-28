@@ -194,7 +194,7 @@ const authRoutes = (pool) => {
     router.get('/profile', authMiddleware, async (req, res) => {
         try {
             const result = await pool.query(
-                `SELECT user_id, username, email, role, name, phone, address, branch, status, created_at
+                `SELECT user_id, username, email, role, name, phone, address, branch, time_credits, status, created_at 
                 FROM users WHERE user_id = $1`,
                 [req.user.userId]
             );
@@ -209,6 +209,62 @@ const authRoutes = (pool) => {
 
         } catch (err) {
             console.error('Profile Error:', err.message);
+            res.status(500).json({
+                error: 'Internal server error. Please try again.'
+            });
+        }
+    });
+
+    // Save changes to profile
+    router.put('/profile', authMiddleware, async (req, res) => {
+        const { name, phone, address } = req.body;
+
+        try {
+            // Validate phone format
+            const phoneRegex = /^[0-9]{10}$/;
+            if (phone && !phoneRegex.test(phone)) {
+                return res.status(400).json({
+                    error: 'Phone number must be 10 digits'
+                });
+            }
+
+            // Build the update query dynamically based on provided fields
+            const fieldsToUpdate = [];
+            const values = [];
+            let query = 'UPDATE users SET ';
+
+            if (name) {
+                fieldsToUpdate.push('name = $' + (fieldsToUpdate.length + 1));
+                values.push(name);
+            }
+            if (phone) {
+                fieldsToUpdate.push('phone = $' + (fieldsToUpdate.length + 1));
+                values.push(phone);
+            }
+            if (address) {
+                fieldsToUpdate.push('address = $' + (fieldsToUpdate.length + 1));
+                values.push(address);
+            }
+
+            if (fieldsToUpdate.length === 0) {
+                return res.status(400).json({ error: 'No fields to update' });
+            }
+
+            query += fieldsToUpdate.join(', ') + ' WHERE user_id = $' + (fieldsToUpdate.length + 1) + ' RETURNING user_id, username, email, role, name, phone, address, branch, time_credits, status, created_at';
+            values.push(req.user.userId);
+
+            const result = await pool.query(query, values);
+
+            const updatedUser = result.rows[0];
+
+            if (!updatedUser) {
+                return res.status(404).json({ error: 'User not found' });
+            }
+
+            res.json(updatedUser);
+
+        } catch (err) {
+            console.error('Profile Update Error:', err.message);
             res.status(500).json({
                 error: 'Internal server error. Please try again.'
             });
@@ -232,6 +288,7 @@ const authRoutes = (pool) => {
             res.status(500).json({ error: 'Server error' });
         }
     });
+
     return router;
 };
 
