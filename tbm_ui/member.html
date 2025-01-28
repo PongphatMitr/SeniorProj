@@ -69,7 +69,7 @@
 
         async function fetchCommunityConfig() {
             try {
-                const response = await fetch('http://localhost:3000/api/tbm/community-config/tbm', {
+                const response = await fetch('http://localhost:3000/api/tbm/community-config', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -89,7 +89,7 @@
 
         async function fetchMembers(page = 1, searchTerm = '', sortField = '', sortOrder = 'asc') {
             try {
-                const response = await fetch(`http://localhost:3000/api/tbm/members/tbm?page=${page}&pageSize=${pageSize}&search=${encodeURIComponent(searchTerm)}&sortField=${sortField}&sortOrder=${sortOrder}`, {
+                const response = await fetch(`http://localhost:3000/api/tbm/members?page=${page}&pageSize=${pageSize}&search=${encodeURIComponent(searchTerm)}&sortField=${sortField}&sortOrder=${sortOrder}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -248,7 +248,7 @@
             }
 
             try {
-                const response = await fetch(`http://localhost:3000/api/tbm/members/tbm/search?term=${encodeURIComponent(searchTerm)}&page=${currentPage}&pageSize=${pageSize}&sortField=${sortField}&sortOrder=${sortOrder}`, {
+                const response = await fetch(`http://localhost:3000/api/tbm/members/search?term=${encodeURIComponent(searchTerm)}&page=${currentPage}&pageSize=${pageSize}&sortField=${sortField}&sortOrder=${sortOrder}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -274,7 +274,7 @@
             const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลบสมาชิกนี้?");
             if (confirmation) {
                 try {
-                    const response = await fetch(`http://localhost:3000/api/tbm/members/tbm/${memberId}`, {
+                    const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}`, {
                         method: 'DELETE',
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -298,7 +298,7 @@
             const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการกู้คืนสมาชิกนี้?");
             if (confirmation) {
                 try {
-                    const response = await fetch(`http://localhost:3000/api/tbm/members/tbm/${memberId}/restore`, {
+                    const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/restore`, {
                         method: 'PUT',
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -496,7 +496,7 @@
                             <i class="fas fa-cogs mr-3"></i>
                             ${navItems[5]}
                         </a>
-                        </li>
+                    </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="fund.html">

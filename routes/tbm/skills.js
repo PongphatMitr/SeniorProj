@@ -63,7 +63,7 @@ const skillRoutes = (pool) => {
 
         try {
             const result = await pool.query(
-                'SELECT skills.skill_id, skills.name, categories.category FROM member_skills JOIN skills ON member_skills.skill_id = skills.skill_id JOIN categories ON skills.category_id = categories.category_id WHERE member_skills.member_id = $1',
+                'SELECT skills.skill_id, skills.name, categories.category FROM member_skills JOIN skills ON member_skills.skill_id = skills.skill_id JOIN categories ON skills.category_id = categories.category_id WHERE member_skills.user_id = $1',
                 [memberId]
             );
             res.json({ skills: result.rows });

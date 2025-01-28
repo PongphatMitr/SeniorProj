@@ -37,6 +37,7 @@
                     document.getElementById('end-time').value = activity.end_time ? activity.end_time.substring(0, 5) : '';
                     document.getElementById('max-participants').value = activity.max_participants || '';
                     document.getElementById('requester-name').value = activity.requester_name || '';
+                    document.getElementById('requester-id').value = activity.requester_id || '';
                     document.getElementById('status').value = activity.status || '';
                     document.getElementById('time-tokens-required').value = activity.time_tokens_required || '';
                     document.getElementById('time-tokens-per-participant').value = activity.time_tokens_per_participant || '';
@@ -98,7 +99,7 @@
             if (searchTerm) {
                 const filteredMembers = members.filter(member =>
                     member.name.toLowerCase().includes(searchTerm) ||
-                    member.member_id.toString().includes(searchTerm)
+                    member.user_id.toString().includes(searchTerm)
                 );
 
                 filteredMembers.forEach(member => {
@@ -108,14 +109,14 @@
                         <div class="flex justify-between items-center">
                             <div>
                                 <p class="text-gray-700">${member.name}</p>
-                                <p class="text-gray-500 text-sm">ID: ${member.member_id}</p>
+                                <p class="text-gray-500 text-sm">ID: ${member.user_id}</p>
                                 <p class="text-gray-500 text-sm">โทเค็นเวลา: ${member.time_credits}</p>
                             </div>
                         </div>
                     `;
                     item.onclick = () => {
                         document.getElementById('requester-name').value = member.name;
-                        document.getElementById('requester-id').value = member.member_id;
+                        document.getElementById('requester-id').value = member.user_id;
                         resultsDropdown.innerHTML = '';
                     };
                     resultsDropdown.appendChild(item);
@@ -193,32 +194,48 @@
             const endDate = document.getElementById('end-date').value;
             const endTime = document.getElementById('end-time').value;
             const maxParticipantsInput = document.getElementById('max-participants').value;
-            const maxParticipants = parseInt(maxParticipantsInput, 10);
+            const maxParticipants = maxParticipantsInput ? parseInt(maxParticipantsInput, 10) : null;
             const requesterId = document.getElementById('requester-id').value;
             const status = document.getElementById('status').value;
             const timeTokensRequiredInput = document.getElementById('time-tokens-required').value;
-            const timeTokensRequired = parseFloat(timeTokensRequiredInput);
+            const timeTokensRequired = timeTokensRequiredInput ? parseFloat(timeTokensRequiredInput) : null;
             const timeTokensPerParticipantInput = document.getElementById('time-tokens-per-participant').value;
-            const timeTokensPerParticipant = parseFloat(timeTokensPerParticipantInput);
+            const timeTokensPerParticipant = timeTokensPerParticipantInput ? parseFloat(timeTokensPerParticipantInput) : null;
+
+            // Log values to identify the problematic field
+            console.log({
+                title,
+                description,
+                location,
+                startDate,
+                startTime,
+                endDate,
+                endTime,
+                maxParticipants,
+                requesterId,
+                status,
+                timeTokensRequired,
+                timeTokensPerParticipant
+            });
 
             // Validate maxParticipants to ensure it's a positive integer
-            if (isNaN(maxParticipants) || maxParticipants <= 0) {
+            if (maxParticipants !== null && (isNaN(maxParticipants) || maxParticipants <= 0)) {
                 alert('กรุณากรอกจำนวนผู้เข้าร่วมสูงสุดให้ถูกต้อง');
                 return;
             }
-            if (!Number.isInteger(maxParticipants)) {
+            if (maxParticipants !== null && !Number.isInteger(maxParticipants)) {
                 alert('กรุณากรอกจำนวนผู้เข้าร่วมสูงสุดเป็นตัวเลข');
                 return;
             }
 
             // Validate timeTokensRequired to ensure it's a positive number
-            if (isNaN(timeTokensRequired) || timeTokensRequired < 0) {
+            if (timeTokensRequired !== null && (isNaN(timeTokensRequired) || timeTokensRequired < 0)) {
                 alert('กรุณากรอกจำนวนโทเค็นเวลาที่ต้องการให้ถูกต้อง');
                 return;
             }
 
             // Validate timeTokensPerParticipant to ensure it's a positive number
-            if (isNaN(timeTokensPerParticipant) || timeTokensPerParticipant < 0) {
+            if (timeTokensPerParticipant !== null && (isNaN(timeTokensPerParticipant) || timeTokensPerParticipant < 0)) {
                 alert('กรุณากรอกจำนวนโทเค็นเวลาต่อผู้เข้าร่วมให้ถูกต้อง');
                 return;
             }

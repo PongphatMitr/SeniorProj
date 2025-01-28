@@ -7,11 +7,11 @@ const activityRoutes = (pool) => {
     const router = express.Router();
 
     // Add a route to delete a participant from an activity
-    router.delete('/:activityId/participants/:memberId', async (req, res) => {
-        const { activityId, memberId } = req.params;
+    router.delete('/:activityId/participants/:userId', async (req, res) => {
+        const { activityId, userId } = req.params;
 
         try {
-            await pool.query('DELETE FROM activity_participants WHERE activity_id = $1 AND user_id = $2', [activityId, memberId]);
+            await pool.query('DELETE FROM activity_participants WHERE activity_id = $1 AND user_id = $2', [activityId, userId]);
             res.status(204).send();
         } catch (err) {
             console.error('Error:', err.message);
@@ -62,9 +62,9 @@ const activityRoutes = (pool) => {
 
             // Fetch participants for the activity
             const participantsResult = await pool.query(`
-                SELECT p.participant_id, u.name as participant_name
+                SELECT p.user_id, u.name as participant_name
                 FROM activity_participants p
-                JOIN users u ON p.participant_id = u.user_id
+                JOIN users u ON p.user_id = u.user_id
                 WHERE p.activity_id = $1
             `, [id]);
 
@@ -179,7 +179,7 @@ const activityRoutes = (pool) => {
     // Add a participant to an activity
     router.post('/:activityId/participants', async (req, res) => {
         const { activityId } = req.params;
-        const { memberId } = req.body;
+        const { userId } = req.body;
 
         const client = await pool.connect();
         try {
@@ -196,13 +196,13 @@ const activityRoutes = (pool) => {
             // Add participant to the activity
             const result = await client.query(
                 'INSERT INTO activity_participants (activity_id, user_id) VALUES ($1, $2) RETURNING *',
-                [activityId, memberId]
+                [activityId, userId]
             );
 
             // Log the transaction
             await client.query(
                 'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type) VALUES ($1, $2, $3, $4, $5)',
-                [memberId, activityId, `Participated in activity: ${activity.title}`, activity.time_tokens_per_participant, 'earn']
+                [userId, activityId, `Participated in activity: ${activity.title}`, activity.time_tokens_per_participant, 'earn']
             );
 
             await client.query('COMMIT');
