@@ -32,7 +32,7 @@ app.use(express.json());
 app.use(cors());
 
 // Use the TBM and User routes
-app.use('/api/tbm', authMiddleware, tbmRoutes(pool));
+app.use('/api/tbm', tbmRoutes(pool));
 app.use('/api/user', userRoutes(pool));
 
 app.get('/', (req, res) => {
