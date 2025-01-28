@@ -33,7 +33,7 @@ app.use(cors());
 
 // Use the TBM and User routes
 app.use('/api/tbm', tbmRoutes(pool));
-app.use('/api/user', userRoutes(pool));
+app.use('/api/auth', userRoutes(pool));
 
 app.get('/', (req, res) => {
     res.send('Welcome to Time Bank API');

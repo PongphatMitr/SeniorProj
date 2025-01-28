@@ -18,7 +18,7 @@
             }
 
             try {
-                const response = await fetch(`http://localhost:3000/api/activities/${activityId}`, {
+                const response = await fetch(`http://localhost:3000/api/tbm/activities/${activityId}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -50,7 +50,7 @@
                     document.getElementById('activity-requester-name').innerText = activity.requester_name;
 
                     // Fetch participants
-                    const participantsResponse = await fetch(`http://localhost:3000/api/activities/${activityId}/participants`, {
+                    const participantsResponse = await fetch(`http://localhost:3000/api/tbm/activities/${activityId}/participants`, {
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
                         }
@@ -78,7 +78,7 @@
         async function approveActivity() {
             const urlParams = new URLSearchParams(window.location.search);
             const activityId = urlParams.get('id');
-            const url = `http://localhost:3000/api/activities/${activityId}/approve`;
+            const url = `http://localhost:3000/api/tbm/activities/${activityId}/approve`;
 
             try {
                 console.log(`Sending POST request to ${url}`);
@@ -113,7 +113,7 @@
         async function rejectActivity() {
             const urlParams = new URLSearchParams(window.location.search);
             const activityId = urlParams.get('id');
-            const url = `http://localhost:3000/api/activities/${activityId}/reject`;
+            const url = `http://localhost:3000/api/tbm/activities/${activityId}/reject`;
 
             try {
                 console.log(`Sending POST request to ${url}`);

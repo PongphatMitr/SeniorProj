@@ -12,7 +12,7 @@
     <script>
         async function fetchCategories() {
             try {
-                const response = await fetch('http://localhost:3000/api/skills/categories', {
+                const response = await fetch('http://localhost:3000/api/tbm/skills/categories', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -54,7 +54,7 @@
             };
 
             try {
-                const response = await fetch('http://localhost:3000/api/skills', {
+                const response = await fetch('http://localhost:3000/api/tbm/skills', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -79,7 +79,7 @@
             const token = localStorage.getItem('token');
             if (token) {
                 try {
-                    const response = await fetch('http://localhost:3000/api/auth/verify', {
+                    const response = await fetch('http://localhost:3000/api/tbm/auth/verify', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

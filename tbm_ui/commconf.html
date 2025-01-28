@@ -13,7 +13,7 @@
 
         async function fetchCommunityConfig() {
             try {
-                const response = await fetch('http://localhost:3000/api/community-config', {
+                const response = await fetch('http://localhost:3000/api/tbm/community-config', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -36,7 +36,7 @@
 
         async function fetchExchangeRates() {
             try {
-                const response = await fetch('http://localhost:3000/api/exchange-rates', {
+                const response = await fetch('http://localhost:3000/api/tbm/exchange-rates', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -87,7 +87,7 @@
 
             if (newExchangeRate === 'new' && newExchangeRateDescription) {
                 try {
-                    const response = await fetch('http://localhost:3000/api/exchange-rates', {
+                    const response = await fetch('http://localhost:3000/api/tbm/exchange-rates', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -113,7 +113,7 @@
             }
 
             try {
-                const response = await fetch('http://localhost:3000/api/community-config', {
+                const response = await fetch('http://localhost:3000/api/tbm/community-config', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -143,7 +143,7 @@
             const token = localStorage.getItem('token');
             if (token) {
                 try {
-                    const response = await fetch('http://localhost:3000/api/auth/verify', {
+                    const response = await fetch('http://localhost:3000/api/tbm/auth/verify', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -181,17 +181,17 @@
 
         function updateSidebar(isLoggedIn) {
             const navList = document.getElementById('navList');
-        
+
             // Translations for navigation menu
             const translations = {
                 thai: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
                 english: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
             };
-        
+
             // Get the current language from localStorage or default to 'thai'
             const currentLang = localStorage.getItem('selectedLanguage') || 'thai';
             const navItems = translations[currentLang]; // Get navigation items based on the selected language
-        
+
             if (isLoggedIn) {
                 navList.innerHTML = `
                     <li class="mb-5">
@@ -326,7 +326,7 @@
                 `;
             }
         }
-        
+
 
         document.addEventListener('DOMContentLoaded', () => {
             checkLoginStatus();
@@ -464,56 +464,62 @@
             </div>
         </div>
     </div>
-    
+
     <style>
         /* Toggle container */
-             .toggle-container {
-                 display: flex;
-                 background-color: #E5E7EB;
-                 border-radius: 20px; /* Increase border radius for larger container */
-                 padding: 6px; /* Larger padding for better spacing */
-                 align-items: center;
-                 justify-content: space-between;
-                 width: 180px; /* Increase width for a larger toggle */
-             }
-     
-             /* Labels */
-             .toggle-label {
-                 flex: 1;
-                 text-align: center;
-                 font-size: 0.9rem;
-                 font-weight: 500;
-                 color: gray;
-                 cursor: pointer;
-                 transition: all 0.3s ease;
-                 border-radius: 9999px;
-                 padding: 5px;
-             }
-     
-             .toggle-label.active {
-                 background-color: white;
-                 color: #1D4ED8; /* Blue for active text */
-                 font-weight: bold;
-                 box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-             }
-     
-             /* Disabled Label */
-             .toggle-label.disabled {
-                 pointer-events: none; /* Make it unclickable */
-                 background-color: white;
-                 color: #6B7280; /* Light gray text */
-                 font-weight: bold;
-             }
-       </style>
+        .toggle-container {
+            display: flex;
+            background-color: #E5E7EB;
+            border-radius: 20px;
+            /* Increase border radius for larger container */
+            padding: 6px;
+            /* Larger padding for better spacing */
+            align-items: center;
+            justify-content: space-between;
+            width: 180px;
+            /* Increase width for a larger toggle */
+        }
 
-       <script src="selected-language.js"></script>
+        /* Labels */
+        .toggle-label {
+            flex: 1;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: gray;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 9999px;
+            padding: 5px;
+        }
+
+        .toggle-label.active {
+            background-color: white;
+            color: #1D4ED8;
+            /* Blue for active text */
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Disabled Label */
+        .toggle-label.disabled {
+            pointer-events: none;
+            /* Make it unclickable */
+            background-color: white;
+            color: #6B7280;
+            /* Light gray text */
+            font-weight: bold;
+        }
+    </style>
+
+    <script src="selected-language.js"></script>
 
 
-       <script>
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
             const langThai = document.getElementById('lang-th');
             const langEnglish = document.getElementById('lang-en');
-    
+
             const translations = {
                 thai: {
                     pageTitle: 'จัดการชุมชน - Time Bank',
@@ -538,27 +544,27 @@
 
                 }
             };
-    
+
             let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
-    
+
             const updateContent = (lang) => {
                 const langData = translations[lang];
-    
+
                 // Update page title
                 document.title = langData.pageTitle;
-    
+
                 // Update main heading and subheadings
                 document.querySelector('h1').textContent = langData.mainHeading;
                 document.querySelector('h2').textContent = langData.configHeading;
-    
+
                 // Update form labels
                 document.querySelector('label[for="default-time-token"]').textContent = langData.defaultTimeTokenLabel;
                 document.querySelector('label[for="exchange-rate"]').textContent = langData.exchangeRateLabel;
                 document.querySelector('label[for="new-exchange-rate"]').textContent = langData.addExchangeRateLabel;
-    
+
                 // Update save button text
                 document.querySelector('button[onclick="saveConfig()"]').textContent = langData.saveButton;
-    
+
                 // Update navigation bar
                 const navLinks = document.querySelectorAll('nav ul li a');
                 langData.nav.forEach((text, index) => {
@@ -569,7 +575,7 @@
                         navLinks[index].appendChild(document.createTextNode(text));
                     }
                 });
-    
+
                 // Highlight the active language toggle
                 if (lang === 'thai') {
                     langThai.classList.add('active');
@@ -579,29 +585,29 @@
                     langThai.classList.remove('active');
                 }
             };
-    
+
             // Language toggle event listeners
             langThai.addEventListener('click', () => {
                 currentLang = 'thai';
                 localStorage.setItem('selectedLanguage', currentLang);
                 updateContent(currentLang);
             });
-    
+
             langEnglish.addEventListener('click', () => {
                 currentLang = 'english';
                 localStorage.setItem('selectedLanguage', currentLang);
                 updateContent(currentLang);
             });
-    
+
             // Initialize content on page load
             updateContent(currentLang);
-    
+
             // Fetch community configuration and initialize other page data
             checkLoginStatus();
             fetchCommunityConfig();
         });
     </script>
-    
+
 </body>
 
 </html>

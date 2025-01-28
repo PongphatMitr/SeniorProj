@@ -1,4 +1,5 @@
 const express = require('express');
+const authRoutes = require('../user/auth'); // Ensure the correct path
 const memberRoutes = require('./members');
 const activityRoutes = require('./activities');
 const skillRoutes = require('./skills');
@@ -11,6 +12,7 @@ const reportRoutes = require('./reportRoutes');
 const router = express.Router();
 
 module.exports = (pool) => {
+    router.use('/auth', authRoutes(pool));
     router.use('/members', memberRoutes(pool));
     router.use('/activities', activityRoutes(pool));
     router.use('/skills', skillRoutes(pool));

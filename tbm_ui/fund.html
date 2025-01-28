@@ -9,7 +9,7 @@
     <script>
         async function fetchFundData() {
             try {
-                const response = await fetch('http://localhost:3000/api/fund', {
+                const response = await fetch('http://localhost:3000/api/tbm/fund', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -31,7 +31,7 @@
             }
 
             try {
-                const response = await fetch(`http://localhost:3000/api/fund/${action}`, {
+                const response = await fetch(`http://localhost:3000/api/tbm/fund/${action}`, {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -56,7 +56,7 @@
             const token = localStorage.getItem('token');
             if (token) {
                 try {
-                    const response = await fetch('http://localhost:3000/api/auth/verify', {
+                    const response = await fetch('http://localhost:3000/api/tbm/auth/verify', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -334,8 +334,7 @@
                 <div class="mt-10">
                     <h2 class="text-2xl font-bold mb-4">เพิ่มชั่วโมงเข้าสู่กองทุน</h2>
                     <div class="mb-4">
-                        <input
-                            id="addHoursInput"
+                        <input id="addHoursInput"
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             type="number" placeholder="จำนวนชั่วโมง" />
                     </div>
@@ -348,8 +347,7 @@
                 <div class="mt-10">
                     <h2 class="text-2xl font-bold mb-4">กู้ชั่วโมงจากกองทุน</h2>
                     <div class="mb-4">
-                        <input
-                            id="borrowHoursInput"
+                        <input id="borrowHoursInput"
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             type="number" placeholder="จำนวนชั่วโมง" />
                     </div>

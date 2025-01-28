@@ -32,7 +32,7 @@
             event.preventDefault();
             const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลบกิจกรรมนี้?");
             if (confirmation) {
-                const response = await fetch(`http://localhost:3000/api/activities/${activityId}`, {
+                const response = await fetch(`http://localhost:3000/api/tbm/activities/${activityId}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -49,7 +49,7 @@
 
         async function fetchActivities(page = 1) {
             try {
-                const response = await fetch(`http://localhost:3000/api/activities?page=${page}&pageSize=${pageSize}`, {
+                const response = await fetch(`http://localhost:3000/api/tbm/activities?page=${page}&pageSize=${pageSize}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -80,7 +80,7 @@
         async function fetchParticipants() {
             for (let activity of activities) {
                 try {
-                    const response = await fetch(`http://localhost:3000/api/activities/${activity.activity_id}/participants`, {
+                    const response = await fetch(`http://localhost:3000/api/tbm/activities/${activity.activity_id}/participants`, {
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
                         }
@@ -166,7 +166,7 @@
             const token = localStorage.getItem('token');
             if (token) {
                 try {
-                    const response = await fetch('http://localhost:3000/api/auth/verify', {
+                    const response = await fetch('http://localhost:3000/api/tbm/auth/verify', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',

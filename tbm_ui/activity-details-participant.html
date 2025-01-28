@@ -19,7 +19,7 @@
             }
 
             try {
-                const response = await fetch(`http://localhost:3000/api/activities/${activityId}/participants`, {
+                const response = await fetch(`http://localhost:3000/api/tbm/activities/${activityId}/participants`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }

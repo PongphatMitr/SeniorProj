@@ -14,7 +14,7 @@
 
         async function fetchCommunityConfig() {
             try {
-                const response = await fetch('http://localhost:3000/api/community-config', {
+                const response = await fetch('http://localhost:3000/api/tbm/community-config', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -51,7 +51,7 @@
             };
 
             try {
-                const userResponse = await fetch('http://localhost:3000/api/auth/register', {
+                const userResponse = await fetch('http://localhost:3000/api/tbm/auth/register', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -71,7 +71,7 @@
                         time_credits: defaultTimeToken
                     };
 
-                    const memberResponse = await fetch('http://localhost:3000/api/members', {
+                    const memberResponse = await fetch('http://localhost:3000/api/tbm/members', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -100,7 +100,7 @@
             const token = localStorage.getItem('token');
             if (token) {
                 try {
-                    const response = await fetch('http://localhost:3000/api/auth/verify', {
+                    const response = await fetch('http://localhost:3000/api/tbm/auth/verify', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -138,17 +138,17 @@
 
         function updateSidebar(isLoggedIn) {
             const navList = document.getElementById('navList');
-        
+
             // Translations for navigation menu
             const translations = {
                 thai: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
                 english: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
             };
-        
+
             // Get the current language from localStorage or default to 'thai'
             const currentLang = localStorage.getItem('selectedLanguage') || 'thai';
             const navItems = translations[currentLang]; // Get navigation items based on the selected language
-        
+
             if (isLoggedIn) {
                 navList.innerHTML = `
                     <li class="mb-5">
@@ -484,52 +484,58 @@
     </div>
     <style>
         /* Toggle container */
-             .toggle-container {
-                 display: flex;
-                 background-color: #E5E7EB;
-                 border-radius: 20px; /* Increase border radius for larger container */
-                 padding: 6px; /* Larger padding for better spacing */
-                 align-items: center;
-                 justify-content: space-between;
-                 width: 180px; /* Increase width for a larger toggle */
-             }
-     
-             /* Labels */
-             .toggle-label {
-                 flex: 1;
-                 text-align: center;
-                 font-size: 0.9rem;
-                 font-weight: 500;
-                 color: gray;
-                 cursor: pointer;
-                 transition: all 0.3s ease;
-                 border-radius: 9999px;
-                 padding: 5px;
-             }
-     
-             .toggle-label.active {
-                 background-color: white;
-                 color: #1D4ED8; /* Blue for active text */
-                 font-weight: bold;
-                 box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-             }
-     
-             /* Disabled Label */
-             .toggle-label.disabled {
-                 pointer-events: none; /* Make it unclickable */
-                 background-color: white;
-                 color: #6B7280; /* Light gray text */
-                 font-weight: bold;
-             }
-       </style>
+        .toggle-container {
+            display: flex;
+            background-color: #E5E7EB;
+            border-radius: 20px;
+            /* Increase border radius for larger container */
+            padding: 6px;
+            /* Larger padding for better spacing */
+            align-items: center;
+            justify-content: space-between;
+            width: 180px;
+            /* Increase width for a larger toggle */
+        }
 
-       <script src="selected-language.js"></script>
+        /* Labels */
+        .toggle-label {
+            flex: 1;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: gray;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 9999px;
+            padding: 5px;
+        }
 
-       <script>
+        .toggle-label.active {
+            background-color: white;
+            color: #1D4ED8;
+            /* Blue for active text */
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Disabled Label */
+        .toggle-label.disabled {
+            pointer-events: none;
+            /* Make it unclickable */
+            background-color: white;
+            color: #6B7280;
+            /* Light gray text */
+            font-weight: bold;
+        }
+    </style>
+
+    <script src="selected-language.js"></script>
+
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
             const langThai = document.getElementById('lang-th');
             const langEnglish = document.getElementById('lang-en');
-    
+
             const translations = {
                 thai: {
                     pageTitle: 'สร้างบัญชีสมาชิก - Time Bank',
@@ -604,18 +610,18 @@
                     nextButton: 'Next'
                 }
             };
-    
+
             let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
-    
+
             const updateContent = (lang) => {
                 const langData = translations[lang];
-    
+
                 // Update page title
                 document.title = langData.pageTitle;
-    
+
                 // Update main heading
                 document.querySelector('h1').textContent = langData.mainHeading;
-    
+
                 // Update form labels
                 document.querySelector('label[for="username"]').textContent = langData.labels.username;
                 document.querySelector('label[for="password"]').textContent = langData.labels.password;
@@ -625,7 +631,7 @@
                 document.querySelector('label[for="branch"]').textContent = langData.labels.branch;
                 document.querySelector('label[for="address"]').textContent = langData.labels.address;
                 document.querySelector('label[for="status"]').textContent = langData.labels.status;
-    
+
                 // Update placeholders
                 document.getElementById('username').placeholder = langData.placeholders.username;
                 document.getElementById('password').placeholder = langData.placeholders.password;
@@ -634,7 +640,7 @@
                 document.getElementById('phone').placeholder = langData.placeholders.phone;
                 document.getElementById('branch').placeholder = langData.placeholders.branch;
                 document.getElementById('address').placeholder = langData.placeholders.address;
-    
+
                 // Update status dropdown options
                 const statusSelect = document.getElementById('status');
                 statusSelect.innerHTML = '';
@@ -644,10 +650,10 @@
                     statusOption.textContent = option;
                     statusSelect.appendChild(statusOption);
                 });
-    
+
                 // Update "Next" button text
                 document.querySelector('button[type="submit"]').textContent = langData.nextButton;
-    
+
                 // Update navigation bar (keep icons intact)
                 const navLinks = document.querySelectorAll('nav ul li a');
                 langData.nav.forEach((text, index) => {
@@ -660,7 +666,7 @@
                         navLinks[index].appendChild(document.createTextNode(text)); // Add translated text
                     }
                 });
-    
+
                 // Update active language toggle
                 if (lang === 'thai') {
                     langThai.classList.add('active');
@@ -670,25 +676,25 @@
                     langThai.classList.remove('active');
                 }
             };
-    
+
             // Event listeners for language toggle
             langThai.addEventListener('click', () => {
                 currentLang = 'thai';
                 localStorage.setItem('selectedLanguage', currentLang);
                 updateContent(currentLang);
             });
-    
+
             langEnglish.addEventListener('click', () => {
                 currentLang = 'english';
                 localStorage.setItem('selectedLanguage', currentLang);
                 updateContent(currentLang);
             });
-    
+
             // Initialize content on page load
             updateContent(currentLang);
         });
     </script>
-    
+
 
 </body>
 
