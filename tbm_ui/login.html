@@ -130,7 +130,7 @@
             }
 
             try {
-                const response = await fetch('http://localhost:3000/api/auth/login', {
+                const response = await fetch('http://localhost:3000/api/tbm/auth/login', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json'
@@ -162,6 +162,7 @@
                 alert('Connection error. Please try again.');
             }
         });
+
         function updateSidebar(isLoggedIn) {
             const navList = document.getElementById('navList');
             if (isLoggedIn) {
@@ -424,13 +425,10 @@
             display: flex;
             background-color: #E5E7EB;
             border-radius: 20px;
-            /* Increase border radius for larger container */
             padding: 6px;
-            /* Larger padding for better spacing */
             align-items: center;
             justify-content: space-between;
             width: 180px;
-            /* Increase width for a larger toggle */
         }
 
         /* Labels */
@@ -449,7 +447,6 @@
         .toggle-label.active {
             background-color: white;
             color: #1D4ED8;
-            /* Blue for active text */
             font-weight: bold;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
@@ -457,10 +454,8 @@
         /* Disabled Label */
         .toggle-label.disabled {
             pointer-events: none;
-            /* Make it unclickable */
             background-color: white;
             color: #6B7280;
-            /* Light gray text */
             font-weight: bold;
         }
     </style>
