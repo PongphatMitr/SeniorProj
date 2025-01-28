@@ -29,7 +29,7 @@
             event.preventDefault();
             const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลบกิจกรรมนี้?");
             if (confirmation) {
-                const response = await fetch(`http://localhost:3000/api/activities/${activityId}`, {
+                const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -47,7 +47,7 @@
         async function fetchActivities() {
             try {
                 console.log('Fetching activities...');
-                const response = await fetch('http://localhost:3000/api/activities', {
+                const response = await fetch('http://localhost:3000/api/user/activities', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -74,7 +74,7 @@
         async function fetchParticipants() {
             for (let activity of activities) {
                 try {
-                    const response = await fetch(`http://localhost:3000/api/activities/${activity.activity_id}/participants`, {
+                    const response = await fetch(`http://localhost:3000/api/user/activities/${activity.activity_id}/participants`, {
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
                         }
@@ -126,9 +126,6 @@
                     <td aria-colindex="5" data-label="การจัดการ" role="cell" class="py-2 px-4 border-b border-gray-200">
                         <a href="activity-details.html?id=${activity.activity_id}" class="bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">รายละเอียด</a>
                     </td>
-                    <td aria-colindex="6" data-label="เข้าร่วม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        <button onclick="joinActivity(${activity.activity_id})" class="bg-green-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">เข้าร่วม</button>
-                    </td>
                 `;
                 tbody.appendChild(row);
             });
@@ -157,109 +154,67 @@
             renderTable(sortedActivities);
         }
 
-        async function joinActivity(activityId) {
-            try {
-                const response = await fetch(`http://localhost:3000/api/activities/${activityId}/join`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                if (response.ok) {
-                    alert("คุณได้เข้าร่วมกิจกรรมเรียบร้อยแล้ว");
-                    fetchActivities(); // Refresh the activities list
-                } else {
-                    alert("เกิดข้อผิดพลาดในการเข้าร่วมกิจกรรม");
-                }
-            } catch (error) {
-                console.error('Error joining activity:', error);
-                alert('Error joining activity. Please try again.');
-            }
-        }
-
-        async function updateSidebar(isLoggedIn) {
+        function updateSidebar(isLoggedIn) {
             const navList = document.getElementById('navList');
-        
             if (isLoggedIn) {
-                try {
-                    // Fetch user details to get the memberId
-                    const response = await fetch('http://localhost:3000/api/auth/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        }
-                    });
-        
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch user details');
-                    }
-        
-                    const member = await response.json(); // Adjust based on your backend response
-                    const memberId = member.user_id; // Use the correct field for memberId from the response
-        
-                    navList.innerHTML = `
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                                href="log-out.html">
-                                <i class="fas fa-user mr-3"></i>
-                                โปรไฟล์
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="homepage.html">
-                                <i class="fas fa-home mr-3"></i>
-                                หน้าหลัก
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="service.html">
-                                <i class="fas fa-clipboard-list mr-3"></i>
-                                ยื่นข้อของานบริการ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="profile.html">
-                                <i class="fas fa-user-edit mr-3"></i>
-                                แก้ไขประวัติ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="skillconf.html">
-                                <i class="fas fa-tools mr-3"></i>
-                                แก้ไขทักษะ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="balance.html">
-                                <i class="fas fa-wallet mr-3"></i>
-                                ยอดคงเหลือ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="history.html">
-                                <i class="fas fa-history mr-3"></i>
-                                ประวัติ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="contact.html">
-                                <i class="fas fa-phone mr-3"></i>
-                                ติดต่อเรา
-                            </a>
-                        </li>
-                    `;
-                } catch (error) {
-                    console.error('Error fetching user details:', error);
-                    alert('An error occurred while loading user data. Please log in again.');
-                }
+                navList.innerHTML = `
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="log-out.html">
+                            <i class="fas fa-user mr-3"></i>
+                            โปรไฟล์
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="homepage.html">
+                            <i class="fas fa-home mr-3"></i>
+                            หน้าหลัก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="service.html">
+                            <i class="fas fa-clipboard-list mr-3"></i>
+                            ยื่นข้อของานบริการ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="profile.html">
+                            <i class="fas fa-user-edit mr-3"></i>
+                            แก้ไขประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="skillconf.html">
+                            <i class="fas fa-tools mr-3"></i>
+                            แก้ไขทักษะ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="balance.html">
+                            <i class="fas fa-wallet mr-3"></i>
+                            ยอดคงเหลือ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="history.html">
+                            <i class="fas fa-history mr-3"></i>
+                            ประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="contact.html">
+                            <i class="fas fa-phone mr-3"></i>
+                            ติดต่อเรา
+                        </a>
+                    </li>
+                `;
             } else {
                 navList.innerHTML = `
                     <li class="mb-5">
@@ -326,7 +281,7 @@
             const token = localStorage.getItem('token');
             if (token) {
                 try {
-                    const response = await fetch('http://localhost:3000/api/auth/verify', {
+                    const response = await fetch('http://localhost:3000/api/user/auth/verify', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -412,6 +367,7 @@
             </div>
             
             <div class="bg-white text-black p-8 rounded-lg shadow-lg">
+                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">กิจกรรม</h2>
                 <div class="mb-4 flex items-center">
                     <input id="search-input"
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -423,7 +379,7 @@
                 </div>
                 <div class="overflow-x-auto">
                     <div class="table-responsive-sm">
-                        <table role="table" aria-busy="false" aria-colcount="6"
+                        <table role="table" aria-busy="false" aria-colcount="5"
                             class="table b-table b-table-stacked-md w-full">
                             <thead role="rowgroup" class="bg-gray-100">
                                 <tr role="row">
@@ -449,10 +405,6 @@
                                     <th role="columnheader" scope="col" aria-colindex="5"
                                         class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
                                         การจัดการ
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="6"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                        เข้าร่วม
                                     </th>
                                 </tr>
                             </thead>

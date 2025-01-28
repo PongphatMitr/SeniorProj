@@ -4,7 +4,8 @@ const { Pool } = require('pg');
 const cors = require('cors');
 const authMiddleware = require('./middleware/authMiddleware');
 const tbmRoutes = require('./routes/tbm/server-tbm');
-const userRoutes = require('./routes/user/server-user');
+const userRoutes = require('./routes/user/server-user'); // Ensure correct relative path
+
 
 dotenv.config();
 
@@ -33,7 +34,7 @@ app.use(cors());
 
 // Use the TBM and User routes
 app.use('/api/tbm', tbmRoutes(pool));
-app.use('/api/auth', userRoutes(pool));
+app.use('/api/user', userRoutes(pool));
 
 app.get('/', (req, res) => {
     res.send('Welcome to Time Bank API');

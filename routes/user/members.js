@@ -172,6 +172,58 @@ const memberRoutes = (pool) => {
         }
     });
 
+    // Update skills of a member
+    router.put('/:id/skills', async (req, res) => {
+        const { id } = req.params;
+        const { skills } = req.body;
+
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid member ID' });
+        }
+
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            // Delete existing skills
+            await client.query('DELETE FROM member_skills WHERE user_id = $1', [id]);
+
+            // Insert new skills
+            for (const skillId of skills) {
+                await client.query('INSERT INTO member_skills (user_id, skill_id) VALUES ($1, $2)', [id, skillId]);
+            }
+
+            await client.query('COMMIT');
+            res.status(200).json({ message: 'Member skills updated successfully' });
+        } catch (err) {
+            await client.query('ROLLBACK');
+            console.error('Error:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        } finally {
+            client.release();
+        }
+    });
+
+    // Create a new member
+    router.post('/', async (req, res) => {
+        const { username, password, email, role, name, phone, address, branch } = req.body;
+
+        try {
+            // Fetch default time token from community_config
+            const configResult = await pool.query('SELECT default_time_token FROM community_config LIMIT 1');
+            const defaultTimeToken = configResult.rows[0].default_time_token;
+
+            const result = await pool.query(
+                'INSERT INTO users (username, password, email, role, name, phone, address, branch, time_credits, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10) RETURNING *',
+                [username, password, email, role, name, phone, address, branch, defaultTimeToken, 'active']
+            );
+            res.status(201).json(result.rows[0]);
+        } catch (err) {
+            console.error('Error:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+
     // Update a member by ID
     router.put('/:id', async (req, res) => {
         const { id } = req.params;
@@ -182,7 +234,7 @@ const memberRoutes = (pool) => {
         }
 
         // Validate status value
-        if (status && !['active', 'inactive'].includes(status)) {
+        if (!['active', 'inactive'].includes(status)) {
             return res.status(400).json({ error: 'Invalid status value' });
         }
 
@@ -198,7 +250,7 @@ const memberRoutes = (pool) => {
         }
     });
 
-    // Deactivate a member by ID
+    // Delete a member by ID
     router.delete('/:id', async (req, res) => {
         const { id } = req.params;
 
@@ -206,41 +258,30 @@ const memberRoutes = (pool) => {
             return res.status(400).json({ error: 'Invalid member ID' });
         }
 
+        const client = await pool.connect();
         try {
-            const result = await pool.query(
-                'UPDATE users SET status = $1 WHERE user_id = $2 RETURNING *',
-                ['inactive', id]
-            );
+            await client.query('BEGIN');
+
+            // Delete related records in member_skills, activity_participants, and transactions
+            await client.query('DELETE FROM member_skills WHERE user_id = $1', [id]);
+            await client.query('DELETE FROM activity_participants WHERE user_id = $1', [id]);
+            await client.query('DELETE FROM transactions WHERE user_id = $1', [id]);
+
+            // Delete the member
+            const result = await client.query('DELETE FROM users WHERE user_id = $1 RETURNING *', [id]);
             if (result.rowCount === 0) {
+                await client.query('ROLLBACK');
                 return res.status(404).json({ error: 'Member not found' });
             }
-            res.status(200).json({ message: 'Member deactivated successfully' });
+
+            await client.query('COMMIT');
+            res.status(200).json({ message: 'Member deleted successfully' });
         } catch (err) {
+            await client.query('ROLLBACK');
             console.error('Error:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
-        }
-    });
-
-    // Restore a member by ID
-    router.put('/:id/restore', async (req, res) => {
-        const { id } = req.params;
-
-        if (isNaN(id)) {
-            return res.status(400).json({ error: 'Invalid member ID' });
-        }
-
-        try {
-            const result = await pool.query(
-                'UPDATE users SET status = $1 WHERE user_id = $2 RETURNING *',
-                ['active', id]
-            );
-            if (result.rowCount === 0) {
-                return res.status(404).json({ error: 'Member not found' });
-            }
-            res.status(200).json({ message: 'Member restored successfully' });
-        } catch (err) {
-            console.error('Error:', err.message);
-            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        } finally {
+            client.release();
         }
     });
 

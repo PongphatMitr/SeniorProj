@@ -7,7 +7,7 @@ const transactionRoutes = (pool) => {
     const router = express.Router();
 
     // Get all activities
-    router.get('/activities', async (req, res) => {
+    router.get('/activities/all', async (req, res) => {
         const { page = 1, pageSize = 10 } = req.query;
         const offset = (page - 1) * pageSize;
 
@@ -16,7 +16,7 @@ const transactionRoutes = (pool) => {
                 `SELECT a.*, 
                         COALESCE(r.name, '') AS requester_name
                  FROM activities a
-                 LEFT JOIN users r ON a.requester_id = r.user_id
+                 LEFT JOIN members r ON a.requester_id = r.member_id
                  ORDER BY a.start_date DESC, a.start_time DESC
                  LIMIT $1 OFFSET $2`,
                 [parseInt(pageSize), parseInt(offset)]

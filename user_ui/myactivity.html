@@ -23,15 +23,15 @@
         let sortOrder = {
             title: 'asc',
             start_date: 'asc',
-            status: 'asc'
+            status: 'asc',
+            requester_name: 'asc'
         };
-        let globalUserId = null;
 
         async function confirmAndRemove(event, rowId, activityId) {
             event.preventDefault();
             const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลบกิจกรรมนี้?");
             if (confirmation) {
-                const response = await fetch(`http://localhost:3000/api/activities/${activityId}`, {
+                const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}`, {
                     method: 'DELETE',
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -49,7 +49,7 @@
         async function fetchActivities() {
             try {
                 console.log('Fetching activities...');
-                const response = await fetch(`http://localhost:3000/api/activities?requester_id=${globalUserId}`, {
+                const response = await fetch('http://localhost:3000/api/user/activities', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -59,9 +59,10 @@
                 console.log('Response data:', data);
 
                 if (response.ok) {
-                    activities = data.activities.filter(activity => activity.requester_id === globalUserId);
-                    updateActivityStatus();
+                    activities = data.activities.filter(activity => activity.requester_id === parseInt(localStorage.getItem('user_id')));
                     await fetchParticipants();
+                    await fetchRequesterNames();
+                    updateActivityStatus();
                     renderTable(activities);
                 } else {
                     console.error('Error:', data);
@@ -76,7 +77,7 @@
         async function fetchParticipants() {
             for (let activity of activities) {
                 try {
-                    const response = await fetch(`http://localhost:3000/api/activities/${activity.activity_id}/participants`, {
+                    const response = await fetch(`http://localhost:3000/api/user/activities/${activity.activity_id}/participants`, {
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
                         }
@@ -86,6 +87,26 @@
                 } catch (error) {
                     console.error(`Error fetching participants for activity ${activity.activity_id}:`, error);
                     activity.current_participants = 0;
+                }
+            }
+        }
+
+        async function fetchRequesterNames() {
+            for (let activity of activities) {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/user/members/${activity.requester_id}`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch user details for user ${activity.requester_id}`);
+                    }
+                    const user = await response.json();
+                    activity.requester_name = user.name;
+                } catch (error) {
+                    console.error(`Error fetching requester name for user ${activity.requester_id}:`, error);
+                    activity.requester_name = 'Unknown';
                 }
             }
         }
@@ -113,25 +134,22 @@
                 row.id = `row-${index + 1}`;
                 row.className = 'hover:bg-gray-100';
                 row.innerHTML = `
-                    <td aria-colindex="1" data-label="ผู้ร้องขอ ID" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${activity.requester_id}
-                    </td>
-                    <td aria-colindex="2" data-label="ผู้ร้องขอ" role="cell" class="py-2 px-4 border-b border-gray-200">
+                    <td aria-colindex="1" data-label="ชื่อผู้ขอ" role="cell" class="py-2 px-4 border-b border-gray-200">
                         ${activity.requester_name}
                     </td>
-                    <td aria-colindex="3" data-label="กิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
+                    <td aria-colindex="2" data-label="กิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
                         ${activity.title}
                     </td>
-                    <td aria-colindex="4" data-label="วันที่" role="cell" class="py-2 px-4 border-b border-gray-200">
+                    <td aria-colindex="3" data-label="วันที่" role="cell" class="py-2 px-4 border-b border-gray-200">
                         ${formatDate(activity.start_date)}
                     </td>
-                    <td aria-colindex="5" data-label="สถานะ" role="cell" class="py-2 px-4 border-b border-gray-200">
+                    <td aria-colindex="4" data-label="สถานะ" role="cell" class="py-2 px-4 border-b border-gray-200">
                         <span class="py-1 px-2 rounded ${activity.status === 'กำลังจะเริ่ม' ? 'bg-blue-500' : activity.status === 'เสร็จสิ้น' ? 'bg-green-500' : activity.status === 'เกินเวลา' ? 'bg-orange-500' : 'bg-red-500'} text-white">${activity.status}</span>
                     </td>
-                    <td aria-colindex="6" data-label="จำนวนผู้เข้าร่วม" role="cell" class="py-2 px-4 border-b border-gray-200">
+                    <td aria-colindex="5" data-label="จำนวนผู้เข้าร่วม" role="cell" class="py-2 px-4 border-b border-gray-200">
                         ${activity.current_participants} / ${activity.max_participants}
                     </td>
-                    <td aria-colindex="7" data-label="การจัดการ" role="cell" class="py-2 px-4 border-b border-gray-200">
+                    <td aria-colindex="6" data-label="การจัดการ" role="cell" class="py-2 px-4 border-b border-gray-200">
                         <a href="activity-details.html?id=${activity.activity_id}" class="bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">รายละเอียด</a>
                     </td>
                 `;
@@ -162,90 +180,67 @@
             renderTable(sortedActivities);
         }
 
-        async function updateSidebar(isLoggedIn) {
+        function updateSidebar(isLoggedIn) {
             const navList = document.getElementById('navList');
-        
             if (isLoggedIn) {
-                try {
-                    // Fetch user details to get the memberId
-                    const response = await fetch('http://localhost:3000/api/auth/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        }
-                    });
-        
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch user details');
-                    }
-        
-                    const member = await response.json(); // Adjust based on your backend response
-                    const memberId = member.user_id; // Use the correct field for memberId from the response
-                    globalUserId = memberId; // Set the userId for fetching activities
-        
-                    navList.innerHTML = `
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                                href="log-out.html">
-                                <i class="fas fa-user mr-3"></i>
-                                โปรไฟล์
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="homepage.html">
-                                <i class="fas fa-home mr-3"></i>
-                                หน้าหลัก
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="service.html">
-                                <i class="fas fa-clipboard-list mr-3"></i>
-                                ยื่นข้อของานบริการ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="profile.html">
-                                <i class="fas fa-user-edit mr-3"></i>
-                                แก้ไขประวัติ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="skillconf.html">
-                                <i class="fas fa-tools mr-3"></i>
-                                แก้ไขทักษะ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="balance.html">
-                                <i class="fas fa-wallet mr-3"></i>
-                                ยอดคงเหลือ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="history.html">
-                                <i class="fas fa-history mr-3"></i>
-                                ประวัติ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="contact.html">
-                                <i class="fas fa-phone mr-3"></i>
-                                ติดต่อเรา
-                            </a>
-                        </li>
-                    `;
-                } catch (error) {
-                    console.error('Error fetching user details:', error);
-                    alert('An error occurred while loading user data. Please log in again.');
-                }
+                navList.innerHTML = `
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="log-out.html">
+                            <i class="fas fa-user mr-3"></i>
+                            โปรไฟล์
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="homepage.html">
+                            <i class="fas fa-home mr-3"></i>
+                            หน้าหลัก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="service.html">
+                            <i class="fas fa-clipboard-list mr-3"></i>
+                            ยื่นข้อของานบริการ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="profile.html">
+                            <i class="fas fa-user-edit mr-3"></i>
+                            แก้ไขประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="skillconf.html">
+                            <i class="fas fa-tools mr-3"></i>
+                            แก้ไขทักษะ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="balance.html">
+                            <i class="fas fa-wallet mr-3"></i>
+                            ยอดคงเหลือ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="history.html">
+                            <i class="fas fa-history mr-3"></i>
+                            ประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="contact.html">
+                            <i class="fas fa-phone mr-3"></i>
+                            ติดต่อเรา
+                        </a>
+                    </li>
+                `;
             } else {
                 navList.innerHTML = `
                     <li class="mb-5">
@@ -308,31 +303,11 @@
             }
         }
 
-        async function fetchMemberProfile() {
-            try {
-                const response = await fetch(`http://localhost:3000/api/auth/profile`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const member = await response.json();
-                globalUserId = member.user_id; // Store user_id globally
-                console.log('Member:', member);
-                fetchActivities(); // Fetch activities after getting the user_id
-            } catch (error) {
-                console.error('Error fetching member profile:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์สมาชิก');
-            }
-        }
-
         async function checkLoginStatus() {
             const token = localStorage.getItem('token');
             if (token) {
                 try {
-                    const response = await fetch('http://localhost:3000/api/auth/verify', {
+                    const response = await fetch('http://localhost:3000/api/user/auth/verify', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
@@ -341,8 +316,11 @@
                     });
 
                     if (response.ok) {
+                        const userData = await response.json();
+                        localStorage.setItem('user_id', userData.user.userId);
+                        localStorage.setItem('user_name', userData.user.name);
                         updateSidebar(true);
-                        fetchMemberProfile(); // Fetch member profile to get user_id
+                        fetchActivities(); // Fetch activities only if the user is logged in
                     } else {
                         localStorage.removeItem('token');
                         updateSidebar(false);
@@ -377,8 +355,7 @@
                     (activity.title && activity.title.toLowerCase().includes(searchTerm)) ||
                     (activity.description && activity.description.toLowerCase().includes(searchTerm)) ||
                     (activity.location && activity.location.toLowerCase().includes(searchTerm)) ||
-                    (activity.requester_id && activity.requester_id.toString().includes(searchTerm)) ||
-                    (activity.requester_name && activity.requester_name.toLowerCase().includes(searchTerm))
+                    (activity.requester_id && activity.requester_id.toString().includes(searchTerm))
                 );
             });
             renderTable(filteredActivities);
@@ -416,54 +393,50 @@
                 <a class="text-4xl font-bold mb-5 text-white-600">
                     กิจกรรมของฉัน
                 </a>
-            </div>
+            </div>            
             <div class="bg-white text-black p-8 rounded-lg shadow-lg">
                 <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">กิจกรรม</h2>
                 <div class="mb-4 flex items-center">
                     <input id="search-input"
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                         type="text" placeholder="ค้นหากิจกรรม" oninput="searchActivities()" />
-                    <a href="create-service.html" 
+                        <a href="create-service.html" 
                         class="bg-green-500 hover:bg-green-700 text-white text-center font-semibold text-sm py-1.5 px-3 rounded focus:outline-none focus:shadow-outline ml-2">
                         สร้างกิจกรรม
-                    </a>
+                     </a>
+                     
                 </div>
                 <div class="overflow-x-auto">
                     <div class="table-responsive-sm">
-                        <table role="table" aria-busy="false" aria-colcount="7"
+                        <table role="table" aria-busy="false" aria-colcount="6"
                             class="table b-table b-table-stacked-md w-full">
                             <thead role="rowgroup" class="bg-gray-100">
                                 <tr role="row">
                                     <th role="columnheader" scope="col" aria-colindex="1"
                                         class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
-                                        onclick="sortTable('requester_id', 'string')">
-                                        Requester ID <i class="fas fa-sort"></i>
+                                        onclick="sortTable('requester_name', 'string')">
+                                        ชื่อผู้ขอ <i class="fas fa-sort"></i>
                                     </th>
                                     <th role="columnheader" scope="col" aria-colindex="2"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
-                                        onclick="sortTable('requester_name', 'string')">
-                                        Requester Name <i class="fas fa-sort"></i>
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="3"
                                         class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
                                         onclick="sortTable('title', 'string')">
                                         กิจกรรม <i class="fas fa-sort"></i>
                                     </th>
-                                    <th role="columnheader" scope="col" aria-colindex="4"
+                                    <th role="columnheader" scope="col" aria-colindex="3"
                                         class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
                                         onclick="sortTable('start_date', 'date')">
                                         วันที่ <i class="fas fa-sort"></i>
                                     </th>
-                                    <th role="columnheader" scope="col" aria-colindex="5"
+                                    <th role="columnheader" scope="col" aria-colindex="4"
                                         class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
                                         onclick="sortTable('status', 'string')">
                                         สถานะ <i class="fas fa-sort"></i>
                                     </th>
-                                    <th role="columnheader" scope="col" aria-colindex="6"
+                                    <th role="columnheader" scope="col" aria-colindex="5"
                                         class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
                                         จำนวนผู้เข้าร่วม
                                     </th>
-                                    <th role="columnheader" scope="col" aria-colindex="7"
+                                    <th role="columnheader" scope="col" aria-colindex="6"
                                         class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
                                         การจัดการ
                                     </th>
