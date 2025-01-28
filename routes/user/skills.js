@@ -12,12 +12,12 @@ const skillRoutes = (pool) => {
 
         try {
             const result = await pool.query(
-                'SELECT skills.*, categories.category FROM skills JOIN categories ON skills.category_id = categories.category_id WHERE LOWER(skills.name) LIKE $1 OR LOWER(categories.category) LIKE $1',
+                'SELECT skills.skill_id, skills.name, skills.category_id, categories.category FROM skills JOIN categories ON skills.category_id = categories.category_id WHERE LOWER(skills.name) LIKE $1 OR LOWER(categories.category) LIKE $1',
                 [`%${term.toLowerCase()}%`]
             );
             res.json(result.rows);
         } catch (err) {
-            console.error('Error:', err.message);
+            console.error('Error searching skills:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
@@ -25,23 +25,24 @@ const skillRoutes = (pool) => {
     // Get all skills
     router.get('/', async (req, res) => {
         try {
-            const result = await pool.query('SELECT skills.*, categories.category FROM skills JOIN categories ON skills.category_id = categories.category_id');
+            const result = await pool.query('SELECT skills.skill_id, skills.name, skills.category_id, categories.category FROM skills JOIN categories ON skills.category_id = categories.category_id');
             res.json(result.rows);
         } catch (err) {
-            console.error('Error:', err.message);
+            console.error('Error fetching all skills:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
+
 
     // Get a skill by ID
     router.get('/:id', async (req, res) => {
         const { id } = req.params;
 
         try {
-            const result = await pool.query('SELECT skills.*, categories.category FROM skills JOIN categories ON skills.category_id = categories.category_id WHERE skill_id = $1', [id]);
+            const result = await pool.query('SELECT skills.skill_id, skills.name, skills.category_id, categories.category FROM skills JOIN categories ON skills.category_id = categories.category_id WHERE skill_id = $1', [id]);
             res.json(result.rows[0]);
         } catch (err) {
-            console.error('Error:', err.message);
+            console.error('Error fetching skill by ID:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
@@ -52,7 +53,7 @@ const skillRoutes = (pool) => {
             const result = await pool.query('SELECT * FROM categories');
             res.json(result.rows);
         } catch (err) {
-            console.error('Error:', err.message);
+            console.error('Error fetching categories:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
@@ -63,12 +64,12 @@ const skillRoutes = (pool) => {
 
         try {
             const result = await pool.query(
-                'SELECT skills.skill_id, skills.name, categories.category FROM member_skills JOIN skills ON member_skills.skill_id = skills.skill_id JOIN categories ON skills.category_id = categories.category_id WHERE member_skills.member_id = $1',
+                'SELECT skills.skill_id, skills.name, skills.category_id, categories.category FROM member_skills JOIN skills ON member_skills.skill_id = skills.skill_id JOIN categories ON skills.category_id = categories.category_id WHERE member_skills.member_id = $1',
                 [memberId]
             );
             res.json({ skills: result.rows });
         } catch (err) {
-            console.error('Error:', err.message);
+            console.error('Error fetching member skills:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
@@ -89,7 +90,7 @@ const skillRoutes = (pool) => {
             const result = await pool.query('INSERT INTO skills (name, category_id) VALUES ($1, $2) RETURNING *', [name, categoryId]);
             res.status(201).json(result.rows[0]);
         } catch (err) {
-            console.error('Error:', err.message);
+            console.error('Error creating new skill:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
@@ -120,7 +121,7 @@ const skillRoutes = (pool) => {
             res.status(200).json({ message: 'Skill category updated successfully' });
         } catch (err) {
             await client.query('ROLLBACK');
-            console.error('Error:', err.message);
+            console.error('Error updating skill category:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         } finally {
             client.release();
@@ -149,7 +150,7 @@ const skillRoutes = (pool) => {
             res.status(200).json({ message: 'Skill deleted successfully' });
         } catch (err) {
             await client.query('ROLLBACK');
-            console.error('Error:', err.message);
+            console.error('Error deleting skill:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         } finally {
             client.release();
