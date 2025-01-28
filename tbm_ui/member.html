@@ -1,3 +1,4 @@
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -48,6 +49,14 @@
         .dropdown-item:hover b.red {
             color: darkred;
         }
+
+        .dropdown-item b.green {
+            color: green;
+        }
+
+        .dropdown-item:hover b.green {
+            color: darkgreen;
+        }
     </style>
     <script>
         let defaultTimeToken = 100;
@@ -60,7 +69,7 @@
 
         async function fetchCommunityConfig() {
             try {
-                const response = await fetch('http://localhost:3000/api/community-config', {
+                const response = await fetch('http://localhost:3000/api/community-config/tbm', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -80,7 +89,7 @@
 
         async function fetchMembers(page = 1, searchTerm = '', sortField = '', sortOrder = 'asc') {
             try {
-                const response = await fetch(`http://localhost:3000/api/members?page=${page}&pageSize=${pageSize}&search=${encodeURIComponent(searchTerm)}&sortField=${sortField}&sortOrder=${sortOrder}`, {
+                const response = await fetch(`http://localhost:3000/api/members/tbm?page=${page}&pageSize=${pageSize}&search=${encodeURIComponent(searchTerm)}&sortField=${sortField}&sortOrder=${sortOrder}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -125,7 +134,7 @@
                         <span class="py-1 px-2 rounded ${member.status === 'active' ? 'bg-green-500' : 'bg-red-500'} text-white">${member.status === 'active' ? 'ปกติ' : 'ไม่ปกติ'}</span>
                     </td>
                     <td aria-colindex="6" data-label="ล็อกอินไลน์" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        <span class="py-1 px-2 rounded ${member.status === 'active' ? 'bg-green-500' : 'bg-red-500'} text-white">ล็อกอินเเล้ว</span>
+                        <span class="py-1 px-2 rounded ${member.logged_in ? 'bg-green-500' : 'bg-red-500'} text-white">${member.logged_in ? 'ล็อกอินเเล้ว' : 'ยังไม่ได้ล็อกอิน'}</span>
                     </td>
                     <td aria-colindex="7" data-label="การจัดการ" role="cell" class="py-2 px-4 border-b border-gray-200">
                         <div class="relative">
@@ -138,7 +147,10 @@
                                 <li role="presentation" class="dropdown-item"><a role="menuitem" href="member-skills.html?memberId=${member.user_id}" target="_self"><b>ความสามารถ</b></a></li>
                                 <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self"><b>PDF</b></a></li>
                                 <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self"><b>วันที่สะดวกทำงาน</b></a></li>
-                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self" onclick="confirmAndRemove(event, 'row-${index + 1}', ${member.user_id})"><b class="red">ลบสมาชิก</b></a></li>
+                                ${member.status === 'active' ?
+                        `<li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self" onclick="confirmAndRemove(event, 'row-${index + 1}', ${member.user_id})"><b class="red">ลบสมาชิก</b></a></li>` :
+                        `<li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self" onclick="confirmAndRestore(event, 'row-${index + 1}', ${member.user_id})"><b class="green">กู้คืนสมาชิก</b></a></li>`
+                    }
                             </ul>
                         </div>
                     </td>
@@ -236,7 +248,7 @@
             }
 
             try {
-                const response = await fetch(`http://localhost:3000/api/members/search?term=${encodeURIComponent(searchTerm)}&page=${currentPage}&pageSize=${pageSize}&sortField=${sortField}&sortOrder=${sortOrder}`, {
+                const response = await fetch(`http://localhost:3000/api/members/tbm/search?term=${encodeURIComponent(searchTerm)}&page=${currentPage}&pageSize=${pageSize}&sortField=${sortField}&sortOrder=${sortOrder}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -262,7 +274,7 @@
             const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลบสมาชิกนี้?");
             if (confirmation) {
                 try {
-                    const response = await fetch(`http://localhost:3000/api/members/${memberId}`, {
+                    const response = await fetch(`http://localhost:3000/api/members/tbm/${memberId}`, {
                         method: 'DELETE',
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -277,6 +289,30 @@
                 } catch (error) {
                     console.error('Error deleting member:', error);
                     alert("เกิดข้อผิดพลาดในการลบสมาชิก");
+                }
+            }
+        }
+
+        async function confirmAndRestore(event, rowId, memberId) {
+            event.preventDefault();
+            const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการกู้คืนสมาชิกนี้?");
+            if (confirmation) {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/members/tbm/${memberId}/restore`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    if (response.ok) {
+                        fetchMembers(currentPage, '', sortField, sortOrder);
+                        alert("สมาชิกถูกกู้คืนเรียบร้อยแล้ว");
+                    } else {
+                        alert("เกิดข้อผิดพลาดในการกู้คืนสมาชิก");
+                    }
+                } catch (error) {
+                    console.error('Error restoring member:', error);
+                    alert("เกิดข้อผิดพลาดในการกู้คืนสมาชิก");
                 }
             }
         }
@@ -460,7 +496,7 @@
                             <i class="fas fa-cogs mr-3"></i>
                             ${navItems[5]}
                         </a>
-                    </li>
+                        </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="fund.html">

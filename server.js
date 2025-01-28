@@ -40,14 +40,14 @@ app.use(cors());
 
 // Routes
 app.use('/api/auth', authRoutes(pool));
-app.use('/api/members', authMiddleware, memberRoutes(pool));
-app.use('/api/activities', authMiddleware, activityRoutes(pool));
-app.use('/api/skills', authMiddleware, skillRoutes(pool));
-app.use('/api/funds', authMiddleware, fundRoutes(pool));
-app.use('/api/community-config', authMiddleware, communityConfigRoutes(pool));
-app.use('/api/exchange-rates', authMiddleware, exchangeRatesRoutes(pool));
-app.use('/api/transactions', authMiddleware, transactionRoutes(pool));
-app.use('/api/report', authMiddleware, reportRoutes(pool)); // Use the new report routes
+app.use('/api/members/tbm', authMiddleware, memberRoutes(pool));
+app.use('/api/activities/tbm', authMiddleware, activityRoutes(pool));
+app.use('/api/skills/tbm', authMiddleware, skillRoutes(pool));
+app.use('/api/funds/tbm', authMiddleware, fundRoutes(pool));
+app.use('/api/community-config/tbm', authMiddleware, communityConfigRoutes(pool));
+app.use('/api/exchange-rates/tbm', authMiddleware, exchangeRatesRoutes(pool));
+app.use('/api/transactions/tbm', authMiddleware, transactionRoutes(pool));
+app.use('/api/report/tbm', authMiddleware, reportRoutes(pool)); // Use the new report routes
 
 app.get('/', (req, res) => {
     res.send('Welcome to Time Bank API');

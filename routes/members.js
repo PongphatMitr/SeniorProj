@@ -250,7 +250,7 @@ const memberRoutes = (pool) => {
         }
     });
 
-    // Delete a member by ID
+    // Deactivate a member by ID
     router.delete('/:id', async (req, res) => {
         const { id } = req.params;
 
@@ -258,30 +258,41 @@ const memberRoutes = (pool) => {
             return res.status(400).json({ error: 'Invalid member ID' });
         }
 
-        const client = await pool.connect();
         try {
-            await client.query('BEGIN');
-
-            // Delete related records in member_skills, activity_participants, and transactions
-            await client.query('DELETE FROM member_skills WHERE user_id = $1', [id]);
-            await client.query('DELETE FROM activity_participants WHERE user_id = $1', [id]);
-            await client.query('DELETE FROM transactions WHERE user_id = $1', [id]);
-
-            // Delete the member
-            const result = await client.query('DELETE FROM users WHERE user_id = $1 RETURNING *', [id]);
+            const result = await pool.query(
+                'UPDATE users SET status = $1 WHERE user_id = $2 RETURNING *',
+                ['inactive', id]
+            );
             if (result.rowCount === 0) {
-                await client.query('ROLLBACK');
                 return res.status(404).json({ error: 'Member not found' });
             }
-
-            await client.query('COMMIT');
-            res.status(200).json({ message: 'Member deleted successfully' });
+            res.status(200).json({ message: 'Member deactivated successfully' });
         } catch (err) {
-            await client.query('ROLLBACK');
             console.error('Error:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
-        } finally {
-            client.release();
+        }
+    });
+
+    // Restore a member by ID
+    router.put('/:id/restore', async (req, res) => {
+        const { id } = req.params;
+
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid member ID' });
+        }
+
+        try {
+            const result = await pool.query(
+                'UPDATE users SET status = $1 WHERE user_id = $2 RETURNING *',
+                ['active', id]
+            );
+            if (result.rowCount === 0) {
+                return res.status(404).json({ error: 'Member not found' });
+            }
+            res.status(200).json({ message: 'Member restored successfully' });
+        } catch (err) {
+            console.error('Error:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
 

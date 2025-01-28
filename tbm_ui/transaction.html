@@ -59,21 +59,12 @@
         let currentPage = 1;
         const pageSize = 10;
         let totalActivities = 0;
-        let sortOrder = {
-            activity_id: 'asc',
-            title: 'asc',
-            description: 'asc',
-            start_date: 'asc',
-            end_date: 'asc',
-            status: 'asc',
-            requester_name: 'asc'
-        };
-
-        let activeSortColumns = []; // To keep track of active sorting columns
+        let sortColumn = '';
+        let sortDirection = 'asc';
 
         async function fetchActivities(page) {
             try {
-                const response = await fetch(`http://localhost:3000/api/activities/all?page=${page}&pageSize=${pageSize}`, {
+                const response = await fetch(`http://localhost:3000/api/activities?page=${page}&pageSize=${pageSize}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -194,30 +185,28 @@
         }
 
         function sortTable(column) {
-            if (activeSortColumns.includes(column)) {
-                sortOrder[column] = sortOrder[column] === 'asc' ? 'desc' : 'asc';
+            if (sortColumn === column) {
+                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
             } else {
-                activeSortColumns.push(column);
-                sortOrder[column] = 'asc';
+                sortColumn = column;
+                sortDirection = 'asc';
             }
 
             activities.sort((a, b) => {
-                for (let col of activeSortColumns) {
-                    let aValue = a[col];
-                    let bValue = b[col];
+                let aValue = a[column];
+                let bValue = b[column];
 
-                    // Convert date strings to Date objects for comparison
-                    if (col === 'start_date' || col === 'end_date') {
-                        aValue = new Date(aValue);
-                        bValue = new Date(bValue);
-                    }
+                // Convert date strings to Date objects for comparison
+                if (column === 'start_date' || column === 'end_date') {
+                    aValue = new Date(aValue);
+                    bValue = new Date(bValue);
+                }
 
-                    if (aValue < bValue) {
-                        return sortOrder[col] === 'asc' ? -1 : 1;
-                    }
-                    if (aValue > bValue) {
-                        return sortOrder[col] === 'asc' ? 1 : -1;
-                    }
+                if (aValue < bValue) {
+                    return sortDirection === 'asc' ? -1 : 1;
+                }
+                if (aValue > bValue) {
+                    return sortDirection === 'asc' ? 1 : -1;
                 }
                 return 0;
             });
@@ -229,16 +218,16 @@
                 icon.classList.remove('fa-sort-up', 'fa-sort-down');
                 icon.classList.add('fa-sort');
             });
-            activeSortColumns.forEach(col => {
-                const currentHeader = document.querySelector(`th[data-column="${col}"] i`);
-                if (sortOrder[col] === 'asc') {
+            const currentHeader = document.querySelector(`th[data-column="${column}"] i`);
+            if (currentHeader) {
+                if (sortDirection === 'asc') {
                     currentHeader.classList.remove('fa-sort');
                     currentHeader.classList.add('fa-sort-up');
                 } else {
                     currentHeader.classList.remove('fa-sort');
                     currentHeader.classList.add('fa-sort-down');
                 }
-            });
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -769,16 +758,28 @@
 
             // Sorting table functionality
             function sortTable(column) {
-                const direction = sortColumn === column && sortDirection === 'asc' ? 'desc' : 'asc';
-                sortColumn = column;
-                sortDirection = direction;
+                if (sortColumn === column) {
+                    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortColumn = column;
+                    sortDirection = 'asc';
+                }
 
                 activities.sort((a, b) => {
-                    if (a[column] < b[column]) {
-                        return direction === 'asc' ? -1 : 1;
+                    let aValue = a[column];
+                    let bValue = b[column];
+
+                    // Convert date strings to Date objects for comparison
+                    if (column === 'start_date' || column === 'end_date') {
+                        aValue = new Date(aValue);
+                        bValue = new Date(bValue);
                     }
-                    if (a[column] > b[column]) {
-                        return direction === 'asc' ? 1 : -1;
+
+                    if (aValue < bValue) {
+                        return sortDirection === 'asc' ? -1 : 1;
+                    }
+                    if (aValue > bValue) {
+                        return sortDirection === 'asc' ? 1 : -1;
                     }
                     return 0;
                 });
@@ -791,14 +792,16 @@
                     icon.classList.add('fa-sort');
                 });
                 const currentHeader = document.querySelector(`th[data-column="${column}"] i`);
-                if (direction === 'asc') {
-                    currentHeader.classList.remove('fa-sort');
-                    currentHeader.classList.add('fa-sort-up');
-                } else {
-                    currentHeader.classList.remove('fa-sort');
-                    currentHeader.classList.add('fa-sort-down');
+                if (currentHeader) {
+                    if (sortDirection === 'asc') {
+                        currentHeader.classList.remove('fa-sort');
+                        currentHeader.classList.add('fa-sort-up');
+                    } else {
+                        currentHeader.classList.remove('fa-sort');
+                        currentHeader.classList.add('fa-sort-down');
+                    }
                 }
-            };
+            }
 
             document.querySelectorAll('th.sortable').forEach(header => {
                 header.addEventListener('click', () => {
