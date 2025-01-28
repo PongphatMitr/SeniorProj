@@ -6,6 +6,171 @@
     <title>แก้ไขกิจกรรม - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+</head>
+
+<body class="bg-gray-100">
+    <div class="flex flex-col md:flex-row">
+        <!-- Sidebar -->
+        <div class="w-1/6 bg-white h-screen p-5">
+            <div class="flex items-center mb-10">
+                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
+                    class="w-10 h-10 rounded-full" height="50"
+                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
+                    width="50" />
+                <span class="ml-3 text-xl font-bold text-blue-600">
+                    TIMEBANK
+                </span>
+            </div>
+            <nav>
+                <ul id="navList">
+                    <!-- Navigation items will be dynamically inserted here -->
+                </ul>
+            </nav>
+        </div>
+        <!-- Main Content -->
+        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
+            <h1 class="text-4xl font-bold mb-5">
+                แก้ไขกิจกรรม
+            </h1>
+            <div class="bg-white text-black p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
+                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">
+                    รายละเอียดกิจกรรม
+                </h2>
+                <form onsubmit="updateActivity(event)">
+                    <div class="flex flex-wrap -mx-3 mb-4">
+                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="title">
+                                ชื่อกิจกรรม
+                            </label>
+                            <input id="title"
+                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="text" disabled />
+                        </div>
+                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="requester-name">
+                                ชื่อผู้ขอ
+                            </label>
+                            <input id="requester-name"
+                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="text" oninput="searchMembers()" disabled />
+                            <div id="search-results-dropdown"
+                                class="bg-white border border-gray-300 mt-1 rounded shadow-lg z-10 hidden dropdown-content">
+                                <!-- Search results will be dynamically inserted here -->
+                            </div>
+                            <input id="requester-id" type="hidden" />
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="description">
+                            รายละเอียด
+                        </label>
+                        <textarea id="description"
+                            class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            disabled></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="location">
+                            สถานที่
+                        </label>
+                        <input id="location"
+                            class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            type="text" disabled />
+                    </div>
+                    <div class="flex flex-wrap -mx-3 mb-4">
+                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="start-date">
+                                วันที่เริ่มต้น
+                            </label>
+                            <input id="start-date"
+                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="date" disabled />
+                        </div>
+                        <div class="w-full md:w-1/2 px-3">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="start-time">
+                                เวลาเริ่มต้น
+                            </label>
+                            <input id="start-time"
+                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="time" disabled />
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap -mx-3 mb-4">
+                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="end-date">
+                                วันที่สิ้นสุด
+                            </label>
+                            <input id="end-date"
+                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="date" disabled />
+                        </div>
+                        <div class="w-full md:w-1/2 px-3">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="end-time">
+                                เวลาสิ้นสุด
+                            </label>
+                            <input id="end-time"
+                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="time" disabled />
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap -mx-3 mb-4">
+                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="max-participants">
+                                จำนวนผู้เข้าร่วมสูงสุด
+                            </label>
+                            <input id="max-participants"
+                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="number" oninput="calculateTimeTokens()" disabled />
+                        </div>
+                        <div class="w-full md:w-1/2 px-3">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="status">
+                                สถานะ
+                            </label>
+                            <select id="status"
+                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                disabled>
+                                <option value="กำลังจะเริ่ม">กำลังจะเริ่ม</option>
+                                <option value="เสร็จสิ้น">เสร็จสิ้น</option>
+                                <option value="ยกเลิก">ยกเลิก</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap -mx-3 mb-4">
+                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="time-tokens-required">
+                                จำนวนโทเค็นเวลาที่ต้องการ
+                            </label>
+                            <input id="time-tokens-required"
+                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="number" readonly />
+                        </div>
+                        <div class="w-full md:w-1/2 px-3">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="time-tokens-per-participant">
+                                จำนวนโทเค็นเวลาต่อผู้เข้าร่วม
+                            </label>
+                            <input id="time-tokens-per-participant"
+                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="number" readonly />
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-center">
+                        <button
+                            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
+                            type="button" onclick="window.history.back()">ย้อนกลับ</button>
+                        <button
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
+                            type="button" id="edit-button" onclick="enableEditing()">แก้ไข</button>
+                        <button
+                            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
+                            type="submit" id="save-button" style="display: none;">บันทึกการแก้ไข</button>
+                        <button
+                            class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
+                            type="button"
+                            onclick="window.location.href='activity-details-participant.html?id=' + new URLSearchParams(window.location.search).get('id')">รายชื่อผู้เข้าร่วม</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     <script>
         let members = [];
         let exchangeRate = null;
@@ -310,313 +475,10 @@
                 document.getElementById('end-time').value = currentTime;
             }
 
-            updateSidebar();
+            checkLoginStatus();
         });
-
-        function updateSidebar() {
-            const navList = document.getElementById('navList');
-            const token = localStorage.getItem('token');
-
-            if (token) {
-                navList.innerHTML = `
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="profile.html">
-                            <i class="fas fa-user mr-3"></i>
-                            โปรไฟล์
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="report.html">
-                            <i class="fas fa-chart-bar mr-3"></i>
-                            รายงาน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="activity.html">
-                            <i class="fas fa-calendar-alt mr-3"></i>
-                            จัดการกิจกรรม
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="member.html">
-                            <i class="fas fa-users mr-3"></i>
-                            จัดการสมาชิก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="skillconf.html">
-                            <i class="fas fa-cogs mr-3"></i>
-                            จัดการหมวหมู่ทักษะ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="fund.html">
-                            <i class="fas fa-hand-holding-usd mr-3"></i>
-                            จัดการกองทุนชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="commconf.html">
-                            <i class="fas fa-cog mr-3"></i>
-                            จัดการชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="transaction.html">
-                            <i class="fas fa-exchange-alt mr-3"></i>
-                            ธุรกรรมทั้งหมด
-                        </a>
-                    </li>
-                `;
-            } else {
-                navList.innerHTML = `
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="login.html">
-                            <i class="fas fa-sign-in-alt mr-3"></i>
-                            Login
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="report.html">
-                            <i class="fas fa-chart-bar mr-3"></i>
-                            รายงาน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="activity.html">
-                            <i class="fas fa-calendar-alt mr-3"></i>
-                            จัดการกิจกรรม
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="member.html">
-                            <i class="fas fa-users mr-3"></i>
-                            จัดการสมาชิก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="skillconf.html">
-                            <i class="fas fa-cogs mr-3"></i>
-                            จัดการหมวหมู่ทักษะ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="fund.html">
-                            <i class="fas fa-hand-holding-usd mr-3"></i>
-                            จัดการกองทุนชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="commconf.html">
-                            <i class="fas fa-cog mr-3"></i>
-                            จัดการชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="transaction.html">
-                            <i class="fas fa-exchange-alt mr-3"></i>
-                            ธุรกรรมทั้งหมด
-                        </a>
-                    </li>
-                `;
-            }
-        }
     </script>
-</head>
-
-<body class="bg-gray-100">
-    <div class="flex flex-col md:flex-row">
-        <!-- Sidebar -->
-        <div class="w-1/6 bg-white h-screen p-5">
-            <div class="flex items-center mb-10">
-                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
-                    class="w-10 h-10 rounded-full" height="50"
-                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
-                    width="50" />
-                <span class="ml-3 text-xl font-bold text-blue-600">
-                    TIMEBANK
-                </span>
-            </div>
-            <nav>
-                <ul id="navList">
-                    <!-- Navigation items will be dynamically inserted here -->
-                </ul>
-            </nav>
-        </div>
-        <!-- Main Content -->
-        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
-            <h1 class="text-4xl font-bold mb-5">
-                แก้ไขกิจกรรม
-            </h1>
-            <div class="bg-white text-black p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
-                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">
-                    รายละเอียดกิจกรรม
-                </h2>
-                <form onsubmit="updateActivity(event)">
-                    <div class="flex flex-wrap -mx-3 mb-4">
-                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="title">
-                                ชื่อกิจกรรม
-                            </label>
-                            <input id="title"
-                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="text" disabled />
-                        </div>
-                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="requester-name">
-                                ชื่อผู้ขอ
-                            </label>
-                            <input id="requester-name"
-                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="text" oninput="searchMembers()" disabled />
-                            <div id="search-results-dropdown"
-                                class="bg-white border border-gray-300 mt-1 rounded shadow-lg z-10 hidden dropdown-content">
-                                <!-- Search results will be dynamically inserted here -->
-                            </div>
-                            <input id="requester-id" type="hidden" />
-                        </div>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="description">
-                            รายละเอียด
-                        </label>
-                        <textarea id="description"
-                            class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            disabled></textarea>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="location">
-                            สถานที่
-                        </label>
-                        <input id="location"
-                            class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            type="text" disabled />
-                    </div>
-                    <div class="flex flex-wrap -mx-3 mb-4">
-                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="start-date">
-                                วันที่เริ่มต้น
-                            </label>
-                            <input id="start-date"
-                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="date" disabled />
-                        </div>
-                        <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="start-time">
-                                เวลาเริ่มต้น
-                            </label>
-                            <input id="start-time"
-                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="time" disabled />
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap -mx-3 mb-4">
-                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="end-date">
-                                วันที่สิ้นสุด
-                            </label>
-                            <input id="end-date"
-                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="date" disabled />
-                        </div>
-                        <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="end-time">
-                                เวลาสิ้นสุด
-                            </label>
-                            <input id="end-time"
-                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="time" disabled />
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap -mx-3 mb-4">
-                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="max-participants">
-                                จำนวนผู้เข้าร่วมสูงสุด
-                            </label>
-                            <input id="max-participants"
-                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="number" oninput="calculateTimeTokens()" disabled />
-                        </div>
-                        <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="status">
-                                สถานะ
-                            </label>
-                            <select id="status"
-                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                disabled>
-                                <option value="กำลังจะเริ่ม">กำลังจะเริ่ม</option>
-                                <option value="เสร็จสิ้น">เสร็จสิ้น</option>
-                                <option value="ยกเลิก">ยกเลิก</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap -mx-3 mb-4">
-                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="time-tokens-required">
-                                จำนวนโทเค็นเวลาที่ต้องการ
-                            </label>
-                            <input id="time-tokens-required"
-                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="number" readonly />
-                        </div>
-                        <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="time-tokens-per-participant">
-                                จำนวนโทเค็นเวลาต่อผู้เข้าร่วม
-                            </label>
-                            <input id="time-tokens-per-participant"
-                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="number" readonly />
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-center">
-                        <button
-                            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
-                            type="button" onclick="window.history.back()">ย้อนกลับ</button>
-                        <button
-                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
-                            type="button" id="edit-button" onclick="enableEditing()">แก้ไข</button>
-                        <button
-                            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
-                            type="submit" id="save-button" style="display: none;">บันทึกการแก้ไข</button>
-                        <button
-                            class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
-                            type="button"
-                            onclick="window.location.href='activity-details-participant.html?id=' + new URLSearchParams(window.location.search).get('id')">รายชื่อผู้เข้าร่วม</button>
-                    </div>
-                </form>
-            </div>
-        </div>
-    </div>
+    <script src="navbar.js"></script>
 </body>
 
 </html>
