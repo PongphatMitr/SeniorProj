@@ -281,154 +281,6 @@
                 }
             }
         }
-
-        function updateSidebar(isLoggedIn) {
-            const navList = document.getElementById('navList');
-
-            // Translations for navigation menu
-            const translations = {
-                thai: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
-                english: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
-            };
-
-            // Get the current language from localStorage or default to 'thai'
-            const currentLang = localStorage.getItem('selectedLanguage') || 'thai';
-            const navItems = translations[currentLang]; // Get navigation items based on the selected language
-
-            if (isLoggedIn) {
-                navList.innerHTML = `
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="profile.html">
-                            <i class="fas fa-user mr-3"></i>
-                            ${navItems[0]}
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            ${navItems[1]}
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="report.html">
-                            <i class="fas fa-chart-bar mr-3"></i>
-                            ${navItems[2]}
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="activity.html">
-                            <i class="fas fa-calendar-alt mr-3"></i>
-                            ${navItems[3]}
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="member.html">
-                            <i class="fas fa-users mr-3"></i>
-                            ${navItems[4]}
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="skillconf.html">
-                            <i class="fas fa-cogs mr-3"></i>
-                            ${navItems[5]}
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="fund.html">
-                            <i class="fas fa-hand-holding-usd mr-3"></i>
-                            ${navItems[6]}
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="commconf.html">
-                            <i class="fas fa-cog mr-3"></i>
-                            ${navItems[7]}
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="transaction.html">
-                            <i class="fas fa-exchange-alt mr-3"></i>
-                            ${navItems[8]}
-                        </a>
-                    </li>
-                `;
-            } else {
-                navList.innerHTML = `
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="login.html">
-                            <i class="fas fa-sign-in-alt mr-3"></i>
-                            ${currentLang === 'thai' ? 'เข้าสู่ระบบ' : 'Login'}
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            ${navItems[1]}
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="report.html">
-                            <i class="fas fa-chart-bar mr-3"></i>
-                            ${navItems[2]}
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="activity.html">
-                            <i class="fas fa-calendar-alt mr-3"></i>
-                            ${navItems[3]}
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="member.html">
-                            <i class="fas fa-users mr-3"></i>
-                            ${navItems[4]}
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="skillconf.html">
-                            <i class="fas fa-cogs mr-3"></i>
-                            ${navItems[5]}
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="fund.html">
-                            <i class="fas fa-hand-holding-usd mr-3"></i>
-                            ${navItems[6]}
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="commconf.html">
-                            <i class="fas fa-cog mr-3"></i>
-                            ${navItems[7]}
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="transaction.html">
-                            <i class="fas fa-exchange-alt mr-3"></i>
-                            ${navItems[8]}
-                        </a>
-                    </li>
-                `;
-            }
-        }
     </script>
 </head>
 
@@ -447,69 +299,7 @@
             </div>
             <nav>
                 <ul id="navList">
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="login.html">
-                            <i class="fas fa-sign-in-alt mr-3"></i>
-                            Login
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="report.html">
-                            <i class="fas fa-chart-bar mr-3"></i>
-                            รายงาน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="activity.html">
-                            <i class="fas fa-calendar-alt mr-3"></i>
-                            จัดการกิจกรรม
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="member.html">
-                            <i class="fas fa-users mr-3"></i>
-                            จัดการสมาชิก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="skillconf.html">
-                            <i class="fas fa-cogs mr-3"></i>
-                            จัดการหมวหมู่ทักษะ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="fund.html">
-                            <i class="fas fa-hand-holding-usd mr-3"></i>
-                            จัดการกองทุนชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="commconf.html">
-                            <i class="fas fa-cog mr-3"></i>
-                            จัดการชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="transaction.html">
-                            <i class="fas fa-exchange-alt mr-3"></i>
-                            ธุรกรรมทั้งหมด
-                        </a>
-                    </li>
+                    <!-- Navigation items will be populated by navbar.js -->
                 </ul>
             </nav>
         </div>
@@ -599,13 +389,10 @@
             display: flex;
             background-color: #E5E7EB;
             border-radius: 20px;
-            /* Increase border radius for larger container */
             padding: 6px;
-            /* Larger padding for better spacing */
             align-items: center;
             justify-content: space-between;
             width: 180px;
-            /* Increase width for a larger toggle */
         }
 
         /* Labels */
@@ -624,7 +411,6 @@
         .toggle-label.active {
             background-color: white;
             color: #1D4ED8;
-            /* Blue for active text */
             font-weight: bold;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
@@ -632,15 +418,14 @@
         /* Disabled Label */
         .toggle-label.disabled {
             pointer-events: none;
-            /* Make it unclickable */
             background-color: white;
             color: #6B7280;
-            /* Light gray text */
             font-weight: bold;
         }
     </style>
 
     <script src="selected-language.js"></script>
+    <script src="navbar.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -681,8 +466,7 @@
                     tableHeaders: ['Activity ID', 'Activity Title', 'Description', 'Start Date', 'End Date', 'Status', 'Requester Name'],
                     backButton: 'Go Back',
                     nav: [
-                        'Profile',
-                        'Homepage',
+                        'Profile', 'Homepage',
                         'Reports Overview',
                         'Activities Management',
                         'Members Management',
