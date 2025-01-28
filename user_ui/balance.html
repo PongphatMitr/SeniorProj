@@ -1,495 +1,244 @@
 <html lang="en">
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   ยอดคงเหลือ - Time Bank
+  </title>
+  <script src="https://cdn.tailwindcss.com">
+  </script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+ </head>
+ <body class="bg-gray-100 font-roboto">
+  <div class="flex flex-col md:flex-row">
+   <!-- Sidebar -->
+   <div class="w-full md:w-1/6 bg-white h-screen p-5">
+    <div class="flex items-center mb-10">
+     <img alt="Logo of Time Bank System, a clock with a handshake in the center" class="w-10 h-10 rounded-full" height="50" src="https://placehold.co/50x50" width="50"/>
+     <span class="ml-3 text-xl font-bold text-blue-600">
+      TIMEBANK
+     </span>
+    </div>
+    <nav>
+     <ul id="navList">
+      <li class="mb-5">
+       <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="log-out.html">
+        <i class="fas fa-user mr-3">
+        </i>
+        โปรไฟล์
+       </a>
+      </li>
+      <li class="mb-5">
+       <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="homepage.html">
+        <i class="fas fa-home mr-3">
+        </i>
+        หน้าหลัก
+       </a>
+      </li>
+      <li class="mb-5">
+       <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="service.html">
+        <i class="fas fa-clipboard-list mr-3">
+        </i>
+        ยื่นข้อของานบริการ
+       </a>
+      </li>
+      <li class="mb-5">
+       <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="profile.html">
+        <i class="fas fa-user-edit mr-3">
+        </i>
+        แก้ไขประวัติ
+       </a>
+      </li>
+      <li class="mb-5">
+       <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="skillconf.html">
+        <i class="fas fa-tools mr-3">
+        </i>
+        แก้ไขทักษะ
+       </a>
+      </li>
+      <li class="mb-5">
+       <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="balance.html">
+        <i class="fas fa-wallet mr-3">
+        </i>
+        ยอดคงเหลือ
+       </a>
+      </li>
+      <li class="mb-5">
+       <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="history.html">
+        <i class="fas fa-history mr-3">
+        </i>
+        ประวัติ
+       </a>
+      </li>
+      <li class="mb-5">
+       <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="contact.html">
+        <i class="fas fa-phone mr-3">
+        </i>
+        ติดต่อเรา
+       </a>
+      </li>
+     </ul>
+    </nav>
+   </div>
+   <!-- Main Content -->
+   <div class="w-full md:w-5/6 bg-blue-700 text-white p-10 flex justify-center items-center">
+    <div class="bg-white text-black p-8 rounded-lg shadow-lg w-full max-w-3xl">
+     <h1 class="text-4xl font-bold mb-5 text-center">
+      ยอดคงเหลือ
+     </h1>
+     <div class="balance-section mb-8">
+      <h2 class="text-3xl font-bold mb-6 text-blue-700 text-center">
+       ยอดคงเหลือปัจจุบัน
+      </h2>
+      <div class="balance-details flex justify-center">
+       <div class="text-center">
+        <p class="text-2xl font-semibold">
+         จำนวนชั่วโมงที่สะสม
+        </p>
+        <p class="text-4xl font-bold mt-2 text-blue-600" id="timecredit_balance">
+        </p>
+       </div>
+      </div>
+     </div>
+     <div class="transaction-history">
+      <h2 class="text-3xl font-bold mb-6 text-blue-700 text-center">
+       ประวัติการทำธุรกรรม
+      </h2>
+      <div class="transaction-list space-y-4">
+       <div class="transaction-item bg-gray-100 p-4 rounded-lg shadow-md">
+        <div class="flex justify-between items-center">
+         <div>
+          <p class="text-lg font-semibold">
+           บริการทำความสะอาด
+          </p>
+          <p class="text-gray-600">
+           วันที่: 2023-10-01
+          </p>
+         </div>
+         <p class="text-lg font-bold text-blue-600">
+          +2 ชั่วโมง
+         </p>
+        </div>
+       </div>
+       <div class="transaction-item bg-gray-100 p-4 rounded-lg shadow-md">
+        <div class="flex justify-between items-center">
+         <div>
+          <p class="text-lg font-semibold">
+           บริการซ่อมแซม
+          </p>
+          <p class="text-gray-600">
+           วันที่: 2023-09-25
+          </p>
+         </div>
+         <p class="text-lg font-bold text-red-600">
+          -1 ชั่วโมง
+         </p>
+        </div>
+       </div>
+       <div class="transaction-item bg-gray-100 p-4 rounded-lg shadow-md">
+        <div class="flex justify-between items-center">
+         <div>
+          <p class="text-lg font-semibold">
+           บริการทำสวน
+          </p>
+          <p class="text-gray-600">
+           วันที่: 2023-09-20
+          </p>
+         </div>
+         <p class="text-lg font-bold text-blue-600">
+          +3 ชั่วโมง
+         </p>
+        </div>
+       </div>
+       <div class="transaction-item bg-gray-100 p-4 rounded-lg shadow-md">
+        <div class="flex justify-between items-center">
+         <div>
+          <p class="text-lg font-semibold">
+           บริการทำอาหาร
+          </p>
+          <p class="text-gray-600">
+           วันที่: 2023-09-15
+          </p>
+         </div>
+         <p class="text-lg font-bold text-red-600">
+          -2 ชั่วโมง
+         </p>
+        </div>
+       </div>
+       <div class="transaction-item bg-gray-100 p-4 rounded-lg shadow-md">
+        <div class="flex justify-between items-center">
+         <div>
+          <p class="text-lg font-semibold">
+           บริการขนย้าย
+          </p>
+          <p class="text-gray-600">
+           วันที่: 2023-09-10
+          </p>
+         </div>
+         <p class="text-lg font-bold text-blue-600">
+          +4 ชั่วโมง
+         </p>
+        </div>
+       </div>
+      </div>
+     </div>
+    </div>
+   </div>
+  </div>
+  <script>
+   let globalUserId = null; // Global variable to store user_id
 
-<head>
-    <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>ยอดคงเหลือ - Time Bank</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
-    <style>
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            background-color: white;
-            min-width: 160px;
-            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-            z-index: 1;
-            border-radius: 0.5rem;
-            overflow: hidden;
-        }
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchMemberProfile();
+        });
 
-        .dropdown-content.show {
-            display: block;
-        }
-
-        .dropdown-item {
-            padding: 0.5rem 1rem;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .dropdown-item:hover {
-            background-color: #f1f1f1;
-        }
-
-        .dropdown-item b {
-            color: rgb(0, 123, 255);
-            transition: color 0.3s ease;
-        }
-
-        .dropdown-item:hover b {
-            color: rgb(0, 86, 179);
-        }
-
-        .dropdown-item b.red {
-            color: red;
-        }
-
-        .dropdown-item:hover b.red {
-            color: darkred;
-        }
-
-        th.sortable:hover {
-            cursor: pointer;
-            background-color: #f1f1f1;
-        }
-    </style>
-    <script>
-        let transactions = [];
-        let currentPage = 1;
-        const pageSize = 10;
-        let totalTransactions = 0;
-        let sortColumn = '';
-        let sortDirection = 'asc';
-
-        async function fetchTransactions(page) {
+        async function fetchMemberProfile() {
             try {
-                const response = await fetch(`http://localhost:3000/api/user/members/transactions/all?page=${page}&pageSize=${pageSize}`, {
+                const response = await fetch('http://localhost:3000/api/user/auth/profile', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    throw new Error('Network response was not ok');
                 }
-
                 const data = await response.json();
-                if (Array.isArray(data.transactions)) {
-                    transactions = data.transactions;
-                    totalTransactions = data.total;
-                    await fetchActivityDescriptions();
-                    renderTable(transactions);
-                    renderPagination();
-                } else {
-                    console.error('Expected an array but got:', data);
-                    alert('เกิดข้อผิดพลาดในการดึงข้อมูลธุรกรรม');
+                globalUserId = data.user_id;
+                document.getElementById('timecredit_balance').innerText = `${data.time_credits} ชั่วโมง`;
+                await fetchTransactions(globalUserId);
+            } catch (error) {
+                console.error('Error fetching member profile:', error);
+            }
+        }
+
+        async function fetchTransactions(userId) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/${userId}/transactions`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
                 }
+                const transactions = await response.json();
+                const transactionList = document.querySelector('.transaction-list');
+                transactionList.innerHTML = transactions.map(transaction => `
+                    <div class="transaction-item bg-gray-100 p-4 rounded-lg shadow-md">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-lg font-semibold">${transaction.service}</p>
+                                <p class="text-gray-600">วันที่: ${transaction.date}</p>
+                            </div>
+                            <p class="text-lg font-bold ${transaction.hours > 0 ? 'text-blue-600' : 'text-red-600'}">${transaction.hours > 0 ? '+' : ''}${transaction.hours} ชั่วโมง</p>
+                        </div>
+                    </div>
+                `).join('');
             } catch (error) {
                 console.error('Error fetching transactions:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลธุรกรรม');
             }
         }
-
-        async function fetchActivityDescriptions() {
-            const activityIds = transactions.map(transaction => transaction.activity_id);
-            const uniqueActivityIds = [...new Set(activityIds)];
-
-            const activityDescriptions = {};
-
-            for (const activityId of uniqueActivityIds) {
-                try {
-                    const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}`, {
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        }
-                    });
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                    }
-                    const activity = await response.json();
-                    activityDescriptions[activityId] = activity.description;
-                } catch (error) {
-                    console.error('Error fetching activity description:', error);
-                }
-            }
-
-            transactions = transactions.map(transaction => ({
-                ...transaction,
-                activity_description: activityDescriptions[transaction.activity_id] || 'No description available'
-            }));
-        }
-
-        function renderTable(data) {
-            const tbody = document.getElementById('transaction-tbody');
-            tbody.innerHTML = '';
-            data.forEach((transaction, index) => {
-                const row = document.createElement('tr');
-                row.id = `row-${index + 1}`;
-                row.className = 'hover:bg-gray-100';
-                const timeCreditsClass = transaction.transaction_type === 'earn' ? 'text-green-500' : 'text-red-500';
-                row.innerHTML = `
-                    <td aria-colindex="1" data-label="รหัสธุรกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${transaction.transaction_id}
-                    </td>
-                    <td aria-colindex="2" data-label="วันที่" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${new Date(transaction.date).toLocaleDateString()}
-                    </td>
-                    <td aria-colindex="3" data-label="เวลา" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${transaction.time}
-                    </td>
-                    <td aria-colindex="4" data-label="เครดิตเวลา" role="cell" class="py-2 px-4 border-b border-gray-200 ${timeCreditsClass}">
-                        ${transaction.time_credits}
-                    </td>
-                    <td aria-colindex="5" data-label="ชื่อผู้ขอ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${transaction.requester_name}
-                    </td>
-                    <td aria-colindex="6" data-label="ชื่อผู้เข้าร่วม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${transaction.participant_name}
-                    </td>
-                    <td aria-colindex="7" data-label="ธุรกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${transaction.activity_title}
-                    </td>
-                    <td aria-colindex="8" data-label="รายละเอียดธุรกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${transaction.activity_description}
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        function renderPagination() {
-            const paginationContainer = document.getElementById('pagination');
-            paginationContainer.innerHTML = '';
-
-            const totalPages = Math.ceil(totalTransactions / pageSize);
-
-            const firstButton = document.createElement('button');
-            firstButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1';
-            firstButton.textContent = 'หน้าแรก';
-            firstButton.onclick = () => {
-                currentPage = 1;
-                fetchTransactions(currentPage);
-            };
-            paginationContainer.appendChild(firstButton);
-
-            const prevButton = document.createElement('button');
-            prevButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1';
-            prevButton.textContent = 'ก่อนหน้า';
-            prevButton.onclick = () => {
-                if (currentPage > 1) {
-                    currentPage--;
-                    fetchTransactions(currentPage);
-                }
-            };
-            paginationContainer.appendChild(prevButton);
-
-            for (let i = 1; i <= totalPages; i++) {
-                const pageButton = document.createElement('button');
-                pageButton.className = `bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1 ${i === currentPage ? 'bg-blue-700' : ''}`;
-                pageButton.textContent = i;
-                pageButton.onclick = () => {
-                    currentPage = i;
-                    fetchTransactions(currentPage);
-                };
-                paginationContainer.appendChild(pageButton);
-            }
-
-            const nextButton = document.createElement('button');
-            nextButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1';
-            nextButton.textContent = 'ต่อไป';
-            nextButton.onclick = () => {
-                if (currentPage < totalPages) {
-                    currentPage++;
-                    fetchTransactions(currentPage);
-                }
-            };
-            paginationContainer.appendChild(nextButton);
-
-            const lastButton = document.createElement('button');
-            lastButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1';
-            lastButton.textContent = 'หน้าสุดท้าย';
-            lastButton.onclick = () => {
-                currentPage = totalPages;
-                fetchTransactions(currentPage);
-            };
-            paginationContainer.appendChild(lastButton);
-        }
-
-        function sortTable(column) {
-            const direction = sortColumn === column && sortDirection === 'asc' ? 'desc' : 'asc';
-            sortColumn = column;
-            sortDirection = direction;
-
-            transactions.sort((a, b) => {
-                if (a[column] < b[column]) {
-                    return direction === 'asc' ? -1 : 1;
-                }
-                if (a[column] > b[column]) {
-                    return direction === 'asc' ? 1 : -1;
-                }
-                return 0;
-            });
-
-            renderTable(transactions);
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('th.sortable').forEach(header => {
-                header.addEventListener('click', () => {
-                    const column = header.getAttribute('data-column');
-                    sortTable(column);
-                });
-            });
-
-            checkLoginStatus();
-            fetchTransactions(currentPage);
-        });
-
-        function updateSidebar(isLoggedIn) {
-            const navList = document.getElementById('navList');
-            if (isLoggedIn) {
-                navList.innerHTML = `
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="log-out.html">
-                            <i class="fas fa-user mr-3"></i>
-                            โปรไฟล์
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="service.html">
-                            <i class="fas fa-clipboard-list mr-3"></i>
-                            ยื่นข้อของานบริการ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="profile.html">
-                            <i class="fas fa-user-edit mr-3"></i>
-                            แก้ไขประวัติ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="skillconf.html">
-                            <i class="fas fa-tools mr-3"></i>
-                            แก้ไขทักษะ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="balance.html">
-                            <i class="fas fa-wallet mr-3"></i>
-                            ยอดคงเหลือ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="history.html">
-                            <i class="fas fa-history mr-3"></i>
-                            ประวัติ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="contact.html">
-                            <i class="fas fa-phone mr-3"></i>
-                            ติดต่อเรา
-                        </a>
-                    </li>
-                `;
-            } else {
-                navList.innerHTML = `
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="login.html">
-                            <i class="fas fa-sign-in-alt mr-3"></i>
-                            Login
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="service.html">
-                            <i class="fas fa-clipboard-list mr-3"></i>
-                            ยื่นข้อของานบริการ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="profile.html">
-                            <i class="fas fa-user-edit mr-3"></i>
-                            แก้ไขประวัติ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="skillconf.html">
-                            <i class="fas fa-tools mr-3"></i>
-                            แก้ไขทักษะ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="balance.html">
-                            <i class="fas fa-wallet mr-3"></i>
-                            ยอดคงเหลือ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="history.html">
-                            <i class="fas fa-history mr-3"></i>
-                            ประวัติ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="contact.html">
-                            <i class="fas fa-phone mr-3"></i>
-                            ติดต่อเรา
-                        </a>
-                    </li>
-                `;
-            }
-        }
-
-        async function checkLoginStatus() {
-            const token = localStorage.getItem('token');
-            if (token) {
-                try {
-                    const response = await fetch('http://localhost:3000/api/user/auth/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-
-                    if (response.ok) {
-                        updateSidebar(true);
-                    } else {
-                        localStorage.removeItem('token');
-                        updateSidebar(false);
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    localStorage.removeItem('token');
-                    updateSidebar(false);
-                }
-            } else {
-                updateSidebar(false);
-            }
-        }
-    </script>
-</head>
-
-<body class="bg-gray-100">
-    <div class="flex flex-col md:flex-row">
-        <!-- Sidebar -->
-        <div class="w-full md:w-1/6 bg-white h-screen p-5">
-            <div class="flex items-center mb-10">
-                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
-                    class="w-10 h-10 rounded-full" height="50"
-                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
-                    width="50" />
-                <span class="ml-3 text-xl font-bold text-blue-600">
-                    TIMEBANK
-                </span>
-            </div>
-            <nav>
-                <ul id="navList">
-                    <!-- Navigation items will be dynamically inserted here -->
-                </ul>
-            </nav>
-        </div>
-
-        <!-- Main Content -->
-        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10 flex justify-center items-center">
-            <div class="bg-white text-black p-8 rounded-lg shadow-lg w-full max-w-3xl">
-                <h1 class="text-4xl font-bold mb-5 text-center">ยอดคงเหลือ</h1>
-                <div class="balance-section">
-                    <div class="mb-4">
-                        <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">ยอดคงเหลือปัจจุบัน</h2>
-                        <div class="balance-details grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="text-center">
-                                <p class="text-2xl font-semibold">จำนวนชั่วโมงที่สะสม</p>
-                                <p id="timecredit-balance" class="text-4xl font-bold mt-2 text-blue-600">Loading...</p>
-                            </div>
-                            <div class="text-center">
-                                <p class="text-2xl font-semibold">จำนวนชั่วโมงที่ยืม</p>
-                                <p id="borrowed-hours" class="text-4xl font-bold mt-2 text-red-600">Loading...</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="transaction-history mt-8">
-                    <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">ประวัติการทำธุรกรรม</h2>
-                    <div class="overflow-x-auto">
-                        <div class="table-responsive-sm">
-                            <table aria-busy="false" aria-colcount="8" class="table b-table b-table-stacked-md w-full" role="table">
-                                <thead class="bg-gray-100" role="rowgroup">
-                                    <tr role="row">
-                                        <th aria-colindex="1" class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable" data-column="transaction_id" role="columnheader" scope="col">
-                                            รหัสธุรกรรม
-                                        </th>
-                                        <th aria-colindex="2" class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable" data-column="date" role="columnheader" scope="col">
-                                            วันที่
-                                        </th>
-                                        <th aria-colindex="3" class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable" data-column="time" role="columnheader" scope="col">
-                                            เวลา
-                                        </th>
-                                        <th aria-colindex="4" class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable" data-column="time_credits" role="columnheader" scope="col">
-                                            เครดิตเวลา
-                                        </th>
-                                        <th aria-colindex="5" class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable" data-column="requester_name" role="columnheader" scope="col">
-                                            ชื่อผู้ขอ
-                                        </th>
-                                        <th aria-colindex="6" class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable" data-column="participant_name" role="columnheader" scope="col">
-                                            ชื่อผู้เข้าร่วม
-                                        </th>
-                                        <th aria-colindex="7" class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable" data-column="activity_title" role="columnheader" scope="col">
-                                            ธุรกรรม
-                                        </th>
-                                        <th aria-colindex="8" class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable" data-column="activity_description" role="columnheader" scope="col">
-                                            รายละเอียดธุรกรรม
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody id="transaction-tbody" role="rowgroup">
-                                    <!-- Transactions will be dynamically inserted here -->
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                    <div class="flex items-center justify-center mt-5" id="pagination">
-                        <!-- Pagination buttons will be dynamically inserted here -->
-                    </div>
-                    <div class="flex justify-center mt-4">
-                        <button class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" onclick="window.history.back()">
-                            ย้อนกลับ
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</body>
-
+  </script>
+ </body>
 </html>

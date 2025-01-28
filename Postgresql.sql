@@ -9,6 +9,7 @@ DROP TABLE IF EXISTS activity_participants CASCADE;
 DROP TABLE IF EXISTS transactions CASCADE;
 DROP TABLE IF EXISTS exchange_rates CASCADE;
 DROP TABLE IF EXISTS community_config CASCADE;
+DROP TABLE IF EXISTS contact_us CASCADE;
 
 -- Drop enum types if they exist (run this first)
 DROP TYPE IF EXISTS user_status CASCADE;
@@ -121,6 +122,16 @@ CREATE TABLE community_config (
     default_time_token INT DEFAULT 100,
     default_exchange_rate_id INT,
     FOREIGN KEY (default_exchange_rate_id) REFERENCES exchange_rates(rate_id)
+);
+
+-- Create the contact_us table
+CREATE TABLE contact_us (
+    contact_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL,
+    subject VARCHAR(255) NOT NULL,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW()
 );
 
 -- Insert initial data into exchange_rates
