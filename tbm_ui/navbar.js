@@ -148,6 +148,9 @@ function updateSidebar(isLoggedIn) {
 
 async function checkLoginStatus() {
     const token = localStorage.getItem('token');
+    const isLoginPage = window.location.pathname.endsWith('login.html');
+    const isRegisterPage = window.location.pathname.endsWith('register.html');
+
     if (token) {
         try {
             const response = await fetch('http://localhost:3000/api/tbm/auth/verify', {
@@ -159,12 +162,15 @@ async function checkLoginStatus() {
             });
 
             if (response.ok) {
-                updateSidebar(true);
+                if (isLoginPage || isRegisterPage) {
+                    window.location.href = 'report.html';
+                } else {
+                    updateSidebar(true);
+                }
             } else {
                 localStorage.removeItem('token');
                 updateSidebar(false);
-                const goToLogin = confirm('Session expired. Do you want to go to the login page?');
-                if (goToLogin) {
+                if (!isLoginPage && !isRegisterPage) {
                     window.location.href = 'login.html';
                 }
             }
@@ -172,16 +178,17 @@ async function checkLoginStatus() {
             console.error('Error:', error);
             localStorage.removeItem('token');
             updateSidebar(false);
-            const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
-            if (goToLogin) {
+            if (!isLoginPage && !isRegisterPage) {
                 window.location.href = 'login.html';
             }
         }
     } else {
         updateSidebar(false);
-        const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
-        if (goToLogin) {
+        if (!isLoginPage && !isRegisterPage) {
             window.location.href = 'login.html';
         }
     }
 }
+
+// Check login status on page load
+document.addEventListener('DOMContentLoaded', checkLoginStatus);

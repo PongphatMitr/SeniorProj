@@ -1,6 +1,6 @@
 const bcrypt = require('bcryptjs');
 
-const password = 'newpassword123'; // Replace with your desired password
+const password = 'savesave'; // Replace with your desired password
 
 bcrypt.hash(password, 10, (err, hash) => {
     if (err) {

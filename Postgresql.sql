@@ -9,14 +9,25 @@ DROP TABLE IF EXISTS activity_participants CASCADE;
 DROP TABLE IF EXISTS exchange_rates CASCADE;
 DROP TABLE IF EXISTS community_config CASCADE;
 DROP TABLE IF EXISTS contact_us CASCADE;
+DROP TABLE IF EXISTS branches CASCADE;
+DROP TABLE IF EXISTS community_config_log CASCADE;
+DROP TABLE IF EXISTS user_login_log CASCADE;
 
 -- Drop enum types if they exist (run this first)
 DROP TYPE IF EXISTS user_status CASCADE;
 DROP TYPE IF EXISTS activity_status CASCADE;
 
 -- Create enum types
-CREATE TYPE user_status AS ENUM ('active', 'inactive', 'suspended','pending_approval');
+CREATE TYPE user_status AS ENUM ('active', 'inactive', 'suspended', 'pending_approval', 'offline');
 CREATE TYPE activity_status AS ENUM ('กำลังจะเริ่ม', 'เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา');
+
+-- Create the branches table
+CREATE TABLE branches (
+    branch_id SERIAL PRIMARY KEY,
+    branch_name VARCHAR(100) NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
+);
 
 -- Create the users table with enum status
 CREATE TABLE users (
@@ -28,11 +39,12 @@ CREATE TABLE users (
     name VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
     address TEXT,
-    branch VARCHAR(50),
+    branch_id INT,
     time_credits INT DEFAULT 0,
     status user_status DEFAULT 'active' NOT NULL,  -- Changed to enum type
     created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
+    updated_at TIMESTAMP DEFAULT NOW(),
+    FOREIGN KEY (branch_id) REFERENCES branches(branch_id)
 );
 
 -- Create the activities table with enum status
@@ -122,6 +134,25 @@ CREATE TABLE community_config (
     FOREIGN KEY (default_exchange_rate_id) REFERENCES exchange_rates(rate_id)
 );
 
+-- Create the community_config_log table to log changes to community_config
+CREATE TABLE community_config_log (
+    log_id SERIAL PRIMARY KEY,
+    config_id INT NOT NULL,
+    changed_by INT NOT NULL,
+    change_description TEXT NOT NULL,
+    changed_at TIMESTAMP DEFAULT NOW(),
+    FOREIGN KEY (config_id) REFERENCES community_config(config_id),
+    FOREIGN KEY (changed_by) REFERENCES users(user_id)
+);
+
+-- Create the user_login_log table to log user login activities
+CREATE TABLE user_login_log (
+    log_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    login_time TIMESTAMP DEFAULT NOW(),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
 -- Create the contact_us table
 CREATE TABLE contact_us (
     contact_id SERIAL PRIMARY KEY,
@@ -133,6 +164,10 @@ CREATE TABLE contact_us (
     updated_at TIMESTAMP DEFAULT NOW()
 );
 
+-- Insert initial data into branches
+INSERT INTO branches (branch_name) VALUES 
+('Test Branch');
+
 -- Insert initial data into exchange_rates
 INSERT INTO exchange_rates (description) VALUES 
 ('1 โทเคนเวลา ต่อ 1 ชั่วโมง'),
@@ -142,10 +177,9 @@ INSERT INTO exchange_rates (description) VALUES
 INSERT INTO community_config (default_time_token, default_exchange_rate_id) VALUES (100, 1);
 
 -- Insert initial data into users
-INSERT INTO users (username, password, email, role, name, phone, address, branch, time_credits, status) 
-VALUES ('testuser', '$2a$10$y2yR9UyFAUfyYCiYqDxgteWBflWnsbYdlFZDmNPmn7P1.xUfbRFtu', 
-        'testuser@example.com', 'Member', 'Test User', '1234567890', 
-        '123 Test St, Test City', 'Test Branch', 10, 'active');
+INSERT INTO users (username, password, email, role, name, phone, address, branch_id, time_credits, status) 
+VALUES ('testuser', '$2a$10$y2yR9UyFAUfyYCiYqDxgteWBflWnsbYdlFZDmNPmn7P1.xUfbRFtu', 'testuser@example.com', 'Member', 'Test User', '1234567890', '123 Test St, Test City', 1, 10, 'active'),
+        ('save001', '$2a$10$4tEtE.kQJrXrM2G5w.8Fs.PWVcMz/WeE0iZSfPPdxz0DTY82mVOTy', 'savewaris001@gmail.com', 'Admin', 'Test User', '1234567890', '123 Test St, Test City', 1, 10, 'active');
 
 -- Insert initial data into activities
 INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, status, time_tokens_required, time_tokens_per_participant) 
