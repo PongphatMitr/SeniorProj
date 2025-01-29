@@ -24,6 +24,7 @@
             start_date: 'asc',
             status: 'asc'
         };
+        let globalUserId = null;
 
         async function confirmAndRemove(event, rowId, activityId) {
             event.preventDefault();
@@ -81,9 +82,11 @@
                     });
                     const participants = await response.json();
                     activity.current_participants = participants.length;
+                    activity.participants = participants; // Store participants for later use
                 } catch (error) {
                     console.error(`Error fetching participants for activity ${activity.activity_id}:`, error);
                     activity.current_participants = 0;
+                    activity.participants = [];
                 }
             }
         }
@@ -107,6 +110,24 @@
             const tbody = document.getElementById('activity-tbody');
             tbody.innerHTML = '';
             data.forEach((activity, index) => {
+                const userJoined = activity.participants.some(participant => participant.user_id === globalUserId);
+                let joinButtonText = 'เข้าร่วม';
+                let joinButtonClass = 'bg-blue-500';
+                let joinButtonDisabled = false;
+
+                if (activity.status === 'เสร็จสิ้น') {
+                    joinButtonText = 'เสร็จสิ้น';
+                    joinButtonClass = 'bg-green-500';
+                    joinButtonDisabled = true;
+                } else if (activity.status === 'ยกเลิก' || activity.status === 'เกินเวลา') {
+                    joinButtonText = 'ไม่สำเร็จ';
+                    joinButtonClass = 'bg-gray-500';
+                    joinButtonDisabled = true;
+                } else if (userJoined) {
+                    joinButtonText = 'ยกเลิก';
+                    joinButtonClass = 'bg-red-500';
+                }
+
                 const row = document.createElement('tr');
                 row.id = `row-${index + 1}`;
                 row.className = 'hover:bg-gray-100';
@@ -121,10 +142,13 @@
                         <span class="py-1 px-2 rounded ${activity.status === 'กำลังจะเริ่ม' ? 'bg-blue-500' : activity.status === 'เสร็จสิ้น' ? 'bg-green-500' : activity.status === 'เกินเวลา' ? 'bg-orange-500' : 'bg-red-500'} text-white">${activity.status}</span>
                     </td>
                     <td aria-colindex="4" data-label="จำนวนผู้เข้าร่วม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${activity.current_participants} / ${activity.max_participants}
+                        <span id="participants-${index}">${activity.current_participants}</span> / ${activity.max_participants}
                     </td>
                     <td aria-colindex="5" data-label="การจัดการ" role="cell" class="py-2 px-4 border-b border-gray-200">
                         <a href="activity-details.html?id=${activity.activity_id}" class="bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">รายละเอียด</a>
+                    </td>
+                    <td aria-colindex="6" data-label="เข้าร่วม" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        <button onclick="handleJoinButton(${activity.activity_id}, ${index})" class="${joinButtonClass} text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline join-button" ${joinButtonDisabled ? 'disabled' : ''}>${joinButtonText}</button>
                     </td>
                 `;
                 tbody.appendChild(row);
@@ -332,8 +356,113 @@
             renderTable(filteredActivities);
         }
 
+        async function handleJoinButton(activityId, index) {
+            const joinButton = document.querySelector(`#row-${index + 1} .join-button`);
+            if (joinButton.innerText === 'เข้าร่วม') {
+                const confirmation = confirm('คุณต้องการเข้าร่วมกิจกรรมนี้หรือไม่?');
+                if (confirmation) {
+                    await joinActivity(activityId, index);
+                }
+            } else if (joinButton.innerText === 'ยกเลิก') {
+                const confirmation = confirm('คุณต้องการยกเลิกการเข้าร่วมกิจกรรมนี้หรือไม่?');
+                if (confirmation) {
+                    await leaveActivity(activityId, index);
+                }
+            }
+        }
+
+        async function joinActivity(activityId, index) {
+            const token = localStorage.getItem('token');
+            const userId = globalUserId; // Use the globally stored userId
+
+            if (!token || !userId) {
+                alert('You need to be logged in to join an activity.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}/participants`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ memberId: userId })
+                });
+
+                if (response.ok) {
+                    activities[index].current_participants += 1;
+                    const joinButton = document.querySelector(`#row-${index + 1} .join-button`);
+                    joinButton.innerText = 'ยกเลิก';
+                    joinButton.classList.remove('bg-green-500');
+                    joinButton.classList.add('bg-red-500');
+                    document.getElementById(`participants-${index}`).innerText = activities[index].current_participants;
+                } else {
+                    const data = await response.json();
+                    alert(`Error: ${data.error}`);
+                }
+            } catch (error) {
+                console.error('Error joining activity:', error);
+                alert('Error joining activity. Please try again.');
+            }
+        }
+
+        async function leaveActivity(activityId, index) {
+            const token = localStorage.getItem('token');
+            const userId = globalUserId; // Use the globally stored userId
+
+            if (!token || !userId) {
+                alert('You need to be logged in to leave an activity.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}/participants/${userId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    activities[index].current_participants -= 1;
+                    const joinButton = document.querySelector(`#row-${index + 1} .join-button`);
+                    joinButton.innerText = 'เข้าร่วม';
+                    joinButton.classList.remove('bg-red-500');
+                    joinButton.classList.add('bg-green-500');
+                    document.getElementById(`participants-${index}`).innerText = activities[index].current_participants;
+                } else {
+                    const data = await response.json();
+                    alert(`Error: ${data.error}`);
+                }
+            } catch (error) {
+                console.error('Error leaving activity:', error);
+                alert('Error leaving activity. Please try again.');
+            }
+        }
+
+        async function fetchMemberProfile() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/auth/profile`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const member = await response.json();
+                globalUserId = member.user_id; // Store user_id globally
+                console.log('Member:', member);
+            } catch (error) {
+                console.error('Error fetching member profile:', error);
+                alert('เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์สมาชิก');
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             checkLoginStatus();
+            fetchMemberProfile();
         });
     </script>
 </head>
@@ -404,6 +533,10 @@
                                     <th role="columnheader" scope="col" aria-colindex="5"
                                         class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
                                         การจัดการ
+                                    </th>
+                                    <th role="columnheader" scope="col" aria-colindex="6"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                        เข้าร่วม
                                     </th>
                                 </tr>
                             </thead>

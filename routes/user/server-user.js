@@ -6,7 +6,8 @@ const skillRoutes = require('./skills');
 const communityConfigRoutes = require('./communityConfig');
 const exchangeRatesRoutes = require('./exchangeRates');
 const transactionRoutes = require('./transactions');
-const contactRoutes = require('./contact'); // Add this line
+const contactRoutes = require('./contact');
+const branchRoutes = require('./branches');
 
 const router = express.Router();
 
@@ -18,7 +19,8 @@ module.exports = (pool) => {
     router.use('/community-config', communityConfigRoutes(pool));
     router.use('/exchange-rates', exchangeRatesRoutes(pool));
     router.use('/transactions', transactionRoutes(pool));
-    router.use('/contact', contactRoutes(pool)); // Ensure contact routes are used
+    router.use('/contact', contactRoutes(pool));
+    router.use('/branches', branchRoutes(pool)); // Ensure contact routes are used
 
     return router;
 };
