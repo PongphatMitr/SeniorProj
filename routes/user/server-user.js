@@ -18,7 +18,7 @@ module.exports = (pool) => {
     router.use('/community-config', communityConfigRoutes(pool));
     router.use('/exchange-rates', exchangeRatesRoutes(pool));
     router.use('/transactions', transactionRoutes(pool));
-    router.use('/contact', contactRoutes(pool)); // Add this line
+    router.use('/contact', contactRoutes(pool)); // Ensure contact routes are used
 
     return router;
 };
