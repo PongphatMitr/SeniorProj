@@ -75,7 +75,24 @@
             </div>
             <nav>
                 <ul id="navList">
-                    <!-- Navigation items will be dynamically inserted here -->
+                    <li><a href="profile.html" class="block py-2 px-4 text-gray-700 hover:bg-gray-200"><i
+                                class="fas fa-user"></i> โปรไฟล์</a></li>
+                    <li><a href="index.html" class="block py-2 px-4 text-gray-700 hover:bg-gray-200"><i
+                                class="fas fa-home"></i> หน้าหลัก</a></li>
+                    <li><a href="reports.html" class="block py-2 px-4 text-gray-700 hover:bg-gray-200"><i
+                                class="fas fa-chart-bar"></i> รายงาน</a></li>
+                    <li><a href="activities.html" class="block py-2 px-4 text-gray-700 hover:bg-gray-200"><i
+                                class="fas fa-tasks"></i> จัดการกิจกรรม</a></li>
+                    <li><a href="members.html" class="block py-2 px-4 text-gray-700 hover:bg-gray-200"><i
+                                class="fas fa-users"></i> จัดการสมาชิก</a></li>
+                    <li><a href="skills.html" class="block py-2 px-4 text-gray-700 hover:bg-gray-200"><i
+                                class="fas fa-cogs"></i> จัดการหมวดหมู่ทักษะ</a></li>
+                    <li><a href="funds.html" class="block py-2 px-4 text-gray-700 hover:bg-gray-200"><i
+                                class="fas fa-piggy-bank"></i> จัดการกองทุนชุมชน</a></li>
+                    <li><a href="community.html" class="block py-2 px-4 text-gray-700 hover:bg-gray-200"><i
+                                class="fas fa-building"></i> จัดการชุมชน</a></li>
+                    <li><a href="transactions.html" class="block py-2 px-4 text-gray-700 hover:bg-gray-200"><i
+                                class="fas fa-exchange-alt"></i> ธุรกรรมทั้งหมด</a></li>
                 </ul>
             </nav>
         </div>
@@ -107,7 +124,7 @@
                 </div>
                 <div class="overflow-x-auto">
                     <div class="table-responsive-sm">
-                        <table aria-busy="false" aria-colcount="7" class="table b-table b-table-stacked-md w-full"
+                        <table aria-busy="false" aria-colcount="8" class="table b-table b-table-stacked-md w-full"
                             role="table">
                             <thead class="bg-gray-100" role="rowgroup">
                                 <tr role="row">
@@ -138,10 +155,15 @@
                                     </th>
                                     <th aria-colindex="6"
                                         class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
+                                        role="columnheader" scope="col" onclick="sortTable('role')">
+                                        บทบาท <i class="fas fa-sort"></i>
+                                    </th>
+                                    <th aria-colindex="7"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
                                         role="columnheader" scope="col">
                                         ล็อกอินไลน์
                                     </th>
-                                    <th aria-colindex="7" class
+                                    <th aria-colindex="8" class
                                         class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
                                         role="columnheader" scope="col">
                                         การจัดการ
@@ -237,10 +259,13 @@
                     <td aria-colindex="5" data-label="สถานะ" role="cell" class="py-2 px-4 border-b border-gray-200">
                         <span class="py-1 px-2 rounded ${member.status === 'active' ? 'bg-green-500' : 'bg-red-500'} text-white">${member.status === 'active' ? 'ปกติ' : 'ไม่ปกติ'}</span>
                     </td>
-                    <td aria-colindex="6" data-label="ล็อกอินไลน์" role="cell" class="py-2 px-4 border-b border-gray-200">
+                    <td aria-colindex="6" data-label="บทบาท" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${member.role}
+                    </td>
+                    <td aria-colindex="7" data-label="ล็อกอินไลน์" role="cell" class="py-2 px-4 border-b border-gray-200">
                         <span class="py-1 px-2 rounded ${member.logged_in ? 'bg-green-500' : 'bg-red-500'} text-white">${member.logged_in ? 'ล็อกอินเเล้ว' : 'ยังไม่ได้ล็อกอิน'}</span>
                     </td>
-                    <td aria-colindex="7" data-label="การจัดการ" role="cell" class="py-2 px-4 border-b border-gray-200">
+                    <td aria-colindex="8" data-label="การจัดการ" role="cell" class="py-2 px-4 border-b border-gray-200">
                         <div class="relative">
                             <button id="dropdown-${index + 1}__BV_toggle_" aria-haspopup="menu" aria-expanded="false" type="button"
                                 class="btn bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
@@ -254,6 +279,18 @@
                                 ${member.status === 'active' ?
                         `<li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self" onclick="confirmAndRemove(event, 'row-${index + 1}', ${member.user_id})"><b class="red">ลบสมาชิก</b></a></li>` :
                         `<li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self" onclick="confirmAndRestore(event, 'row-${index + 1}', ${member.user_id})"><b class="green">กู้คืนสมาชิก</b></a></li>`
+                    }
+                                ${member.role !== 'Admin' ?
+                        `<li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self" onclick="promoteRole(event, ${member.user_id})"><b class="green">เลื่อนขั้น</b></a></li>` : ''
+                    }
+                                ${member.role === 'TimeBankManager' ?
+                        `<li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self" onclick="demoteTimeBankManager(event, ${member.user_id})"><b class="red">ลดขั้น</b></a></li>` : ''
+                    }
+                                ${member.role === 'Admin' ?
+                        `<li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self" onclick="demoteAdmin(event, ${member.user_id})"><b class="red">ลดขั้น</b></a></li>` : ''
+                    }
+                                ${member.role === 'User' ?
+                        `<li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self" onclick="approveUser(event, ${member.user_id})"><b class="green">อนุมัติ</b></a></li>` : ''
                     }
                             </ul>
                         </div>
@@ -421,6 +458,103 @@
             }
         }
 
+        async function promoteRole(event, memberId) {
+            event.preventDefault();
+            const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการเลื่อนขั้นสมาชิกนี้?");
+            if (confirmation) {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/promote`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    if (response.ok) {
+                        fetchMembers(currentPage, '', sortField, sortOrder);
+                        alert("สมาชิกถูกเลื่อนขั้นเรียบร้อยแล้ว");
+                    } else {
+                        alert("เกิดข้อผิดพลาดในการเลื่อนขั้นสมาชิก");
+                    }
+                } catch (error) {
+                    console.error('Error promoting member:', error);
+                    alert("เกิดข้อผิดพลาดในการเลื่อนขั้นสมาชิก");
+                }
+            }
+        }
+
+        async function demoteTimeBankManager(event, memberId) {
+            event.preventDefault();
+            const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลดขั้น TimeBankManager นี้?");
+            if (confirmation) {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/demote-timebankmanager`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    if (response.ok) {
+                        fetchMembers(currentPage, '', sortField, sortOrder);
+                        alert("TimeBankManager ถูกลดขั้นเรียบร้อยแล้ว");
+                    } else {
+                        alert("เกิดข้อผิดพลาดในการลดขั้น TimeBankManager");
+                    }
+                } catch (error) {
+                    console.error('Error demoting TimeBankManager:', error);
+                    alert("เกิดข้อผิดพลาดในการลดขั้น TimeBankManager");
+                }
+            }
+        }
+
+        async function demoteAdmin(event, memberId) {
+            event.preventDefault();
+            const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลดขั้น Admin นี้?");
+            if (confirmation) {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/demote-admin`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    if (response.ok) {
+                        fetchMembers(currentPage, '', sortField, sortOrder);
+                        alert("Admin ถูกลดขั้นเรียบร้อยแล้ว");
+                    } else {
+                        alert("เกิดข้อผิดพลาดในการลดขั้น Admin");
+                    }
+                } catch (error) {
+                    console.error('Error demoting Admin:', error);
+                    alert("เกิดข้อผิดพลาดในการลดขั้น Admin");
+                }
+            }
+        }
+
+        async function approveUser(event, memberId) {
+            event.preventDefault();
+            const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการอนุมัติสมาชิกนี้?");
+            if (confirmation) {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/approve`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({ approverRole: 'TimeBankManager' }) // or 'Admin' based on the current user's role
+                    });
+                    if (response.ok) {
+                        fetchMembers(currentPage, '', sortField, sortOrder);
+                        alert("สมาชิกถูกอนุมัติเรียบร้อยแล้ว");
+                    } else {
+                        alert("เกิดข้อผิดพลาดในการอนุมัติสมาชิก");
+                    }
+                } catch (error) {
+                    console.error('Error approving member:', error);
+                    alert("เกิดข้อผิดพลาดในการอนุมัติสมาชิก");
+                }
+            }
+        }
+
         function sortTable(field) {
             if (sortField === field) {
                 sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
@@ -438,16 +572,54 @@
         });
     </script>
 
+    <style>
+        .toggle-container {
+            display: flex;
+            background-color: #E5E7EB;
+            border-radius: 20px;
+            padding: 6px;
+            align-items: center;
+            justify-content: space-between;
+            width: 180px;
+        }
+
+        .toggle-label {
+            flex: 1;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: gray;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 9999px;
+            padding: 5px;
+        }
+
+        .toggle-label.active {
+            background-color: white;
+            color: #1D4ED8;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        .toggle-label.disabled {
+            pointer-events: none;
+            background-color: white;
+            color: #6B7280;
+            font-weight: bold;
+        }
+    </style>
+
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const langThai = document.getElementById('lang-th');
             const langEnglish = document.getElementById('lang-en');
-            const navList = document.getElementById('navList');
             const mainHeading = document.querySelector('h1');
             const subHeading = document.querySelector('h2');
             const searchPlaceholder = document.querySelector('input[placeholder]');
             const addButton = document.querySelector('a[href="create-member.html"]');
             const tableHeaders = document.querySelectorAll('th');
+            const navList = document.getElementById('navList');
 
             const translations = {
                 thai: {
@@ -455,22 +627,42 @@
                     subHeading: 'สมาชิก',
                     searchPlaceholder: 'ค้นหาสมาชิก',
                     addButton: 'เพิ่ม',
-                    nav: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวดหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
-                    tableHeaders: ['รหัสสมาชิก', 'ชื่อผู้ใช้', 'ชื่อ', 'เครดิตเวลา(คะแนน)', 'สถานะ', 'ล็อกอินไลน์', 'การจัดการ'],
+                    tableHeaders: ['รหัสสมาชิก', 'ชื่อผู้ใช้', 'ชื่อ', 'เครดิตเวลา(คะแนน)', 'สถานะ', 'บทบาท', 'ล็อกอินไลน์', 'การจัดการ'],
+                    nav: [
+                        { text: 'โปรไฟล์', icon: 'fas fa-user', href: 'profile.html' },
+                        { text: 'หน้าหลัก', icon: 'fas fa-home', href: 'index.html' },
+                        { text: 'รายงาน', icon: 'fas fa-chart-bar', href: 'reports.html' },
+                        { text: 'จัดการกิจกรรม', icon: 'fas fa-tasks', href: 'activities.html' },
+                        { text: 'จัดการสมาชิก', icon: 'fas fa-users', href: 'members.html' },
+                        { text: 'จัดการหมวดหมู่ทักษะ', icon: 'fas fa-cogs', href: 'skills.html' },
+                        { text: 'จัดการกองทุนชุมชน', icon: 'fas fa-piggy-bank', href: 'funds.html' },
+                        { text: 'จัดการชุมชน', icon: 'fas fa-building', href: 'community.html' },
+                        { text: 'ธุรกรรมทั้งหมด', icon: 'fas fa-exchange-alt', href: 'transactions.html' }
+                    ]
                 },
                 english: {
                     mainHeading: 'Manage Members',
                     subHeading: 'Members',
                     searchPlaceholder: 'Search Members',
                     addButton: 'Add',
-                    nav: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
-                    tableHeaders: ['Member ID', 'Username', 'Name', 'Time Credits', 'Status', 'LINE Login', 'Actions'],
-                },
+                    tableHeaders: ['Member ID', 'Username', 'Name', 'Time Credits', 'Status', 'Role', 'LINE Login', 'Actions'],
+                    nav: [
+                        { text: 'Profile', icon: 'fas fa-user', href: 'profile.html' },
+                        { text: 'Homepage', icon: 'fas fa-home', href: 'index.html' },
+                        { text: 'Reports Overview', icon: 'fas fa-chart-bar', href: 'reports.html' },
+                        { text: 'Activities Management', icon: 'fas fa-tasks', href: 'activities.html' },
+                        { text: 'Members Management', icon: 'fas fa-users', href: 'members.html' },
+                        { text: 'Skills Management', icon: 'fas fa-cogs', href: 'skills.html' },
+                        { text: 'Funds Management', icon: 'fas fa-piggy-bank', href: 'funds.html' },
+                        { text: 'Community Management', icon: 'fas fa-building', href: 'community.html' },
+                        { text: 'Transactions', icon: 'fas fa-exchange-alt', href: 'transactions.html' }
+                    ]
+                }
             };
 
             let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
 
-            const updateContent = (lang) => {
+            function updateContent(lang) {
                 const langData = translations[lang];
 
                 // Update static text
@@ -485,15 +677,17 @@
                 });
 
                 // Update navigation
-                const navItems = navList.querySelectorAll('a');
-                navItems.forEach((link, index) => {
-                    const icon = link.querySelector('i');
-                    link.innerHTML = ''; // Clear existing content
-                    if (icon) link.appendChild(icon); // Re-add the icon
-                    link.append(` ${langData.nav[index]}`); // Add translated text
-                });
+                navList.innerHTML = langData.nav.map(item => `
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="${item.href}">
+                            <i class="${item.icon} mr-3"></i>
+                            ${item.text}
+                        </a>
+                    </li>
+                `).join('');
 
-                // Update language toggle styles
+                // Toggle active state
                 if (lang === 'thai') {
                     langThai.classList.add('active');
                     langEnglish.classList.remove('active');
@@ -501,22 +695,21 @@
                     langEnglish.classList.add('active');
                     langThai.classList.remove('active');
                 }
-            };
 
-            // Add event listeners for language toggle
+                localStorage.setItem('selectedLanguage', lang);
+            }
+
             langThai.addEventListener('click', () => {
                 currentLang = 'thai';
-                localStorage.setItem('selectedLanguage', currentLang);
                 updateContent(currentLang);
             });
 
             langEnglish.addEventListener('click', () => {
                 currentLang = 'english';
-                localStorage.setItem('selectedLanguage', currentLang);
                 updateContent(currentLang);
             });
 
-            // Initialize content on page load
+            // Initialize content
             updateContent(currentLang);
         });
     </script>

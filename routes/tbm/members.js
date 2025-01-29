@@ -244,6 +244,132 @@ const memberRoutes = (pool) => {
         }
     });
 
+    // Approve a user to become a member
+    router.put('/:id/approve', async (req, res) => {
+        const { id } = req.params;
+        const { approverRole } = req.body;
+
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid member ID' });
+        }
+
+        if (!['TimeBankManager', 'Admin'].includes(approverRole)) {
+            return res.status(403).json({ error: 'Only TimeBankManager or Admin can approve users' });
+        }
+
+        try {
+            const result = await pool.query(
+                'UPDATE users SET role = $1 WHERE user_id = $2 AND role = $3 RETURNING *',
+                ['Member', id, 'User']
+            );
+            if (result.rowCount === 0) {
+                return res.status(404).json({ error: 'User not found or already a member' });
+            }
+            res.status(200).json({ message: 'User approved to become a member successfully' });
+        } catch (err) {
+            console.error('Error:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+
+    // Promote a member by ID
+    router.put('/:id/promote', async (req, res) => {
+        const { id } = req.params;
+
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid member ID' });
+        }
+
+        try {
+            const result = await pool.query(
+                `UPDATE users SET role = 
+                CASE 
+                    WHEN role = 'Member' THEN 'TimeBankManager' 
+                    WHEN role = 'TimeBankManager' THEN 'Admin' 
+                    ELSE role 
+                END 
+                WHERE user_id = $1 RETURNING *`,
+                [id]
+            );
+            if (result.rowCount === 0) {
+                return res.status(404).json({ error: 'Member not found' });
+            }
+            res.status(200).json({ message: 'Member promoted successfully' });
+        } catch (err) {
+            console.error('Error:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+
+    // Demote a member by ID (kick out of community)
+    router.put('/:id/demote', async (req, res) => {
+        const { id } = req.params;
+
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid member ID' });
+        }
+
+        try {
+            const result = await pool.query(
+                'UPDATE users SET role = $1 WHERE user_id = $2 AND role != $3 RETURNING *',
+                ['User', id, 'User']
+            );
+            if (result.rowCount === 0) {
+                return res.status(404).json({ error: 'Member not found or already a user' });
+            }
+            res.status(200).json({ message: 'Member demoted to user successfully' });
+        } catch (err) {
+            console.error('Error:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+
+    // Demote a TimeBankManager by ID
+    router.put('/:id/demote-timebankmanager', async (req, res) => {
+        const { id } = req.params;
+
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid member ID' });
+        }
+
+        try {
+            const result = await pool.query(
+                'UPDATE users SET role = $1 WHERE user_id = $2 AND role = $3 RETURNING *',
+                ['Member', id, 'TimeBankManager']
+            );
+            if (result.rowCount === 0) {
+                return res.status(404).json({ error: 'TimeBankManager not found or already demoted' });
+            }
+            res.status(200).json({ message: 'TimeBankManager demoted to member successfully' });
+        } catch (err) {
+            console.error('Error:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+
+    // Demote an Admin by ID
+    router.put('/:id/demote-admin', async (req, res) => {
+        const { id } = req.params;
+
+        if (isNaN(id)) {
+            return res.status(400).json({ error: 'Invalid member ID' });
+        }
+
+        try {
+            const result = await pool.query(
+                'UPDATE users SET role = $1 WHERE user_id = $2 AND role = $3 RETURNING *',
+                ['TimeBankManager', id, 'Admin']
+            );
+            if (result.rowCount === 0) {
+                return res.status(404).json({ error: 'Admin not found or already demoted' });
+            }
+            res.status(200).json({ message: 'Admin demoted to TimeBankManager successfully' });
+        } catch (err) {
+            console.error('Error:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+
     return router;
 };
 
