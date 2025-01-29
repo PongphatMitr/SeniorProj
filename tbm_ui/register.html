@@ -87,23 +87,13 @@
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="address" placeholder="Address"></textarea>
                     </div>
-                    <div class="mb-4 flex space-x-4">
-                        <div class="w-1/2">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="branch">Branch</label>
-                            <input
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="branch" placeholder="Branch" type="text" />
-                        </div>
-                        <div class="w-1/2">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="role">Role</label>
-                            <select
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="role">
-                                <option value="Member">Member</option>
-                                <option value="TimeBankManager">TimeBankManager</option>
-                                <option value="Admin">Admin</option>
-                            </select>
-                        </div>
+                    <div class="mb-4 relative">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="branch">Branch</label>
+                        <input
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="branch" placeholder="Branch" type="text" oninput="searchBranches()" />
+                        <div id="branch-results-dropdown"
+                            class="absolute bg-white shadow-lg rounded w-full mt-1 hidden z-10"></div>
                     </div>
                     <div class="flex items-center justify-center">
                         <button
@@ -180,12 +170,10 @@
                     email: 'อีเมล',
                     password: 'รหัสผ่าน',
                     confirmPassword: 'ยืนยันรหัสผ่าน',
-                    role: 'บทบาท',
                     name: 'ชื่อ',
                     phone: 'โทรศัพท์',
                     address: 'ที่อยู่',
                     branch: 'สาขา',
-                    roles: ['สมาชิก', 'ผู้จัดการธนาคารเวลา', 'ผู้ดูแลระบบ'],
                     alreadyAccount: 'มีบัญชีอยู่แล้ว?',
                     login: 'เข้าสู่ระบบ'
                 },
@@ -196,12 +184,10 @@
                     email: 'Email',
                     password: 'Password',
                     confirmPassword: 'Confirm Password',
-                    role: 'Role',
                     name: 'Name',
                     phone: 'Phone',
                     address: 'Address',
                     branch: 'Branch',
-                    roles: ['Member', 'TimeBankManager', 'Admin'],
                     alreadyAccount: 'Already have an account?',
                     login: 'Login'
                 }
@@ -223,21 +209,10 @@
                 registerForm.querySelector('label[for="email"]').textContent = langData.email;
                 registerForm.querySelector('label[for="password"]').textContent = langData.password;
                 registerForm.querySelector('label[for="confirmPassword"]').textContent = langData.confirmPassword;
-                registerForm.querySelector('label[for="role"]').textContent = langData.role;
                 registerForm.querySelector('label[for="name"]').textContent = langData.name;
                 registerForm.querySelector('label[for="phone"]').textContent = langData.phone;
                 registerForm.querySelector('label[for="address"]').textContent = langData.address;
                 registerForm.querySelector('label[for="branch"]').textContent = langData.branch;
-
-                // Update role options
-                const roleSelect = document.getElementById('role');
-                roleSelect.innerHTML = '';
-                langData.roles.forEach(role => {
-                    const option = document.createElement('option');
-                    option.value = role;
-                    option.textContent = role;
-                    roleSelect.appendChild(option);
-                });
 
                 // Update footer text
                 document.querySelector('.text-center p').innerHTML = `${langData.alreadyAccount} <a class="text-blue-500" href="login.html">${langData.login}</a>`;
@@ -288,6 +263,39 @@
             updateContent(currentLang);
         });
 
+        async function searchBranches() {
+            const searchTerm = document.getElementById('branch').value.toLowerCase();
+            const resultsDropdown = document.getElementById('branch-results-dropdown');
+            resultsDropdown.innerHTML = '';
+            if (searchTerm) {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/tbm/branches?search=${searchTerm}`);
+                    const branches = await response.json();
+                    branches.forEach(branch => {
+                        const item = document.createElement('div');
+                        item.className = 'py-2 px-4 hover:bg-gray-200 cursor-pointer';
+                        item.innerHTML = `
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-gray-700">${branch.branch_name}</p>
+                                </div>
+                            </div>
+                        `;
+                        item.onclick = () => {
+                            document.getElementById('branch').value = branch.branch_name;
+                            resultsDropdown.innerHTML = '';
+                        };
+                        resultsDropdown.appendChild(item);
+                    });
+                    resultsDropdown.classList.remove('hidden');
+                } catch (error) {
+                    console.error('Error fetching branches:', error);
+                }
+            } else {
+                resultsDropdown.classList.add('hidden');
+            }
+        }
+
         document.getElementById('registerForm').addEventListener('submit', async function (event) {
             event.preventDefault();
 
@@ -301,7 +309,7 @@
                 phone: document.getElementById('phone').value.trim(),
                 address: document.getElementById('address').value.trim(),
                 branch: document.getElementById('branch').value.trim(),
-                role: document.getElementById('role').value
+                role: 'User' // Set default role to 'User'
             };
 
             // Client-side validation

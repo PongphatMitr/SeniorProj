@@ -175,7 +175,7 @@ const memberRoutes = (pool) => {
     // Update a member by ID
     router.put('/:id', async (req, res) => {
         const { id } = req.params;
-        const { name, phone, address, branch, time_credits, status } = req.body;
+        const { name, phone, address, branch_id, time_credits, status } = req.body;
 
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid member ID' });
@@ -188,8 +188,8 @@ const memberRoutes = (pool) => {
 
         try {
             const result = await pool.query(
-                'UPDATE users SET name = $1, phone = $2, address = $3, branch = $4, time_credits = $5, status = $6 WHERE user_id = $7 RETURNING *',
-                [name, phone, address, branch, time_credits, status, id]
+                'UPDATE users SET name = $1, phone = $2, address = $3, branch_id = $4, time_credits = $5, status = $6 WHERE user_id = $7 RETURNING *',
+                [name, phone, address, branch_id, time_credits, status, id]
             );
             res.json(result.rows[0]);
         } catch (err) {

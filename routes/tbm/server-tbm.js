@@ -1,5 +1,5 @@
 const express = require('express');
-const authRoutes = require('../user/auth'); // Ensure the correct path
+const authRoutes = require('./auth');
 const memberRoutes = require('./members');
 const activityRoutes = require('./activities');
 const skillRoutes = require('./skills');
@@ -8,6 +8,7 @@ const communityConfigRoutes = require('./communityConfig');
 const exchangeRatesRoutes = require('./exchangeRates');
 const transactionRoutes = require('./transactions');
 const reportRoutes = require('./reportRoutes');
+const branchRoutes = require('./branches');
 
 const router = express.Router();
 
@@ -21,6 +22,7 @@ module.exports = (pool) => {
     router.use('/exchange-rates', exchangeRatesRoutes(pool));
     router.use('/transactions', transactionRoutes(pool));
     router.use('/report', reportRoutes(pool));
+    router.use('/branches', branchRoutes(pool));
 
     return router;
 };

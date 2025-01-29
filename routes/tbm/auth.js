@@ -15,7 +15,7 @@ const authRoutes = (pool) => {
             username,
             password,
             email,
-            role,
+            role = 'User', // Default role to 'User'
             name,
             phone,
             address,
@@ -34,7 +34,7 @@ const authRoutes = (pool) => {
             }
 
             // Validate role
-            const allowedRoles = ['Member', 'TimeBankManager', 'Admin'];
+            const allowedRoles = ['User', 'Member', 'TimeBankManager', 'Admin'];
             if (!allowedRoles.includes(role)) {
                 return res.status(400).json({ error: 'Invalid role' });
             }
@@ -66,13 +66,29 @@ const authRoutes = (pool) => {
             const configResult = await pool.query('SELECT default_time_token FROM community_config LIMIT 1');
             const defaultTimeToken = configResult.rows[0].default_time_token;
 
+            // Fetch branch_id from branches table
+            let branchId = null;
+            if (branch) {
+                const branchResult = await pool.query('SELECT branch_id FROM branches WHERE branch_name = $1', [branch]);
+                if (branchResult.rows.length > 0) {
+                    branchId = branchResult.rows[0].branch_id;
+                } else {
+                    // Insert new branch if it doesn't exist
+                    const newBranchResult = await pool.query(
+                        'INSERT INTO branches (branch_name) VALUES ($1) RETURNING branch_id',
+                        [branch]
+                    );
+                    branchId = newBranchResult.rows[0].branch_id;
+                }
+            }
+
             // Update the registration query to include status and time_credits
             const result = await pool.query(
                 `INSERT INTO users 
-                (username, password, email, role, name, phone, address, branch, time_credits, status) 
+                (username, password, email, role, name, phone, address, branch_id, time_credits, status) 
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, DEFAULT) 
-                RETURNING user_id, username, email, role, name, phone, address, branch, time_credits, status, created_at`,
-                [username, hashedPassword, email, role, name, phone, address, branch, defaultTimeToken]
+                RETURNING user_id, username, email, role, name, phone, address, branch_id, time_credits, status, created_at`,
+                [username, hashedPassword, email, role, name, phone, address, branchId, defaultTimeToken]
             );
 
             res.status(201).json(result.rows[0]);
@@ -194,7 +210,7 @@ const authRoutes = (pool) => {
     router.get('/profile', authMiddleware, async (req, res) => {
         try {
             const result = await pool.query(
-                `SELECT user_id, username, email, role, name, phone, address, branch, time_credits, status, created_at 
+                `SELECT user_id, username, email, role, name, phone, address, branch_id, time_credits, status, created_at 
                 FROM users WHERE user_id = $1`,
                 [req.user.userId]
             );
@@ -250,7 +266,7 @@ const authRoutes = (pool) => {
                 return res.status(400).json({ error: 'No fields to update' });
             }
 
-            query += fieldsToUpdate.join(', ') + ' WHERE user_id = $' + (fieldsToUpdate.length + 1) + ' RETURNING user_id, username, email, role, name, phone, address, branch, time_credits, status, created_at';
+            query += fieldsToUpdate.join(', ') + ' WHERE user_id = $' + (fieldsToUpdate.length + 1) + ' RETURNING user_id, username, email, role, name, phone, address, branch_id, time_credits, status, created_at';
             values.push(req.user.userId);
 
             const result = await pool.query(query, values);

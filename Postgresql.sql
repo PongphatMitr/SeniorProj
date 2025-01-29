@@ -35,7 +35,7 @@ CREATE TABLE users (
     username VARCHAR(50) NOT NULL,
     password VARCHAR(100) NOT NULL,
     email VARCHAR(100) NOT NULL,
-    role VARCHAR(50) NOT NULL CHECK (role IN ('Member', 'TimeBankManager', 'Admin')),
+    role VARCHAR(50) NOT NULL CHECK (role IN ('User', 'Member', 'TimeBankManager', 'Admin')),
     name VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
     address TEXT,

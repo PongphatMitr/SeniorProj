@@ -162,16 +162,12 @@ async function checkLoginStatus() {
             });
 
             if (response.ok) {
-                if (isLoginPage || isRegisterPage) {
-                    window.location.href = 'report.html';
-                } else {
-                    updateSidebar(true);
-                }
+                updateSidebar(true);
             } else {
                 localStorage.removeItem('token');
                 updateSidebar(false);
                 if (!isLoginPage && !isRegisterPage) {
-                    window.location.href = 'login.html';
+                    console.error('Token verification failed. Redirecting to login page.');
                 }
             }
         } catch (error) {
@@ -179,13 +175,13 @@ async function checkLoginStatus() {
             localStorage.removeItem('token');
             updateSidebar(false);
             if (!isLoginPage && !isRegisterPage) {
-                window.location.href = 'login.html';
+                console.error('Error occurred during token verification. Redirecting to login page.');
             }
         }
     } else {
         updateSidebar(false);
         if (!isLoginPage && !isRegisterPage) {
-            window.location.href = 'login.html';
+            console.error('No token found. Redirecting to login page.');
         }
     }
 }

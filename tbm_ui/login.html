@@ -101,8 +101,12 @@
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('user', JSON.stringify(data.user));
 
-                // Redirect to homepage
-                window.location.href = 'report.html';
+                // Redirect based on role
+                if (data.user.role === 'User' || data.user.role === 'Member') {
+                    window.location.href = '../user_ui/balance.html';
+                } else {
+                    window.location.href = 'report.html';
+                }
 
             } catch (error) {
                 console.error('Login Error:', error);
@@ -123,8 +127,13 @@
                     });
 
                     if (response.ok) {
-                        // Redirect to report.html if already logged in
-                        window.location.href = 'report.html';
+                        const data = await response.json();
+                        // Redirect based on role
+                        if (data.user.role === 'User' || data.user.role === 'Member') {
+                            window.location.href = '../user_ui/balance.html';
+                        } else {
+                            window.location.href = 'report.html';
+                        }
                     } else {
                         localStorage.removeItem('token');
                         updateSidebar(false);
