@@ -36,54 +36,8 @@
                 balanceElement.style.color = data.time_credits > 0 ? "#32CD32" :
                                              data.time_credits < 0 ? "red" : "gray";
 
-                fetchTransactions(globalUserId);
             } catch (error) {
                 console.error('Error fetching member profile:', error);
-            }
-        }
-
-        async function fetchTransactions(userId) {
-            try {
-                const response = await fetch(`http://localhost:3000/api/user/${userId}/transactions`, {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
-                });
-
-                if (!response.ok) throw new Error('Network response was not ok');
-
-                const transactions = await response.json();
-                const transactionList = document.querySelector('.transaction-list');
-
-                transactionList.innerHTML = transactions.map(transaction => `
-                    <div class="transaction-item bg-gray-100 p-4 rounded-lg shadow-md">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <p class="text-lg font-semibold">${transaction.service}</p>
-                                <p class="text-gray-600">วันที่: ${transaction.date}</p>
-                            </div>
-                            <p class="text-lg font-bold ${transaction.hours > 0 ? 'text-blue-600' : 'text-red-600'}">
-                                ${transaction.hours > 0 ? '+' : ''}${transaction.hours} ชั่วโมง
-                            </p>
-                        </div>
-                    </div>
-                `).join('');
-            } catch (error) {
-                console.error('Error fetching transactions:', error);
-            }
-        }
-
-        async function fetchBranchName(branchId) {
-            if (!branchId) return 'N/A';
-            try {
-                const response = await fetch(`http://localhost:3000/api/user/branches`);
-                if (!response.ok) {
-                    throw new Error(`Network response was not ok (${response.status})`);
-                }
-                const branches = await response.json();
-                const branch = branches.find(branch => branch.branch_id === branchId);
-                return branch ? branch.branch_name : 'N/A';
-            } catch (error) {
-                console.error('Error fetching branch name:', error);
-                return 'N/A';
             }
         }
 
@@ -171,7 +125,7 @@
                         </li>
                         <li class="mb-5">
                             <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="profile.html?memberId=${memberId}">
+                                href="profile.html">
                                 <i class="fas fa-user-edit mr-3"></i>
                                 แก้ไขประวัติ
                             </a>
@@ -299,6 +253,7 @@
 
                 const data = await response.json();
                 document.getElementById('senderName').innerText = data.name || '';
+                document.getElementById('senderId').innerText = data.user_id || '';
        
             } catch (error) {
                 console.error('Error fetching user details:', error);
@@ -308,7 +263,7 @@
 
         async function fetchMembers() {
             try {
-                const response = await fetch('http://localhost:3000/api/user/members', {
+                const response = await fetch('http://localhost:3000/api/tbm/members', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -318,7 +273,8 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
-                members = await response.json();
+                const data = await response.json();
+                members = data.members;
             } catch (error) {
                 console.error('Error fetching members:', error);
                 alert('เกิดข้อผิดพลาดในการดึงข้อมูลสมาชิก');
@@ -330,7 +286,7 @@
             const resultsDropdown = document.getElementById('search-results-dropdown');
             resultsDropdown.innerHTML = '';
             if (searchTerm) {
-                const filteredMembers = members.filter(member => member.name.toLowerCase().includes(searchTerm) || member.user_id.toString().includes(searchTerm));
+                const filteredMembers = members.filter(member => member.user_id !== globalUserId && (member.name.toLowerCase().includes(searchTerm) || member.user_id.toString().includes(searchTerm)));
                 filteredMembers.forEach(member => {
                     const item = document.createElement('div');
                     item.className = 'py-2 px-4 hover:bg-gray-200 cursor-pointer';
@@ -339,7 +295,6 @@
                             <div>
                                 <p class="text-gray-700">${member.name}</p>
                                 <p class="text-gray-500 text-sm">ID: ${member.user_id}</p>
-                                <p class="text-gray-500 text-sm">โทเค็นเวลา: ${member.time_credits}</p>
                             </div>
                         </div>
                     `;
@@ -355,6 +310,44 @@
                 resultsDropdown.classList.add('hidden');
             }
         }
+
+        async function handleTransfer(event) {
+            event.preventDefault();
+        
+            const recipientId = document.getElementById('recipient-id').value;
+            const amount = document.getElementById('amount').value;
+        
+            if (!recipientId || !amount || amount <= 0) {
+                alert('กรุณากรอกข้อมูลให้ครบถ้วนและจำนวนต้องมากกว่า 0');
+                return;
+            }
+        
+            const confirmTransfer = confirm(`คุณต้องการโอน ${amount} เครดิตเวลาให้กับผู้ใช้ ID: ${recipientId} ใช่หรือไม่?`);
+        
+            if (confirmTransfer) {
+                try {
+                    const response = await fetch('http://localhost:3000/api/user/transactions/transfer', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({ recipientId, amount })
+                    });
+        
+                    const data = await response.json();
+                    if (!response.ok) throw new Error(data.error || 'Transaction failed');
+        
+                    alert('✅ การโอนสำเร็จ!');
+                    fetchMemberProfile(); // Refresh balance
+        
+                } catch (error) {
+                    console.error('❌ Transfer error:', error);
+                    alert(`เกิดข้อผิดพลาด: ${error.message}`);
+                }
+            }
+        }
+        
   </script>
  </head>
  <body class="bg-gray-100">
@@ -392,7 +385,7 @@
      </div>
     </div>
     <!-- Transfer Form -->
-    <form class="bg-white text-gray-800 p-6 rounded-lg shadow-md" id="transferForm">
+    <form class="bg-white text-gray-800 p-6 rounded-lg shadow-md" id="transferForm" onsubmit="handleTransfer(event)">
      <!-- Sender -->
      <div class="mb-4">
       <label class="block font-bold text-gray-700 mb-2">
@@ -401,9 +394,14 @@
       <div class="flex items-center bg-gray-100 p-3 rounded-lg">
        <i class="fas fa-user-circle text-3xl text-blue-600 mr-4">
        </i>
-       <span class="text-lg font-bold" id="senderName">
-        ชื่อของคุณ
-       </span>
+       <div>
+        <span class="text-lg font-bold" id="senderName">
+         ชื่อของคุณ
+        </span>
+        <p class="text-gray-500 text-sm" id="senderId">
+         ID ของคุณ
+        </p>
+       </div>
       </div>
      </div>
      <!-- Recipient -->
