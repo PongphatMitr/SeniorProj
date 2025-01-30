@@ -57,7 +57,6 @@
                     <select
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                         id="exchange-rate" onchange="handleExchangeRateChange()">
-                        <!-- Options will be dynamically inserted here -->
                     </select>
                 </div>
                 <div id="new-exchange-rate-field" class="mb-4 hidden">
@@ -66,6 +65,12 @@
                     <input
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                         id="new-exchange-rate" type="text" placeholder="อัตราแลกเปลี่ยนใหม่" />
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="branch-name">ชื่อสาขา</label>
+                    <input
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="branch-name" type="text" placeholder="ชื่อสาขา" />
                 </div>
                 <div class="flex items-center justify-center">
                     <button
@@ -82,13 +87,10 @@
             display: flex;
             background-color: #E5E7EB;
             border-radius: 20px;
-            /* Increase border radius for larger container */
             padding: 6px;
-            /* Larger padding for better spacing */
             align-items: center;
             justify-content: space-between;
             width: 180px;
-            /* Increase width for a larger toggle */
         }
 
         /* Labels */
@@ -107,7 +109,6 @@
         .toggle-label.active {
             background-color: white;
             color: #1D4ED8;
-            /* Blue for active text */
             font-weight: bold;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
@@ -115,10 +116,8 @@
         /* Disabled Label */
         .toggle-label.disabled {
             pointer-events: none;
-            /* Make it unclickable */
             background-color: white;
             color: #6B7280;
-            /* Light gray text */
             font-weight: bold;
         }
     </style>
@@ -127,6 +126,8 @@
         let defaultTimeToken = 100;
         let exchangeRates = [];
         let defaultExchangeRateId = null;
+        let branchId = null;
+        let branchName = '';
 
         async function fetchCommunityConfig() {
             try {
@@ -199,6 +200,7 @@
             const newDefaultTimeToken = parseInt(document.getElementById('default-time-token').value, 10);
             const newExchangeRate = document.getElementById('exchange-rate').value;
             const newExchangeRateDescription = document.getElementById('new-exchange-rate').value;
+            const newBranchName = document.getElementById('branch-name').value;
 
             let defaultExchangeRateId = parseInt(newExchangeRate, 10);
 
@@ -230,15 +232,14 @@
             }
 
             try {
-                const response = await fetch('http://localhost:3000/api/tbm/community-config', {
+                const response = await fetch(`http://localhost:3000/api/tbm/branches/${branchId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     },
                     body: JSON.stringify({
-                        default_time_token: newDefaultTimeToken,
-                        default_exchange_rate_id: defaultExchangeRateId
+                        branch_name: newBranchName
                     })
                 });
 
@@ -257,134 +258,43 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            const langThai = document.getElementById('lang-th');
-            const langEnglish = document.getElementById('lang-en');
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error('No token found. Redirecting to login page.');
+                window.location.href = 'login.html';
+                return;
+            }
 
-            const translations = {
-                thai: {
-                    pageTitle: 'จัดการชุมชน - Time Bank',
-                    mainHeading: 'จัดการชุมชน',
-                    configHeading: 'การตั้งค่าชุมชน',
-                    defaultTimeTokenLabel: 'ค่าเริ่มต้นของ Time Token เมื่อสร้างสมาชิก',
-                    exchangeRateLabel: 'อัตราแลกเปลี่ยน Time Token',
-                    addExchangeRateLabel: 'เพิ่มอัตราแลกเปลี่ยนใหม่',
-                    saveButton: 'บันทึกการตั้งค่า',
-                    nav: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
-
-                },
-                english: {
-                    pageTitle: 'Community Management - Time Bank',
-                    mainHeading: 'Community Management',
-                    configHeading: 'Community Configuration',
-                    defaultTimeTokenLabel: 'Default Time Token for New Members',
-                    exchangeRateLabel: 'Time Token Exchange Rate',
-                    addExchangeRateLabel: 'Add New Exchange Rate',
-                    saveButton: 'Save Configuration',
-                    nav: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
-
+            // Fetch user profile information
+            fetch('http://localhost:3000/api/tbm/auth/profile', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
                 }
-            };
-
-            let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
-
-            const updateContent = (lang) => {
-                const langData = translations[lang];
-
-                // Update page title
-                document.title = langData.pageTitle;
-
-                // Update main heading and subheadings
-                document.querySelector('h1').textContent = langData.mainHeading;
-                document.querySelector('h2').textContent = langData.configHeading;
-
-                // Update form labels
-                document.querySelector('label[for="default-time-token"]').textContent = langData.defaultTimeTokenLabel;
-                document.querySelector('label[for="exchange-rate"]').textContent = langData.exchangeRateLabel;
-                document.querySelector('label[for="new-exchange-rate"]').textContent = langData.addExchangeRateLabel;
-
-                // Update save button text
-                document.querySelector('button[onclick="saveConfig()"]').textContent = langData.saveButton;
-
-                // Update navigation bar
-                const navLinks = document.querySelectorAll('nav ul li a');
-                langData.nav.forEach((text, index) => {
-                    if (navLinks[index]) {
-                        const icon = navLinks[index].querySelector('i');
-                        navLinks[index].innerHTML = '';
-                        if (icon) navLinks[index].appendChild(icon);
-                        navLinks[index].appendChild(document.createTextNode(text));
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
                     }
+                    return response.json();
+                })
+                .then(data => {
+                    branchId = data.branch_id;
+                    branchName = data.branch_name;
+                    document.getElementById('branch-name').value = branchName;
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
                 });
 
-                // Highlight the active language toggle
-                if (lang === 'thai') {
-                    langThai.classList.add('active');
-                    langEnglish.classList.remove('active');
-                } else {
-                    langEnglish.classList.add('active');
-                    langThai.classList.remove('active');
-                }
-            };
-
-            // Language toggle event listeners
-            langThai.addEventListener('click', () => {
-                currentLang = 'thai';
-                localStorage.setItem('selectedLanguage', currentLang);
-                updateContent(currentLang);
-            });
-
-            langEnglish.addEventListener('click', () => {
-                currentLang = 'english';
-                localStorage.setItem('selectedLanguage', currentLang);
-                updateContent(currentLang);
-            });
-
-            // Initialize content on page load
-            updateContent(currentLang);
-
-            // Fetch community configuration and initialize other page data
+            // Initialize the sidebar
             checkLoginStatus();
             fetchCommunityConfig();
         });
 
-        async function checkLoginStatus() {
-            const token = localStorage.getItem('token');
-            if (token) {
-                try {
-                    const response = await fetch('http://localhost:3000/api/tbm/auth/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-
-                    if (response.ok) {
-                        updateSidebar(true);
-                    } else {
-                        localStorage.removeItem('token');
-                        updateSidebar(false);
-                        const goToLogin = confirm('Session expired. Do you want to go to the login page?');
-                        if (goToLogin) {
-                            window.location.href = 'login.html';
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    localStorage.removeItem('token');
-                    updateSidebar(false);
-                    const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
-                    if (goToLogin) {
-                        window.location.href = 'login.html';
-                    }
-                }
-            } else {
-                updateSidebar(false);
-                const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
-                if (goToLogin) {
-                    window.location.href = 'login.html';
-                }
-            }
+        function logout() {
+            localStorage.removeItem('token');
+            window.location.href = 'login.html';
         }
     </script>
     <script src="navbar.js"></script>

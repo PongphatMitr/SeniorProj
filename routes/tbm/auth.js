@@ -210,8 +210,10 @@ const authRoutes = (pool) => {
     router.get('/profile', authMiddleware, async (req, res) => {
         try {
             const result = await pool.query(
-                `SELECT user_id, username, email, role, name, phone, address, branch_id, time_credits, status, created_at 
-                FROM users WHERE user_id = $1`,
+                `SELECT u.user_id, u.username, u.email, u.role, u.name, u.phone, u.address, u.branch_id, u.time_credits, u.status, u.created_at, b.branch_name 
+                FROM users u 
+                JOIN branches b ON u.branch_id = b.branch_id 
+                WHERE u.user_id = $1`,
                 [req.user.userId]
             );
 

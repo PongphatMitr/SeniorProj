@@ -6,7 +6,6 @@ const authMiddleware = require('./middleware/authMiddleware');
 const tbmRoutes = require('./routes/tbm/server-tbm');
 const userRoutes = require('./routes/user/server-user'); // Ensure correct relative path
 
-
 dotenv.config();
 
 const app = express();

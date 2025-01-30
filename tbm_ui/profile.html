@@ -82,6 +82,7 @@
                         <p class="text-gray-700 text-lg"><strong>Username:</strong> ${data.username}</p>
                         <p class="text-gray-700 text-lg"><strong>Email:</strong> ${data.email}</p>
                         <p class="text-gray-700 text-lg"><strong>Role:</strong> ${data.role}</p>
+                        <p class="text-gray-700 text-lg"><strong>Branch:</strong> ${data.branch_name}</p>
                     `;
                 })
                 .catch(error => {
@@ -160,6 +161,7 @@
                     username: 'ชื่อผู้ใช้',
                     email: 'อีเมล',
                     role: 'บทบาท',
+                    branch: 'สาขา',
                     logout: 'ออกจากระบบ',
                     nav: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
                 },
@@ -169,6 +171,7 @@
                     username: 'Username',
                     email: 'Email',
                     role: 'Role',
+                    branch: 'Branch',
                     logout: 'Logout',
                     nav: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
                 }
@@ -196,6 +199,7 @@
                         <p class="text-gray-700 text-lg"><strong>${langData.username}:</strong> ${profileData?.username || ''}</p>
                         <p class="text-gray-700 text-lg"><strong>${langData.email}:</strong> ${profileData?.email || ''}</p>
                         <p class="text-gray-700 text-lg"><strong>${langData.role}:</strong> ${profileData?.role || ''}</p>
+                        <p class="text-gray-700 text-lg"><strong>${langData.branch}:</strong> ${profileData?.branch_name || ''}</p>
                     `;
                 }
 

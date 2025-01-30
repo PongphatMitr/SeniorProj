@@ -23,7 +23,24 @@
             </div>
             <nav>
                 <ul id="navList">
-                    <!-- Navigation items will be dynamically inserted here -->
+                    <li><a href="profile.html" class="block py-2 px-4 text-gray-700 hover:bg-gray-200"><i
+                                class="fas fa-user"></i> โปรไฟล์</a></li>
+                    <li><a href="index.html" class="block py-2 px-4 text-gray-700 hover:bg-gray-200"><i
+                                class="fas fa-home"></i> หน้าหลัก</a></li>
+                    <li><a href="reports.html" class="block py-2 px-4 text-gray-700 hover:bg-gray-200"><i
+                                class="fas fa-chart-bar"></i> รายงาน</a></li>
+                    <li><a href="activities.html" class="block py-2 px-4 text-gray-700 hover:bg-gray-200"><i
+                                class="fas fa-tasks"></i> จัดการกิจกรรม</a></li>
+                    <li><a href="members.html" class="block py-2 px-4 text-gray-700 hover:bg-gray-200"><i
+                                class="fas fa-users"></i> จัดการสมาชิก</a></li>
+                    <li><a href="skills.html" class="block py-2 px-4 text-gray-700 hover:bg-gray-200"><i
+                                class="fas fa-cogs"></i> จัดการหมวดหมู่ทักษะ</a></li>
+                    <li><a href="funds.html" class="block py-2 px-4 text-gray-700 hover:bg-gray-200"><i
+                                class="fas fa-piggy-bank"></i> จัดการกองทุนชุมชน</a></li>
+                    <li><a href="community.html" class="block py-2 px-4 text-gray-700 hover:bg-gray-200"><i
+                                class="fas fa-building"></i> จัดการชุมชน</a></li>
+                    <li><a href="transactions.html" class="block py-2 px-4 text-gray-700 hover:bg-gray-200"><i
+                                class="fas fa-exchange-alt"></i> ธุรกรรมทั้งหมด</a></li>
                 </ul>
             </nav>
         </div>
@@ -95,7 +112,7 @@
 
         async function fetchMemberProfile(memberId) {
             try {
-                const response = await fetch(`http://localhost:3000/api/tbm/members/tbm/${memberId}`, {
+                const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -106,9 +123,28 @@
                 const member = await response.json();
                 memberStatus = member.status; // Store the status for later use
                 renderMemberProfile(member);
+                fetchBranchName(member.branch_id);
             } catch (error) {
                 console.error('Error fetching member profile:', error);
                 alert('เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์สมาชิก');
+            }
+        }
+
+        async function fetchBranchName(branchId) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/tbm/branches/${branchId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const branch = await response.json();
+                document.getElementById('member-branch').textContent = branch.branch_name || 'N/A';
+            } catch (error) {
+                console.error('Error fetching branch name:', error);
+                document.getElementById('member-branch').textContent = 'N/A';
             }
         }
 
@@ -116,7 +152,7 @@
             document.getElementById('member-name').textContent = member.name || 'N/A';
             document.getElementById('member-phone').textContent = member.phone || 'N/A';
             document.getElementById('member-address').textContent = member.address || 'N/A';
-            document.getElementById('member-branch').textContent = member.branch || 'N/A';
+            document.getElementById('member-branch').textContent = 'Loading...'; // Placeholder while fetching branch name
             document.getElementById('member-time-credits').textContent = member.time_credits || 'N/A';
             document.getElementById('member-status').textContent = member.status === 'active' ? 'ปกติ' : 'ไม่ปกติ';
         }
@@ -147,7 +183,7 @@
             };
 
             try {
-                const response = await fetch(`http://localhost:3000/api/members/tbm/${memberId}`, {
+                const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',

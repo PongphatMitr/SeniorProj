@@ -163,7 +163,7 @@
                                         role="columnheader" scope="col">
                                         ล็อกอินไลน์
                                     </th>
-                                    <th aria-colindex="8" class
+                                    <th aria-colindex="8"
                                         class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
                                         role="columnheader" scope="col">
                                         การจัดการ
@@ -280,17 +280,21 @@
                         `<li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self" onclick="confirmAndRemove(event, 'row-${index + 1}', ${member.user_id})"><b class="red">ลบสมาชิก</b></a></li>` :
                         `<li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self" onclick="confirmAndRestore(event, 'row-${index + 1}', ${member.user_id})"><b class="green">กู้คืนสมาชิก</b></a></li>`
                     }
-                                ${member.role !== 'Admin' ?
-                        `<li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self" onclick="promoteRole(event, ${member.user_id})"><b class="green">เลื่อนขั้น</b></a></li>` : ''
+                                ${member.role === 'User' ?
+                        `<li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self" onclick="approveUser(event, ${member.user_id})"><b class="green">อนุมัติ</b></a></li>` : ''
+                    }
+                                ${member.role === 'Member' ?
+                        `<li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self" onclick="promoteRole(event, ${member.user_id}, 'TimeBankManager')"><b class="green">เลื่อนขั้นเป็น TimeBankManager</b></a></li>
+                        <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self" onclick="demoteToUser(event, ${member.user_id})"><b class="red">ไล่ออกจากชุมชน</b></a></li>` : ''
+                    }
+                                ${member.role === 'TimeBankManager' ?
+                        `<li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self" onclick="promoteRole(event, ${member.user_id}, 'Admin')"><b class="green">เลื่อนขั้นเป็น Admin</b></a></li>` : ''
                     }
                                 ${member.role === 'TimeBankManager' ?
                         `<li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self" onclick="demoteTimeBankManager(event, ${member.user_id})"><b class="red">ลดขั้น</b></a></li>` : ''
                     }
                                 ${member.role === 'Admin' ?
                         `<li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self" onclick="demoteAdmin(event, ${member.user_id})"><b class="red">ลดขั้น</b></a></li>` : ''
-                    }
-                                ${member.role === 'User' ?
-                        `<li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self" onclick="approveUser(event, ${member.user_id})"><b class="green">อนุมัติ</b></a></li>` : ''
                     }
                             </ul>
                         </div>
@@ -458,12 +462,65 @@
             }
         }
 
-        async function promoteRole(event, memberId) {
+        async function approveUser(event, memberId) {
             event.preventDefault();
-            const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการเลื่อนขั้นสมาชิกนี้?");
+            const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการอนุมัติสมาชิกนี้?");
+            if (confirmation) {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/approve`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    if (response.ok) {
+                        fetchMembers(currentPage, '', sortField, sortOrder);
+                        alert("สมาชิกถูกอนุมัติเรียบร้อยแล้ว");
+                    } else {
+                        const errorData = await response.json();
+                        alert(`เกิดข้อผิดพลาดในการอนุมัติสมาชิก: ${errorData.error}`);
+                    }
+                } catch (error) {
+                    console.error('Error approving member:', error);
+                    alert("เกิดข้อผิดพลาดในการอนุมัติสมาชิก");
+                }
+            }
+        }
+
+        async function promoteRole(event, memberId, newRole) {
+            event.preventDefault();
+            const confirmation = confirm(`คุณแน่ใจหรือไม่ว่าต้องการเลื่อนขั้นสมาชิกนี้เป็น ${newRole}?`);
             if (confirmation) {
                 try {
                     const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/promote`, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ newRole })
+                    });
+                    if (response.ok) {
+                        fetchMembers(currentPage, '', sortField, sortOrder);
+                        alert(`สมาชิกถูกเลื่อนขั้นเป็น ${newRole} เรียบร้อยแล้ว`);
+                    } else {
+                        const errorData = await response.json();
+                        alert(`เกิดข้อผิดพลาดในการเลื่อนขั้นสมาชิก: ${errorData.error}`);
+                    }
+                } catch (error) {
+                    console.error('Error promoting member:', error);
+                    alert("เกิดข้อผิดพลาดในการเลื่อนขั้นสมาชิก");
+                }
+            }
+        }
+
+        async function demoteToUser(event, memberId) {
+            event.preventDefault();
+            const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการไล่ออกจากชุมชน?");
+            if (confirmation) {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/demote`, {
                         method: 'PUT',
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
@@ -471,13 +528,13 @@
                     });
                     if (response.ok) {
                         fetchMembers(currentPage, '', sortField, sortOrder);
-                        alert("สมาชิกถูกเลื่อนขั้นเรียบร้อยแล้ว");
+                        alert("สมาชิกถูกไล่ออกจากชุมชนเรียบร้อยแล้ว");
                     } else {
-                        alert("เกิดข้อผิดพลาดในการเลื่อนขั้นสมาชิก");
+                        alert("เกิดข้อผิดพลาดในการไล่ออกจากชุมชน");
                     }
                 } catch (error) {
-                    console.error('Error promoting member:', error);
-                    alert("เกิดข้อผิดพลาดในการเลื่อนขั้นสมาชิก");
+                    console.error('Error demoting member:', error);
+                    alert("เกิดข้อผิดพลาดในการไล่ออกจากชุมชน");
                 }
             }
         }
@@ -526,31 +583,6 @@
                 } catch (error) {
                     console.error('Error demoting Admin:', error);
                     alert("เกิดข้อผิดพลาดในการลดขั้น Admin");
-                }
-            }
-        }
-
-        async function approveUser(event, memberId) {
-            event.preventDefault();
-            const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการอนุมัติสมาชิกนี้?");
-            if (confirmation) {
-                try {
-                    const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/approve`, {
-                        method: 'PUT',
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        },
-                        body: JSON.stringify({ approverRole: 'TimeBankManager' }) // or 'Admin' based on the current user's role
-                    });
-                    if (response.ok) {
-                        fetchMembers(currentPage, '', sortField, sortOrder);
-                        alert("สมาชิกถูกอนุมัติเรียบร้อยแล้ว");
-                    } else {
-                        alert("เกิดข้อผิดพลาดในการอนุมัติสมาชิก");
-                    }
-                } catch (error) {
-                    console.error('Error approving member:', error);
-                    alert("เกิดข้อผิดพลาดในการอนุมัติสมาชิก");
                 }
             }
         }

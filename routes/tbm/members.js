@@ -247,14 +247,9 @@ const memberRoutes = (pool) => {
     // Approve a user to become a member
     router.put('/:id/approve', async (req, res) => {
         const { id } = req.params;
-        const { approverRole } = req.body;
 
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid member ID' });
-        }
-
-        if (!['TimeBankManager', 'Admin'].includes(approverRole)) {
-            return res.status(403).json({ error: 'Only TimeBankManager or Admin can approve users' });
         }
 
         try {
@@ -275,26 +270,26 @@ const memberRoutes = (pool) => {
     // Promote a member by ID
     router.put('/:id/promote', async (req, res) => {
         const { id } = req.params;
+        const { newRole } = req.body;
 
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid member ID' });
         }
 
+        const validRoles = ['Member', 'TimeBankManager', 'Admin'];
+        if (!validRoles.includes(newRole)) {
+            return res.status(400).json({ error: 'Invalid role' });
+        }
+
         try {
             const result = await pool.query(
-                `UPDATE users SET role = 
-                CASE 
-                    WHEN role = 'Member' THEN 'TimeBankManager' 
-                    WHEN role = 'TimeBankManager' THEN 'Admin' 
-                    ELSE role 
-                END 
-                WHERE user_id = $1 RETURNING *`,
-                [id]
+                'UPDATE users SET role = $1 WHERE user_id = $2 RETURNING *',
+                [newRole, id]
             );
             if (result.rowCount === 0) {
                 return res.status(404).json({ error: 'Member not found' });
             }
-            res.status(200).json({ message: 'Member promoted successfully' });
+            res.status(200).json({ message: `Member promoted to ${newRole} successfully` });
         } catch (err) {
             console.error('Error:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
@@ -366,6 +361,37 @@ const memberRoutes = (pool) => {
             res.status(200).json({ message: 'Admin demoted to TimeBankManager successfully' });
         } catch (err) {
             console.error('Error:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+
+    // Get user information
+    router.get('/user', async (req, res) => {
+        try {
+            const userId = req.user.id; // Assuming you have user information in req.user
+            const result = await pool.query('SELECT u.*, b.branch_name FROM users u JOIN branches b ON u.branch_id = b.branch_id WHERE u.user_id = $1', [userId]);
+            if (result.rows.length > 0) {
+                res.json(result.rows[0]);
+            } else {
+                res.status(404).json({ error: 'User not found' });
+            }
+        } catch (err) {
+            console.error('Error fetching user information:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+
+    router.get('/user-role', async (req, res) => {
+        try {
+            const userId = req.user.id; // Assuming you have user information in req.user
+            const result = await pool.query('SELECT role FROM users WHERE user_id = $1', [userId]);
+            if (result.rows.length > 0) {
+                res.json({ role: result.rows[0].role });
+            } else {
+                res.status(404).json({ error: 'User not found' });
+            }
+        } catch (err) {
+            console.error('Error fetching user role:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
