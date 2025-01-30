@@ -24,6 +24,17 @@ const branchRoutes = (pool) => {
         }
     });
 
+    // Fetch all branch data
+    router.get('/all', async (req, res) => {
+        try {
+            const result = await pool.query('SELECT * FROM branches');
+            res.json(result.rows);
+        } catch (err) {
+            console.error('Error fetching all branches:', err.message);
+            res.status(500).json({ error: 'Internal server error. Please try again.' });
+        }
+    });
+
     return router;
 };
 

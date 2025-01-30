@@ -20,27 +20,51 @@
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
+        
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
+        
                 const member = await response.json();
+                console.log('Member:', member); // Debugging: ตรวจสอบโครงสร้างข้อมูลที่ได้รับ
+        
                 globalUserId = member.user_id; // Store user_id globally
+                member.branch = await fetchBranchName(member.branch_id); // ใช้ branch_id เพื่อดึงชื่อสาขา
                 renderMemberProfile(member);
-                console.log('Member:', member);
+        
             } catch (error) {
                 console.error('Error fetching member profile:', error);
                 alert('เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์สมาชิก');
             }
         }
+        
+        async function fetchBranchName(branchId) {
+            if (!branchId) return 'N/A';
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/branches`);
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok (${response.status})`);
+                }
+                const branches = await response.json();
+                const branch = branches.find(branch => branch.branch_id === branchId);
+                return branch ? branch.branch_name : 'N/A';
+            } catch (error) {
+                console.error('Error fetching branch name:', error);
+                return 'N/A';
+            }
+        }
+        
+        
 
         function renderMemberProfile(member) {
             document.getElementById('member-name').textContent = member.name || 'N/A';
             document.getElementById('member-phone').textContent = member.phone || 'N/A';
             document.getElementById('member-address').textContent = member.address || 'N/A';
-            document.getElementById('member-branch').textContent = member.branch || 'N/A';
+            document.getElementById('member-branch').textContent = member.branch || 'N/A'; // ใช้ค่าที่ได้จาก fetchBranchName
             document.getElementById('member-time-credits').textContent = member.time_credits || 'N/A';
             document.getElementById('member-status').textContent = member.status === 'active' ? 'ปกติ' : 'ไม่ปกติ';
         }
+        
 
         let originalData = {}; // To store the old data
 

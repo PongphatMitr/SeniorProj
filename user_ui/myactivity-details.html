@@ -1,0 +1,387 @@
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>รายละเอียดกิจกรรม - Time Bank</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <script>
+        let globalUserId = null;
+        let activityId = null;
+    
+        async function fetchActivityDetails() {
+            const urlParams = new URLSearchParams(window.location.search);
+            activityId = urlParams.get('id');
+    
+            if (!activityId) {
+                alert('ไม่พบรหัสกิจกรรม');
+                return;
+            }
+    
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+    
+                const activity = await response.json();
+    
+                if (activity) {
+                    document.getElementById('service-title').value = activity.title || '';
+                    document.getElementById('service-description').value = activity.description || '';
+                    document.getElementById('service-location').value = activity.location || '';
+                    document.getElementById('service-start-date').value = activity.start_date ? activity.start_date.split('T')[0] : '';
+                    document.getElementById('service-time-start').value = activity.start_time ? activity.start_time.substring(0, 5) : '';
+                    document.getElementById('service-end-date').value = activity.end_date ? activity.end_date.split('T')[0] : '';
+                    document.getElementById('service-time-end').value = activity.end_time ? activity.end_time.substring(0, 5) : '';
+                    document.getElementById('service-people').value = activity.max_participants || '';
+                    document.getElementById('requester-name').value = activity.requester_name || '';
+                    document.getElementById('service-status').value = activity.status || '';
+    
+                    // Fetch participants and update the participant count
+                    await fetchParticipants(activityId, activity.max_participants);
+    
+                } else {
+                    alert('ไม่พบรายละเอียดกิจกรรม');
+                }
+            } catch (error) {
+                console.error('Error fetching activity details:', error);
+                alert('เกิดข้อผิดพลาดในการดึงรายละเอียดกิจกรรม');
+            }
+        }
+    
+        async function fetchParticipants(activityId, maxParticipants) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}/participants`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+    
+                const participants = await response.json();
+                const participantCount = participants.length;
+    
+                // Ensure maxParticipants is retrieved correctly if not provided
+                if (!maxParticipants) {
+                    const activityResponse = await fetch(`http://localhost:3000/api/user/activities/${activityId}`, {
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    });
+                    const activityData = await activityResponse.json();
+                    maxParticipants = activityData.max_participants;
+                }
+    
+                // Update the participant count in activity-detail
+                document.getElementById('current-participants').innerText = `${participantCount} / ${maxParticipants}`;
+    
+                // Check if the user has joined the activity
+                const userJoined = participants.some(participant => participant.user_id === globalUserId);
+    
+    
+            } catch (error) {
+                console.error('Error fetching participants:', error);
+                alert('เกิดข้อผิดพลาดในการดึงข้อมูลผู้เข้าร่วม');
+            }
+        }
+    
+        async function fetchMemberProfile() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/auth/profile`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const member = await response.json();
+                globalUserId = member.user_id; // Store user_id globally
+                console.log('Member:', member);
+            } catch (error) {
+                console.error('Error fetching member profile:', error);
+                alert('เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์สมาชิก');
+            }
+        }
+    
+
+    
+        function updateServicePageParticipants(activityId, newCount) {
+            const servicePage = window.opener;
+            if (servicePage && servicePage.document) {
+                const participantsElement = servicePage.document.querySelector(`#participants-${activityId}`);
+                if (participantsElement) {
+                    participantsElement.innerText = newCount;
+                }
+            }
+        }
+    
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchMemberProfile().then(fetchActivityDetails);
+    
+            // Set current date and time if fields are empty
+            const currentDate = new Date().toISOString().split('T')[0];
+            const currentTime = new Date().toTimeString().split(' ')[0].substring(0, 5);
+    
+            if (!document.getElementById('service-start-date').value) {
+                document.getElementById('service-start-date').value = currentDate;
+            }
+            if (!document.getElementById('service-time-start').value) {
+                document.getElementById('service-time-start').value = currentTime;
+            }
+            if (!document.getElementById('service-end-date').value) {
+                document.getElementById('service-end-date').value = currentDate;
+            }
+            if (!document.getElementById('service-time-end').value) {
+                document.getElementById('service-time-end').value = currentTime;
+            }
+    
+            updateSidebar();
+        });
+    
+        function updateSidebar(isLoggedIn) {
+            const navList = document.getElementById('navList');
+            if (isLoggedIn) {
+                navList.innerHTML = `
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="log-out.html">
+                            <i class="fas fa-user mr-3"></i>
+                            โปรไฟล์
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="homepage.html">
+                            <i class="fas fa-home mr-3"></i>
+                            หน้าหลัก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="service.html">
+                            <i class="fas fa-clipboard-list mr-3"></i>
+                            ยื่นข้อของานบริการ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="profile.html">
+                            <i class="fas fa-user-edit mr-3"></i>
+                            แก้ไขประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="skillconf.html">
+                            <i class="fas fa-tools mr-3"></i>
+                            แก้ไขทักษะ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="balance.html">
+                            <i class="fas fa-wallet mr-3"></i>
+                            ยอดคงเหลือ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="history.html">
+                            <i class="fas fa-history mr-3"></i>
+                            ประวัติ
+                        </a>
+                    </li>
+                `;
+            } else {
+                navList.innerHTML = `
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="login.html">
+                            <i class="fas fa-sign-in-alt mr-3"></i>
+                            Login
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="homepage.html">
+                            <i class="fas fa-home mr-3"></i>
+                            หน้าหลัก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="service.html">
+                            <i class="fas fa-clipboard-list mr-3"></i>
+                            ยื่นข้อของานบริการ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="profile.html">
+                            <i class="fas fa-user-edit mr-3"></i>
+                            แก้ไขประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="skillconf.html">
+                            <i class="fas fa-tools mr-3"></i>
+                            แก้ไขทักษะ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="balance.html">
+                            <i class="fas fa-wallet mr-3"></i>
+                            ยอดคงเหลือ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="history.html">
+                            <i class="fas fa-history mr-3"></i>
+                            ประวัติ
+                        </a>
+                    </li>
+                `;
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-gray-100">
+    <div class="flex flex-col md:flex-row">
+        <!-- Sidebar -->
+        <div class="w-1/6 bg-white h-screen p-5">
+            <div class="flex items-center mb-10">
+                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
+                    class="w-10 h-10 rounded-full" height="50"
+                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
+                    width="50" />
+                <span class="ml-3 text-xl font-bold text-blue-600">
+                    TIMEBANK
+                </span>
+            </div>
+            <nav>
+                <ul id="navList">
+                    <!-- Navigation items will be dynamically inserted here -->
+                </ul>
+            </nav>
+        </div>
+        <!-- Main Content -->
+        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
+            <h1 class="text-4xl font-bold mb-5">
+                แก้ไขกิจกรรม
+            </h1>
+            <div class="bg-white text-black p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
+                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">
+                    รายละเอียดกิจกรรม
+                </h2>
+                <form onsubmit="updateActivity(event)">
+                    <div class="flex flex-wrap -mx-3 mb-4">
+                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-title">
+                                ชื่อบริการ
+                            </label>
+                            <input id="service-title"
+                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="text" disabled />
+                        </div>
+                        <div class="w-full md:w-1/2 px-3">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-start-date">
+                                วันที่เริ่มต้น
+                            </label>
+                            <input id="service-start-date"
+                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="date" disabled />
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap -mx-3 mb-4">
+                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-time-start">
+                                เวลาเริ่มต้น
+                            </label>
+                            <input id="service-time-start"
+                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="time" disabled />
+                        </div>
+                        <div class="w-full md:w-1/2 px-3">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-end-date">
+                                วันที่สิ้นสุด
+                            </label>
+                            <input id="service-end-date"
+                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="date" disabled />
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap -mx-3 mb-4">
+                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-time-end">
+                                เวลาสิ้นสุด
+                            </label>
+                            <input id="service-time-end"
+                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="time" disabled />
+                        </div>
+                        <div class="w-full md:w-1/2 px-3">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-location">
+                                สถานที่จัด
+                            </label>
+                            <input id="service-location"
+                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="text" disabled />
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap -mx-3 mb-4">
+                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-people">
+                                จำนวนคน
+                            </label>
+                            <input id="service-people"
+                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="number" disabled />
+                        </div>
+                        <div class="w-full md:w-1/2 px-3">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="requester-name">
+                                ชื่อผู้ขอบริการ
+                            </label>
+                            <input id="requester-name"
+                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="text" disabled />
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="service-description">
+                            รายละเอียดบริการ
+                        </label>
+                        <textarea id="service-description"
+                            class="editable-textarea shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            disabled></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="service-status">
+                            สถานะ
+                        </label>
+                        <select id="service-status"
+                            class="editable-select shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            disabled>
+                            <option value="กำลังจะเริ่ม">กำลังจะเริ่ม</option>
+                            <option value="เสร็จสิ้น">เสร็จสิ้น</option>
+                            <option value="ยกเลิก">ยกเลิก</option>
+                        </select>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">
+                            จำนวนผู้เข้าร่วม
+                        </label>
+                        <p id="current-participants" class="text-gray-700"></p>
+                    </div>
+                    <div class="flex items-center justify-center">
+                        <button
+                            class="bg-gray-500 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
+                            type="button" onclick="window.history.back()">ย้อนกลับ</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

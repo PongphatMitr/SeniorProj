@@ -19,11 +19,7 @@
     </style>
     <script>
         let activities = [];
-        let sortOrder = {
-            title: 'asc',
-            start_date: 'asc',
-            status: 'asc'
-        };
+        let sortOrder = { title: 'asc', start_date: 'asc', status: 'asc' };
         let globalUserId = null;
 
         async function confirmAndRemove(event, rowId, activityId) {
@@ -56,7 +52,6 @@
                 console.log('Response status:', response.status);
                 const data = await response.json();
                 console.log('Response data:', data);
-
                 if (response.ok) {
                     activities = data.activities;
                     updateActivityStatus();
@@ -98,7 +93,6 @@
                     const activityEndDate = new Date(activity.end_date);
                     const activityEndTime = activity.end_time.split(':');
                     activityEndDate.setHours(activityEndTime[0], activityEndTime[1], activityEndTime[2]);
-
                     if (activityEndDate < now) {
                         activity.status = 'เกินเวลา';
                     }
@@ -114,7 +108,7 @@
                 let joinButtonText = 'เข้าร่วม';
                 let joinButtonClass = 'bg-blue-500';
                 let joinButtonDisabled = false;
-
+        
                 if (activity.status === 'เสร็จสิ้น') {
                     joinButtonText = 'เสร็จสิ้น';
                     joinButtonClass = 'bg-green-500';
@@ -126,8 +120,17 @@
                 } else if (userJoined) {
                     joinButtonText = 'ยกเลิก';
                     joinButtonClass = 'bg-red-500';
+                } else if (activity.requester_id === globalUserId) {
+                    joinButtonText = 'เจ้าของกิจกรรม';
+                    joinButtonClass = 'bg-orange-500';
+                    joinButtonDisabled = true;
                 }
-
+        
+                // เช็คว่าเป็นกิจกรรมของผู้ใช้เองหรือไม่
+                const activityDetailsPage = (activity.requester_id === globalUserId) 
+                    ? "myactivity-details.html" 
+                    : "activity-details.html";
+        
                 const row = document.createElement('tr');
                 row.id = `row-${index + 1}`;
                 row.className = 'hover:bg-gray-100';
@@ -145,15 +148,23 @@
                         <span id="participants-${index}">${activity.current_participants}</span> / ${activity.max_participants}
                     </td>
                     <td aria-colindex="5" data-label="การจัดการ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        <a href="activity-details.html?id=${activity.activity_id}" class="bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">รายละเอียด</a>
+                        <a href="${activityDetailsPage}?id=${activity.activity_id}" 
+                           class="bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">
+                            รายละเอียด
+                        </a>
                     </td>
                     <td aria-colindex="6" data-label="เข้าร่วม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        <button onclick="handleJoinButton(${activity.activity_id}, ${index})" class="${joinButtonClass} text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline join-button" ${joinButtonDisabled ? 'disabled' : ''}>${joinButtonText}</button>
+                        <button onclick="handleJoinButton(${activity.activity_id}, ${index})" 
+                                class="${joinButtonClass} text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline join-button" 
+                                ${joinButtonDisabled ? 'disabled' : ''}>
+                            ${joinButtonText}
+                        </button>
                     </td>
                 `;
                 tbody.appendChild(row);
             });
         }
+        
 
         function formatDate(dateString) {
             const date = new Date(dateString);
@@ -167,7 +178,6 @@
         function sortTable(column, type) {
             const order = sortOrder[column] === 'asc' ? 'desc' : 'asc';
             sortOrder[column] = order;
-
             const sortedActivities = [...activities].sort((a, b) => {
                 if (type === 'string') {
                     return order === 'asc' ? a[column].localeCompare(b[column]) : b[column].localeCompare(a[column]);
@@ -183,118 +193,86 @@
             if (isLoggedIn) {
                 navList.innerHTML = `
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="log-out.html">
-                            <i class="fas fa-user mr-3"></i>
-                            โปรไฟล์
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="log-out.html">
+                            <i class="fas fa-user mr-3"></i> โปรไฟล์
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="homepage.html">
+                            <i class="fas fa-home mr-3"></i> หน้าหลัก
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="service.html">
-                            <i class="fas fa-clipboard-list mr-3"></i>
-                            ยื่นข้อของานบริการ
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="service.html">
+                            <i class="fas fa-clipboard-list mr-3"></i> ยื่นข้อของานบริการ
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="profile.html">
-                            <i class="fas fa-user-edit mr-3"></i>
-                            แก้ไขประวัติ
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="profile.html">
+                            <i class="fas fa-user-edit mr-3"></i> แก้ไขประวัติ
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="skillconf.html">
-                            <i class="fas fa-tools mr-3"></i>
-                            แก้ไขทักษะ
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="skillconf.html">
+                            <i class="fas fa-tools mr-3"></i> แก้ไขทักษะ
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="balance.html">
-                            <i class="fas fa-wallet mr-3"></i>
-                            ยอดคงเหลือ
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="balance.html">
+                            <i class="fas fa-wallet mr-3"></i> ยอดคงเหลือ
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="history.html">
-                            <i class="fas fa-history mr-3"></i>
-                            ประวัติ
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="history.html">
+                            <i class="fas fa-history mr-3"></i> ประวัติ
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="contact.html">
-                            <i class="fas fa-phone mr-3"></i>
-                            ติดต่อเรา
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="contact.html">
+                            <i class="fas fa-phone mr-3"></i> ติดต่อเรา
                         </a>
                     </li>
                 `;
             } else {
                 navList.innerHTML = `
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="login.html">
-                            <i class="fas fa-sign-in-alt mr-3"></i>
-                            Login
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="login.html">
+                            <i class="fas fa-sign-in-alt mr-3"></i> Login
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="homepage.html">
+                            <i class="fas fa-home mr-3"></i> หน้าหลัก
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="service.html">
-                            <i class="fas fa-clipboard-list mr-3"></i>
-                            ยื่นข้อของานบริการ
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="service.html">
+                            <i class="fas fa-clipboard-list mr-3"></i> ยื่นข้อของานบริการ
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="profile.html">
-                            <i class="fas fa-user-edit mr-3"></i>
-                            แก้ไขประวัติ
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="profile.html">
+                            <i class="fas fa-user-edit mr-3"></i> แก้ไขประวัติ
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="skillconf.html">
-                            <i class="fas fa-tools mr-3"></i>
-                            แก้ไขทักษะ
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="skillconf.html">
+                            <i class="fas fa-tools mr-3"></i> แก้ไขทักษะ
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="balance.html">
-                            <i class="fas fa-wallet mr-3"></i>
-                            ยอดคงเหลือ
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="balance.html">
+                            <i class="fas fa-wallet mr-3"></i> ยอดคงเหลือ
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="history.html">
-                            <i class="fas fa-history mr-3"></i>
-                            ประวัติ
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="history.html">
+                            <i class="fas fa-history mr-3"></i> ประวัติ
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="contact.html">
-                            <i class="fas fa-phone mr-3"></i>
-                            ติดต่อเรา
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="contact.html">
+                            <i class="fas fa-phone mr-3"></i> ติดต่อเรา
                         </a>
                     </li>
                 `;
@@ -312,7 +290,6 @@
                             'Authorization': `Bearer ${token}`
                         }
                     });
-
                     if (response.ok) {
                         updateSidebar(true);
                         fetchActivities(); // Fetch activities only if the user is logged in
@@ -374,12 +351,14 @@
         async function joinActivity(activityId, index) {
             const token = localStorage.getItem('token');
             const userId = globalUserId; // Use the globally stored userId
-
             if (!token || !userId) {
                 alert('You need to be logged in to join an activity.');
                 return;
             }
-
+            if (activities[index].requester_id === userId) {
+                alert('You cannot join your own activity.');
+                return;
+            }
             try {
                 const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}/participants`, {
                     method: 'POST',
@@ -389,7 +368,6 @@
                     },
                     body: JSON.stringify({ memberId: userId })
                 });
-
                 if (response.ok) {
                     activities[index].current_participants += 1;
                     const joinButton = document.querySelector(`#row-${index + 1} .join-button`);
@@ -410,12 +388,10 @@
         async function leaveActivity(activityId, index) {
             const token = localStorage.getItem('token');
             const userId = globalUserId; // Use the globally stored userId
-
             if (!token || !userId) {
                 alert('You need to be logged in to leave an activity.');
                 return;
             }
-
             try {
                 const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}/participants/${userId}`, {
                     method: 'DELETE',
@@ -423,13 +399,12 @@
                         'Authorization': `Bearer ${token}`
                     }
                 });
-
                 if (response.ok) {
                     activities[index].current_participants -= 1;
                     const joinButton = document.querySelector(`#row-${index + 1} .join-button`);
                     joinButton.innerText = 'เข้าร่วม';
                     joinButton.classList.remove('bg-red-500');
-                    joinButton.classList.add('bg-green-500');
+                    joinButton.classList.add('bg-blue-500');
                     document.getElementById(`participants-${index}`).innerText = activities[index].current_participants;
                 } else {
                     const data = await response.json();

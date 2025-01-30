@@ -194,23 +194,13 @@
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="address" placeholder="Address"></textarea>
                     </div>
-                    <div class="mb-4 flex space-x-4">
-                        <div class="w-1/2">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="branch">Branch</label>
-                            <input
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="branch" placeholder="Branch" type="text" />
-                        </div>
-                        <div class="w-1/2">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="role">Role</label>
-                            <select
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="role">
-                                <option value="Member">Member</option>
-                                <option value="TimeBankManager">TimeBankManager</option>
-                                <option value="Admin">Admin</option>
-                            </select>
-                        </div>
+                    <div class="mb-4 relative">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="branch">Branch</label>
+                        <input
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="branch" placeholder="Branch" type="text" oninput="searchBranches()" />
+                        <div id="branch-results-dropdown"
+                            class="absolute bg-white shadow-lg rounded w-full mt-1 hidden z-10"></div>
                     </div>
                     <div class="flex items-center justify-center">
                         <button
@@ -227,6 +217,39 @@
     </div>
 
     <script>
+        async function searchBranches() {
+            const searchTerm = document.getElementById('branch').value.toLowerCase();
+            const resultsDropdown = document.getElementById('branch-results-dropdown');
+            resultsDropdown.innerHTML = '';
+            if (searchTerm) {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/user/branches?search=${searchTerm}`);
+                    const branches = await response.json();
+                    branches.forEach(branch => {
+                        const item = document.createElement('div');
+                        item.className = 'py-2 px-4 hover:bg-gray-200 cursor-pointer';
+                        item.innerHTML = `
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-gray-700">${branch.branch_name}</p>
+                                </div>
+                            </div>
+                        `;
+                        item.onclick = () => {
+                            document.getElementById('branch').value = branch.branch_name;
+                            resultsDropdown.innerHTML = '';
+                        };
+                        resultsDropdown.appendChild(item);
+                    });
+                    resultsDropdown.classList.remove('hidden');
+                } catch (error) {
+                    console.error('Error fetching branches:', error);
+                }
+            } else {
+                resultsDropdown.classList.add('hidden');
+            }
+        }
+
         document.getElementById('registerForm').addEventListener('submit', async function (event) {
             event.preventDefault();
 
@@ -240,7 +263,7 @@
                 phone: document.getElementById('phone').value.trim(),
                 address: document.getElementById('address').value.trim(),
                 branch: document.getElementById('branch').value.trim(),
-                role: document.getElementById('role').value
+                role: 'User' // Set default role to 'User'
             };
 
             // Client-side validation
