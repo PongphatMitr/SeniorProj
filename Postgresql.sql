@@ -12,6 +12,7 @@ DROP TABLE IF EXISTS contact_us CASCADE;
 DROP TABLE IF EXISTS branches CASCADE;
 DROP TABLE IF EXISTS community_config_log CASCADE;
 DROP TABLE IF EXISTS user_login_log CASCADE;
+DROP TABLE IF EXISTS user_transaction_transfer CASCADE;
 
 -- Drop enum types if they exist (run this first)
 DROP TYPE IF EXISTS user_status CASCADE;
@@ -162,6 +163,16 @@ CREATE TABLE contact_us (
     message TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
+);
+CREATE TABLE user_transaction_transfer (
+    transaction_id SERIAL PRIMARY KEY,
+    sender_id INT NOT NULL,
+    recipient_id INT NOT NULL,
+    time_credit INT NOT NULL CHECK (time_credit > 0), -- Only positive transfers
+    date TIMESTAMP DEFAULT NOW(),
+    time TIMESTAMP DEFAULT NOW(),
+    FOREIGN KEY (sender_id) REFERENCES users(user_id),
+    FOREIGN KEY (recipient_id) REFERENCES users(user_id)
 );
 
 -- Insert initial data into branches
