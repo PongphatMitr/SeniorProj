@@ -210,28 +210,33 @@ const authRoutes = (pool) => {
     router.get('/profile', authMiddleware, async (req, res) => {
         try {
             const result = await pool.query(
-                `SELECT u.user_id, u.username, u.email, u.role, u.name, u.phone, u.address, b.branch_name AS branch, u.time_credits, u.status, u.created_at 
+                `SELECT u.user_id, u.username, u.email, u.role, u.name, u.phone, u.address, 
+                        u.branch_id, COALESCE(b.branch_name, 'N/A') AS branch, 
+                        u.time_credits, u.status, u.created_at 
                 FROM users u
                 LEFT JOIN branches b ON u.branch_id = b.branch_id
                 WHERE u.user_id = $1`,
                 [req.user.userId]
             );
-
+    
             const user = result.rows[0];
-
+    
             if (!user) {
                 return res.status(404).json({ error: 'User not found' });
             }
-
+    
+            console.log("✅ Fetched user profile:", user); // Debugging
+    
             res.json(user);
-
+    
         } catch (err) {
-            console.error('Profile Error:', err.message);
+            console.error('❌ Profile Error:', err.message);
             res.status(500).json({
                 error: 'Internal server error. Please try again.'
             });
         }
     });
+    
 
     // Save changes to profile
     router.put('/profile', authMiddleware, async (req, res) => {

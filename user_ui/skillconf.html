@@ -197,15 +197,103 @@
             }
         }
 
-        function updateSidebar(isLoggedIn) {
+        async function updateSidebar(isLoggedIn) {
             const navList = document.getElementById('navList');
+        
             if (isLoggedIn) {
+                try {
+                    // Fetch user details to get the memberId
+                    const response = await fetch('http://localhost:3000/api/user/auth/verify', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+        
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch user details');
+                    }
+        
+                    const member = await response.json(); // Adjust based on your backend response
+                    const memberId = member.userId || member.user_id; // Use the correct field for memberId from the response
+        
+                    navList.innerHTML = `
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                                href="log-out.html">
+                                <i class="fas fa-user mr-3"></i>
+                                โปรไฟล์
+                            </a>
+                        </li>
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                                href="homepage.html">
+                                <i class="fas fa-home mr-3"></i>
+                                หน้าหลัก
+                            </a>
+                        </li>
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                                href="service.html">
+                                <i class="fas fa-clipboard-list mr-3"></i>
+                                กิจกรรมชุมชน
+                            </a>
+                        </li>
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                                href="profile.html?memberId=${memberId}">
+                                <i class="fas fa-user-edit mr-3"></i>
+                                แก้ไขประวัติ
+                            </a>
+                        </li>
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                                href="skillconf.html">
+                                <i class="fas fa-tools mr-3"></i>
+                                แก้ไขทักษะ
+                            </a>
+                        </li>
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                                href="balance.html">
+                                <i class="fas fa-wallet mr-3"></i>
+                                ยอดคงเหลือ
+                            </a>
+                        </li>
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                                href="history.html">
+                                <i class="fas fa-history mr-3"></i>
+                                ประวัติ
+                            </a>
+                        </li>
+                        <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="transfer.html">
+                            <i class="fas fa-exchange-alt mr-3"></i>
+                            แลกเปลี่ยนเวลา
+                        </a>
+                        </li>
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                                href="contact.html">
+                                <i class="fas fa-phone mr-3"></i>
+                                ติดต่อเรา
+                            </a>
+                        </li>
+                    `;
+                } catch (error) {
+                    console.error('Error fetching user details:', error);
+                    alert('เกิดข้อผิดพลาดขณะโหลดข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
+                }
+            } else {
                 navList.innerHTML = `
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="log-out.html">
-                            <i class="fas fa-user mr-3"></i>
-                            โปรไฟล์
+                            href="login.html">
+                            <i class="fas fa-sign-in-alt mr-3"></i>
+                            เข้าสู่ระบบ
                         </a>
                     </li>
                     <li class="mb-5">
@@ -219,7 +307,7 @@
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
                             href="service.html">
                             <i class="fas fa-clipboard-list mr-3"></i>
-                            ยื่นข้อของานบริการ
+                            กิจกรรมชุมชน
                         </a>
                     </li>
                     <li class="mb-5">
@@ -252,61 +340,16 @@
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="transfer.html">
+                            <i class="fas fa-exchange-alt mr-3"></i>
+                            แลกเปลี่ยนเวลา
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
                             href="contact.html">
                             <i class="fas fa-phone mr-3"></i>
                             ติดต่อเรา
-                        </a>
-                    </li>
-                `;
-            } else {
-                navList.innerHTML = `
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="login.html">
-                            <i class="fas fa-sign-in-alt mr-3"></i>
-                            Login
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="service.html">
-                            <i class="fas fa-chart-bar mr-3"></i>
-                            ยื่นข้อของานบริการ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="profile.html">
-                            <i class="fas fa-calendar-alt mr-3"></i>
-                            แก้ไขประวัติ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="skillconf.html">
-                            <i class="fas fa-users mr-3"></i>
-                            แก้ไขทักษะ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="balance.html">
-                            <i class="fas fa-cogs mr-3"></i>
-                            ยอดคงเหลือ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="history.html">
-                            <i class="fas fa-hand-holding-usd mr-3"></i>
-                            ประวัติ
                         </a>
                     </li>
                 `;
@@ -381,12 +424,12 @@
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
                             href="service.html">
                             <i class="fas fa-clipboard-list mr-3"></i>
-                            ยื่นข้อของานบริการ
+                            กิจกรรมชุมชน
                         </a>
                     </li>
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="profile.html">
+                            href="profile.html?memberId=${memberId}">
                             <i class="fas fa-user-edit mr-3"></i>
                             แก้ไขประวัติ
                         </a>
@@ -410,6 +453,13 @@
                             href="history.html">
                             <i class="fas fa-history mr-3"></i>
                             ประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="transfer.html">
+                            <i class="fas fa-exchange-alt mr-3"></i>
+                            แลกเปลี่ยนเวลา
                         </a>
                     </li>
                     <li class="mb-5">

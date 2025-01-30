@@ -1,76 +1,91 @@
 <html lang="en">
-
-<head>
-    <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>ติดต่อเรา - Time Bank</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
-    <script>
-        async function fetchUserDetails() {
-            try {
-                const response = await fetch('http://localhost:3000/api/user/auth/profile', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-
-                const data = await response.json();
-                document.getElementById('name').value = data.name || '';
-                document.getElementById('email').value = data.email || '';
-            } catch (error) {
-                console.error('Error fetching user details:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้');
-            }
-        }
-
-        async function submitContactForm(event) {
-            event.preventDefault();
-
-            const name = document.getElementById('name').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const subject = document.getElementById('subject').value.trim();
-            const message = document.getElementById('message').value.trim();
-
-            if (!name || !email || !subject || !message) {
-                alert('กรุณากรอกข้อมูลให้ครบถ้วน');
-                return;
-            }
-
-            try {
-                const response = await fetch('http://localhost:3000/api/user/contact', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ name, email, subject, message })
-                });
-
-                if (response.ok) {
-                    alert('ส่งข้อความเรียบร้อยแล้ว');
-
-                    // Clear only subject and message fields
-                    document.getElementById('subject').value = '';
-                    document.getElementById('message').value = '';
-
-                } else {
-                    const errorData = await response.json();
-                    alert(`เกิดข้อผิดพลาด: ${errorData.error}`);
-                }
-            } catch (error) {
-                console.error('Error submitting contact form:', error);
-                alert('เกิดข้อผิดพลาดในการส่งข้อความ');
-            }
-        }
+ <head>
+  <meta charset="utf-8"/>
+  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+  <title>
+   โปรไฟล์สมาชิก - Time Bank
+  </title>
+  <script src="https://cdn.tailwindcss.com">
+  </script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+  <script>
+   let globalUserId = null;
+        let members = [];
 
         document.addEventListener('DOMContentLoaded', () => {
             checkLoginStatus();
-            document.getElementById('contactForm').addEventListener('submit', submitContactForm);
+            fetchMemberProfile();
+            fetchUserDetails();
+            fetchMembers();
         });
+
+        async function fetchMemberProfile() {
+            try {
+                const response = await fetch('http://localhost:3000/api/user/auth/profile', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+
+                if (!response.ok) throw new Error('Network response was not ok');
+
+                const data = await response.json();
+                globalUserId = data.user_id;
+
+                const balanceElement = document.getElementById('userBalance');
+                balanceElement.innerText = `${data.time_credits} ชั่วโมง`;
+
+                balanceElement.style.color = data.time_credits > 0 ? "#32CD32" :
+                                             data.time_credits < 0 ? "red" : "gray";
+
+                fetchTransactions(globalUserId);
+            } catch (error) {
+                console.error('Error fetching member profile:', error);
+            }
+        }
+
+        async function fetchTransactions(userId) {
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/${userId}/transactions`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+
+                if (!response.ok) throw new Error('Network response was not ok');
+
+                const transactions = await response.json();
+                const transactionList = document.querySelector('.transaction-list');
+
+                transactionList.innerHTML = transactions.map(transaction => `
+                    <div class="transaction-item bg-gray-100 p-4 rounded-lg shadow-md">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-lg font-semibold">${transaction.service}</p>
+                                <p class="text-gray-600">วันที่: ${transaction.date}</p>
+                            </div>
+                            <p class="text-lg font-bold ${transaction.hours > 0 ? 'text-blue-600' : 'text-red-600'}">
+                                ${transaction.hours > 0 ? '+' : ''}${transaction.hours} ชั่วโมง
+                            </p>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Error fetching transactions:', error);
+            }
+        }
+
+        async function fetchBranchName(branchId) {
+            if (!branchId) return 'N/A';
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/branches`);
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok (${response.status})`);
+                }
+                const branches = await response.json();
+                const branch = branches.find(branch => branch.branch_id === branchId);
+                return branch ? branch.branch_name : 'N/A';
+            } catch (error) {
+                console.error('Error fetching branch name:', error);
+                return 'N/A';
+            }
+        }
 
         async function checkLoginStatus() {
             const token = localStorage.getItem('token');
@@ -114,10 +129,9 @@
 
         async function updateSidebar(isLoggedIn) {
             const navList = document.getElementById('navList');
-        
+
             if (isLoggedIn) {
                 try {
-                    // Fetch user details to get the memberId
                     const response = await fetch('http://localhost:3000/api/user/auth/verify', {
                         method: 'POST',
                         headers: {
@@ -125,14 +139,14 @@
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
                         }
                     });
-        
+
                     if (!response.ok) {
                         throw new Error('Failed to fetch user details');
                     }
-        
-                    const member = await response.json(); // Adjust based on your backend response
-                    const memberId = member.userId || member.user_id; // Use the correct field for memberId from the response
-        
+
+                    const member = await response.json();
+                    const memberId = member.userId || member.user_id;
+
                     navList.innerHTML = `
                         <li class="mb-5">
                             <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
@@ -271,128 +285,150 @@
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            checkLoginStatus();
-        }); 
+        async function fetchUserDetails() {
+            try {
+                const response = await fetch('http://localhost:3000/api/user/auth/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
 
-    </script>
-</head>
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
-<body class="bg-gray-100">
-    <div class="flex flex-col md:flex-row">
-        <!-- Sidebar -->
-        <div class="w-full md:w-1/6 bg-white h-screen p-5">
-            <div class="flex items-center mb-10">
-                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
-                    class="w-10 h-10 rounded-full" height="50"
-                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
-                    width="50" />
-                <span class="ml-3 text-xl font-bold text-blue-600">
-                    TIMEBANK
-                </span>
-            </div>
-            <nav>
-                <ul id="navList">
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="login.html">
-                            <i class="fas fa-sign-in-alt mr-3"></i>
-                            เข้าสู่ระบบ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="service.html">
-                            <i class="fas fa-clipboard-list mr-3"></i>
-                            กิจกรรมชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="profile.html">
-                            <i class="fas fa-user-edit mr-3"></i>
-                            แก้ไขประวัติ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="skillconf.html">
-                            <i class="fas fa-tools mr-3"></i>
-                            แก้ไขทักษะ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="balance.html">
-                            <i class="fas fa-wallet mr-3"></i>
-                            ยอดคงเหลือ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="history.html">
-                            <i class="fas fa-history mr-3"></i>
-                            ประวัติ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="transfer.html">
-                            <i class="fas fa-exchange-alt mr-3"></i>
-                            แลกเปลี่ยนเวลา
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="contact.html">
-                            <i class="fas fa-phone mr-3"></i>
-                            ติดต่อเรา
-                        </a>
-                    </li>
-                </ul>
-            </nav>
-        </div>
+                const data = await response.json();
+                document.getElementById('senderName').innerText = data.name || '';
+       
+            } catch (error) {
+                console.error('Error fetching user details:', error);
+                alert('เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้');
+            }
+        }
 
-        <!-- Main Content -->
-        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
-            <h1 class="text-4xl font-bold text-center mb-8">
-                TIME BANK
-            </h1>
-            <div class="max-w-4xl mx-auto">
-                <h2 class="text-3xl font-bold mb-6">
-                    ติดต่อเรา
-                </h2>
-                <form id="contactForm" class="space-y-4 bg-white p-6 rounded-md shadow-lg text-black">
-                    <div>
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="name">ชื่อ:</label>
-                        <input id="name" class="w-full p-2 border rounded-md" type="text" readonly />
-                    </div>
-                    <div>
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="email">อีเมล:</label>
-                        <input id="email" class="w-full p-2 border rounded-md" type="email" readonly />
-                    </div>
-                    <div>
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="subject">หัวข้อ:</label>
-                        <input id="subject" class="w-full p-2 border rounded-md" type="text" placeholder="หัวข้อเรื่อง" required />
-                    </div>
-                    <div>
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="message">ข้อความ:</label>
-                        <textarea id="message" class="w-full p-2 border rounded-md h-32" placeholder="ข้อความของคุณ" required></textarea>
-                    </div>
-                    <button class="bg-blue-900 text-white hover:bg-[#0A2540] hover:text-white py-2 px-6 rounded-md border-white border-blue-900 transition duration-300 w-full" type="submit">
-                        ส่งข้อความ
-                    </button>
-                </form>
-            </div>
-        </div>
+        async function fetchMembers() {
+            try {
+                const response = await fetch('http://localhost:3000/api/user/members', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                members = await response.json();
+            } catch (error) {
+                console.error('Error fetching members:', error);
+                alert('เกิดข้อผิดพลาดในการดึงข้อมูลสมาชิก');
+            }
+        }
+
+        function searchMembers() {
+            const searchTerm = document.getElementById('recipient').value.toLowerCase();
+            const resultsDropdown = document.getElementById('search-results-dropdown');
+            resultsDropdown.innerHTML = '';
+            if (searchTerm) {
+                const filteredMembers = members.filter(member => member.name.toLowerCase().includes(searchTerm) || member.user_id.toString().includes(searchTerm));
+                filteredMembers.forEach(member => {
+                    const item = document.createElement('div');
+                    item.className = 'py-2 px-4 hover:bg-gray-200 cursor-pointer';
+                    item.innerHTML = `
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <p class="text-gray-700">${member.name}</p>
+                                <p class="text-gray-500 text-sm">ID: ${member.user_id}</p>
+                                <p class="text-gray-500 text-sm">โทเค็นเวลา: ${member.time_credits}</p>
+                            </div>
+                        </div>
+                    `;
+                    item.onclick = () => {
+                        document.getElementById('recipient').value = member.name;
+                        document.getElementById('recipient-id').value = member.user_id;
+                        resultsDropdown.innerHTML = '';
+                    };
+                    resultsDropdown.appendChild(item);
+                });
+                resultsDropdown.classList.remove('hidden');
+            } else {
+                resultsDropdown.classList.add('hidden');
+            }
+        }
+  </script>
+ </head>
+ <body class="bg-gray-100">
+  <!-- Main Content -->
+  <div class="flex">
+   <!-- Sidebar -->
+   <div class="w-1/6 bg-white h-screen p-5">
+    <div class="flex items-center mb-10">
+     <img alt="Logo of Time Bank System, a clock with a handshake in the center" class="w-10 h-10 rounded-full" height="50" src="https://placehold.co/50x50" width="50"/>
+     <span class="ml-3 text-xl font-bold text-blue-600">
+      TIMEBANK
+     </span>
     </div>
-</body>
-
+    <nav>
+     <ul id="navList">
+      <!-- Navigation items will be dynamically inserted here -->
+     </ul>
+    </nav>
+   </div>
+   <div class="w-5/6 bg-blue-700 text-white p-10 rounded-lg shadow-lg">
+    <h1 class="text-3xl font-bold text-center mb-5">
+     แลกเปลี่ยนเวลา
+    </h1>
+    <!-- User Balance Section -->
+    <div class="bg-white text-gray-800 p-6 rounded-lg shadow-md mb-5">
+     <h2 class="text-xl font-bold mb-2">
+      ยอดคงเหลือ
+     </h2>
+     <div class="flex items-center">
+      <i class="fas fa-wallet text-3xl text-blue-600 mr-4">
+      </i>
+      <span class="text-2xl font-bold" id="userBalance">
+       000 เครดิต
+      </span>
+     </div>
+    </div>
+    <!-- Transfer Form -->
+    <form class="bg-white text-gray-800 p-6 rounded-lg shadow-md" id="transferForm">
+     <!-- Sender -->
+     <div class="mb-4">
+      <label class="block font-bold text-gray-700 mb-2">
+       จาก
+      </label>
+      <div class="flex items-center bg-gray-100 p-3 rounded-lg">
+       <i class="fas fa-user-circle text-3xl text-blue-600 mr-4">
+       </i>
+       <span class="text-lg font-bold" id="senderName">
+        ชื่อของคุณ
+       </span>
+      </div>
+     </div>
+     <!-- Recipient -->
+     <div class="mb-4 relative">
+      <label class="block font-bold text-gray-700 mb-2">
+       ถึง
+      </label>
+      <input class="w-full p-3 rounded-lg border focus:ring focus:ring-blue-300" id="recipient" name="recipient" oninput="searchMembers()" placeholder="กรอก User ID หรือ ชื่อ" required=""/>
+      <input id="recipient-id" name="recipient-id" type="hidden"/>
+      <div class="absolute w-full bg-white border rounded-lg mt-1 hidden" id="search-results-dropdown">
+      </div>
+     </div>
+     <!-- Amount -->
+     <div class="mb-4">
+      <label class="block font-bold text-gray-700 mb-2">
+       จำนวนเครดิตเวลา
+      </label>
+      <input class="w-full p-3 rounded-lg border focus:ring focus:ring-blue-300" id="amount" min="0" name="amount" placeholder="กรอกจำนวน" required="" type="number"/>
+     </div>
+     <!-- Transfer Button -->
+     <button class="w-full bg-blue-600 hover:bg-blue-800 text-white font-bold py-3 px-4 rounded-lg">
+      ยืนยันการโอน
+     </button>
+    </form>
+   </div>
+  </div>
+ </body>
 </html>

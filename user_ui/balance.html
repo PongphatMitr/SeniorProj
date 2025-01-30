@@ -1,248 +1,165 @@
+<!DOCTYPE html>
 <html lang="en">
- <head>
-  <meta charset="utf-8"/>
-  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>
-   ยอดคงเหลือ - Time Bank
-  </title>
-  <script src="https://cdn.tailwindcss.com">
-  </script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
- </head>
- <body class="bg-gray-100 font-roboto">
-  <div class="flex flex-col md:flex-row">
-   <!-- Sidebar -->
-   <div class="w-full md:w-1/6 bg-white h-screen p-5">
-    <div class="flex items-center mb-10">
-     <img alt="Logo of Time Bank System, a clock with a handshake in the center" class="w-10 h-10 rounded-full" height="50" src="https://placehold.co/50x50" width="50"/>
-     <span class="ml-3 text-xl font-bold text-blue-600">
-      TIMEBANK
-     </span>
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>ยอดคงเหลือ - Time Bank</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
+
+    <!-- Google Fonts -->
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"/>
+</head>
+
+<body class="bg-gray-100 font-roboto">
+    <div class="flex flex-col md:flex-row">
+        <!-- Sidebar -->
+        <div class="w-full md:w-1/6 bg-white h-screen p-5">
+            <div class="flex items-center mb-10">
+                <img src="https://placehold.co/50x50" 
+                     alt="Logo of Time Bank System, a clock with a handshake in the center" 
+                     class="w-10 h-10 rounded-full"/>
+                <span class="ml-3 text-xl font-bold text-blue-600">TIMEBANK</span>
+            </div>
+
+            <nav>
+                <ul id="navList">
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="log-out.html">
+                            <i class="fas fa-user mr-3"></i>
+                            โปรไฟล์
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="homepage.html">
+                            <i class="fas fa-home mr-3"></i>
+                            หน้าหลัก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="service.html">
+                            <i class="fas fa-clipboard-list mr-3"></i>
+                            กิจกรรมชุมชน
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="profile.html?memberId=${memberId}">
+                            <i class="fas fa-user-edit mr-3"></i>
+                            แก้ไขประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="skillconf.html">
+                            <i class="fas fa-tools mr-3"></i>
+                            แก้ไขทักษะ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="balance.html">
+                            <i class="fas fa-wallet mr-3"></i>
+                            ยอดคงเหลือ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="history.html">
+                            <i class="fas fa-history mr-3"></i>
+                            ประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="transfer.html">
+                            <i class="fas fa-exchange-alt mr-3"></i>
+                            แลกเปลี่ยนเวลา
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="contact.html">
+                            <i class="fas fa-phone mr-3"></i>
+                            ติดต่อเรา
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10 flex justify-center items-center">
+            <div class="bg-white text-black p-8 rounded-lg shadow-lg w-full max-w-3xl">
+                <!-- Balance Section -->
+                <div class="balance-section mb-8">
+                    <h2 class="text-3xl font-bold mb-6 text-blue-700 text-center">ยอดคงเหลือปัจจุบัน</h2>
+                    <div class="balance-details flex justify-center">
+                        <div class="text-center">
+                            <p class="text-2xl font-semibold">จำนวนชั่วโมงที่สะสม</p>
+                            <p id="timecredit_balance" class="text-4xl font-bold mt-2 text-blue-600"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Transaction History -->
+                <div class="transaction-history">
+                    <h2 class="text-3xl font-bold mb-6 text-blue-700 text-center">ประวัติการทำธุรกรรม</h2>
+                    <div class="transaction-list space-y-4"></div>
+                </div>
+            </div>
+        </div>
     </div>
-    <nav>
-     <ul id="navList">
-      <li class="mb-5">
-       <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="log-out.html">
-        <i class="fas fa-user mr-3">
-        </i>
-        โปรไฟล์
-       </a>
-      </li>
-      <li class="mb-5">
-       <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="homepage.html">
-        <i class="fas fa-home mr-3">
-        </i>
-        หน้าหลัก
-       </a>
-      </li>
-      <li class="mb-5">
-       <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="service.html">
-        <i class="fas fa-clipboard-list mr-3">
-        </i>
-        ยื่นข้อของานบริการ
-       </a>
-      </li>
-      <li class="mb-5">
-       <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="profile.html">
-        <i class="fas fa-user-edit mr-3">
-        </i>
-        แก้ไขประวัติ
-       </a>
-      </li>
-      <li class="mb-5">
-       <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="skillconf.html">
-        <i class="fas fa-tools mr-3">
-        </i>
-        แก้ไขทักษะ
-       </a>
-      </li>
-      <li class="mb-5">
-       <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="balance.html">
-        <i class="fas fa-wallet mr-3">
-        </i>
-        ยอดคงเหลือ
-       </a>
-      </li>
-      <li class="mb-5">
-       <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="history.html">
-        <i class="fas fa-history mr-3">
-        </i>
-        ประวัติ
-       </a>
-      </li>
-      <li class="mb-5">
-       <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="contact.html">
-        <i class="fas fa-phone mr-3">
-        </i>
-        ติดต่อเรา
-       </a>
-      </li>
-     </ul>
-    </nav>
-   </div>
-   <!-- Main Content -->
-   <div class="w-full md:w-5/6 bg-blue-700 text-white p-10 flex justify-center items-center">
-    <div class="bg-white text-black p-8 rounded-lg shadow-lg w-full max-w-3xl">
 
-     <div class="balance-section mb-8">
-      <h2 class="text-3xl font-bold mb-6 text-blue-700 text-center">
-       ยอดคงเหลือปัจจุบัน
-      </h2>
-      <div class="balance-details flex justify-center">
-       <div class="text-center">
-        <p class="text-2xl font-semibold">
-         จำนวนชั่วโมงที่สะสม
-        </p>
-        <p class="text-4xl font-bold mt-2 text-blue-600" id="timecredit_balance">
-        </p>
-       </div>
-      </div>
-     </div>
-     <div class="transaction-history">
-      <h2 class="text-3xl font-bold mb-6 text-blue-700 text-center">
-       ประวัติการทำธุรกรรม
-      </h2>
-      <div class="transaction-list space-y-4">
-       <div class="transaction-item bg-gray-100 p-4 rounded-lg shadow-md">
-        <div class="flex justify-between items-center">
-         <div>
-          <p class="text-lg font-semibold">
-           บริการทำความสะอาด
-          </p>
-          <p class="text-gray-600">
-           วันที่: 2023-10-01
-          </p>
-         </div>
-         <p class="text-lg font-bold text-blue-600">
-          +2 ชั่วโมง
-         </p>
-        </div>
-       </div>
-       <div class="transaction-item bg-gray-100 p-4 rounded-lg shadow-md">
-        <div class="flex justify-between items-center">
-         <div>
-          <p class="text-lg font-semibold">
-           บริการซ่อมแซม
-          </p>
-          <p class="text-gray-600">
-           วันที่: 2023-09-25
-          </p>
-         </div>
-         <p class="text-lg font-bold text-red-600">
-          -1 ชั่วโมง
-         </p>
-        </div>
-       </div>
-       <div class="transaction-item bg-gray-100 p-4 rounded-lg shadow-md">
-        <div class="flex justify-between items-center">
-         <div>
-          <p class="text-lg font-semibold">
-           บริการทำสวน
-          </p>
-          <p class="text-gray-600">
-           วันที่: 2023-09-20
-          </p>
-         </div>
-         <p class="text-lg font-bold text-blue-600">
-          +3 ชั่วโมง
-         </p>
-        </div>
-       </div>
-       <div class="transaction-item bg-gray-100 p-4 rounded-lg shadow-md">
-        <div class="flex justify-between items-center">
-         <div>
-          <p class="text-lg font-semibold">
-           บริการทำอาหาร
-          </p>
-          <p class="text-gray-600">
-           วันที่: 2023-09-15
-          </p>
-         </div>
-         <p class="text-lg font-bold text-red-600">
-          -2 ชั่วโมง
-         </p>
-        </div>
-       </div>
-       <div class="transaction-item bg-gray-100 p-4 rounded-lg shadow-md">
-        <div class="flex justify-between items-center">
-         <div>
-          <p class="text-lg font-semibold">
-           บริการขนย้าย
-          </p>
-          <p class="text-gray-600">
-           วันที่: 2023-09-10
-          </p>
-         </div>
-         <p class="text-lg font-bold text-blue-600">
-          +4 ชั่วโมง
-         </p>
-        </div>
-       </div>
-      </div>
-     </div>
-    </div>
-   </div>
-  </div>
-  <script>
-   let globalUserId = null; // Global variable to store user_id
+    <script>
+        let globalUserId = null;
 
-   document.addEventListener('DOMContentLoaded', () => {
-    fetchMemberProfile();
-});
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLoginStatus();
+            fetchMemberProfile();
+        });
 
-document.addEventListener('DOMContentLoaded', () => {
-    fetchMemberProfile();
-});
+        async function fetchMemberProfile() {
+            try {
+                const response = await fetch('http://localhost:3000/api/user/auth/profile', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
 
-    async function fetchMemberProfile() {
-        try {
-            const response = await fetch('http://localhost:3000/api/user/auth/profile', {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
+                if (!response.ok) throw new Error('Network response was not ok');
 
-            if (!response.ok) {
-                throw new Error('Network response was not ok');
+                const data = await response.json();
+                globalUserId = data.user_id;
+
+                const balanceElement = document.getElementById('timecredit_balance');
+                balanceElement.innerText = `${data.time_credits} ชั่วโมง`;
+
+                balanceElement.style.color = data.time_credits > 0 ? "#32CD32" :
+                                             data.time_credits < 0 ? "red" : "gray";
+
+                fetchTransactions(globalUserId);
+            } catch (error) {
+                console.error('Error fetching member profile:', error);
             }
-
-            const data = await response.json();
-            globalUserId = data.user_id;
-
-            // Select the balance element
-            const balanceElement = document.getElementById('timecredit_balance');
-
-            // Set the text value
-            balanceElement.innerText = `${data.time_credits} ชั่วโมง`;
-
-            // Apply custom light lime green color
-            if (data.time_credits > 0) {
-                balanceElement.style.color = "#32CD32";  // Spring Green (Light Lime Green)
-            } else if (data.time_credits < 0) {
-                balanceElement.style.color = "red";  // Negative balance in red
-            } else {
-                balanceElement.style.color = "gray";  // Zero balance in gray
-            }
-
-            await fetchTransactions(globalUserId);
-        } catch (error) {
-            console.error('Error fetching member profile:', error);
         }
-    }
 
         async function fetchTransactions(userId) {
             try {
                 const response = await fetch(`http://localhost:3000/api/user/${userId}/transactions`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
+
+                if (!response.ok) throw new Error('Network response was not ok');
+
                 const transactions = await response.json();
                 const transactionList = document.querySelector('.transaction-list');
+
                 transactionList.innerHTML = transactions.map(transaction => `
                     <div class="transaction-item bg-gray-100 p-4 rounded-lg shadow-md">
                         <div class="flex justify-between items-center">
@@ -250,7 +167,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <p class="text-lg font-semibold">${transaction.service}</p>
                                 <p class="text-gray-600">วันที่: ${transaction.date}</p>
                             </div>
-                            <p class="text-lg font-bold ${transaction.hours > 0 ? 'text-blue-600' : 'text-red-600'}">${transaction.hours > 0 ? '+' : ''}${transaction.hours} ชั่วโมง</p>
+                            <p class="text-lg font-bold ${transaction.hours > 0 ? 'text-blue-600' : 'text-red-600'}">
+                                ${transaction.hours > 0 ? '+' : ''}${transaction.hours} ชั่วโมง
+                            </p>
                         </div>
                     </div>
                 `).join('');
@@ -258,6 +177,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Error fetching transactions:', error);
             }
         }
-  </script>
- </body>
+
+        async function checkLoginStatus() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('You are not logged in. Redirecting to login page.');
+                window.location.href = 'login.html';
+                return;
+            }
+        }
+    </script>
+</body>
 </html>

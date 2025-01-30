@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>
-        Time Bank
+        Homepage
     </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
@@ -185,7 +185,7 @@
                             <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
                                 href="service.html">
                                 <i class="fas fa-clipboard-list mr-3"></i>
-                                ยื่นข้อของานบริการ
+                                กิจกรรมชุมชน
                             </a>
                         </li>
                         <li class="mb-5">
@@ -218,6 +218,13 @@
                         </li>
                         <li class="mb-5">
                             <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                                href="transfer.html">
+                                <i class="fas fa-exchange-alt mr-3"></i>
+                                แลกเปลี่ยนเวลา
+                            </a>
+                        </li>
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
                                 href="contact.html">
                                 <i class="fas fa-phone mr-3"></i>
                                 ติดต่อเรา
@@ -226,7 +233,7 @@
                     `;
                 } catch (error) {
                     console.error('Error fetching user details:', error);
-                    alert('An error occurred while loading user data. Please log in again.');
+                    alert('เกิดข้อผิดพลาดขณะโหลดข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
                 }
             } else {
                 navList.innerHTML = `
@@ -234,7 +241,7 @@
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="login.html">
                             <i class="fas fa-sign-in-alt mr-3"></i>
-                            Login
+                            เข้าสู่ระบบ
                         </a>
                     </li>
                     <li class="mb-5">
@@ -248,7 +255,7 @@
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
                             href="service.html">
                             <i class="fas fa-clipboard-list mr-3"></i>
-                            ยื่นข้อของานบริการ
+                            กิจกรรมชุมชน
                         </a>
                     </li>
                     <li class="mb-5">
@@ -277,6 +284,13 @@
                             href="history.html">
                             <i class="fas fa-history mr-3"></i>
                             ประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="transfer.html">
+                            <i class="fas fa-exchange-alt mr-3"></i>
+                            แลกเปลี่ยนเวลา
                         </a>
                     </li>
                     <li class="mb-5">

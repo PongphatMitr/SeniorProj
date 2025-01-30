@@ -20,24 +20,31 @@
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-        
+
                 if (!response.ok) {
                     throw new Error('Network response was not ok');
                 }
-        
+
                 const member = await response.json();
-                console.log('Member:', member); // Debugging: ตรวจสอบโครงสร้างข้อมูลที่ได้รับ
-        
-                globalUserId = member.user_id; // Store user_id globally
-                member.branch = await fetchBranchName(member.branch_id); // ใช้ branch_id เพื่อดึงชื่อสาขา
+                console.log('✅ Fetched Member:', member);  // Debugging
+
+                globalUserId = member.user_id;
+
+                if (member.branch_id) {
+                    console.log('✅ Branch ID:', member.branch_id); // Check if branch_id exists
+                    member.branch = await fetchBranchName(member.branch_id);
+                } else {
+                    console.warn('⚠️ User does not have a branch_id assigned.');
+                    member.branch = 'N/A';
+                }
+
                 renderMemberProfile(member);
-        
             } catch (error) {
-                console.error('Error fetching member profile:', error);
+                console.error('❌ Error fetching member profile:', error);
                 alert('เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์สมาชิก');
             }
         }
-        
+
         async function fetchBranchName(branchId) {
             if (!branchId) return 'N/A';
             try {
@@ -46,15 +53,15 @@
                     throw new Error(`Network response was not ok (${response.status})`);
                 }
                 const branches = await response.json();
-                const branch = branches.find(branch => branch.branch_id === branchId);
+                console.log('Fetched Branches:', branches); // Debugging
+
+                const branch = branches.find(branch => parseInt(branch.branch_id) === parseInt(branchId));
                 return branch ? branch.branch_name : 'N/A';
             } catch (error) {
                 console.error('Error fetching branch name:', error);
                 return 'N/A';
             }
         }
-        
-        
 
         function renderMemberProfile(member) {
             document.getElementById('member-name').textContent = member.name || 'N/A';
@@ -64,7 +71,6 @@
             document.getElementById('member-time-credits').textContent = member.time_credits || 'N/A';
             document.getElementById('member-status').textContent = member.status === 'active' ? 'ปกติ' : 'ไม่ปกติ';
         }
-        
 
         let originalData = {}; // To store the old data
 
@@ -168,47 +174,16 @@
 
         async function checkLoginStatus() {
             const token = localStorage.getItem('token');
-            if (token) {
-                try {
-                    const response = await fetch('http://localhost:3000/api/user/auth/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-
-                    if (response.ok) {
-                        updateSidebar(true);
-                    } else {
-                        localStorage.removeItem('token');
-                        updateSidebar(false);
-                        const goToLogin = confirm('Session expired. Do you want to go to the login page?');
-                        if (goToLogin) {
-                            window.location.href = 'login.html';
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    localStorage.removeItem('token');
-                    updateSidebar(false);
-                    const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
-                    if (goToLogin) {
-                        window.location.href = 'login.html';
-                    }
-                }
-            } else {
-                updateSidebar(false);
-                const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
-                if (goToLogin) {
-                    window.location.href = 'login.html';
-                }
+            if (!token) {
+                alert('You are not logged in. Redirecting to login page.');
+                window.location.href = 'login.html';
+                return;
             }
         }
 
         async function updateSidebar(isLoggedIn) {
             const navList = document.getElementById('navList');
-
+        
             if (isLoggedIn) {
                 try {
                     // Fetch user details to get the memberId
@@ -219,14 +194,14 @@
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
                         }
                     });
-
+        
                     if (!response.ok) {
                         throw new Error('Failed to fetch user details');
                     }
-
+        
                     const member = await response.json(); // Adjust based on your backend response
-                    const memberId = member.user_id; // Use the correct field for memberId from the response
-
+                    const memberId = member.userId || member.user_id; // Use the correct field for memberId from the response
+        
                     navList.innerHTML = `
                         <li class="mb-5">
                             <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
@@ -246,12 +221,12 @@
                             <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
                                 href="service.html">
                                 <i class="fas fa-clipboard-list mr-3"></i>
-                                ยื่นข้อของานบริการ
+                                กิจกรรมชุมชน
                             </a>
                         </li>
                         <li class="mb-5">
                             <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="profile.html">
+                                href="profile.html?memberId=${memberId}">
                                 <i class="fas fa-user-edit mr-3"></i>
                                 แก้ไขประวัติ
                             </a>
@@ -279,6 +254,13 @@
                         </li>
                         <li class="mb-5">
                             <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                                href="transfer.html">
+                                <i class="fas fa-exchange-alt mr-3"></i>
+                                แลกเปลี่ยนเวลา
+                            </a>
+                        </li>
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
                                 href="contact.html">
                                 <i class="fas fa-phone mr-3"></i>
                                 ติดต่อเรา
@@ -287,7 +269,7 @@
                     `;
                 } catch (error) {
                     console.error('Error fetching user details:', error);
-                    alert('An error occurred while loading user data. Please log in again.');
+                    alert('เกิดข้อผิดพลาดขณะโหลดข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
                 }
             } else {
                 navList.innerHTML = `
@@ -295,7 +277,7 @@
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="login.html">
                             <i class="fas fa-sign-in-alt mr-3"></i>
-                            Login
+                            เข้าสู่ระบบ
                         </a>
                     </li>
                     <li class="mb-5">
@@ -309,7 +291,7 @@
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
                             href="service.html">
                             <i class="fas fa-clipboard-list mr-3"></i>
-                            ยื่นข้อของานบริการ
+                            กิจกรรมชุมชน
                         </a>
                     </li>
                     <li class="mb-5">
@@ -338,6 +320,13 @@
                             href="history.html">
                             <i class="fas fa-history mr-3"></i>
                             ประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="transfer.html">
+                            <i class="fas fa-exchange-alt mr-3"></i>
+                            แลกเปลี่ยนเวลา
                         </a>
                     </li>
                     <li class="mb-5">
@@ -390,7 +379,7 @@
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
                             href="service.html">
                             <i class="fas fa-clipboard-list mr-3"></i>
-                            ยื่นข้อของานบริการ
+                            กิจกรรมชุมชน
                         </a>
                     </li>
                     <li class="mb-5">
@@ -419,6 +408,13 @@
                             href="history.html">
                             <i class="fas fa-history mr-3"></i>
                             ประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="transfer.html">
+                            <i class="fas fa-exchange-alt mr-3"></i>
+                            แลกเปลี่ยนเวลา
                         </a>
                     </li>
                     <li class="mb-5">
