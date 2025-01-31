@@ -9,6 +9,7 @@ const exchangeRatesRoutes = require('./exchangeRates');
 const transactionRoutes = require('./transactions');
 const reportRoutes = require('./reportRoutes');
 const branchRoutes = require('./branches');
+const feedbackRoutes = require('./feedback');
 
 const router = express.Router();
 
@@ -23,6 +24,7 @@ module.exports = (pool) => {
     router.use('/transactions', transactionRoutes(pool));
     router.use('/report', reportRoutes(pool));
     router.use('/branches', branchRoutes(pool));
+    router.use('/feedback', feedbackRoutes(pool));
 
     return router;
 };

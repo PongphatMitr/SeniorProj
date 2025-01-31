@@ -156,151 +156,55 @@
             </div>
         </div>
     </div>
-    <script>
-        function updateSidebar() {
-            const navList = document.getElementById('navList');
-    
-            // Translations for navigation menu
-            const translations = {
-                thai: {
-                    loggedIn: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
-                    loggedOut: ['เข้าสู่ระบบ', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
-                },
-                english: {
-                    loggedIn: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
-                    loggedOut: ['Login', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
-                }
-            };
-    
-            // Determine the current language and login status
-            const currentLang = localStorage.getItem('selectedLanguage') || 'thai';
-            const isLoggedIn = localStorage.getItem('token') !== null; // Check if a token exists
-    
-            // Choose the appropriate navigation items based on login status
-            const navItems = isLoggedIn ? translations[currentLang].loggedIn : translations[currentLang].loggedOut;
-    
-            // Generate the navigation list
-            navList.innerHTML = `
-                <li class="mb-5">
-                    <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                        href="${isLoggedIn ? 'profile.html' : 'login.html'}">
-                        <i class="fas ${isLoggedIn ? 'fa-user' : 'fa-sign-in-alt'} mr-3"></i>
-                        ${navItems[0]}
-                    </a>
-                </li>
-                <li class="mb-5">
-                    <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                        href="homepage.html">
-                        <i class="fas fa-home mr-3"></i>
-                        ${navItems[1]}
-                    </a>
-                </li>
-                <li class="mb-5">
-                    <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                        href="report.html">
-                        <i class="fas fa-chart-bar mr-3"></i>
-                        ${navItems[2]}
-                    </a>
-                </li>
-                <li class="mb-5">
-                    <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                        href="activity.html">
-                        <i class="fas fa-calendar-alt mr-3"></i>
-                        ${navItems[3]}
-                    </a>
-                </li>
-                <li class="mb-5">
-                    <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                        href="member.html">
-                        <i class="fas fa-users mr-3"></i>
-                        ${navItems[4]}
-                    </a>
-                </li>
-                <li class="mb-5">
-                    <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                        href="skillconf.html">
-                        <i class="fas fa-cogs mr-3"></i>
-                        ${navItems[5]}
-                    </a>
-                </li>
-                <li class="mb-5">
-                    <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                        href="fund.html">
-                        <i class="fas fa-hand-holding-usd mr-3"></i>
-                        ${navItems[6]}
-                    </a>
-                </li>
-                <li class="mb-5">
-                    <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                        href="commconf.html">
-                        <i class="fas fa-cog mr-3"></i>
-                        ${navItems[7]}
-                    </a>
-                </li>
-                <li class="mb-5">
-                    <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                        href="transaction.html">
-                        <i class="fas fa-exchange-alt mr-3"></i>
-                        ${navItems[8]}
-                    </a>
-                </li>
-            `;
-        }
-    
-        document.addEventListener('DOMContentLoaded', () => {
-            updateSidebar();
-        });
-    </script>
-    
 
     <style>
         /* Toggle container */
-             .toggle-container {
-                 display: flex;
-                 background-color: #E5E7EB;
-                 border-radius: 20px; /* Increase border radius for larger container */
-                 padding: 6px; /* Larger padding for better spacing */
-                 align-items: center;
-                 justify-content: space-between;
-                 width: 180px; /* Increase width for a larger toggle */
-             }
-     
-             /* Labels */
-             .toggle-label {
-                 flex: 1;
-                 text-align: center;
-                 font-size: 0.9rem;
-                 font-weight: 500;
-                 color: gray;
-                 cursor: pointer;
-                 transition: all 0.3s ease;
-                 border-radius: 9999px;
-                 padding: 5px;
-             }
-     
-             .toggle-label.active {
-                 background-color: white;
-                 color: #1D4ED8; /* Blue for active text */
-                 font-weight: bold;
-                 box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-             }
-     
-             /* Disabled Label */
-             .toggle-label.disabled {
-                 pointer-events: none; /* Make it unclickable */
-                 background-color: white;
-                 color: #6B7280; /* Light gray text */
-                 font-weight: bold;
-             }
-       </style>
+        .toggle-container {
+            display: flex;
+            background-color: #E5E7EB;
+            border-radius: 20px;
+            padding: 6px;
+            align-items: center;
+            justify-content: space-between;
+            width: 180px;
+        }
 
-       <script src="selected-language.js"></script>
+        /* Labels */
+        .toggle-label {
+            flex: 1;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: gray;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 9999px;
+            padding: 5px;
+        }
 
-       <script>
+        .toggle-label.active {
+            background-color: white;
+            color: #1D4ED8;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Disabled Label */
+        .toggle-label.disabled {
+            pointer-events: none;
+            background-color: white;
+            color: #6B7280;
+            font-weight: bold;
+        }
+    </style>
+
+    <script src="navbar.js"></script>
+    <script src="selected-language.js"></script>
+    <script>
         document.addEventListener('DOMContentLoaded', () => {
             const langThai = document.getElementById('lang-th');
             const langEnglish = document.getElementById('lang-en');
-    
+
             const translations = {
                 thai: {
                     mainHeading: 'ธนาคารเวลา',
@@ -335,26 +239,25 @@
                     ],
                 }
             };
-    
+
             const mainHeading = document.querySelector('h1');
             const subHeading = document.querySelector('h2:nth-of-type(1)');
             const description = document.querySelector('p.mb-10');
             const newsHeader = document.querySelector('h2:nth-of-type(2)');
             const newsDates = document.querySelectorAll('.text-gray-500.mb-2');
             const newsTitles = document.querySelectorAll('.bg-white.text-black.p-5 p:not(.text-gray-500)');
-            const navList = document.getElementById('navList');
-    
+
             let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
-    
+
             function updateContent(lang) {
                 const langData = translations[lang];
-    
+
                 // Update main content
                 mainHeading.textContent = langData.mainHeading;
                 subHeading.textContent = langData.subHeading;
                 description.textContent = langData.description;
                 newsHeader.textContent = langData.newsHeader;
-    
+
                 // Update news
                 newsDates.forEach((dateElement, index) => {
                     dateElement.textContent = langData.news[index].date;
@@ -362,8 +265,7 @@
                 newsTitles.forEach((titleElement, index) => {
                     titleElement.textContent = langData.news[index].title;
                 });
-    
-    
+
                 // Toggle active state
                 if (lang === 'thai') {
                     langThai.classList.add('active');
@@ -372,134 +274,24 @@
                     langEnglish.classList.add('active');
                     langThai.classList.remove('active');
                 }
-    
+
                 localStorage.setItem('selectedLanguage', lang);
             }
-    
+
             langThai.addEventListener('click', () => {
                 currentLang = 'thai';
                 updateContent(currentLang);
             });
-    
+
             langEnglish.addEventListener('click', () => {
                 currentLang = 'english';
                 updateContent(currentLang);
             });
-    
+
             // Initialize content
             updateContent(currentLang);
         });
     </script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const langThai = document.getElementById('lang-th');
-            const langEnglish = document.getElementById('lang-en');
-    
-            const translations = {
-                thai: {
-                    loggedIn: [
-                        { text: 'โปรไฟล์', icon: 'fas fa-user', href: 'profile.html' },
-                        { text: 'หน้าหลัก', icon: 'fas fa-home', href: 'homepage.html' },
-                        { text: 'รายงาน', icon: 'fas fa-chart-bar', href: 'report.html' },
-                        { text: 'จัดการกิจกรรม', icon: 'fas fa-calendar-alt', href: 'activity.html' },
-                        { text: 'จัดการสมาชิก', icon: 'fas fa-users', href: 'member.html' },
-                        { text: 'จัดการหมวหมู่ทักษะ', icon: 'fas fa-cogs', href: 'skillconf.html' },
-                        { text: 'จัดการกองทุนชุมชน', icon: 'fas fa-hand-holding-usd', href: 'fund.html' },
-                        { text: 'จัดการชุมชน', icon: 'fas fa-cog', href: 'commconf.html' },
-                        { text: 'ธุรกรรมทั้งหมด', icon: 'fas fa-exchange-alt', href: 'transaction.html' },
-                    ],
-                    loggedOut: [
-                        { text: 'เข้าสู่ระบบ', icon: 'fas fa-sign-in-alt', href: 'login.html' },
-                        { text: 'หน้าหลัก', icon: 'fas fa-home', href: 'homepage.html' },
-                        { text: 'รายงาน', icon: 'fas fa-chart-bar', href: 'report.html' },
-                        { text: 'จัดการกิจกรรม', icon: 'fas fa-calendar-alt', href: 'activity.html' },
-                        { text: 'จัดการสมาชิก', icon: 'fas fa-users', href: 'member.html' },
-                        { text: 'จัดการหมวหมู่ทักษะ', icon: 'fas fa-cogs', href: 'skillconf.html' },
-                        { text: 'จัดการกองทุนชุมชน', icon: 'fas fa-hand-holding-usd', href: 'fund.html' },
-                        { text: 'จัดการชุมชน', icon: 'fas fa-cog', href: 'commconf.html' },
-                        { text: 'ธุรกรรมทั้งหมด', icon: 'fas fa-exchange-alt', href: 'transaction.html' },
-                    ],
-                },
-                english: {
-                    loggedIn: [
-                        { text: 'Profile', icon: 'fas fa-user', href: 'profile.html' },
-                        { text: 'Homepage', icon: 'fas fa-home', href: 'homepage.html' },
-                        { text: 'Reports Overview', icon: 'fas fa-chart-bar', href: 'report.html' },
-                        { text: 'Activities Management', icon: 'fas fa-calendar-alt', href: 'activity.html' },
-                        { text: 'Members Management', icon: 'fas fa-users', href: 'member.html' },
-                        { text: 'Skills Management', icon: 'fas fa-cogs', href: 'skillconf.html' },
-                        { text: 'Funds Management', icon: 'fas fa-hand-holding-usd', href: 'fund.html' },
-                        { text: 'Community Management', icon: 'fas fa-cog', href: 'commconf.html' },
-                        { text: 'Transactions', icon: 'fas fa-exchange-alt', href: 'transaction.html' },
-                    ],
-                    loggedOut: [
-                        { text: 'Login', icon: 'fas fa-sign-in-alt', href: 'login.html' },
-                        { text: 'Homepage', icon: 'fas fa-home', href: 'homepage.html' },
-                        { text: 'Reports Overview', icon: 'fas fa-chart-bar', href: 'report.html' },
-                        { text: 'Activities Management', icon: 'fas fa-calendar-alt', href: 'activity.html' },
-                        { text: 'Members Management', icon: 'fas fa-users', href: 'member.html' },
-                        { text: 'Skills Management', icon: 'fas fa-cogs', href: 'skillconf.html' },
-                        { text: 'Funds Management', icon: 'fas fa-hand-holding-usd', href: 'fund.html' },
-                        { text: 'Community Management', icon: 'fas fa-cog', href: 'commconf.html' },
-                        { text: 'Transactions', icon: 'fas fa-exchange-alt', href: 'transaction.html' },
-                    ],
-                },
-            };
-    
-            let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
-    
-            function updateSidebar() {
-                const navList = document.getElementById('navList');
-                const isLoggedIn = localStorage.getItem('token') !== null; // Check login status
-                const langData = translations[currentLang];
-    
-                const navItems = isLoggedIn ? langData.loggedIn : langData.loggedOut;
-    
-                // Generate the navigation list with icons and correct hrefs
-                navList.innerHTML = navItems
-                    .map(
-                        (item) => `
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                                href="${item.href}">
-                                <i class="${item.icon} mr-3"></i>
-                                ${item.text}
-                            </a>
-                        </li>
-                    `
-                    )
-                    .join('');
-            }
-    
-            function updateLanguage(lang) {
-                currentLang = lang;
-                localStorage.setItem('selectedLanguage', currentLang);
-                updateSidebar();
-    
-                // Update toggle active state
-                if (lang === 'thai') {
-                    langThai.classList.add('active');
-                    langEnglish.classList.remove('active');
-                } else {
-                    langEnglish.classList.add('active');
-                    langThai.classList.remove('active');
-                }
-            }
-    
-            // Event listeners for language toggle
-            langThai.addEventListener('click', () => updateLanguage('thai'));
-            langEnglish.addEventListener('click', () => updateLanguage('english'));
-    
-            // Initialize sidebar and toggle state
-            updateSidebar();
-            updateLanguage(currentLang);
-        });
-    </script>
-    
-    
-    
-
 </body>
 
 </html>

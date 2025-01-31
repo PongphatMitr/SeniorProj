@@ -164,6 +164,8 @@ CREATE TABLE contact_us (
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW()
 );
+
+-- Create the user_transaction_transfer table
 CREATE TABLE user_transaction_transfer (
     transaction_id SERIAL PRIMARY KEY,
     sender_id INT NOT NULL,
@@ -266,6 +268,7 @@ VALUES
 ('ทำสวน', 6),
 ('แต่งสวน', 6),
 ('อื่นๆ (ระบุความสามารถเอง)', 6);
+
 -- Insert initial data into member_skills
 INSERT INTO member_skills (user_id, skill_id) 
 VALUES 
@@ -284,3 +287,11 @@ VALUES
 
 -- Insert initial data into community_fund
 INSERT INTO community_fund (total_hours, borrowed_hours) VALUES (200, 50);
+
+-- Insert initial data into contact_us
+INSERT INTO contact_us (name, email, subject, message) 
+VALUES 
+('John Doe', 'john.doe@example.com', 'Inquiry about activities', 'I would like to know more about the upcoming community activities.'),
+('Jane Smith', 'jane.smith@example.com', 'Volunteer Opportunities', 'How can I volunteer for the community events?'),
+('Alice Johnson', 'alice.johnson@example.com', 'Feedback on Website', 'The website is very user-friendly. Great job!'),
+('Bob Brown', 'bob.brown@example.com', 'Issue with Login', 'I am having trouble logging into my account. Can you help?');

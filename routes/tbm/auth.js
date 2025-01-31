@@ -112,7 +112,7 @@ const authRoutes = (pool) => {
         }
     });
 
-    // Modified login route with status check
+    // Modified login route with status check and logging
     router.post('/login', async (req, res) => {
         const { username, password } = req.body;
 
@@ -154,6 +154,12 @@ const authRoutes = (pool) => {
                 },
                 process.env.JWT_SECRET,
                 { expiresIn: '1h' }
+            );
+
+            // Log the login attempt
+            await pool.query(
+                'INSERT INTO user_login_log (user_id, login_time) VALUES ($1, NOW())',
+                [user.user_id]
             );
 
             // Return essential user data

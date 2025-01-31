@@ -3,8 +3,8 @@ function updateSidebar(isLoggedIn) {
 
     // Translations for navigation menu
     const translations = {
-        thai: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวดหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
-        english: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
+        thai: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวดหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด', 'ความคิดเห็น'],
+        english: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions', 'Feedback'],
     };
 
     // Get the current language from localStorage or default to 'thai'
@@ -76,6 +76,13 @@ function updateSidebar(isLoggedIn) {
                     ${navItems[8]}
                 </a>
             </li>
+            <li class="mb-5">
+                <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                    href="feedback.html">
+                    <i class="fas fa-comment-dots mr-3"></i>
+                    ${navItems[9]}
+                </a>
+            </li>
         `;
     } else {
         navList.innerHTML = `
@@ -140,6 +147,13 @@ function updateSidebar(isLoggedIn) {
                     href="transaction.html">
                     <i class="fas fa-exchange-alt mr-3"></i>
                     ${navItems[8]}
+                </a>
+            </li>
+            <li class="mb-5">
+                <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                    href="feedback.html">
+                    <i class="fas fa-comment-dots mr-3"></i>
+                    ${navItems[9]}
                 </a>
             </li>
         `;
