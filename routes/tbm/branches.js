@@ -1,4 +1,5 @@
 const express = require('express');
+const authMiddleware = require('../../middleware/authMiddleware');
 
 const branchRoutes = (pool) => {
     const router = express.Router();
@@ -41,6 +42,30 @@ const branchRoutes = (pool) => {
             }
         } catch (err) {
             console.error('Error fetching branch:', err.message);
+            res.status(500).json({ error: 'Internal server error. Please try again.' });
+        }
+    });
+
+    // Create a new branch (Admin only)
+    router.post('/', authMiddleware, async (req, res) => {
+        if (req.user.role !== 'Admin') {
+            return res.status(403).json({ error: 'Unauthorized' });
+        }
+
+        const { branch_name } = req.body;
+
+        if (!branch_name) {
+            return res.status(400).json({ error: 'Branch name is required' });
+        }
+
+        try {
+            const result = await pool.query(
+                'INSERT INTO branches (branch_name) VALUES ($1) RETURNING *',
+                [branch_name]
+            );
+            res.status(201).json(result.rows[0]);
+        } catch (err) {
+            console.error('Error creating branch:', err.message);
             res.status(500).json({ error: 'Internal server error. Please try again.' });
         }
     });

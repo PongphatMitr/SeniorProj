@@ -68,9 +68,16 @@
                 </div>
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="branch-name">ชื่อสาขา</label>
+                    <select
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="branch-name" onchange="handleBranchChange()">
+                    </select>
+                </div>
+                <div id="new-branch-field" class="mb-4 hidden">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="new-branch">เพิ่มสาขาใหม่</label>
                     <input
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        id="branch-name" type="text" placeholder="ชื่อสาขา" />
+                        id="new-branch" type="text" placeholder="สาขาใหม่" />
                 </div>
                 <div class="flex items-center justify-center">
                     <button
@@ -128,6 +135,8 @@
         let defaultExchangeRateId = null;
         let branchId = null;
         let branchName = '';
+        let branches = [];
+        let userRole = '';
 
         async function fetchCommunityConfig() {
             try {
@@ -141,6 +150,7 @@
                     defaultTimeToken = data.default_time_token || defaultTimeToken;
                     defaultExchangeRateId = data.default_exchange_rate_id;
                     await fetchExchangeRates();
+                    await fetchBranches();
                     renderConfig();
                 } else {
                     console.error('Expected data but got:', data);
@@ -167,6 +177,21 @@
             }
         }
 
+        async function fetchBranches() {
+            try {
+                const response = await fetch('http://localhost:3000/api/tbm/branches', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                const data = await response.json();
+                branches = data;
+            } catch (error) {
+                console.error('Error fetching branches:', error);
+                alert('เกิดข้อผิดพลาดในการดึงข้อมูลสาขา');
+            }
+        }
+
         function renderConfig() {
             document.getElementById('default-time-token').value = defaultTimeToken;
             const exchangeRateSelect = document.getElementById('exchange-rate');
@@ -184,6 +209,24 @@
             newOption.value = 'new';
             newOption.textContent = 'เพิ่มอัตราแลกเปลี่ยนใหม่';
             exchangeRateSelect.appendChild(newOption);
+
+            const branchSelect = document.getElementById('branch-name');
+            branchSelect.innerHTML = '';
+            branches.forEach(branch => {
+                const option = document.createElement('option');
+                option.value = branch.branch_id;
+                option.textContent = branch.branch_name;
+                if (branch.branch_id === branchId) {
+                    option.selected = true;
+                }
+                branchSelect.appendChild(option);
+            });
+            if (userRole === 'Admin') {
+                const newBranchOption = document.createElement('option');
+                newBranchOption.value = 'new';
+                newBranchOption.textContent = 'เพิ่มสาขาใหม่';
+                branchSelect.appendChild(newBranchOption);
+            }
         }
 
         function handleExchangeRateChange() {
@@ -196,13 +239,25 @@
             }
         }
 
+        function handleBranchChange() {
+            const branchSelect = document.getElementById('branch-name');
+            const newBranchField = document.getElementById('new-branch-field');
+            if (branchSelect.value === 'new') {
+                newBranchField.classList.remove('hidden');
+            } else {
+                newBranchField.classList.add('hidden');
+            }
+        }
+
         async function saveConfig() {
             const newDefaultTimeToken = parseInt(document.getElementById('default-time-token').value, 10);
             const newExchangeRate = document.getElementById('exchange-rate').value;
             const newExchangeRateDescription = document.getElementById('new-exchange-rate').value;
-            const newBranchName = document.getElementById('branch-name').value;
+            const newBranch = document.getElementById('branch-name').value;
+            const newBranchName = document.getElementById('new-branch').value;
 
             let defaultExchangeRateId = parseInt(newExchangeRate, 10);
+            let branchId = parseInt(newBranch, 10);
 
             if (newExchangeRate === 'new' && newExchangeRateDescription) {
                 try {
@@ -227,6 +282,37 @@
                 } catch (error) {
                     console.error('Error adding new exchange rate:', error);
                     alert('เกิดข้อผิดพลาดในการเพิ่มอัตราแลกเปลี่ยนใหม่');
+                    return;
+                }
+            }
+
+            if (newBranch === 'new' && newBranchName) {
+                if (userRole !== 'Admin') {
+                    alert('คุณไม่มีสิทธิ์เพิ่มสาขาใหม่');
+                    return;
+                }
+                try {
+                    const response = await fetch('http://localhost:3000/api/tbm/branches', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({ branch_name: newBranchName })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        branchId = data.branch_id;
+                    } else {
+                        const errorData = await response.json();
+                        console.error('Error response from server:', errorData);
+                        alert('เกิดข้อผิดพลาดในการเพิ่มสาขาใหม่');
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Error adding new branch:', error);
+                    alert('เกิดข้อผิดพลาดในการเพิ่มสาขาใหม่');
                     return;
                 }
             }
@@ -280,6 +366,7 @@
                 .then(data => {
                     branchId = data.branch_id;
                     branchName = data.branch_name;
+                    userRole = data.role;
                     document.getElementById('branch-name').value = branchName;
                 })
                 .catch(error => {
