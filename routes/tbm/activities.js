@@ -82,16 +82,16 @@ const activityRoutes = (pool) => {
 
     // Create a new activity
     router.post('/', async (req, res) => {
-        const { title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, status, time_tokens_required, time_tokens_per_participant } = req.body;
+        const { title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, time_tokens_required, time_tokens_per_participant } = req.body;
 
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
 
-            // Create the activity
+            // Create the activity with status set to "กำลังจะเริ่ม"
             const result = await client.query(
                 'INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, status, time_tokens_required, time_tokens_per_participant) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *',
-                [title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, status, time_tokens_required, time_tokens_per_participant]
+                [title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, 'กำลังจะเริ่ม', time_tokens_required, time_tokens_per_participant]
             );
 
             await client.query('COMMIT');

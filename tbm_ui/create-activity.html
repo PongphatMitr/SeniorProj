@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -114,13 +113,10 @@
                         <div class="w-full md:w-1/2 px-3">
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="status"
                                 style="margin-left: 10px;"> สถานะ </label>
-                            <select id="status"
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                required>
-                                <option value="กำลังจะเริ่ม">กำลังจะเริ่ม</option>
-                                <option value="เสร็จสิ้น">เสร็จสิ้น</option>
-                                <option value="ยกเลิก">ยกเลิก</option>
-                            </select>
+                            <div id="status"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-200">
+                                กำลังจะเริ่ม
+                            </div>
                         </div>
                     </div>
                     <div class="flex flex-wrap -mx-3 mb-4">
@@ -308,7 +304,7 @@
             const maxParticipantsInput = document.getElementById('max-participants').value;
             const maxParticipants = parseInt(maxParticipantsInput, 10);
             const requesterId = document.getElementById('requester-id').value;
-            const status = document.getElementById('status').value;
+            const status = 'กำลังจะเริ่ม'; // Set status to "กำลังจะเริ่ม"
             const timeTokensRequiredInput = document.getElementById('time-tokens-required').value;
             const timeTokensRequired = parseFloat(timeTokensRequiredInput);
             const timeTokensPerParticipantInput = document.getElementById('time-tokens-per-participant').value;
@@ -400,7 +396,7 @@
                         description: 'ระบุรายละเอียดกิจกรรม',
                         location: 'ระบุสถานที่จัดกิจกรรม',
                     },
-                    statusOptions: ['กำลังจะเริ่ม', 'เสร็จสิ้น', 'ยกเลิก'],
+                    statusOptions: ['กำลังจะเริ่ม'],
                     nav: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
                 },
                 english: {
@@ -429,7 +425,7 @@
                         description: 'Enter activity description',
                         location: 'Enter activity location',
                     },
-                    statusOptions: ['Upcoming', 'Completed', 'Cancelled'],
+                    statusOptions: ['Upcoming'],
                     nav: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
                 },
             };
@@ -455,14 +451,7 @@
                 document.getElementById('requester-name').placeholder = langData.placeholders.requesterName;
                 document.getElementById('description').placeholder = langData.placeholders.description;
                 document.getElementById('location').placeholder = langData.placeholders.location;
-                const statusSelect = document.getElementById('status');
-                statusSelect.innerHTML = '';
-                langData.statusOptions.forEach((option) => {
-                    const statusOption = document.createElement('option');
-                    statusOption.value = option;
-                    statusOption.textContent = option;
-                    statusSelect.appendChild(statusOption);
-                });
+                document.getElementById('status').textContent = langData.statusOptions[0];
                 document.querySelector('button[onclick="window.history.back();"]').textContent = langData.labels.backButton;
                 document.querySelector('button[type="submit"]').textContent = langData.labels.submitButton;
                 const navItems = navList.querySelectorAll('a');
