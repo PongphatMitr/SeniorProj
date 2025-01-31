@@ -262,7 +262,7 @@ const activityRoutes = (pool) => {
             }
 
             const requester = requesterResult.rows[0];
-            const totalTokensRequired = participants.length * exchangeRate;
+            const totalTokensRequired = participants.length * exchangeRate * activity.time_tokens_per_participant;
 
             if (requester.time_credits < totalTokensRequired) {
                 res.status(400).json({ error: 'Not enough time credits', available_credits: requester.time_credits });
