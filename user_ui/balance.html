@@ -1,129 +1,114 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
     <title>ยอดคงเหลือ - Time Bank</title>
-    
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
-
     <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"/>
-
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
     <!-- Google Fonts -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"/>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"/>
 </head>
-
 <body class="bg-gray-100 font-roboto">
     <div class="flex flex-col md:flex-row">
         <!-- Sidebar -->
         <div class="w-full md:w-1/6 bg-white h-screen p-5">
             <div class="flex items-center mb-10">
-                <img src="https://placehold.co/50x50" 
-                     alt="Logo of Time Bank System, a clock with a handshake in the center" 
-                     class="w-10 h-10 rounded-full"/>
+                <img alt="Logo of Time Bank System, a clock with a handshake in the center" class="w-10 h-10 rounded-full" height="50" src="https://storage.googleapis.com/a1aa/image/FHQXiwMpl_ZukfFnt74obGJ-koW2I_W2mN7ChLRSMlo.jpg" width="50"/>
                 <span class="ml-3 text-xl font-bold text-blue-600">TIMEBANK</span>
             </div>
-
             <nav>
                 <ul id="navList">
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="log-out.html">
-                            <i class="fas fa-user mr-3"></i>
-                            โปรไฟล์
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="log-out.html">
+                            <i class="fas fa-user mr-3"></i>โปรไฟล์
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="homepage.html">
+                            <i class="fas fa-home mr-3"></i>หน้าหลัก
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="service.html">
-                            <i class="fas fa-clipboard-list mr-3"></i>
-                            กิจกรรมชุมชน
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="service.html">
+                            <i class="fas fa-clipboard-list mr-3"></i>กิจกรรมชุมชน
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="profile.html">
-                            <i class="fas fa-user-edit mr-3"></i>
-                            แก้ไขประวัติ
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="profile.html">
+                            <i class="fas fa-user-edit mr-3"></i>แก้ไขประวัติ
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="skillconf.html">
-                            <i class="fas fa-tools mr-3"></i>
-                            แก้ไขทักษะ
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="skillconf.html">
+                            <i class="fas fa-tools mr-3"></i>แก้ไขทักษะ
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="balance.html">
-                            <i class="fas fa-wallet mr-3"></i>
-                            ยอดคงเหลือ
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="balance.html">
+                            <i class="fas fa-wallet mr-3"></i>ยอดคงเหลือ
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="history.html">
-                            <i class="fas fa-history mr-3"></i>
-                            ประวัติ
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="history.html">
+                            <i class="fas fa-history mr-3"></i>ประวัติ
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="transfer.html">
-                            <i class="fas fa-exchange-alt mr-3"></i>
-                            แลกเปลี่ยนเวลา
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="transfer.html">
+                            <i class="fas fa-exchange-alt mr-3"></i>แลกเปลี่ยนเวลา
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="contact.html">
-                            <i class="fas fa-phone mr-3"></i>
-                            ติดต่อเรา
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="contact.html">
+                            <i class="fas fa-phone mr-3"></i>ติดต่อเรา
                         </a>
                     </li>
                 </ul>
             </nav>
         </div>
-
         <!-- Main Content -->
-        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10 flex justify-center items-center">
-            <div class="bg-white text-black p-8 rounded-lg shadow-lg w-full max-w-3xl">
-                <!-- Balance Section -->
-                <div class="balance-section mb-8">
-                    <h2 class="text-3xl font-bold mb-6 text-blue-700 text-center">ยอดคงเหลือปัจจุบัน</h2>
-                    <div class="balance-details flex justify-center">
-                        <div class="text-center">
-                            <p class="text-2xl font-semibold">จำนวนชั่วโมงที่สะสม</p>
-                            <p id="timecredit_balance" class="text-4xl font-bold mt-2 text-blue-600"></p>
-                        </div>
-                    </div>
+        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10 rounded-lg shadow-lg">
+            <h1 class="text-3xl font-bold text-center mb-5" id="userName">user name</h1>
+            <!-- User Balance Section -->
+            <div class="bg-white text-gray-800 p-6 rounded-lg shadow-md mb-5">
+                <h2 class="text-xl font-bold mb-2">ยอดคงเหลือ</h2>
+                <div class="flex items-center">
+                    <i class="fas fa-wallet text-3xl text-blue-600 mr-4"></i>
+                    <span class="text-2xl font-bold" id="userBalance">000 เครดิต</span>
                 </div>
-
-                <!-- Transaction History -->
-                <div class="transaction-history">
-                    <h2 class="text-3xl font-bold mb-6 text-blue-700 text-center">ประวัติการทำธุรกรรม</h2>
-                    <div class="transaction-list space-y-4"></div>
+            </div>
+            <!-- Transaction History Section -->
+            <div class="bg-white text-gray-800 p-6 rounded-lg shadow-md">
+                <h2 class="text-xl font-bold mb-2">ประวัติการทำธุรกรรม</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white">
+                        <thead>
+                            <tr>
+                                <th class="py-2 px-4 border-b text-left">ชื่อ</th>
+                                <th class="py-2 px-4 border-b text-left">รายการเดินบัญชี</th>
+                                <th class="py-2 px-4 border-b text-left">จำนวน</th>
+                                <th class="py-2 px-4 border-b text-left">วันที่</th>
+                                <th class="py-2 px-4 border-b text-left">เวลา</th>
+                            </tr>
+                        </thead>
+                        <tbody id="transactionLog">
+                            <!-- Transactions will be dynamically inserted here -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
     </div>
-
     <script>
         let globalUserId = null;
+        let members = {};
 
-        document.addEventListener('DOMContentLoaded', () => {
-            checkLoginStatus();
-            fetchMemberProfile();
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchMemberProfile();
+            await fetchMembers();
+            await fetchTransactionLog();
         });
 
         async function fetchMemberProfile() {
@@ -132,58 +117,90 @@
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
 
-                if (!response.ok) throw new Error('Network response was not ok');
+                if (!response.ok) throw new Error('Failed to fetch user profile');
 
                 const data = await response.json();
                 globalUserId = data.user_id;
 
-                const balanceElement = document.getElementById('timecredit_balance');
+                const userNameElement = document.getElementById('userName');
+                userNameElement.innerText = data.name;
+
+                const balanceElement = document.getElementById('userBalance');
                 balanceElement.innerText = `${data.time_credits} ชั่วโมง`;
 
                 balanceElement.style.color = data.time_credits > 0 ? "#32CD32" :
-                                             data.time_credits < 0 ? "red" : "gray";
+                                            data.time_credits < 0 ? "red" : "gray";
 
-                fetchTransactions(globalUserId);
             } catch (error) {
                 console.error('Error fetching member profile:', error);
             }
         }
 
-        async function fetchTransactions(userId) {
+        async function fetchMembers() {
             try {
-                const response = await fetch(`http://localhost:3000/api/user/${userId}/transactions`, {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                const response = await fetch('http://localhost:3000/api/user/members', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
                 });
 
-                if (!response.ok) throw new Error('Network response was not ok');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
 
-                const transactions = await response.json();
-                const transactionList = document.querySelector('.transaction-list');
-
-                transactionList.innerHTML = transactions.map(transaction => `
-                    <div class="transaction-item bg-gray-100 p-4 rounded-lg shadow-md">
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <p class="text-lg font-semibold">${transaction.service}</p>
-                                <p class="text-gray-600">วันที่: ${transaction.date}</p>
-                            </div>
-                            <p class="text-lg font-bold ${transaction.hours > 0 ? 'text-blue-600' : 'text-red-600'}">
-                                ${transaction.hours > 0 ? '+' : ''}${transaction.hours} ชั่วโมง
-                            </p>
-                        </div>
-                    </div>
-                `).join('');
+                const data = await response.json();
+                members = data.members.reduce((acc, member) => {
+                    acc[member.user_id] = member.name;
+                    return acc;
+                }, {});
             } catch (error) {
-                console.error('Error fetching transactions:', error);
+                console.error('Error fetching members:', error);
+                alert('เกิดข้อผิดพลาดในการดึงข้อมูลสมาชิก');
             }
         }
 
-        async function checkLoginStatus() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                alert('You are not logged in. Redirecting to login page.');
-                window.location.href = 'login.html';
-                return;
+        async function fetchTransactionLog() {
+            try {
+                const response = await fetch('http://localhost:3000/api/user/transactions/log', { 
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+        
+                if (!response.ok) throw new Error(`Error fetching transaction log: ${response.status}`);
+        
+                const data = await response.json();
+                const transactionLogElement = document.getElementById('transactionLog');
+        
+                if (!data.transactions || data.transactions.length === 0) {
+                    transactionLogElement.innerHTML = '<tr><td colspan="5" class="text-center py-4">ไม่มีประวัติธุรกรรม</td></tr>';
+                    return;
+                }
+        
+                transactionLogElement.innerHTML = '';
+        
+                data.transactions.forEach(transaction => {
+                    const isSender = transaction.transaction_type === 'โอนออก';
+                    const amount = isSender ? -transaction.time_credit : transaction.time_credit;
+                    const amountText = amount > 0 ? `+ ${amount} ชั่วโมง` : `- ${Math.abs(amount)} ชั่วโมง`;
+                    const amountColor = amount > 0 ? 'text-green-500' : 'text-red-500';
+                    const otherPartyName = members[transaction.other_party_id] || 'ไม่ทราบชื่อ';
+        
+                    const transactionDate = new Date(transaction.date);
+                    const date = transactionDate.toLocaleDateString();
+                    const time = transactionDate.toLocaleTimeString();
+        
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="py-2 px-4 border-b">${otherPartyName}</td>
+                        <td class="py-2 px-4 border-b">${transaction.transaction_type}</td>
+                        <td class="py-2 px-4 border-b ${amountColor}">${amountText}</td>
+                        <td class="py-2 px-4 border-b">${date}</td>
+                        <td class="py-2 px-4 border-b">${time}</td>
+                    `;
+                    transactionLogElement.appendChild(row);
+                });
+        
+            } catch (error) {
+                console.error('Error fetching transaction log:', error);
             }
         }
     </script>

@@ -20,7 +20,7 @@ const memberRoutes = (pool) => {
             const result = await pool.query(
                 `SELECT t.*, a.title AS activity_title, 
                         COALESCE(r.name, '') AS requester_name
-                 FROM transactions t
+                 FROM transactio        ns t
                  LEFT JOIN activities a ON t.activity_id = a.activity_id
                  LEFT JOIN users r ON a.requester_id = r.user_id
                  WHERE t.user_id = $1 OR t.requester_id = $1 OR t.participant_id = $1

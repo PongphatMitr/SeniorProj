@@ -9,23 +9,23 @@
     <script>
         let globalUserId = null;
         let activityId = null;
-    
+
         async function fetchActivityDetails() {
             const urlParams = new URLSearchParams(window.location.search);
             activityId = urlParams.get('id');
-    
+
             if (!activityId) {
                 alert('ไม่พบรหัสกิจกรรม');
                 return;
             }
-    
+
             try {
                 const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
-    
+
                 const activity = await response.json();
-    
+
                 if (activity) {
                     document.getElementById('service-title').value = activity.title || '';
                     document.getElementById('service-description').value = activity.description || '';
@@ -37,10 +37,10 @@
                     document.getElementById('service-people').value = activity.max_participants || '';
                     document.getElementById('requester-name').value = activity.requester_name || '';
                     document.getElementById('service-status').value = activity.status || '';
-    
+
                     // Fetch participants and update the participant count
                     await fetchParticipants(activityId, activity.max_participants);
-    
+
                     // Update join button based on activity status
                     updateJoinButton(activity.status);
                 } else {
@@ -51,16 +51,16 @@
                 alert('เกิดข้อผิดพลาดในการดึงรายละเอียดกิจกรรม');
             }
         }
-    
+
         async function fetchParticipants(activityId, maxParticipants) {
             try {
                 const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}/participants`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
-    
+
                 const participants = await response.json();
                 const participantCount = participants.length;
-    
+
                 // Ensure maxParticipants is retrieved correctly if not provided
                 if (!maxParticipants) {
                     const activityResponse = await fetch(`http://localhost:3000/api/user/activities/${activityId}`, {
@@ -69,14 +69,14 @@
                     const activityData = await activityResponse.json();
                     maxParticipants = activityData.max_participants;
                 }
-    
+
                 // Update the participant count in activity-detail
                 document.getElementById('current-participants').innerText = `${participantCount} / ${maxParticipants}`;
-    
+
                 // Check if the user has joined the activity
                 const userJoined = participants.some(participant => participant.user_id === globalUserId);
                 const joinButton = document.getElementById('join-button');
-    
+
                 if (userJoined) {
                     joinButton.innerText = 'ยกเลิก';
                     joinButton.classList.remove('bg-green-500');
@@ -86,13 +86,13 @@
                     joinButton.classList.remove('bg-red-500');
                     joinButton.classList.add('bg-green-500');
                 }
-    
+
             } catch (error) {
                 console.error('Error fetching participants:', error);
                 alert('เกิดข้อผิดพลาดในการดึงข้อมูลผู้เข้าร่วม');
             }
         }
-    
+
         async function fetchMemberProfile() {
             try {
                 const response = await fetch(`http://localhost:3000/api/user/auth/profile`, {
@@ -111,7 +111,7 @@
                 alert('เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์สมาชิก');
             }
         }
-    
+
         async function handleJoinButton() {
             const joinButton = document.getElementById('join-button');
             if (joinButton.innerText === 'เข้าร่วม') {
@@ -126,16 +126,16 @@
                 }
             }
         }
-    
+
         async function joinActivity() {
             const token = localStorage.getItem('token');
             const userId = globalUserId; // Use the globally stored userId
-    
+
             if (!token || !userId) {
                 alert('You need to be logged in to join an activity.');
                 return;
             }
-    
+
             try {
                 const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}/participants`, {
                     method: 'POST',
@@ -145,7 +145,7 @@
                     },
                     body: JSON.stringify({ memberId: userId })
                 });
-    
+
                 if (response.ok) {
                     const currentParticipants = document.getElementById('current-participants');
                     const [current, max] = currentParticipants.innerText.split(' / ').map(Number);
@@ -154,7 +154,7 @@
                     joinButton.innerText = 'ยกเลิก';
                     joinButton.classList.remove('bg-green-500');
                     joinButton.classList.add('bg-red-500');
-    
+
                     // Update the service page's current participants
                     updateServicePageParticipants(activityId, current + 1);
                 } else {
@@ -166,16 +166,16 @@
                 alert('Error joining activity. Please try again.');
             }
         }
-    
+
         async function leaveActivity() {
             const token = localStorage.getItem('token');
             const userId = globalUserId; // Use the globally stored userId
-    
+
             if (!token || !userId) {
                 alert('You need to be logged in to leave an activity.');
                 return;
             }
-    
+
             try {
                 const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}/participants/${userId}`, {
                     method: 'DELETE',
@@ -183,7 +183,7 @@
                         'Authorization': `Bearer ${token}`
                     }
                 });
-    
+
                 if (response.ok) {
                     const currentParticipants = document.getElementById('current-participants');
                     const [current, max] = currentParticipants.innerText.split(' / ').map(Number);
@@ -192,7 +192,7 @@
                     joinButton.innerText = 'เข้าร่วม';
                     joinButton.classList.remove('bg-red-500');
                     joinButton.classList.add('bg-green-500');
-    
+
                     // Update the service page's current participants
                     updateServicePageParticipants(activityId, current - 1);
                 } else {
@@ -204,7 +204,7 @@
                 alert('Error leaving activity. Please try again.');
             }
         }
-    
+
         function updateServicePageParticipants(activityId, newCount) {
             const servicePage = window.opener;
             if (servicePage && servicePage.document) {
@@ -214,7 +214,7 @@
                 }
             }
         }
-    
+
         function updateJoinButton(status) {
             const joinButton = document.getElementById('join-button');
             if (status === 'เสร็จสิ้น') {
@@ -233,125 +233,108 @@
                 joinButton.disabled = false;
             }
         }
-    
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchMemberProfile().then(fetchActivityDetails);
-    
-            // Set current date and time if fields are empty
-            const currentDate = new Date().toISOString().split('T')[0];
-            const currentTime = new Date().toTimeString().split(' ')[0].substring(0, 5);
-    
-            if (!document.getElementById('service-start-date').value) {
-                document.getElementById('service-start-date').value = currentDate;
-            }
-            if (!document.getElementById('service-time-start').value) {
-                document.getElementById('service-time-start').value = currentTime;
-            }
-            if (!document.getElementById('service-end-date').value) {
-                document.getElementById('service-end-date').value = currentDate;
-            }
-            if (!document.getElementById('service-time-end').value) {
-                document.getElementById('service-time-end').value = currentTime;
-            }
-    
-            updateSidebar();
-        });
-    
-        async function updateSidebar(isLoggedIn) {
-            const navList = document.getElementById('navList');
-        
-            if (isLoggedIn) {
+
+        async function checkLoginStatus() {
+            const token = localStorage.getItem('token');
+            if (token) {
                 try {
-                    // Fetch user details to get the memberId
                     const response = await fetch('http://localhost:3000/api/user/auth/verify', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            'Authorization': `Bearer ${token}`
                         }
                     });
-        
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch user details');
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        updateSidebar(true, data.user_id);
+                    } else {
+                        updateSidebar(false);
                     }
-        
-                    const member = await response.json(); // Adjust based on your backend response
-                    const memberId = member.userId || member.user_id; // Use the correct field for memberId from the response
-        
-                    navList.innerHTML = `
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                                href="log-out.html">
-                                <i class="fas fa-user mr-3"></i>
-                                โปรไฟล์
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="homepage.html">
-                                <i class="fas fa-home mr-3"></i>
-                                หน้าหลัก
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="service.html">
-                                <i class="fas fa-clipboard-list mr-3"></i>
-                                กิจกรรมชุมชน
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="profile.html?memberId=${memberId}">
-                                <i class="fas fa-user-edit mr-3"></i>
-                                แก้ไขประวัติ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="skillconf.html">
-                                <i class="fas fa-tools mr-3"></i>
-                                แก้ไขทักษะ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="balance.html">
-                                <i class="fas fa-wallet mr-3"></i>
-                                ยอดคงเหลือ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="history.html">
-                                <i class="fas fa-history mr-3"></i>
-                                ประวัติ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="transfer.html">
-                                <i class="fas fa-exchange-alt mr-3"></i>
-                                แลกเปลี่ยนเวลา
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="contact.html">
-                                <i class="fas fa-phone mr-3"></i>
-                                ติดต่อเรา
-                            </a>
-                        </li>
-                    `;
                 } catch (error) {
-                    console.error('Error fetching user details:', error);
-                    alert('เกิดข้อผิดพลาดขณะโหลดข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
+                    console.error('Error verifying token:', error);
+                    updateSidebar(false);
                 }
+            } else {
+                updateSidebar(false);
+            }
+        }
+
+        async function updateSidebar(isLoggedIn, userId = null) {
+            const navList = document.getElementById('navList');
+
+            if (isLoggedIn) {
+                navList.innerHTML = `
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="profile.html?memberId=${userId}">
+                            <i class="fas fa-user mr-3"></i>
+                            โปรไฟล์
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="homepage.html">
+                            <i class="fas fa-home mr-3"></i>
+                            หน้าหลัก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="service.html">
+                            <i class="fas fa-clipboard-list mr-3"></i>
+                            กิจกรรมชุมชน
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="profile.html?memberId=${userId}">
+                            <i class="fas fa-user-edit mr-3"></i>
+                            แก้ไขประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="skillconf.html">
+                            <i class="fas fa-tools mr-3"></i>
+                            แก้ไขทักษะ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="balance.html">
+                            <i class="fas fa-wallet mr-3"></i>
+                            ยอดคงเหลือ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="history.html">
+                            <i class="fas fa-history mr-3"></i>
+                            ประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="transfer.html">
+                            <i class="fas fa-exchange-alt mr-3"></i>
+                            แลกเปลี่ยนเวลา
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="contact.html">
+                            <i class="fas fa-phone mr-3"></i>
+                            ติดต่อเรา
+                        </a>
+                    </li>
+                `;
             } else {
                 navList.innerHTML = `
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="login.html">
+                            href="log-in.html">
                             <i class="fas fa-sign-in-alt mr-3"></i>
                             เข้าสู่ระบบ
                         </a>
@@ -415,6 +398,29 @@
                 `;
             }
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchMemberProfile().then(fetchActivityDetails);
+
+            // Set current date and time if fields are empty
+            const currentDate = new Date().toISOString().split('T')[0];
+            const currentTime = new Date().toTimeString().split(' ')[0].substring(0, 5);
+
+            if (!document.getElementById('service-start-date').value) {
+                document.getElementById('service-start-date').value = currentDate;
+            }
+            if (!document.getElementById('service-time-start').value) {
+                document.getElementById('service-time-start').value = currentTime;
+            }
+            if (!document.getElementById('service-end-date').value) {
+                document.getElementById('service-end-date').value = currentDate;
+            }
+            if (!document.getElementById('service-time-end').value) {
+                document.getElementById('service-time-end').value = currentTime;
+            }
+
+            checkLoginStatus();
+        });
     </script>
 </head>
 

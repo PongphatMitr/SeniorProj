@@ -108,7 +108,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             const token = localStorage.getItem('token');
             if (!token) {
-                window.location.href = 'login.html';
+                window.location.href = 'log-in.html';
                 return;
             }
 
@@ -141,7 +141,7 @@
 
         function logout() {
             localStorage.removeItem('token');
-            window.location.href = 'login.html';
+            window.location.href = 'log-in.html';
         }
     </script>
 

@@ -282,7 +282,7 @@
                 navList.innerHTML = `
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="login.html">
+                            href="log-in.html">
                             <i class="fas fa-sign-in-alt mr-3"></i>
                             เข้าสู่ระบบ
                         </a>
@@ -366,7 +366,7 @@
                         updateSidebar(false);
                         const goToLogin = confirm('Session expired. Do you want to go to the login page?');
                         if (goToLogin) {
-                            window.location.href = 'login.html';
+                            window.location.href = 'log-in.html';
                         }
                     }
                 } catch (error) {
@@ -375,14 +375,14 @@
                     updateSidebar(false);
                     const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
                     if (goToLogin) {
-                        window.location.href = 'login.html';
+                        window.location.href = 'log-in.html';
                     }
                 }
             } else {
                 updateSidebar(false);
                 const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
                 if (goToLogin) {
-                    window.location.href = 'login.html';
+                    window.location.href = 'log-in.html';
                 }
             }
         }
@@ -418,15 +418,20 @@
 
         async function joinActivity(activityId, index) {
             const token = localStorage.getItem('token');
-            const userId = globalUserId; // Use the globally stored userId
+            const userId = globalUserId; // Ensure globalUserId is set correctly
+        
+            console.log(`Joining activity ${activityId} with userId: ${userId}`);  // Debug log
+        
             if (!token || !userId) {
                 alert('You need to be logged in to join an activity.');
                 return;
             }
+        
             if (activities[index].requester_id === userId) {
                 alert('You cannot join your own activity.');
                 return;
             }
+        
             try {
                 const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}/participants`, {
                     method: 'POST',
@@ -434,24 +439,28 @@
                         'Content-Type': 'application/json',
                         'Authorization': `Bearer ${token}`
                     },
-                    body: JSON.stringify({ memberId: userId })
+                    body: JSON.stringify({ memberId: userId })  // Ensure memberId is correct
                 });
+        
+                const data = await response.json();
+                console.log('Server response:', data);  // Log the server response
+        
                 if (response.ok) {
                     activities[index].current_participants += 1;
                     const joinButton = document.querySelector(`#row-${index + 1} .join-button`);
                     joinButton.innerText = 'ยกเลิก';
-                    joinButton.classList.remove('bg-green-500');
+                    joinButton.classList.remove('bg-blue-500');
                     joinButton.classList.add('bg-red-500');
                     document.getElementById(`participants-${index}`).innerText = activities[index].current_participants;
                 } else {
-                    const data = await response.json();
                     alert(`Error: ${data.error}`);
                 }
             } catch (error) {
                 console.error('Error joining activity:', error);
-                alert('Error joining activity. Please try again.');
+                alert('An unexpected error occurred. Please try again.');
             }
         }
+        
 
         async function leaveActivity(activityId, index) {
             const token = localStorage.getItem('token');
