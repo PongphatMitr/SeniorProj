@@ -3,15 +3,13 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>
-        สร้างบัญชีสมาชิก - Time Bank
-    </title>
+    <title>สร้างบัญชีสมาชิก - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
 </head>
 
 <body class="bg-gray-100">
-    <div class="flex">
+    <div class="flex h-screen">
         <!-- Sidebar -->
         <div class="w-1/6 bg-white h-screen p-5">
             <div class="flex items-center mb-10">
@@ -19,120 +17,87 @@
                     class="w-10 h-10 rounded-full" height="50"
                     src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
                     width="50" />
-                <span class="ml-3 text-xl font-bold text-blue-600">
-                    TIMEBANK
-                </span>
+                <span class="ml-3 text-xl font-bold text-blue-600">TIMEBANK</span>
             </div>
             <nav>
                 <ul id="navList">
-                    <!-- Navigation items will be dynamically inserted here -->
+                    <!-- Navigation items will be populated by navbar.js -->
                 </ul>
             </nav>
         </div>
         <!-- Main Content -->
-        <div class="w-5/6 bg-blue-700 text-white p-10">
+        <div class="flex-1 flex items-center justify-center bg-blue-700">
             <!-- Language Toggle Switch -->
             <div class="absolute top-5 right-5">
                 <div class="toggle-container" id="languageToggle">
-                    <span class="toggle-label active" id="lang-th" data-lang="th">
-                        ภาษาไทย
-                    </span>
-                    <span class="toggle-label" id="lang-en" data-lang="en">
-                        English
-                    </span>
+                    <span class="toggle-label active" data-lang="th" id="lang-th">ภาษาไทย</span>
+                    <span class="toggle-label" data-lang="en" id="lang-en">English</span>
                 </div>
             </div>
-
-            <h1 class="text-4xl font-bold mb-5">
-                สร้างบัญชีสมาชิก
-            </h1>
-            <div class="bg-white text-black p-5 rounded-lg">
-                <form onsubmit="createMember(event)">
-                    <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="username">
-                                ชื่อผู้ใช้
-                            </label>
+            <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
+                <h1 class="text-4xl font-bold text-center text-blue-900 mb-8">สร้างบัญชีสมาชิก</h1>
+                <form id="createMemberForm">
+                    <div class="mb-4 flex space-x-4">
+                        <div class="w-1/2">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="username">ชื่อผู้ใช้</label>
                             <input
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="username" placeholder="ชื่อผู้ใช้" required="" type="text" />
+                                id="username" placeholder="ชื่อผู้ใช้" type="text" required />
                         </div>
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="password">
-                                รหัสผ่าน
-                            </label>
+                        <div class="w-1/2">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="email">อีเมล</label>
                             <input
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="password" placeholder="รหัสผ่าน" required="" type="password" />
+                                id="email" placeholder="อีเมล" type="email" required />
                         </div>
                     </div>
-                    <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="email">
-                                อีเมล
-                            </label>
+                    <div class="mb-4 flex space-x-4">
+                        <div class="w-1/2">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="password">รหัสผ่าน</label>
                             <input
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="email" placeholder="อีเมล" required="" type="email" />
+                                id="password" placeholder="รหัสผ่าน" type="password" required />
                         </div>
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="name">
-                                ชื่อ
-                            </label>
+                        <div class="w-1/2">
+                            <label class="block text-gray-700 text-sm font-bold mb-2"
+                                for="confirmPassword">ยืนยันรหัสผ่าน</label>
                             <input
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="name" placeholder="ชื่อ" required="" type="text" />
+                                id="confirmPassword" placeholder="ยืนยันรหัสผ่าน" type="password" required />
                         </div>
                     </div>
-                    <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="phone">
-                                เบอร์โทรศัพท์
-                            </label>
+                    <div class="mb-4 flex space-x-4">
+                        <div class="w-1/2">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="name">ชื่อ</label>
                             <input
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="phone" placeholder="เบอร์โทรศัพท์" required="" type="text" />
+                                id="name" placeholder="ชื่อ" type="text" required />
                         </div>
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="branch">
-                                สาขา
-                            </label>
+                        <div class="w-1/2">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="phone">เบอร์โทรศัพท์</label>
                             <input
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="branch" placeholder="สาขา" required="" type="text" />
+                                id="phone" placeholder="เบอร์โทรศัพท์" type="text" required />
                         </div>
                     </div>
-                    <div class="mb-4 grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="address">
-                                ที่อยู่
-                            </label>
-                            <textarea
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="address" placeholder="ที่อยู่" required=""></textarea>
-                        </div>
-                        <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="status">
-                                สถานะ
-                            </label>
-                            <select
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="status" required="">
-                                <option value="active">
-                                    Active
-                                </option>
-                                <option value="inactive">
-                                    Inactive
-                                </option>
-                            </select>
-                        </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="address">ที่อยู่</label>
+                        <textarea
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="address" placeholder="ที่อยู่" required></textarea>
                     </div>
-                    <div class="flex items-center justify-center mt-5">
+                    <div class="mb-4 relative">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="branch">สาขา</label>
+                        <input
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="branch" placeholder="สาขา" type="text" oninput="searchBranches()" required />
+                        <div id="branch-results-dropdown"
+                            class="absolute bg-white shadow-lg rounded w-full mt-1 hidden z-10"></div>
+                    </div>
+                    <div class="flex items-center justify-center">
                         <button
                             class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                            type="submit">
-                            ต่อไป
-                        </button>
+                            type="submit">ต่อไป</button>
                     </div>
                 </form>
             </div>
@@ -184,51 +149,183 @@
             font-weight: bold;
         }
     </style>
-
-    <script src="selected-language.js"></script>
-
     <script>
-        let defaultTimeToken = 100;
+        document.addEventListener('DOMContentLoaded', () => {
+            const langTh = document.getElementById('lang-th');
+            const langEn = document.getElementById('lang-en');
+            const toggleSwitch = document.getElementById('language-toggle'); // Reference to the toggle switch
+            const navList = document.querySelectorAll('ul li a');
+            const createMemberForm = document.getElementById('createMemberForm');
 
-        async function fetchCommunityConfig() {
-            try {
-                const response = await fetch('http://localhost:3000/api/tbm/community-config', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                const data = await response.json();
-                if (data) {
-                    defaultTimeToken = data.default_time_token || defaultTimeToken;
-                } else {
-                    console.error('Expected data but got:', data);
-                    alert('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
+            const translations = {
+                thai: {
+                    nav: ['เข้าสู่ระบบ', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวดหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
+                    createMember: 'สร้างบัญชีสมาชิก',
+                    username: 'ชื่อผู้ใช้',
+                    email: 'อีเมล',
+                    password: 'รหัสผ่าน',
+                    confirmPassword: 'ยืนยันรหัสผ่าน',
+                    name: 'ชื่อ',
+                    phone: 'โทรศัพท์',
+                    address: 'ที่อยู่',
+                    branch: 'สาขา',
+                    nextButton: 'ต่อไป'
+                },
+                english: {
+                    nav: ['Login', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
+                    createMember: 'Create Member Account',
+                    username: 'Username',
+                    email: 'Email',
+                    password: 'Password',
+                    confirmPassword: 'Confirm Password',
+                    name: 'Name',
+                    phone: 'Phone',
+                    address: 'Address',
+                    branch: 'Branch',
+                    nextButton: 'Next'
                 }
-            } catch (error) {
-                console.error('Error fetching community config:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
+            };
+
+            let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
+
+            function updateContent(lang) {
+                const langData = translations[lang];
+
+                // Update navigation menu
+                navList.forEach((link, index) => {
+                    link.innerHTML = `<i class="${link.querySelector('i').className}"></i> ${langData.nav[index]}`;
+                });
+
+                // Update form labels and placeholders
+                document.querySelector('h1').textContent = langData.createMember;
+                createMemberForm.querySelector('label[for="username"]').textContent = langData.username;
+                createMemberForm.querySelector('label[for="email"]').textContent = langData.email;
+                createMemberForm.querySelector('label[for="password"]').textContent = langData.password;
+                createMemberForm.querySelector('label[for="confirmPassword"]').textContent = langData.confirmPassword;
+                createMemberForm.querySelector('label[for="name"]').textContent = langData.name;
+                createMemberForm.querySelector('label[for="phone"]').textContent = langData.phone;
+                createMemberForm.querySelector('label[for="address"]').textContent = langData.address;
+                createMemberForm.querySelector('label[for="branch"]').textContent = langData.branch;
+
+                // Update "Next" button text
+                document.querySelector('button[type="submit"]').textContent = langData.nextButton;
+
+                // Highlight active language
+                if (lang === 'thai') {
+                    langTh.classList.add('active');
+                    langEn.classList.remove('active');
+                } else {
+                    langEn.classList.add('active');
+                    langTh.classList.remove('active');
+                }
+
+                // Sync toggle switch state if toggleSwitch exists
+                if (toggleSwitch) {
+                    toggleSwitch.checked = lang === 'english';
+                }
+
+                // Store selected language
+                localStorage.setItem('selectedLanguage', lang);
+            }
+
+            // Event listeners for buttons
+            langTh.addEventListener('click', () => {
+                if (currentLang !== 'thai') {
+                    currentLang = 'thai';
+                    updateContent(currentLang);
+                }
+            });
+
+            langEn.addEventListener('click', () => {
+                if (currentLang !== 'english') {
+                    currentLang = 'english';
+                    updateContent(currentLang);
+                }
+            });
+
+            // Sync toggle switch with content
+            if (toggleSwitch) {
+                toggleSwitch.checked = currentLang === 'english';
+                toggleSwitch.addEventListener('change', () => {
+                    currentLang = toggleSwitch.checked ? 'english' : 'thai';
+                    updateContent(currentLang);
+                });
+            }
+
+            // Initialize content
+            updateContent(currentLang);
+        });
+
+        async function searchBranches() {
+            const searchTerm = document.getElementById('branch').value.toLowerCase();
+            const resultsDropdown = document.getElementById('branch-results-dropdown');
+            resultsDropdown.innerHTML = '';
+            if (searchTerm) {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/tbm/branches?search=${searchTerm}`);
+                    const branches = await response.json();
+                    branches.forEach(branch => {
+                        const item = document.createElement('div');
+                        item.className = 'py-2 px-4 hover:bg-gray-200 cursor-pointer';
+                        item.innerHTML = `
+                            <div class="flex justify-between items-center">
+                                <div>
+                                    <p class="text-gray-700">${branch.branch_name}</p>
+                                </div>
+                            </div>
+                        `;
+                        item.onclick = () => {
+                            document.getElementById('branch').value = branch.branch_name;
+                            resultsDropdown.innerHTML = '';
+                        };
+                        resultsDropdown.appendChild(item);
+                    });
+                    resultsDropdown.classList.remove('hidden');
+                } catch (error) {
+                    console.error('Error fetching branches:', error);
+                }
+            } else {
+                resultsDropdown.classList.add('hidden');
             }
         }
 
-        async function createMember(event) {
+        document.getElementById('createMemberForm').addEventListener('submit', async function (event) {
             event.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const email = document.getElementById('email').value;
-            const name = document.getElementById('name').value;
-            const phone = document.getElementById('phone').value;
-            const address = document.getElementById('address').value;
-            const branch = document.getElementById('branch').value;
-            const status = document.getElementById('status').value;
 
-            const userPayload = {
-                username: username,
-                password: password,
-                email: email,
-                role: 'Member'
+            // Get all form values
+            const formData = {
+                username: document.getElementById('username').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                password: document.getElementById('password').value.trim(),
+                confirmPassword: document.getElementById('confirmPassword').value.trim(),
+                name: document.getElementById('name').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                address: document.getElementById('address').value.trim(),
+                branch: document.getElementById('branch').value.trim(),
+                role: 'Member' // Set default role to 'Member'
             };
 
+            // Client-side validation
+            const errors = [];
+            if (!formData.name) errors.push('Name is required');
+            if (!formData.phone) errors.push('Phone is required');
+            if (!/^\d{10}$/.test(formData.phone)) errors.push('Phone must be 10 digits');
+            if (formData.password !== formData.confirmPassword) errors.push('Passwords do not match');
+            if (formData.password.length < 8) errors.push('Password must be at least 8 characters');
+
+            if (errors.length > 0) {
+                alert(errors.join('\n'));
+                return;
+            }
+
             try {
+                const userPayload = {
+                    username: formData.username,
+                    password: formData.password,
+                    email: formData.email,
+                    role: formData.role
+                };
+
                 const userResponse = await fetch('http://localhost:3000/api/tbm/auth/register', {
                     method: 'POST',
                     headers: {
@@ -241,12 +338,11 @@
                     const userData = await userResponse.json();
                     const memberPayload = {
                         user_id: userData.user_id,
-                        name: name,
-                        phone: phone,
-                        address: address,
-                        branch: branch,
-                        status: status,
-                        time_credits: defaultTimeToken
+                        name: formData.name,
+                        phone: formData.phone,
+                        address: formData.address,
+                        branch: formData.branch,
+                        time_credits: 100 // Default time credits
                     };
 
                     const memberResponse = await fetch('http://localhost:3000/api/tbm/members', {
@@ -272,213 +368,12 @@
                 console.error('Error:', error);
                 alert('เกิดข้อผิดพลาดในการสร้างบัญชีผู้ใช้');
             }
-        }
-
-        async function checkLoginStatus() {
-            const token = localStorage.getItem('token');
-            if (token) {
-                try {
-                    const response = await fetch('http://localhost:3000/api/tbm/auth/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-
-                    if (response.ok) {
-                        updateSidebar(true);
-                    } else {
-                        localStorage.removeItem('token');
-                        updateSidebar(false);
-                        const goToLogin = confirm('Session expired. Do you want to go to the login page?');
-                        if (goToLogin) {
-                            window.location.href = 'login.html';
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    localStorage.removeItem('token');
-                    updateSidebar(false);
-                    const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
-                    if (goToLogin) {
-                        window.location.href = 'login.html';
-                    }
-                }
-            } else {
-                updateSidebar(false);
-                const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
-                if (goToLogin) {
-                    window.location.href = 'login.html';
-                }
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const langThai = document.getElementById('lang-th');
-            const langEnglish = document.getElementById('lang-en');
-
-            const translations = {
-                thai: {
-                    pageTitle: 'สร้างบัญชีสมาชิก - Time Bank',
-                    mainHeading: 'สร้างบัญชีสมาชิก',
-                    nav: [
-                        'โปรไฟล์',
-                        'หน้าหลัก',
-                        'รายงาน',
-                        'จัดการกิจกรรม',
-                        'จัดการสมาชิก',
-                        'จัดการหมวดหมู่ทักษะ',
-                        'จัดการกองทุนชุมชน',
-                        'จัดการชุมชน',
-                        'ธุรกรรมทั้งหมด'
-                    ],
-                    labels: {
-                        username: 'ชื่อผู้ใช้',
-                        password: 'รหัสผ่าน',
-                        email: 'อีเมล',
-                        name: 'ชื่อ',
-                        phone: 'เบอร์โทรศัพท์',
-                        branch: 'สาขา',
-                        address: 'ที่อยู่',
-                        status: 'สถานะ'
-                    },
-                    placeholders: {
-                        username: 'ชื่อผู้ใช้',
-                        password: 'รหัสผ่าน',
-                        email: 'อีเมล',
-                        name: 'ชื่อ',
-                        phone: 'เบอร์โทรศัพท์',
-                        branch: 'สาขา',
-                        address: 'ที่อยู่'
-                    },
-                    statusOptions: ['Active', 'Inactive'],
-                    nextButton: 'ต่อไป'
-                },
-                english: {
-                    pageTitle: 'Create Member Account - Time Bank',
-                    mainHeading: 'Create Member Account',
-                    nav: [
-                        'Profile',
-                        'Homepage',
-                        'Reports',
-                        'Activity Management',
-                        'Member Management',
-                        'Skill Categories',
-                        'Fund Management',
-                        'Community Settings',
-                        'Transactions'
-                    ],
-                    labels: {
-                        username: 'Username',
-                        password: 'Password',
-                        email: 'Email',
-                        name: 'Name',
-                        phone: 'Phone Number',
-                        branch: 'Branch',
-                        address: 'Address',
-                        status: 'Status'
-                    },
-                    placeholders: {
-                        username: 'Enter username',
-                        password: 'Enter password',
-                        email: 'Enter email',
-                        name: 'Enter name',
-                        phone: 'Enter phone number',
-                        branch: 'Enter branch',
-                        address: 'Enter address'
-                    },
-                    statusOptions: ['Active', 'Inactive'],
-                    nextButton: 'Next'
-                }
-            };
-
-            let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
-
-            const updateContent = (lang) => {
-                const langData = translations[lang];
-
-                // Update page title
-                document.title = langData.pageTitle;
-
-                // Update main heading
-                document.querySelector('h1').textContent = langData.mainHeading;
-
-                // Update form labels
-                document.querySelector('label[for="username"]').textContent = langData.labels.username;
-                document.querySelector('label[for="password"]').textContent = langData.labels.password;
-                document.querySelector('label[for="email"]').textContent = langData.labels.email;
-                document.querySelector('label[for="name"]').textContent = langData.labels.name;
-                document.querySelector('label[for="phone"]').textContent = langData.labels.phone;
-                document.querySelector('label[for="branch"]').textContent = langData.labels.branch;
-                document.querySelector('label[for="address"]').textContent = langData.labels.address;
-                document.querySelector('label[for="status"]').textContent = langData.labels.status;
-
-                // Update placeholders
-                document.getElementById('username').placeholder = langData.placeholders.username;
-                document.getElementById('password').placeholder = langData.placeholders.password;
-                document.getElementById('email').placeholder = langData.placeholders.email;
-                document.getElementById('name').placeholder = langData.placeholders.name;
-                document.getElementById('phone').placeholder = langData.placeholders.phone;
-                document.getElementById('branch').placeholder = langData.placeholders.branch;
-                document.getElementById('address').placeholder = langData.placeholders.address;
-
-                // Update status dropdown options
-                const statusSelect = document.getElementById('status');
-                statusSelect.innerHTML = '';
-                langData.statusOptions.forEach((option) => {
-                    const statusOption = document.createElement('option');
-                    statusOption.value = option.toLowerCase();
-                    statusOption.textContent = option;
-                    statusSelect.appendChild(statusOption);
-                });
-
-                // Update "Next" button text
-                document.querySelector('button[type="submit"]').textContent = langData.nextButton;
-
-                // Update navigation bar (keep icons intact)
-                const navLinks = document.querySelectorAll('nav ul li a');
-                langData.nav.forEach((text, index) => {
-                    if (navLinks[index]) {
-                        const icon = navLinks[index].querySelector('i'); // Keep existing icon
-                        navLinks[index].innerHTML = ''; // Clear content
-                        if (icon) {
-                            navLinks[index].appendChild(icon); // Re-add icon
-                        }
-                        navLinks[index].appendChild(document.createTextNode(text)); // Add translated text
-                    }
-                });
-
-                // Update active language toggle
-                if (lang === 'thai') {
-                    langThai.classList.add('active');
-                    langEnglish.classList.remove('active');
-                } else {
-                    langEnglish.classList.add('active');
-                    langThai.classList.remove('active');
-                }
-            };
-
-            // Event listeners for language toggle
-            langThai.addEventListener('click', () => {
-                currentLang = 'thai';
-                localStorage.setItem('selectedLanguage', currentLang);
-                updateContent(currentLang);
-            });
-
-            langEnglish.addEventListener('click', () => {
-                currentLang = 'english';
-                localStorage.setItem('selectedLanguage', currentLang);
-                updateContent(currentLang);
-            });
-
-            // Initialize content on page load
-            updateContent(currentLang);
-            checkLoginStatus();
-            fetchCommunityConfig();
         });
     </script>
     <script src="navbar.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', checkLoginStatus);
+    </script>
 </body>
 
 </html>

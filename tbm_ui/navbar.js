@@ -13,12 +13,15 @@ function updateSidebar(isLoggedIn) {
 
     if (isLoggedIn) {
         navList.innerHTML = `
-            <li class="mb-5">
+            <li class="mb-5 flex items-center justify-between">
                 <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                     href="profile.html">
                     <i class="fas fa-user mr-3"></i>
                     ${navItems[0]}
                 </a>
+                <button class="text-red-600 hover:text-red-800 p-2 rounded transition duration-300" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
             </li>
             <li class="mb-5">
                 <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
@@ -198,6 +201,12 @@ async function checkLoginStatus() {
             console.error('No token found. Redirecting to login page.');
         }
     }
+}
+
+function logout() {
+    localStorage.removeItem('token');
+    localStorage.removeItem('profileData');
+    window.location.href = 'login.html';
 }
 
 // Check login status on page load
