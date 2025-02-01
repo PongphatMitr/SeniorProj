@@ -9,7 +9,7 @@
 </head>
 
 <body class="bg-gray-100">
-    <div class="flex h-screen">
+    <div class="flex flex-col md:flex-row">
         <!-- Sidebar -->
         <div class="w-1/6 bg-white h-screen p-5">
             <div class="flex items-center mb-10">
@@ -28,25 +28,51 @@
             </nav>
         </div>
         <!-- Main Content -->
-        <div class="flex-1 flex items-center justify-center bg-blue-700">
-            <!-- Language Toggle Switch -->
-            <div class="absolute top-5 right-5">
-                <div class="toggle-container" id="languageToggle">
-                    <span class="toggle-label active" id="lang-th" data-lang="th">
-                        ภาษาไทย
-                    </span>
-                    <span class="toggle-label" id="lang-en" data-lang="en">
-                        English
-                    </span>
+        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10 flex justify-center items-center">
+            <div class="bg-white text-black p-8 rounded-lg shadow-lg w-full max-w-3xl">
+                <h1 class="text-4xl font-bold mb-5 text-center">โปรไฟล์</h1>
+                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">ข้อมูลผู้ใช้</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2"
+                            for="user-username">ชื่อผู้ใช้:</label>
+                        <p class="text-gray-700 text-lg" id="user-username"></p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="user-email">อีเมล:</label>
+                        <p class="text-gray-700 text-lg" id="user-email"></p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="user-role">บทบาท:</label>
+                        <p class="text-gray-700 text-lg" id="user-role"></p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="user-branch">สาขา:</label>
+                        <p class="text-gray-700 text-lg" id="user-branch"></p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="user-name">ชื่อ:</label>
+                        <p class="text-gray-700 text-lg" id="user-name"></p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="user-phone">เบอร์โทร:</label>
+                        <p class="text-gray-700 text-lg" id="user-phone"></p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="user-address">ที่อยู่:</label>
+                        <p class="text-gray-700 text-lg" id="user-address"></p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2"
+                            for="user-time-credits">เครดิตเวลา:</label>
+                        <p class="text-gray-700 text-lg" id="user-time-credits"></p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="user-status">สถานะ:</label>
+                        <p class="text-gray-700 text-lg" id="user-status"></p>
+                    </div>
                 </div>
-            </div>
-
-            <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-md">
-                <h1 class="text-4xl font-bold text-center text-blue-900 mb-8">โปรไฟล์</h1>
-                <div id="profileInfo" class="text-center">
-                    <!-- Profile information will be dynamically inserted here -->
-                </div>
-                <div class="flex items-center justify-center mt-6">
+                <div class="flex justify-center mt-4 space-x-4">
                     <button
                         class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                         onclick="logout()">Logout</button>
@@ -54,6 +80,7 @@
             </div>
         </div>
     </div>
+
     <script src="navbar.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -77,13 +104,19 @@
                     return response.json();
                 })
                 .then(data => {
-                    const profileInfo = document.getElementById('profileInfo');
-                    profileInfo.innerHTML = `
-                        <p class="text-gray-700 text-lg"><strong>Username:</strong> ${data.username}</p>
-                        <p class="text-gray-700 text-lg"><strong>Email:</strong> ${data.email}</p>
-                        <p class="text-gray-700 text-lg"><strong>Role:</strong> ${data.role}</p>
-                        <p class="text-gray-700 text-lg"><strong>Branch:</strong> ${data.branch_name}</p>
-                    `;
+                    const profileInfo = {
+                        username: data.username,
+                        email: data.email,
+                        role: data.role,
+                        branch_name: data.branch_name,
+                        name: data.name,
+                        phone: data.phone,
+                        address: data.address,
+                        time_credits: data.time_credits,
+                        status: data.status
+                    };
+                    localStorage.setItem('profileData', JSON.stringify(profileInfo));
+                    renderUserProfile(profileInfo);
                 })
                 .catch(error => {
                     console.error('Error:', error);
@@ -94,177 +127,17 @@
             checkLoginStatus();
         });
 
-        function logout() {
-            localStorage.removeItem('token');
-            window.location.href = 'login.html';
+        function renderUserProfile(data) {
+            document.getElementById('user-username').textContent = data.username || 'N/A';
+            document.getElementById('user-email').textContent = data.email || 'N/A';
+            document.getElementById('user-role').textContent = data.role || 'N/A';
+            document.getElementById('user-branch').textContent = data.branch_name || 'N/A';
+            document.getElementById('user-name').textContent = data.name || 'N/A';
+            document.getElementById('user-phone').textContent = data.phone || 'N/A';
+            document.getElementById('user-address').textContent = data.address || 'N/A';
+            document.getElementById('user-time-credits').textContent = data.time_credits || 'N/A';
+            document.getElementById('user-status').textContent = data.status === 'active' ? 'Active' : 'Inactive';
         }
-    </script>
-
-    <style>
-        /* Toggle container */
-        .toggle-container {
-            display: flex;
-            background-color: #E5E7EB;
-            border-radius: 20px;
-            /* Increase border radius for larger container */
-            padding: 6px;
-            /* Larger padding for better spacing */
-            align-items: center;
-            justify-content: space-between;
-            width: 180px;
-            /* Increase width for a larger toggle */
-        }
-
-        /* Labels */
-        .toggle-label {
-            flex: 1;
-            text-align: center;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: gray;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border-radius: 9999px;
-            padding: 5px;
-        }
-
-        .toggle-label.active {
-            background-color: white;
-            color: #1D4ED8;
-            /* Blue for active text */
-            font-weight: bold;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Disabled Label */
-        .toggle-label.disabled {
-            pointer-events: none;
-            /*Make it unclickable */
-            background-color: white;
-            color: #6B7280;
-            /* Light gray text */
-            font-weight: bold;
-        }
-    </style>
-
-    <script src="selected-language.js"></script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const langThai = document.getElementById('lang-th');
-            const langEnglish = document.getElementById('lang-en');
-
-            const translations = {
-                thai: {
-                    pageTitle: 'โปรไฟล์ - Time Bank',
-                    profileHeading: 'โปรไฟล์',
-                    username: 'ชื่อผู้ใช้',
-                    email: 'อีเมล',
-                    role: 'บทบาท',
-                    branch: 'สาขา',
-                    logout: 'ออกจากระบบ',
-                    nav: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
-                },
-                english: {
-                    pageTitle: 'Profile - Time Bank',
-                    profileHeading: 'Profile',
-                    username: 'Username',
-                    email: 'Email',
-                    role: 'Role',
-                    branch: 'Branch',
-                    logout: 'Logout',
-                    nav: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
-                }
-            };
-
-            let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
-
-            const updateContent = (lang) => {
-                const langData = translations[lang];
-
-                // Update page title
-                document.title = langData.pageTitle;
-
-                // Update body attribute
-                document.documentElement.lang = lang === 'thai' ? 'th' : 'en';
-
-                // Update profile heading
-                document.querySelector('h1').textContent = langData.profileHeading;
-
-                // Update profile information dynamically if it exists
-                const profileInfo = document.getElementById('profileInfo');
-                if (profileInfo.innerHTML) {
-                    const profileData = JSON.parse(localStorage.getItem('profileData'));
-                    profileInfo.innerHTML = `
-                        <p class="text-gray-700 text-lg"><strong>${langData.username}:</strong> ${profileData?.username || ''}</p>
-                        <p class="text-gray-700 text-lg"><strong>${langData.email}:</strong> ${profileData?.email || ''}</p>
-                        <p class="text-gray-700 text-lg"><strong>${langData.role}:</strong> ${profileData?.role || ''}</p>
-                        <p class="text-gray-700 text-lg"><strong>${langData.branch}:</strong> ${profileData?.branch_name || ''}</p>
-                    `;
-                }
-
-                // Update logout button text
-                document.querySelector('button[onclick="logout()"]').textContent = langData.logout;
-
-                // Update navigation menu
-                const navItems = document.querySelectorAll('#navList li a');
-                langData.nav.forEach((text, index) => {
-                    if (navItems[index]) {
-                        const icon = navItems[index].querySelector('i');
-                        navItems[index].innerHTML = '';
-                        if (icon) navItems[index].appendChild(icon);
-                        navItems[index].append(` ${text}`);
-                    }
-                });
-
-                // Update active toggle state
-                if (lang === 'thai') {
-                    langThai.classList.add('active');
-                    langEnglish.classList.remove('active');
-                } else {
-                    langEnglish.classList.add('active');
-                    langThai.classList.remove('active');
-                }
-            };
-
-            // Fetch and store profile data locally
-            const token = localStorage.getItem('token');
-            if (token) {
-                fetch('http://localhost:3000/api/tbm/auth/profile', {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                })
-                    .then((response) => {
-                        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-                        return response.json();
-                    })
-                    .then((data) => {
-                        localStorage.setItem('profileData', JSON.stringify(data));
-                        updateContent(currentLang);
-                    })
-                    .catch((error) => {
-                        console.error('Error fetching profile:', error);
-                        alert('An error occurred. Please try again.');
-                    });
-            }
-
-            // Language toggle event listeners
-            langThai.addEventListener('click', () => {
-                currentLang = 'thai';
-                localStorage.setItem('selectedLanguage', currentLang);
-                updateContent(currentLang);
-            });
-
-            langEnglish.addEventListener('click', () => {
-                currentLang = 'english';
-                localStorage.setItem('selectedLanguage', currentLang);
-                updateContent(currentLang);
-            });
-
-            // Initialize content on page load
-            updateContent(currentLang);
-        });
 
         function logout() {
             localStorage.removeItem('token');
@@ -272,6 +145,7 @@
             window.location.href = 'login.html';
         }
     </script>
+    <script src="selected-language.js"></script>
 </body>
 
 </html>
