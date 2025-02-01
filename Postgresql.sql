@@ -13,14 +13,17 @@ DROP TABLE IF EXISTS branches CASCADE;
 DROP TABLE IF EXISTS community_config_log CASCADE;
 DROP TABLE IF EXISTS user_login_log CASCADE;
 DROP TABLE IF EXISTS user_transaction_transfer CASCADE;
+DROP TABLE IF EXISTS transactions CASCADE;
 
 -- Drop enum types if they exist (run this first)
 DROP TYPE IF EXISTS user_status CASCADE;
 DROP TYPE IF EXISTS activity_status CASCADE;
+DROP TYPE IF EXISTS transaction_type CASCADE;
 
 -- Create enum types
 CREATE TYPE user_status AS ENUM ('active', 'inactive', 'suspended', 'pending_approval', 'offline');
 CREATE TYPE activity_status AS ENUM ('กำลังจะเริ่ม', 'เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา');
+CREATE TYPE transaction_type AS ENUM ('earn', 'spend');
 
 -- Create the branches table
 CREATE TABLE branches (
@@ -177,6 +180,26 @@ CREATE TABLE user_transaction_transfer (
     FOREIGN KEY (recipient_id) REFERENCES users(user_id)
 );
 
+-- Create the transactions table
+CREATE TABLE transactions (
+    transaction_id SERIAL PRIMARY KEY,
+    user_id INT NOT NULL,
+    activity_id INT,
+    date DATE NOT NULL,
+    time TIME NOT NULL,
+    time_credits INT NOT NULL,
+    transaction_type transaction_type NOT NULL,
+    details TEXT,
+    requester_id INT,
+    participant_id INT,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW(),
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (activity_id) REFERENCES activities(activity_id),
+    FOREIGN KEY (requester_id) REFERENCES users(user_id),
+    FOREIGN KEY (participant_id) REFERENCES users(user_id)
+);
+
 -- Insert initial data into branches
 INSERT INTO branches (branch_name) VALUES 
 ('Test Branch');
@@ -295,3 +318,8 @@ VALUES
 ('Jane Smith', 'jane.smith@example.com', 'Volunteer Opportunities', 'How can I volunteer for the community events?'),
 ('Alice Johnson', 'alice.johnson@example.com', 'Feedback on Website', 'The website is very user-friendly. Great job!'),
 ('Bob Brown', 'bob.brown@example.com', 'Issue with Login', 'I am having trouble logging into my account. Can you help?');
+
+-- Insert initial data into transactions
+INSERT INTO transactions (user_id, activity_id, date, time, time_credits, transaction_type, details, requester_id, participant_id, created_at, updated_at) 
+VALUES 
+(1, 1, '2023-01-01', '09:00:00', 1, 'earn', 'Participated in activity: กิจกรรมทำความสะอาดชุมชน', 1, 1, '2025-01-29 15:46:29.868674', '2025-01-29 15:46:29.868674');
