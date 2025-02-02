@@ -174,8 +174,10 @@ CREATE TABLE user_transaction_transfer (
     sender_id INT NOT NULL,
     recipient_id INT NOT NULL,
     time_credit INT NOT NULL CHECK (time_credit > 0), -- Only positive transfers
+    transaction_type VARCHAR(50) NOT NULL, -- Added transaction_type column
+    sender_balance INT NOT NULL,
+    recipient_balance INT NOT NULL,
     date TIMESTAMP DEFAULT NOW(),
-    time TIMESTAMP DEFAULT NOW(),
     FOREIGN KEY (sender_id) REFERENCES users(user_id),
     FOREIGN KEY (recipient_id) REFERENCES users(user_id)
 );
@@ -188,7 +190,7 @@ CREATE TABLE transactions (
     date DATE NOT NULL,
     time TIME NOT NULL,
     time_credits INT NOT NULL,
-    transaction_type transaction_type NOT NULL,
+    transaction_type transaction_type NOT NULL, -- Changed to use enum type
     details TEXT,
     requester_id INT,
     participant_id INT,
@@ -215,6 +217,8 @@ INSERT INTO community_config (default_time_token, default_exchange_rate_id) VALU
 -- Insert initial data into users
 INSERT INTO users (username, password, email, role, name, phone, address, branch_id, time_credits, status) 
 VALUES ('testuser', '$2a$10$y2yR9UyFAUfyYCiYqDxgteWBflWnsbYdlFZDmNPmn7P1.xUfbRFtu', 'testuser@example.com', 'Member', 'Test User', '1234567890', '123 Test St, Test City', 1, 10, 'active'),
+('earth', '$2a$10$1YbqGWj36sZXoKaXWvV/p.XaSkLSjBy.Xqiw41OPh9NeVTsp4qPpG', 'testuser@example.com', 'Member', 'earth', '1234567890', '123 Test St, Test City', 1, 10, 'active'),
+('moji', '$2a$10$AfvWwUB3xPrYByh4UEpSSeptvKp07aIACEyzVJB4TJVRUM8aDNwWm', 'testuser@example.com', 'Member', 'moji', '1234567890', '123 Test St, Test City', 1, 10, 'active'),
         ('save001', '$2a$10$4tEtE.kQJrXrM2G5w.8Fs.PWVcMz/WeE0iZSfPPdxz0DTY82mVOTy', 'savewaris001@gmail.com', 'Admin', 'Test User', '1234567890', '123 Test St, Test City', 1, 10, 'active');
 
 -- Insert initial data into activities
