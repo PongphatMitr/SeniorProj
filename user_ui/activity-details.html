@@ -558,6 +558,10 @@
                         <button id="join-button"
                             class="bg-green-500 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
                             type="button" onclick="handleJoinButton()">เข้าร่วม</button>
+                        <button
+                            class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
+                            type="button"
+                            onclick="window.location.href='participant-detail.html?id=' + new URLSearchParams(window.location.search).get('id')">รายชื่อผู้เข้าร่วม</button>
                     </div>
                 </form>
             </div>

@@ -201,8 +201,8 @@ const activityRoutes = (pool) => {
 
             // Log the transaction
             await client.query(
-                'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type) VALUES ($1, $2, $3, $4, $5)',
-                [userId, activityId, `Participated in activity: ${activity.title}`, activity.time_tokens_per_participant, 'earn']
+                'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type, date, time) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+                [userId, activityId, `Participated in activity: ${activity.title}`, activity.time_tokens_per_participant, 'earn', new Date(), new Date().toLocaleTimeString()]
             );
 
             await client.query('COMMIT');
@@ -273,8 +273,8 @@ const activityRoutes = (pool) => {
 
             // Log the transaction for the requester
             await client.query(
-                'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type) VALUES ($1, $2, $3, $4, $5)',
-                [requester.user_id, activityId, `Approved activity: ${activity.title}`, totalTokensRequired, 'spend']
+                'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type, date, time) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+                [requester.user_id, activityId, `Approved activity: ${activity.title}`, totalTokensRequired, 'spend', new Date(), new Date().toLocaleTimeString()]
             );
 
             // Add time credits to each participant
@@ -283,8 +283,8 @@ const activityRoutes = (pool) => {
 
                 // Log the transaction for each participant
                 await client.query(
-                    'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type) VALUES ($1, $2, $3, $4, $5)',
-                    [participant.user_id, activityId, `Earned time credits for activity: ${activity.title}`, activity.time_tokens_per_participant, 'earn']
+                    'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type, date, time) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+                    [participant.user_id, activityId, `Earned time credits for activity: ${activity.title}`, activity.time_tokens_per_participant, 'earn', new Date(), new Date().toLocaleTimeString()]
                 );
             }
 

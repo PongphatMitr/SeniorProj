@@ -110,40 +110,65 @@ const transactionRoutes = (pool) => {
         }
     });
 
-// Get user transaction history (Merged sender and recipient)
-router.get('/log', authMiddleware, async (req, res) => {
-    const userId = req.user.userId;
+    // Get user transaction history (Merged sender and recipient)
+    router.get('/log', authMiddleware, async (req, res) => {
+        const userId = req.user.userId;
 
-    try {
-        const result = await pool.query(`
-            SELECT transaction_id, sender_id, recipient_id, time_credit, sender_balance, recipient_balance, date
-            FROM user_transaction_transfer
-            WHERE (sender_id = $1 OR recipient_id = $1) AND transaction_type = 'โอนออก'
-            ORDER BY date DESC
-        `, [userId]);
+        try {
+            const result = await pool.query(`
+                SELECT transaction_id, sender_id, recipient_id, time_credit, sender_balance, recipient_balance, date
+                FROM user_transaction_transfer
+                WHERE (sender_id = $1 OR recipient_id = $1) AND transaction_type = 'โอนออก'
+                ORDER BY date DESC
+            `, [userId]);
 
-        const transactions = result.rows.map(transaction => {
-            const isSender = transaction.sender_id === userId;
-            const otherPartyId = isSender ? transaction.recipient_id : transaction.sender_id;
-            const transactionType = isSender ? 'โอนออก' : 'โอนเข้า';
-            const balanceAfter = isSender ? transaction.sender_balance : transaction.recipient_balance;
+            const transactions = result.rows.map(transaction => {
+                const isSender = transaction.sender_id === userId;
+                const otherPartyId = isSender ? transaction.recipient_id : transaction.sender_id;
+                const transactionType = isSender ? 'โอนออก' : 'โอนเข้า';
+                const balanceAfter = isSender ? transaction.sender_balance : transaction.recipient_balance;
 
-            return {
-                transaction_id: transaction.transaction_id,
-                transaction_type: transactionType,
-                other_party_id: otherPartyId,
-                time_credit: transaction.time_credit,
-                balance_after: balanceAfter,
-                date: transaction.date
-            };
-        });
+                return {
+                    transaction_id: transaction.transaction_id,
+                    transaction_type: transactionType,
+                    other_party_id: otherPartyId,
+                    time_credit: transaction.time_credit,
+                    balance_after: balanceAfter,
+                    date: transaction.date
+                };
+            });
 
-        res.json({ transactions });
-    } catch (err) {
-        console.error('Error fetching transaction history:', err.message);
-        res.status(500).json({ error: 'ไม่สามารถดึงประวัติการทำธุรกรรมได้' });
-    }
-});
+            res.json({ transactions });
+        } catch (err) {
+            console.error('Error fetching transaction history:', err.message);
+            res.status(500).json({ error: 'ไม่สามารถดึงประวัติการทำธุรกรรมได้' });
+        }
+    });
+
+        // Create a new transaction
+        // routes/transaction.js
+    router.post('/', async (req, res) => {
+        const { user_id, activity_id, date, time, time_credits, transaction_type, details, requester_id, participant_id } = req.body;
+
+        if (!user_id || !activity_id || !date || !time || !time_credits || !transaction_type) {
+            return res.status(400).json({ error: 'Missing required fields' });
+        }
+
+        try {
+            const result = await pool.query(
+                `INSERT INTO transactions 
+                (user_id, activity_id, date, time, time_credits, transaction_type, details, requester_id, participant_id, created_at, updated_at) 
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW()) RETURNING *`,
+                [user_id, activity_id, date, time, time_credits, transaction_type, details, requester_id, participant_id]
+            );
+
+            res.status(201).json(result.rows[0]);
+        } catch (err) {
+            console.error('Error creating transaction:', err);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+
 
 
 

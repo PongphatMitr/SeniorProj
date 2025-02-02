@@ -88,32 +88,17 @@
             const startTime = document.getElementById('start-time').value;
             const endDate = document.getElementById('end-date').value;
             const endTime = document.getElementById('end-time').value;
-            const maxParticipantsInput = document.getElementById('max-participants').value;
-            const maxParticipants = parseInt(maxParticipantsInput, 10);
+            const maxParticipants = parseInt(document.getElementById('max-participants').value, 10);
             const requesterId = document.getElementById('requester-id').value;
             const status = document.getElementById('status').value;
-            const timeTokensRequiredInput = document.getElementById('time-tokens-required').value;
-            const timeTokensRequired = parseFloat(timeTokensRequiredInput);
-            const timeTokensPerParticipantInput = document.getElementById('time-tokens-per-participant').value;
-            const timeTokensPerParticipant = parseFloat(timeTokensPerParticipantInput);
-
+            const timeTokensRequired = parseFloat(document.getElementById('time-tokens-required').value);
+            const timeTokensPerParticipant = parseFloat(document.getElementById('time-tokens-per-participant').value);
+        
             if (isNaN(maxParticipants) || maxParticipants <= 0) {
                 alert('กรุณากรอกจำนวนผู้เข้าร่วมสูงสุดให้ถูกต้อง');
                 return;
             }
-            if (!Number.isInteger(maxParticipants)) {
-                alert('กรุณากรอกจำนวนผู้เข้าร่วมสูงสุดเป็นตัวเลข');
-                return;
-            }
-            if (isNaN(timeTokensRequired) || timeTokensRequired < 0) {
-                alert('กรุณากรอกจำนวนโทเค็นเวลาที่ต้องการให้ถูกต้อง');
-                return;
-            }
-            if (isNaN(timeTokensPerParticipant) || timeTokensPerParticipant < 0) {
-                alert('กรุณากรอกจำนวนโทเค็นเวลาต่อผู้เข้าร่วมให้ถูกต้อง');
-                return;
-            }
-
+        
             const activityData = {
                 title,
                 description,
@@ -128,11 +113,10 @@
                 time_tokens_required: timeTokensRequired,
                 time_tokens_per_participant: timeTokensPerParticipant
             };
-
-            console.log('Activity Data:', activityData);
-
+        
             try {
-                const response = await fetch('http://localhost:3000/api/user/activities', {
+                // Step 1: Create the Activity
+                const activityResponse = await fetch('http://localhost:3000/api/user/activities', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -140,18 +124,50 @@
                     },
                     body: JSON.stringify(activityData)
                 });
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    console.error('Error response from server:', errorData);
-                    throw new Error(`HTTP error! status: ${response.status}`);
+        
+                if (!activityResponse.ok) {
+                    const errorData = await activityResponse.json();
+                    throw new Error(`Activity creation failed: ${errorData.error}`);
                 }
-                alert('สร้างกิจกรรมเรียบร้อยแล้ว!');
+        
+                const createdActivity = await activityResponse.json();
+                const activityId = createdActivity.activity_id;
+        
+                // Step 2: Log the Transaction
+                const transactionData = {
+                    user_id: requesterId,
+                    activity_id: activityId,
+                    date: new Date().toISOString().split('T')[0], // Current date
+                    time: new Date().toTimeString().split(' ')[0], // Current time
+                    time_credits: timeTokensRequired,
+                    transaction_type: 'spend',
+                    details: `Created activity: ${title}`,
+                    requester_id: requesterId
+                };
+        
+                const transactionResponse = await fetch('http://localhost:3000/api/user/transactions', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(transactionData)
+                });
+        
+                if (!transactionResponse.ok) {
+                    const errorData = await transactionResponse.json();
+                    throw new Error(`Transaction creation failed: ${errorData.error}`);
+                }
+        
+                alert('สร้างกิจกรรมและบันทึกธุรกรรมเรียบร้อยแล้ว!');
                 window.location.href = 'myactivity.html';
             } catch (error) {
-                console.error('Error creating activity:', error);
-                alert('เกิดข้อผิดพลาดในการสร้างกิจกรรม กรุณาลองใหม่อีกครั้ง');
+                console.error('Error:', error);
+                alert('เกิดข้อผิดพลาดในการสร้างกิจกรรมหรือบันทึกธุรกรรม กรุณาลองใหม่อีกครั้ง');
             }
         }
+        
+        
 
         async function checkLoginStatus() {
             const token = localStorage.getItem('token');
