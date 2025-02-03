@@ -6,6 +6,33 @@ dotenv.config();
 const skillRoutes = (pool) => {
     const router = express.Router();
 
+    // Fetch all categories
+    router.get('/categories', async (req, res) => {
+        try {
+            const result = await pool.query('SELECT * FROM categories');
+            res.json(result.rows);
+        } catch (err) {
+            console.error('Error fetching categories:', err.stack);
+            res.status(500).json({ error: 'An error occurred while fetching categories.' });
+        }
+    });
+
+    // Get a skill by ID
+    router.get('/:id(\\d+)', async (req, res) => {
+        const { id } = req.params;
+
+        try {
+            const result = await pool.query(
+                'SELECT skills.*, categories.category FROM skills JOIN categories ON skills.category_id = categories.category_id WHERE skill_id = $1',
+                [id]
+            );
+            res.json(result.rows[0]);
+        } catch (err) {
+            console.error('Error:', err.message);
+            res.status(500).json({ error: 'An error occurred while fetching skill by ID.' });
+        }
+    });
+
     // Search skills by term
     router.get('/search', async (req, res) => {
         const { term } = req.query;
@@ -33,30 +60,6 @@ const skillRoutes = (pool) => {
         }
     });
 
-    // Get a skill by ID
-    router.get('/:id', async (req, res) => {
-        const { id } = req.params;
-
-        try {
-            const result = await pool.query('SELECT skills.*, categories.category FROM skills JOIN categories ON skills.category_id = categories.category_id WHERE skill_id = $1', [id]);
-            res.json(result.rows[0]);
-        } catch (err) {
-            console.error('Error:', err.message);
-            res.status(500).json({ error: 'An error occurred. Please try again.' });
-        }
-    });
-
-    // Get all categories
-    router.get('/categories', async (req, res) => {
-        try {
-            const result = await pool.query('SELECT * FROM categories');
-            res.json(result.rows);
-        } catch (err) {
-            console.error('Error:', err.message);
-            res.status(500).json({ error: 'An error occurred. Please try again.' });
-        }
-    });
-
     // Get skills for a specific member
     router.get('/members/:memberId/skills', async (req, res) => {
         const { memberId } = req.params;
@@ -75,18 +78,24 @@ const skillRoutes = (pool) => {
 
     // Create a new skill
     router.post('/', async (req, res) => {
-        const { name, category } = req.body;
+        const { name, category_id } = req.body;
 
         try {
-            // Find or create the category
-            let categoryResult = await pool.query('SELECT category_id FROM categories WHERE category = $1', [category]);
-            if (categoryResult.rowCount === 0) {
-                categoryResult = await pool.query('INSERT INTO categories (category) VALUES ($1) RETURNING category_id', [category]);
-            }
-            const categoryId = categoryResult.rows[0].category_id;
-
             // Insert the new skill
-            const result = await pool.query('INSERT INTO skills (name, category_id) VALUES ($1, $2) RETURNING *', [name, categoryId]);
+            const result = await pool.query('INSERT INTO skills (name, category_id) VALUES ($1, $2) RETURNING *', [name, category_id]);
+            res.status(201).json(result.rows[0]);
+        } catch (err) {
+            console.error('Error:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+
+    // Create a new category
+    router.post('/categories', async (req, res) => {
+        const { category } = req.body;
+
+        try {
+            const result = await pool.query('INSERT INTO categories (category) VALUES ($1) RETURNING *', [category]);
             res.status(201).json(result.rows[0]);
         } catch (err) {
             console.error('Error:', err.message);

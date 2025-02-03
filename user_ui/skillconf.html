@@ -6,389 +6,6 @@
     <title>ความสามารถ - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
-    <script>
-        let memberId;
-
-        async function fetchMemberId() {
-            try {
-                const response = await fetch('http://localhost:3000/api/user/auth/profile', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                const data = await response.json();
-                if (data && data.user_id) {
-                    memberId = data.user_id;
-                    fetchSkills();
-                } else {
-                    alert('ไม่พบรหัสสมาชิก');
-                    throw new Error('No memberId found in the profile response');
-                }
-            } catch (error) {
-                console.error('Error fetching member ID:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลรหัสสมาชิก');
-            }
-        }
-
-        let skills = [];
-
-        async function fetchSkills() {
-            try {
-                const response = await fetch(`http://localhost:3000/api/user/skills`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                const data = await response.json();
-                if (Array.isArray(data)) {
-                    skills = data;
-                    renderSkills(skills);
-                    renderCategoryButtons();
-                } else {
-                    console.error('Expected an array but got:', data);
-                    alert('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะ');
-                }
-            } catch (error) {
-                console.error('Error fetching skills:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะ');
-            }
-        }
-
-        async function fetchMemberSkills() {
-            try {
-                const response = await fetch(`http://localhost:3000/api/user/members/${memberId}/skills`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                const memberSkills = await response.json();
-                return memberSkills.skills.map(skill => skill.skill_id);
-            } catch (error) {
-                console.error('Error fetching member skills:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะของสมาชิก');
-                return [];
-            }
-        }
-
-        async function renderSkills(data) {
-            const memberSkills = await fetchMemberSkills();
-            const skillContainer = document.getElementById('skill-container');
-            skillContainer.innerHTML = '';
-            const categories = [...new Set(data.map(skill => skill.category))];
-
-            function renderCategoryTree(categories, parentElement) {
-                if (categories.length === 0) return;
-
-                const midIndex = Math.floor(categories.length / 2);
-                const leftCategories = categories.slice(0, midIndex);
-                const rightCategories = categories.slice(midIndex + 1);
-                const currentCategory = categories[midIndex];
-
-                const categoryDiv = document.createElement('div');
-                categoryDiv.className = `bg-gray-100 p-6 rounded-lg category category-${currentCategory} w-3/4 mx-auto mb-5`;
-                categoryDiv.innerHTML = `
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-bold category-name">${currentCategory}</h3>
-                    </div>
-                `;
-
-                data.filter(skill => skill.category === currentCategory).forEach(skill => {
-                    const skillP = document.createElement('p');
-                    skillP.className = 'mb-2';
-                    skillP.innerHTML = `
-                        <label class="inline-flex items-center">
-                            <input type="checkbox" class="form-checkbox" value="${skill.skill_id}" ${memberSkills.includes(skill.skill_id) ? 'checked' : ''}>
-                            <span class="ml-2">${skill.name}</span>
-                        </label>
-                    `;
-                    categoryDiv.appendChild(skillP);
-                });
-
-                parentElement.appendChild(categoryDiv);
-
-                const leftDiv = document.createElement('div');
-                leftDiv.className = 'w-full';
-                parentElement.appendChild(leftDiv);
-                renderCategoryTree(leftCategories, leftDiv);
-
-                const rightDiv = document.createElement('div');
-                rightDiv.className = 'w-full';
-                parentElement.appendChild(rightDiv);
-                renderCategoryTree(rightCategories, rightDiv);
-            }
-
-            renderCategoryTree(categories, skillContainer);
-        }
-
-        function renderCategoryButtons() {
-            const categoryButtonsContainer = document.getElementById('category-buttons');
-            categoryButtonsContainer.innerHTML = '';
-
-            const categories = [...new Set(skills.map(skill => skill.category))];
-
-            const allButton = document.createElement('button');
-            allButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mx-1 rounded focus:outline-none focus:shadow-outline';
-            allButton.textContent = 'All';
-            allButton.onclick = () => showCategory('all');
-            categoryButtonsContainer.appendChild(allButton);
-
-            categories.forEach(category => {
-                const button = document.createElement('button');
-                button.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 mx-1 rounded focus:outline-none focus:shadow-outline';
-                button.textContent = category;
-                button.onclick = () => showCategory(category);
-                categoryButtonsContainer.appendChild(button);
-            });
-        }
-
-        function showCategory(category) {
-            if (category === 'all') {
-                renderSkills(skills);
-            } else {
-                const filteredSkills = skills.filter(skill => skill.category === category);
-                renderSkills(filteredSkills);
-            }
-        }
-
-        async function saveSkills() {
-            const checkboxes = document.querySelectorAll('#skill-container input[type="checkbox"]');
-            const selectedSkills = Array.from(checkboxes).filter(checkbox => checkbox.checked).map(checkbox => checkbox.value);
-
-            try {
-                const response = await fetch(`http://localhost:3000/api/user/members/${memberId}/skills`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({ skills: selectedSkills })
-                });
-
-                if (response.ok) {
-                    alert('บันทึกทักษะสำเร็จ');
-                } else {
-                    alert('เกิดข้อผิดพลาดในการบันทึกทักษะ');
-                }
-            } catch (error) {
-                console.error('Error saving skills:', error);
-                alert('เกิดข้อผิดพลาดในการบันทึกทักษะ');
-            }
-        }
-
-        async function searchSkills() {
-            const searchTerm = document.getElementById('search-bar').value.toLowerCase();
-
-            try {
-                const response = await fetch(`http://localhost:3000/api/user/skills/search?term=${encodeURIComponent(searchTerm)}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                const data = await response.json();
-                if (Array.isArray(data)) {
-                    renderSkills(data);
-                } else {
-                    console.error('Expected an array but got:', data);
-                    alert('เกิดข้อผิดพลาดในการค้นหาทักษะ');
-                }
-            } catch (error) {
-                console.error('Error searching skills:', error);
-                alert('เกิดข้อผิดพลาดในการค้นหาทักษะ');
-            }
-        }
-
-        async function updateSidebar(isLoggedIn) {
-            const navList = document.getElementById('navList');
-        
-            if (isLoggedIn) {
-                try {
-                    // Fetch user details to get the memberId
-                    const response = await fetch('http://localhost:3000/api/user/auth/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        }
-                    });
-        
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch user details');
-                    }
-        
-                    const member = await response.json(); // Adjust based on your backend response
-                    const memberId = member.userId || member.user_id; // Use the correct field for memberId from the response
-        
-                    navList.innerHTML = `
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                                href="log-out.html">
-                                <i class="fas fa-user mr-3"></i>
-                                โปรไฟล์
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="homepage.html">
-                                <i class="fas fa-home mr-3"></i>
-                                หน้าหลัก
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="service.html">
-                                <i class="fas fa-clipboard-list mr-3"></i>
-                                กิจกรรมชุมชน
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="profile.html">
-                                <i class="fas fa-user-edit mr-3"></i>
-                                แก้ไขประวัติ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="skillconf.html">
-                                <i class="fas fa-tools mr-3"></i>
-                                แก้ไขทักษะ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="balance.html">
-                                <i class="fas fa-wallet mr-3"></i>
-                                ยอดคงเหลือ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="history.html">
-                                <i class="fas fa-history mr-3"></i>
-                                ประวัติ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="transfer.html">
-                            <i class="fas fa-exchange-alt mr-3"></i>
-                            แลกเปลี่ยนเวลา
-                        </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="contact.html">
-                                <i class="fas fa-phone mr-3"></i>
-                                ติดต่อเรา
-                            </a>
-                        </li>
-                    `;
-                } catch (error) {
-                    console.error('Error fetching user details:', error);
-                    alert('เกิดข้อผิดพลาดขณะโหลดข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
-                }
-            } else {
-                navList.innerHTML = `
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="log-in.html">
-                            <i class="fas fa-sign-in-alt mr-3"></i>
-                            เข้าสู่ระบบ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="service.html">
-                            <i class="fas fa-clipboard-list mr-3"></i>
-                            กิจกรรมชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="profile.html">
-                            <i class="fas fa-user-edit mr-3"></i>
-                            แก้ไขประวัติ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="skillconf.html">
-                            <i class="fas fa-tools mr-3"></i>
-                            แก้ไขทักษะ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="balance.html">
-                            <i class="fas fa-wallet mr-3"></i>
-                            ยอดคงเหลือ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="history.html">
-                            <i class="fas fa-history mr-3"></i>
-                            ประวัติ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="transfer.html">
-                            <i class="fas fa-exchange-alt mr-3"></i>
-                            แลกเปลี่ยนเวลา
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="contact.html">
-                            <i class="fas fa-phone mr-3"></i>
-                            ติดต่อเรา
-                        </a>
-                    </li>
-                `;
-            }
-        }
-
-        async function checkLoginStatus() {
-            const token = localStorage.getItem('token');
-            if (token) {
-                try {
-                    const response = await fetch('http://localhost:3000/api/user/auth/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-
-                    if (response.ok) {
-                        updateSidebar(true);
-                        fetchMemberId();
-                    } else {
-                        localStorage.removeItem('token');
-                        updateSidebar(false);
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    localStorage.removeItem('token');
-                    updateSidebar(false);
-                }
-            } else {
-                updateSidebar(false);
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            checkLoginStatus();
-        });
-    </script>
 </head>
 
 <body class="bg-blue-500">
@@ -473,35 +90,188 @@
             </nav>
         </div>
         <!-- Main Content -->
-        <div class="w-5/6 bg-blue-700 text-white p-10">
-            <h1 class="text-4xl font-bold mb-5">ความสามารถ</h1>
+        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
+            <h1 class="text-4xl font-bold mb-5">เพิ่มทักษะใหม่</h1>
             <div class="bg-white text-black p-5 rounded-lg">
-                <div class="mb-4 flex items-center">
-                    <input
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        id="search-bar" oninput="searchSkills()" placeholder="ค้นหาทักษะหรือหมวดหมู่" type="text" />
-                </div>
-                <div class="flex justify-center mb-5" id="category-buttons">
-                    <!-- Category buttons will be dynamically inserted here -->
-                </div>
-                <div class="grid grid-cols-1 gap-5 justify-center" id="skill-container">
-                    <!-- Skills will be dynamically inserted here -->
-                </div>
-                <div class="flex justify-center mt-4 space-x-4">
-                    <button
-                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                        onclick="saveSkills()">
-                        บันทึก
-                    </button>
-                    <button
-                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                        onclick="window.history.back()">
-                        ย้อนกลับ
-                    </button>
+                <form onsubmit="createSkill(event)">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="skillName">ชื่อทักษะ</label>
+                        <input
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="skillName" placeholder="ชื่อทักษะ" required type="text" />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="categorySelect">หมวดหมู่</label>
+                        <div class="flex items-center">
+                            <select
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="categorySelect" required>
+                                <option value="">กำลังโหลดหมวดหมู่...</option>
+                            </select>
+                            <button
+                                class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 ml-2 whitespace-nowrap rounded focus:outline-none focus:shadow-outline"
+                                onclick="addCategory()" type="button">เพิ่มหมวดหมู่</button>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-center">
+                        <button
+                            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
+                            onclick="window.history.back()" type="button">ย้อนกลับ</button>
+                        <button
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
+                            type="submit">บันทึก</button>
+                    </div>
+                </form>
+            </div>
+        
+            <!-- Skills List -->
+            <div class="bg-white text-black p-5 rounded-lg mt-10">
+                <h2 class="text-2xl font-bold mb-4">ทักษะตามหมวดหมู่</h2>
+                <div id="skillsByCategory" class="space-y-4">
+                    <p>กำลังโหลดทักษะ...</p>
                 </div>
             </div>
         </div>
-    </div>
-</body>
+        </div>
+        
+        <script>
+            let categories = [];
+
+            async function fetchCategories() {
+                try {
+                    const response = await fetch('http://localhost:3000/api/tbm/skills/categories', {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+
+                    if (!response.ok) throw new Error('Failed to fetch categories');
+
+                    categories = await response.json();
+                    const select = document.getElementById('categorySelect');
+                    select.innerHTML = '';
+
+                    if (categories.length > 0) {
+                        categories.forEach(category => {
+                            const option = document.createElement('option');
+                            option.value = category.category_id;
+                            option.textContent = category.category;
+                            select.appendChild(option);
+                        });
+                    } else {
+                        select.innerHTML = '<option value="">ไม่พบหมวดหมู่</option>';
+                    }
+                } catch (error) {
+                    console.error('Error fetching categories:', error);
+                    document.getElementById('categorySelect').innerHTML = '<option value="">ไม่สามารถโหลดหมวดหมู่ได้</option>';
+                }
+            }
+
+            async function fetchSkills() {
+                try {
+                    const response = await fetch('http://localhost:3000/api/tbm/skills', {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+
+                    if (!response.ok) throw new Error('Failed to fetch skills');
+
+                    const skills = await response.json();
+                    renderSkillsByCategory(skills);
+                } catch (error) {
+                    console.error('Error fetching skills:', error);
+                    document.getElementById('skillsByCategory').innerHTML = '<p>ไม่สามารถโหลดทักษะได้</p>';
+                }
+            }
+
+            function renderSkillsByCategory(skills) {
+                const skillsByCategory = document.getElementById('skillsByCategory');
+                skillsByCategory.innerHTML = '';
+
+                categories.forEach(category => {
+                    const categorySkills = skills.filter(skill => skill.category_id === category.category_id);
+
+                    if (categorySkills.length > 0) {
+                        const categoryDiv = document.createElement('div');
+                        categoryDiv.classList.add('p-4', 'border', 'rounded', 'bg-gray-100');
+
+                        categoryDiv.innerHTML = `
+                                <h3 class="text-lg font-bold mb-2">${category.category}</h3>
+                                <ul class="list-disc ml-5 space-y-1">
+                                    ${categorySkills.map(skill => `<li>${skill.name}</li>`).join('')}
+                                </ul>
+                            `;
+
+                        skillsByCategory.appendChild(categoryDiv);
+                    }
+                });
+            }
+
+            async function addCategory() {
+                const newCategory = prompt("กรุณาใส่ชื่อหมวดหมู่ใหม่:");
+                if (newCategory) {
+                    try {
+                        const response = await fetch('http://localhost:3000/api/tbm/skills/categories', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            },
+                            body: JSON.stringify({ category: newCategory })
+                        });
+
+                        if (response.ok) {
+                            await fetchCategories();
+                        } else {
+                            alert('เกิดข้อผิดพลาดในการเพิ่มหมวดหมู่');
+                        }
+                    } catch (error) {
+                        console.error('Error:', error);
+                        alert('เกิดข้อผิดพลาดในการเพิ่มหมวดหมู่');
+                    }
+                }
+            }
+
+            async function createSkill(event) {
+                event.preventDefault();
+                const skillName = document.getElementById('skillName').value;
+                const category_id = document.getElementById('categorySelect').value;
+
+                const skillPayload = {
+                    name: skillName,
+                    category_id: parseInt(category_id)
+                };
+
+                try {
+                    const response = await fetch('http://localhost:3000/api/tbm/skills', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify(skillPayload)
+                    });
+
+                    if (response.ok) {
+                        alert('ทักษะถูกเพิ่มเรียบร้อยแล้ว');
+                        document.getElementById('skillName').value = '';
+                        document.getElementById('categorySelect').selectedIndex = 0;
+                        await fetchSkills();  // Refresh skills list
+                    } else {
+                        alert('เกิดข้อผิดพลาดในการเพิ่มทักษะ');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('เกิดข้อผิดพลาดในการเพิ่มทักษะ');
+                }
+            }
+
+            document.addEventListener('DOMContentLoaded', async () => {
+                await fetchCategories();
+                await fetchSkills();
+            });
+        </script>
+        </body>
 
 </html>

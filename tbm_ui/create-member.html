@@ -21,7 +21,24 @@
             </div>
             <nav>
                 <ul id="navList">
-                    <!-- Navigation items will be populated by navbar.js -->
+                    <li><a href="#" class="flex items-center py-2 px-4 text-gray-700 hover:bg-gray-200 rounded"><i
+                                class="fas fa-sign-in-alt"></i> เข้าสู่ระบบ</a></li>
+                    <li><a href="#" class="flex items-center py-2 px-4 text-gray-700 hover:bg-gray-200 rounded"><i
+                                class="fas fa-home"></i> หน้าหลัก</a></li>
+                    <li><a href="#" class="flex items-center py-2 px-4 text-gray-700 hover:bg-gray-200 rounded"><i
+                                class="fas fa-chart-bar"></i> รายงาน</a></li>
+                    <li><a href="#" class="flex items-center py-2 px-4 text-gray-700 hover:bg-gray-200 rounded"><i
+                                class="fas fa-tasks"></i> จัดการกิจกรรม</a></li>
+                    <li><a href="#" class="flex items-center py-2 px-4 text-gray-700 hover:bg-gray-200 rounded"><i
+                                class="fas fa-users"></i> จัดการสมาชิก</a></li>
+                    <li><a href="#" class="flex items-center py-2 px-4 text-gray-700 hover:bg-gray-200 rounded"><i
+                                class="fas fa-cogs"></i> จัดการหมวดหมู่ทักษะ</a></li>
+                    <li><a href="#" class="flex items-center py-2 px-4 text-gray-700 hover:bg-gray-200 rounded"><i
+                                class="fas fa-piggy-bank"></i> จัดการกองทุนชุมชน</a></li>
+                    <li><a href="#" class="flex items-center py-2 px-4 text-gray-700 hover:bg-gray-200 rounded"><i
+                                class="fas fa-building"></i> จัดการชุมชน</a></li>
+                    <li><a href="#" class="flex items-center py-2 px-4 text-gray-700 hover:bg-gray-200 rounded"><i
+                                class="fas fa-exchange-alt"></i> ธุรกรรมทั้งหมด</a></li>
                 </ul>
             </nav>
         </div>
@@ -100,6 +117,7 @@
                             type="submit">ต่อไป</button>
                     </div>
                 </form>
+                <div id="error-message" class="text-red-500 mt-4 hidden"></div>
             </div>
         </div>
     </div>
@@ -323,7 +341,11 @@
                     username: formData.username,
                     password: formData.password,
                     email: formData.email,
-                    role: formData.role
+                    role: formData.role,
+                    name: formData.name,
+                    phone: formData.phone,
+                    address: formData.address,
+                    branch: formData.branch
                 };
 
                 const userResponse = await fetch('http://localhost:3000/api/tbm/auth/register', {
@@ -357,23 +379,32 @@
                     if (memberResponse.ok) {
                         const memberData = await memberResponse.json();
                         alert('บัญชีสมาชิกถูกสร้างเรียบร้อยแล้ว');
-                        window.location.href = `create-member-skill.html?memberId=${memberData.member_id}`;
+                        window.location.href = `create-member-skill.html?memberId=${memberData.user_id}`;
                     } else {
-                        alert('เกิดข้อผิดพลาดในการสร้างบัญชีสมาชิก');
+                        const errorData = await memberResponse.json();
+                        document.getElementById('error-message').textContent = errorData.error || 'เกิดข้อผิดพลาดในการสร้างบัญชีสมาชิก';
+                        document.getElementById('error-message').classList.remove('hidden');
                     }
+                } else if (userResponse.status === 409) {
+                    const errorData = await userResponse.json();
+                    document.getElementById('error-message').textContent = errorData.error;
+                    document.getElementById('error-message').classList.remove('hidden');
                 } else {
-                    alert('เกิดข้อผิดพลาดในการสร้างบัญชีผู้ใช้');
+                    const errorData = await userResponse.json();
+                    document.getElementById('error-message').textContent = errorData.error || 'เกิดข้อผิดพลาดในการสร้างบัญชีผู้ใช้';
+                    document.getElementById('error-message').classList.remove('hidden');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('เกิดข้อผิดพลาดในการสร้างบัญชีผู้ใช้');
+                document.getElementById('error-message').textContent = 'เกิดข้อผิดพลาดในการสร้างบัญชีผู้ใช้';
+                document.getElementById('error-message').classList.remove('hidden');
             }
         });
-    </script>
+                    </script>
     <script src="navbar.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', checkLoginStatus);
     </script>
-</body>
-
-</html>
+    </body>
+    
+    </html>

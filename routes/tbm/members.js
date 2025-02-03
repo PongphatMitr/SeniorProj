@@ -6,6 +6,66 @@ dotenv.config();
 const memberRoutes = (pool) => {
     const router = express.Router();
 
+    // Create a new member (actually a user with role 'Member')
+    router.post('/', async (req, res) => {
+        const { user_id, name, phone, address, branch, time_credits } = req.body;
+
+        try {
+            // Fetch branch_id from branches table
+            let branchId = null;
+            if (branch) {
+                const branchResult = await pool.query('SELECT branch_id FROM branches WHERE branch_name = $1', [branch]);
+                if (branchResult.rows.length > 0) {
+                    branchId = branchResult.rows[0].branch_id;
+                } else {
+                    // Insert new branch if it doesn't exist
+                    const newBranchResult = await pool.query(
+                        'INSERT INTO branches (branch_name) VALUES ($1) RETURNING branch_id',
+                        [branch]
+                    );
+                    branchId = newBranchResult.rows[0].branch_id;
+                }
+            }
+
+            const result = await pool.query(
+                `UPDATE users SET name = $1, phone = $2, address = $3, branch_id = $4, time_credits = $5, role = 'Member' WHERE user_id = $6 RETURNING *`,
+                [name, phone, address, branchId, time_credits, user_id]
+            );
+            res.status(201).json(result.rows[0]);
+        } catch (err) {
+            console.error('Error creating member:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+
+    // Update member skills
+    router.put('/:memberId/skills', async (req, res) => {
+        const { memberId } = req.params;
+        const { skills } = req.body;
+
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            // Delete existing skills for the member
+            await client.query('DELETE FROM member_skills WHERE user_id = $1', [memberId]);
+
+            // Insert new skills for the member
+            for (const skillId of skills) {
+                await client.query('INSERT INTO member_skills (user_id, skill_id) VALUES ($1, $2)', [memberId, skillId]);
+            }
+
+            await client.query('COMMIT');
+            res.status(200).json({ message: 'Skills updated successfully' });
+        } catch (err) {
+            await client.query('ROLLBACK');
+            console.error('Error updating skills:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        } finally {
+            client.release();
+        }
+    });
+
     // Get transactions of a member
     router.get('/:id/transactions', async (req, res) => {
         const { id } = req.params;

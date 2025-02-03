@@ -3,9 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>
-        เพิ่มทักษะใหม่ - Time Bank
-    </title>
+    <title>เพิ่มทักษะใหม่ - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
 </head>
@@ -13,65 +11,74 @@
 <body class="bg-gray-100">
     <div class="flex flex-col md:flex-row">
         <!-- Sidebar -->
-        <div class="w-1/6 bg-white h-screen p-5">
+        <div class="w-full md:w-1/6 bg-white h-screen p-5">
             <div class="flex items-center mb-10">
                 <img alt="Logo of Time Bank System, a clock with a handshake in the center"
                     class="w-10 h-10 rounded-full" height="50"
                     src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
                     width="50" />
-                <span class="ml-3 text-xl font-bold text-blue-600">
-                    TIMEBANK
-                </span>
+                <span class="ml-3 text-xl font-bold text-blue-600">TIMEBANK</span>
             </div>
             <nav>
                 <ul id="navList">
-                    <!-- Navigation items will be dynamically inserted here -->
+                    <li class="mb-2">
+                        <a href="dashboard.html" class="text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-tachometer-alt mr-2"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="skills.html" class="text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-cogs mr-2"></i> Skills
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="categories.html" class="text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-list mr-2"></i> Categories
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="members.html" class="text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-users mr-2"></i> Members
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="settings.html" class="text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-cog mr-2"></i> Settings
+                        </a>
+                    </li>
                 </ul>
             </nav>
         </div>
         <!-- Main Content -->
         <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
-            <h1 class="text-4xl font-bold mb-5">
-                เพิ่มทักษะใหม่
-            </h1>
+            <h1 class="text-4xl font-bold mb-5">เพิ่มทักษะใหม่</h1>
             <div class="bg-white text-black p-5 rounded-lg">
                 <form onsubmit="createSkill(event)">
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="skillName">
-                            ชื่อทักษะ
-                        </label>
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="skillName">ชื่อทักษะ</label>
                         <input
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             id="skillName" placeholder="ชื่อทักษะ" required="" type="text" />
                     </div>
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="categorySelect">
-                            หมวดหมู่
-                        </label>
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="categorySelect">หมวดหมู่</label>
                         <div class="flex items-center">
                             <select
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 id="categorySelect" required="">
-                                <!-- Categories will be dynamically inserted here -->
                             </select>
                             <button
                                 class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 ml-2 whitespace-nowrap rounded focus:outline-none focus:shadow-outline"
-                                onclick="addCategory()" type="button">
-                                เพิ่มหมวดหมู่
-                            </button>
+                                onclick="addCategory()" type="button">เพิ่มหมวดหมู่</button>
                         </div>
                     </div>
                     <div class="flex items-center justify-center">
                         <button
                             class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
-                            onclick="window.history.back()" type="button">
-                            ย้อนกลับ
-                        </button>
+                            onclick="window.history.back()" type="button">ย้อนกลับ</button>
                         <button
                             class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
-                            type="submit">
-                            บันทึก
-                        </button>
+                            type="submit">บันทึก</button>
                     </div>
                 </form>
             </div>
@@ -80,46 +87,82 @@
 
     <script>
         async function fetchCategories() {
+            const token = localStorage.getItem('token');
+            console.log('Token:', token);  // ตรวจสอบว่า token ถูกส่งหรือไม่
+
             try {
                 const response = await fetch('http://localhost:3000/api/tbm/skills/categories', {
                     headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        'Authorization': `Bearer ${token}`
                     }
                 });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
                 const categories = await response.json();
+                console.log('Fetched Categories:', categories);  // ตรวจสอบค่าที่ดึงได้
+
                 const select = document.getElementById('categorySelect');
-                categories.forEach(category => {
-                    const option = document.createElement('option');
-                    option.value = category.category;
-                    option.text = category.category;
-                    select.add(option);
-                });
+                select.innerHTML = '';  // ล้างค่าเก่าก่อนแสดงผลใหม่
+
+                if (Array.isArray(categories)) {
+                    categories.forEach(category => {
+                        const option = document.createElement('option');
+                        option.value = category.category_id;  // ตรวจสอบว่ามี category_id หรือไม่
+                        option.text = category.category;
+                        select.add(option);
+                    });
+                } else {
+                    console.error('Expected an array but received:', categories);
+                    alert('ไม่สามารถโหลดหมวดหมู่ได้');
+                }
             } catch (error) {
                 console.error('Error fetching categories:', error);
                 alert('เกิดข้อผิดพลาดในการดึงข้อมูลหมวดหมู่');
             }
         }
 
-        function addCategory() {
+        async function addCategory() {
             const newCategory = prompt("กรุณาใส่ชื่อหมวดหมู่ใหม่:");
             if (newCategory) {
-                const select = document.getElementById('categorySelect');
-                const option = document.createElement('option');
-                option.value = newCategory;
-                option.text = newCategory;
-                select.add(option);
-                select.value = newCategory;
+                try {
+                    const response = await fetch('http://localhost:3000/api/tbm/skills/categories', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({ category: newCategory })
+                    });
+
+                    if (response.ok) {
+                        const category = await response.json();
+                        const select = document.getElementById('categorySelect');
+                        const option = document.createElement('option');
+                        option.value = category.category_id; // Use category_id as the value
+                        option.text = category.category;
+                        select.add(option);
+                        select.value = category.category_id;
+                    } else {
+                        alert('เกิดข้อผิดพลาดในการเพิ่มหมวดหมู่');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    alert('เกิดข้อผิดพลาดในการเพิ่มหมวดหมู่');
+                }
             }
         }
 
         async function createSkill(event) {
             event.preventDefault();
             const skillName = document.getElementById('skillName').value;
-            const category = document.getElementById('categorySelect').value;
+            const category_id = document.getElementById('categorySelect').value;
 
             const skillPayload = {
                 name: skillName,
-                category: category
+                category_id: category_id
             };
 
             try {
