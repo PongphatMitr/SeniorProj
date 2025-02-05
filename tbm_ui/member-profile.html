@@ -6,6 +6,234 @@
     <title>โปรไฟล์สมาชิก - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <script>
+        let globalUserId = null; // Global variable to store user_id
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchMemberProfile();
+        });
+
+        async function fetchMemberProfile() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/auth/profile`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const member = await response.json();
+                console.log('✅ Fetched Member:', member);  // Debugging
+
+                globalUserId = member.user_id;
+
+                if (member.branch_id) {
+                    console.log('✅ Branch ID:', member.branch_id); // Check if branch_id exists
+                    member.branch = await fetchBranchName(member.branch_id);
+                } else {
+                    console.warn('⚠️ User does not have a branch_id assigned.');
+                    member.branch = 'N/A';
+                }
+
+                renderMemberProfile(member);
+            } catch (error) {
+                console.error('❌ Error fetching member profile:', error);
+                alert('เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์สมาชิก');
+            }
+        }
+
+        async function fetchBranchName(branchId) {
+            if (!branchId) return 'N/A';
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/branches`);
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok (${response.status})`);
+                }
+                const branches = await response.json();
+                console.log('Fetched Branches:', branches); // Debugging
+
+                const branch = branches.find(branch => parseInt(branch.branch_id) === parseInt(branchId));
+                return branch ? branch.branch_name : 'N/A';
+            } catch (error) {
+                console.error('Error fetching branch name:', error);
+                return 'N/A';
+            }
+        }
+
+        function renderMemberProfile(member) {
+            document.getElementById('member-name').textContent = member.name || 'N/A';
+            document.getElementById('member-phone').textContent = member.phone || 'N/A';
+            document.getElementById('member-address').textContent = member.address || 'N/A';
+            document.getElementById('member-branch').textContent = member.branch || 'N/A'; // ใช้ค่าที่ได้จาก fetchBranchName
+            document.getElementById('member-time-credits').textContent = member.time_credits || 'N/A';
+            document.getElementById('member-status').textContent = member.status === 'active' ? 'ปกติ' : 'ไม่ปกติ';
+        }
+
+        let originalData = {}; // To store the old data
+
+        function enableEditing() {
+            if (!globalUserId) {
+                alert('User ID not available. Please refresh the page.');
+                return;
+            }
+
+            const fields = ['member-name', 'member-phone', 'member-address'];
+            originalData = {}; // Clear previous data
+
+            fields.forEach(field => {
+                const element = document.getElementById(field);
+                originalData[field] = element.textContent;
+
+                let input;
+                if (field === 'member-address') {
+                    // Use textarea for address to support multiple lines
+                    input = document.createElement('textarea');
+                    input.rows = 4; // Adjust height of the textarea
+                    input.className = 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline resize-none';
+                } else {
+                    // Keep using input for name and phone
+                    input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
+                }
+
+                input.value = element.textContent;
+                element.parentNode.replaceChild(input, element);
+                input.id = field;
+            });
+
+            const editButton = document.getElementById('edit-button');
+            const backButton = document.getElementById('back-button');
+
+            editButton.textContent = 'บันทึก';
+            editButton.onclick = saveChanges;
+
+            backButton.style.display = 'inline-block';
+            backButton.onclick = () => revertChanges(fields);
+        }
+
+
+        function revertChanges(fields) {
+            fields.forEach(field => {
+                const element = document.getElementById(field);
+                const p = document.createElement('p');
+                p.textContent = originalData[field];
+                p.className = 'text-gray-700 text-lg';
+                element.parentNode.replaceChild(p, element);
+                p.id = field;
+            });
+
+            const editButton = document.getElementById('edit-button');
+            const backButton = document.getElementById('back-button');
+
+            // Reset the "แก้ไข" button
+            editButton.textContent = 'แก้ไข';
+            editButton.onclick = enableEditing;
+
+            // Hide the "ย้อนกลับ" button
+            backButton.style.display = 'none';
+        }
+
+        async function saveChanges() {
+            const fullName = document.getElementById('member-name').value.trim();
+            const phone = document.getElementById('member-phone').value.trim();
+            const address = document.getElementById('member-address').value.trim();
+
+            // Validate name (must include at least two words)
+            if (fullName.split(' ').length < 2) {
+                alert('กรุณากรอกชื่อและนามสกุลให้ครบถ้วน');
+                return;
+            }
+
+            // Validate Thai phone number (must start with 0 and be 10 digits)
+            const phoneRegex = /^0[0-9]{9}$/;
+            if (!phoneRegex.test(phone)) {
+                alert('กรุณากรอกหมายเลขโทรศัพท์ให้ถูกต้อง (10 หลักและขึ้นต้นด้วย 0)');
+                return;
+            }
+
+            // Advanced address validation: must contain house number and keywords like เขต/อำเภอ/ตำบล/จังหวัด
+            const addressRegex = /\d+.*(เขต|อำเภอ|ตำบล|จังหวัด)/;
+            if (!addressRegex.test(address)) {
+                alert('กรุณากรอกที่อยู่ให้ครบถ้วน รวมถึงเลขที่บ้าน เขต/อำเภอ และจังหวัด');
+                return;
+            }
+
+            // Ask for confirmation before saving
+            if (!confirm('คุณต้องการบันทึกการเปลี่ยนแปลงหรือไม่?')) {
+                return;  // Stop if the user cancels
+            }
+
+            const member = {
+                name: fullName,
+                phone: phone,
+                address: address
+            };
+
+            try {
+                const response = await fetch('http://localhost:3000/api/user/auth/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(member)
+                });
+
+                if (response.ok) {
+                    showSuccessMessage('บันทึกข้อมูลโปรไฟล์สำเร็จแล้ว!');
+                    renderMemberProfile(member);
+
+                    const fields = ['member-name', 'member-phone', 'member-address'];
+                    fields.forEach(field => {
+                        const element = document.getElementById(field);
+                        const p = document.createElement('p');
+                        p.textContent = element.value;
+                        p.className = 'text-gray-700 text-lg';
+                        element.parentNode.replaceChild(p, element);
+                        p.id = field;
+                    });
+
+                    document.getElementById('edit-button').textContent = 'แก้ไข';
+                    document.getElementById('edit-button').onclick = enableEditing;
+                    document.getElementById('back-button').style.display = 'none';
+
+                    fetchMemberProfile();  // Refresh profile after saving
+                } else {
+                    const errorData = await response.json();
+                    alert(`เกิดข้อผิดพลาดในการบันทึกข้อมูล: ${errorData.error || 'ไม่ทราบสาเหตุ'}`);
+                }
+            } catch (error) {
+                console.error('Error saving member profile:', error);
+                alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+            }
+        }
+
+        async function checkLoginStatus() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('You are not logged in. Redirecting to login page.');
+                window.location.href = 'log-in.html';
+                return;
+            }
+        }
+
+        function showSuccessMessage(message) {
+            document.getElementById('success-message').textContent = message;
+            document.getElementById('success-modal').classList.remove('hidden');
+        }
+
+        function closeSuccessMessage() {
+            document.getElementById('success-modal').classList.add('hidden');
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLoginStatus();
+        });
+    </script>
 </head>
 
 <body class="bg-gray-100">
@@ -84,182 +312,38 @@
                     </button>
                     <button
                         class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                        onclick="window.history.back()">
+                        id="back-button" style="display: none;" onclick="window.history.back()">
                         ย้อนกลับ
                     </button>
+                </div>
+                <div class="mt-8">
+                    <h2 class="text-2xl font-bold text-center text-blue-700 mb-4">เข้าสู่ระบบผ่าน LINE</h2>
+                    <div class="flex flex-col items-center">
+                        <!-- Display the QR code image -->
+                        <img id="line-qr-code" src="QRcodeLine.jpg" alt="QR Code for LINE Login"
+                            class="mb-4 w-32 h-32" />
+
+                        <!-- Fallback clickable link -->
+                        <p class="text-gray-600 text-sm">
+                            สแกน QR Code เพื่อเข้าสู่ระบบผ่าน LINE
+                        </p>
+                    </div>
+                </div>
+                <!-- Success Message Modal -->
+                <div id="success-modal"
+                    class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                    <div class="bg-white p-6 rounded shadow-lg text-center">
+                        <h2 class="text-2xl font-bold text-green-500 mb-4">สำเร็จ!</h2>
+                        <p id="success-message" class="text-gray-700"></p>
+                        <button onclick="closeSuccessMessage()"
+                            class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">
+                            ตกลง
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <script>
-        let memberId;
-        let memberStatus;
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const urlParams = new URLSearchParams(window.location.search);
-            memberId = urlParams.get('memberId');
-
-            if (!memberId) {
-                console.error('No memberId provided in the URL');
-                alert('ไม่พบรหัสสมาชิกใน URL');
-                return;
-            }
-
-            console.log('Member ID:', memberId); // Debugging line
-            fetchMemberProfile(memberId);
-        });
-
-        async function fetchMemberProfile(memberId) {
-            try {
-                const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const member = await response.json();
-                memberStatus = member.status; // Store the status for later use
-                renderMemberProfile(member);
-                fetchBranchName(member.branch_id);
-            } catch (error) {
-                console.error('Error fetching member profile:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์สมาชิก');
-            }
-        }
-
-        async function fetchBranchName(branchId) {
-            try {
-                const response = await fetch(`http://localhost:3000/api/tbm/branches/${branchId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
-                const branch = await response.json();
-                document.getElementById('member-branch').textContent = branch.branch_name || 'N/A';
-            } catch (error) {
-                console.error('Error fetching branch name:', error);
-                document.getElementById('member-branch').textContent = 'N/A';
-            }
-        }
-
-        function renderMemberProfile(member) {
-            document.getElementById('member-name').textContent = member.name || 'N/A';
-            document.getElementById('member-phone').textContent = member.phone || 'N/A';
-            document.getElementById('member-address').textContent = member.address || 'N/A';
-            document.getElementById('member-branch').textContent = 'Loading...'; // Placeholder while fetching branch name
-            document.getElementById('member-time-credits').textContent = member.time_credits || 'N/A';
-            document.getElementById('member-status').textContent = member.status === 'active' ? 'ปกติ' : 'ไม่ปกติ';
-        }
-
-        function enableEditing() {
-            const fields = ['member-name', 'member-phone', 'member-address'];
-            fields.forEach(field => {
-                const element = document.getElementById(field);
-                const input = document.createElement('input');
-                input.type = 'text';
-                input.value = element.textContent;
-                input.className = 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
-                element.parentNode.replaceChild(input, element);
-                input.id = field;
-            });
-
-            const editButton = document.getElementById('edit-button');
-            editButton.textContent = 'บันทึก';
-            editButton.onclick = saveChanges;
-        }
-
-        async function saveChanges() {
-            const member = {
-                name: document.getElementById('member-name').value,
-                phone: document.getElementById('member-phone').value,
-                address: document.getElementById('member-address').value,
-                status: memberStatus // Include the status in the request body
-            };
-
-            try {
-                const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify(member)
-                });
-
-                if (response.ok) {
-                    renderMemberProfile(member);
-                    const fields = ['member-name', 'member-phone', 'member-address'];
-                    fields.forEach(field => {
-                        const element = document.getElementById(field);
-                        const p = document.createElement('p');
-                        p.textContent = element.value;
-                        p.className = 'text-gray-700 text-lg';
-                        element.parentNode.replaceChild(p, element);
-                        p.id = field;
-                    });
-
-                    const editButton = document.getElementById('edit-button');
-                    editButton.textContent = 'แก้ไข';
-                    editButton.onclick = enableEditing;
-                } else {
-                    alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
-                }
-            } catch (error) {
-                console.error('Error saving member profile:', error);
-                alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
-            }
-        }
-
-        async function checkLoginStatus() {
-            const token = localStorage.getItem('token');
-            if (token) {
-                try {
-                    const response = await fetch('http://localhost:3000/api/tbm/auth/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-
-                    if (response.ok) {
-                        updateSidebar(true);
-                    } else {
-                        localStorage.removeItem('token');
-                        updateSidebar(false);
-                        const goToLogin = confirm('Session expired. Do you want to go to the login page?');
-                        if (goToLogin) {
-                            window.location.href = 'login.html';
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    localStorage.removeItem('token');
-                    updateSidebar(false);
-                    const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
-                    if (goToLogin) {
-                        window.location.href = 'login.html';
-                    }
-                }
-            } else {
-                updateSidebar(false);
-                const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
-                if (goToLogin) {
-                    window.location.href = 'login.html';
-                }
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            checkLoginStatus();
-        });
-    </script>
     <script src="navbar.js"></script>
 </body>
 

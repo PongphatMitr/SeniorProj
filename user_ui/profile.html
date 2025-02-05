@@ -86,10 +86,21 @@
             fields.forEach(field => {
                 const element = document.getElementById(field);
                 originalData[field] = element.textContent;
-                const input = document.createElement('input');
-                input.type = 'text';
+
+                let input;
+                if (field === 'member-address') {
+                    // Use textarea for address to support multiple lines
+                    input = document.createElement('textarea');
+                    input.rows = 4; // Adjust height of the textarea
+                    input.className = 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline resize-none';
+                } else {
+                    // Keep using input for name and phone
+                    input = document.createElement('input');
+                    input.type = 'text';
+                    input.className = 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
+                }
+
                 input.value = element.textContent;
-                input.className = 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
                 element.parentNode.replaceChild(input, element);
                 input.id = field;
             });
@@ -103,6 +114,7 @@
             backButton.style.display = 'inline-block';
             backButton.onclick = () => revertChanges(fields);
         }
+
 
         function revertChanges(fields) {
             fields.forEach(field => {
@@ -126,14 +138,43 @@
         }
 
         async function saveChanges() {
+            const fullName = document.getElementById('member-name').value.trim();
+            const phone = document.getElementById('member-phone').value.trim();
+            const address = document.getElementById('member-address').value.trim();
+
+            // Validate name (must include at least two words)
+            if (fullName.split(' ').length < 2) {
+                alert('กรุณากรอกชื่อและนามสกุลให้ครบถ้วน');
+                return;
+            }
+
+            // Validate Thai phone number (must start with 0 and be 10 digits)
+            const phoneRegex = /^0[0-9]{9}$/;
+            if (!phoneRegex.test(phone)) {
+                alert('กรุณากรอกหมายเลขโทรศัพท์ให้ถูกต้อง (10 หลักและขึ้นต้นด้วย 0)');
+                return;
+            }
+
+            // Advanced address validation: must contain house number and keywords like เขต/อำเภอ/ตำบล/จังหวัด
+            const addressRegex = /\d+.*(เขต|อำเภอ|ตำบล|จังหวัด)/;
+            if (!addressRegex.test(address)) {
+                alert('กรุณากรอกที่อยู่ให้ครบถ้วน รวมถึงเลขที่บ้าน เขต/อำเภอ และจังหวัด');
+                return;
+            }
+
+            // Ask for confirmation before saving
+            if (!confirm('คุณต้องการบันทึกการเปลี่ยนแปลงหรือไม่?')) {
+                return;  // Stop if the user cancels
+            }
+
             const member = {
-                name: document.getElementById('member-name').value,
-                phone: document.getElementById('member-phone').value,
-                address: document.getElementById('member-address').value
+                name: fullName,
+                phone: phone,
+                address: address
             };
 
             try {
-                const response = await fetch(`http://localhost:3000/api/user/auth/profile`, {
+                const response = await fetch('http://localhost:3000/api/user/auth/profile', {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
@@ -143,7 +184,9 @@
                 });
 
                 if (response.ok) {
+                    showSuccessMessage('บันทึกข้อมูลโปรไฟล์สำเร็จแล้ว!');
                     renderMemberProfile(member);
+
                     const fields = ['member-name', 'member-phone', 'member-address'];
                     fields.forEach(field => {
                         const element = document.getElementById(field);
@@ -154,23 +197,22 @@
                         p.id = field;
                     });
 
-                    const editButton = document.getElementById('edit-button');
-                    editButton.textContent = 'แก้ไข';
-                    editButton.onclick = enableEditing;
+                    document.getElementById('edit-button').textContent = 'แก้ไข';
+                    document.getElementById('edit-button').onclick = enableEditing;
+                    document.getElementById('back-button').style.display = 'none';
 
-                    const backButton = document.getElementById('back-button');
-                    backButton.style.display = 'none';
-
-                    // Fetch the updated profile data again
-                    fetchMemberProfile();
+                    fetchMemberProfile();  // Refresh profile after saving
                 } else {
-                    alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+                    const errorData = await response.json();
+                    alert(`เกิดข้อผิดพลาดในการบันทึกข้อมูล: ${errorData.error || 'ไม่ทราบสาเหตุ'}`);
                 }
             } catch (error) {
                 console.error('Error saving member profile:', error);
                 alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
             }
         }
+
+
 
         async function checkLoginStatus() {
             const token = localStorage.getItem('token');
@@ -183,7 +225,7 @@
 
         async function updateSidebar(isLoggedIn) {
             const navList = document.getElementById('navList');
-        
+
             if (isLoggedIn) {
                 try {
                     // Fetch user details to get the memberId
@@ -194,14 +236,14 @@
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
                         }
                     });
-        
+
                     if (!response.ok) {
                         throw new Error('Failed to fetch user details');
                     }
-        
+
                     const member = await response.json(); // Adjust based on your backend response
                     const memberId = member.userId || member.user_id; // Use the correct field for memberId from the response
-        
+
                     navList.innerHTML = `
                         <li class="mb-5">
                             <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
@@ -343,6 +385,16 @@
         document.addEventListener('DOMContentLoaded', () => {
             checkLoginStatus();
         });
+
+        function showSuccessMessage(message) {
+            document.getElementById('success-message').textContent = message;
+            document.getElementById('success-modal').classList.remove('hidden');
+        }
+
+        function closeSuccessMessage() {
+            document.getElementById('success-modal').classList.add('hidden');
+        }
+
     </script>
 </head>
 
@@ -369,56 +421,56 @@
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="homepage.html">
                             <i class="fas fa-home mr-3"></i>
                             หน้าหลัก
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="service.html">
                             <i class="fas fa-clipboard-list mr-3"></i>
                             กิจกรรมชุมชน
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="profile.html">
                             <i class="fas fa-user-edit mr-3"></i>
                             แก้ไขประวัติ
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="skillconf.html">
                             <i class="fas fa-tools mr-3"></i>
                             แก้ไขทักษะ
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="balance.html">
                             <i class="fas fa-wallet mr-3"></i>
                             ยอดคงเหลือ
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="history.html">
                             <i class="fas fa-history mr-3"></i>
                             ประวัติการเข้าร่วมกิจกรรม
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="transfer.html">
                             <i class="fas fa-exchange-alt mr-3"></i>
                             แลกเปลี่ยนเวลา
                         </a>
                     </li>
                     <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
                             href="contact.html">
                             <i class="fas fa-phone mr-3"></i>
                             ติดต่อเรา
@@ -429,12 +481,13 @@
         </div>
         <!-- Main Content -->
         <div class="w-full md:w-5/6 bg-blue-700 text-white p-10 flex justify-center items-center">
-            <div class="bg-white text-black p-8 rounded-lg shadow-lg w-full max-w-3xl">
+            <div class="bg-white text-black p-10 rounded-xl shadow-xl w-full max-w-3xl border border-gray-200">
                 <h1 class="text-4xl font-bold mb-5 text-center">โปรไฟล์สมาชิก</h1>
                 <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">ข้อมูลสมาชิก</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-36 gap-y-4 ml-24">
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="member-name">ชื่อ:</label>
+                        <label class="block text-gray-700 text-sm font-bold mb-2"
+                            for="member-name">ชื่อและนามสกุล:</label>
                         <p class="text-gray-700 text-lg" id="member-name"></p>
                     </div>
                     <div class="mb-4">
@@ -450,7 +503,8 @@
                         <p class="text-gray-700 text-lg" id="member-branch"></p>
                     </div>
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="member-time-credits">เครดิตเวลา:</label>
+                        <label class="block text-gray-700 text-sm font-bold mb-2"
+                            for="member-time-credits">เครดิตเวลา:</label>
                         <p class="text-gray-700 text-lg" id="member-time-credits"></p>
                     </div>
                     <div class="mb-4">
@@ -466,9 +520,7 @@
                     </button>
                     <button
                         class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                        id="back-button"
-                        style="display: none;"
-                        onclick="window.history.back()">
+                        id="back-button" style="display: none;" onclick="window.history.back()">
                         ย้อนกลับ
                     </button>
                 </div>
@@ -476,16 +528,30 @@
                     <h2 class="text-2xl font-bold text-center text-blue-700 mb-4">เข้าสู่ระบบผ่าน LINE</h2>
                     <div class="flex flex-col items-center">
                         <!-- Display the QR code image -->
-                        <img id="line-qr-code" src="QRcodeLine.jpg" alt="QR Code for LINE Login" class="mb-4 w-32 h-32" />
-                
+                        <img id="line-qr-code" src="QRcodeLine.jpg" alt="QR Code for LINE Login"
+                            class="mb-4 w-32 h-32" />
+
                         <!-- Fallback clickable link -->
                         <p class="text-gray-600 text-sm">
-                            สแกน QR Code เพื่อเข้าสู่ระบบผ่าน LINE  <!--หรือ  -->
+                            สแกน QR Code เพื่อเข้าสู่ระบบผ่าน LINE <!--หรือ  -->
                             <!-- <a id="line-link" href="https://liff.line.me/your-liff-id" target="_blank" class="text-blue-500 underline">คลิกที่นี่</a> -->
                         </p>
                     </div>
                 </div>
-                
+                <!-- Success Message Modal -->
+                <div id="success-modal"
+                    class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                    <div class="bg-white p-6 rounded shadow-lg text-center">
+                        <h2 class="text-2xl font-bold text-green-500 mb-4">สำเร็จ!</h2>
+                        <p id="success-message" class="text-gray-700"></p>
+                        <button onclick="closeSuccessMessage()"
+                            class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">
+                            ตกลง
+                        </button>
+                    </div>
+                </div>
+
+
             </div>
         </div>
     </div>

@@ -74,7 +74,7 @@
             </div>
             <nav>
                 <ul id="navList">
-                    <!-- Navigation items will be dynamically inserted here -->
+                    <!-- Navigation items will be dynamically inserted here by navbar.js -->
                 </ul>
             </nav>
         </div>
@@ -376,216 +376,216 @@
 
             try {
                 const response = await fetch(`http://localhost:3000/api/tbm/members/search?term=${encodeURIComponent(searchTerm)}&page=${currentPage}&pageSize=${pageSize}&sortField=${sortField}&sortOrder=${sortOrder}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('token')}`
+            }
                 });
-                const data = await response.json();
-                if (Array.isArray(data.members)) {
-                    members = data.members;
-                    totalMembers = data.total;
-                    renderTable(members);
-                    renderPagination();
-                } else {
-                    console.error('Expected an array but got:', data);
-                    alert('เกิดข้อผิดพลาดในการค้นหาสมาชิก');
-                }
+            const data = await response.json();
+            if (Array.isArray(data.members)) {
+                members = data.members;
+                totalMembers = data.total;
+                renderTable(members);
+                renderPagination();
+            } else {
+                console.error('Expected an array but got:', data);
+                alert('เกิดข้อผิดพลาดในการค้นหาสมาชิก');
+            }
             } catch (error) {
                 console.error('Error searching members:', error);
                 alert('เกิดข้อผิดพลาดในการค้นหาสมาชิก');
             }
         }
 
-        async function confirmAndRemove(event, rowId, memberId) {
-            event.preventDefault();
-            const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลบสมาชิกนี้?");
-            if (confirmation) {
-                try {
-                    const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            async function confirmAndRemove(event, rowId, memberId) {
+                event.preventDefault();
+                const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลบสมาชิกนี้?");
+                if (confirmation) {
+                    try {
+                        const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            }
+                        });
+                        if (response.ok) {
+                            document.getElementById(rowId).remove();
+                            alert("สมาชิกถูกลบเรียบร้อยแล้ว");
+                        } else {
+                            alert("เกิดข้อผิดพลาดในการลบสมาชิก");
                         }
-                    });
-                    if (response.ok) {
-                        document.getElementById(rowId).remove();
-                        alert("สมาชิกถูกลบเรียบร้อยแล้ว");
-                    } else {
+                    } catch (error) {
+                        console.error('Error deleting member:', error);
                         alert("เกิดข้อผิดพลาดในการลบสมาชิก");
                     }
-                } catch (error) {
-                    console.error('Error deleting member:', error);
-                    alert("เกิดข้อผิดพลาดในการลบสมาชิก");
                 }
             }
-        }
 
-        async function confirmAndRestore(event, rowId, memberId) {
-            event.preventDefault();
-            const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการกู้คืนสมาชิกนี้?");
-            if (confirmation) {
-                try {
-                    const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/restore`, {
-                        method: 'PUT',
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            async function confirmAndRestore(event, rowId, memberId) {
+                event.preventDefault();
+                const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการกู้คืนสมาชิกนี้?");
+                if (confirmation) {
+                    try {
+                        const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/restore`, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            }
+                        });
+                        if (response.ok) {
+                            fetchMembers(currentPage, '', sortField, sortOrder);
+                            alert("สมาชิกถูกกู้คืนเรียบร้อยแล้ว");
+                        } else {
+                            alert("เกิดข้อผิดพลาดในการกู้คืนสมาชิก");
                         }
-                    });
-                    if (response.ok) {
-                        fetchMembers(currentPage, '', sortField, sortOrder);
-                        alert("สมาชิกถูกกู้คืนเรียบร้อยแล้ว");
-                    } else {
+                    } catch (error) {
+                        console.error('Error restoring member:', error);
                         alert("เกิดข้อผิดพลาดในการกู้คืนสมาชิก");
                     }
-                } catch (error) {
-                    console.error('Error restoring member:', error);
-                    alert("เกิดข้อผิดพลาดในการกู้คืนสมาชิก");
                 }
             }
-        }
 
-        async function approveUser(event, memberId) {
-            event.preventDefault();
-            const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการอนุมัติสมาชิกนี้?");
-            if (confirmation) {
-                try {
-                    const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/approve`, {
-                        method: 'PUT',
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                            'Content-Type': 'application/json'
+            async function approveUser(event, memberId) {
+                event.preventDefault();
+                const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการอนุมัติสมาชิกนี้?");
+                if (confirmation) {
+                    try {
+                        const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/approve`, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                                'Content-Type': 'application/json'
+                            }
+                        });
+                        if (response.ok) {
+                            fetchMembers(currentPage, '', sortField, sortOrder);
+                            alert("สมาชิกถูกอนุมัติเรียบร้อยแล้ว");
+                        } else {
+                            const errorData = await response.json();
+                            alert(`เกิดข้อผิดพลาดในการอนุมัติสมาชิก: ${errorData.error}`);
                         }
-                    });
-                    if (response.ok) {
-                        fetchMembers(currentPage, '', sortField, sortOrder);
-                        alert("สมาชิกถูกอนุมัติเรียบร้อยแล้ว");
-                    } else {
-                        const errorData = await response.json();
-                        alert(`เกิดข้อผิดพลาดในการอนุมัติสมาชิก: ${errorData.error}`);
+                    } catch (error) {
+                        console.error('Error approving member:', error);
+                        alert("เกิดข้อผิดพลาดในการอนุมัติสมาชิก");
                     }
-                } catch (error) {
-                    console.error('Error approving member:', error);
-                    alert("เกิดข้อผิดพลาดในการอนุมัติสมาชิก");
                 }
             }
-        }
 
-        async function promoteRole(event, memberId, newRole) {
-            event.preventDefault();
-            const confirmation = confirm(`คุณแน่ใจหรือไม่ว่าต้องการเลื่อนขั้นสมาชิกนี้เป็น ${newRole}?`);
-            if (confirmation) {
-                try {
-                    const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/promote`, {
-                        method: 'PUT',
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ newRole })
-                    });
-                    if (response.ok) {
-                        fetchMembers(currentPage, '', sortField, sortOrder);
-                        alert(`สมาชิกถูกเลื่อนขั้นเป็น ${newRole} เรียบร้อยแล้ว`);
-                    } else {
-                        const errorData = await response.json();
-                        alert(`เกิดข้อผิดพลาดในการเลื่อนขั้นสมาชิก: ${errorData.error}`);
-                    }
-                } catch (error) {
-                    console.error('Error promoting member:', error);
-                    alert("เกิดข้อผิดพลาดในการเลื่อนขั้นสมาชิก");
-                }
-            }
-        }
-
-        async function demoteToUser(event, memberId) {
-            event.preventDefault();
-            const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการไล่ออกจากชุมชน?");
-            if (confirmation) {
-                try {
-                    const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/demote`, {
-                        method: 'PUT',
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            async function promoteRole(event, memberId, newRole) {
+                event.preventDefault();
+                const confirmation = confirm(`คุณแน่ใจหรือไม่ว่าต้องการเลื่อนขั้นสมาชิกนี้เป็น ${newRole}?`);
+                if (confirmation) {
+                    try {
+                        const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/promote`, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ newRole })
+                        });
+                        if (response.ok) {
+                            fetchMembers(currentPage, '', sortField, sortOrder);
+                            alert(`สมาชิกถูกเลื่อนขั้นเป็น ${newRole} เรียบร้อยแล้ว`);
+                        } else {
+                            const errorData = await response.json();
+                            alert(`เกิดข้อผิดพลาดในการเลื่อนขั้นสมาชิก: ${errorData.error}`);
                         }
-                    });
-                    if (response.ok) {
-                        fetchMembers(currentPage, '', sortField, sortOrder);
-                        alert("สมาชิกถูกไล่ออกจากชุมชนเรียบร้อยแล้ว");
-                    } else {
+                    } catch (error) {
+                        console.error('Error promoting member:', error);
+                        alert("เกิดข้อผิดพลาดในการเลื่อนขั้นสมาชิก");
+                    }
+                }
+            }
+
+            async function demoteToUser(event, memberId) {
+                event.preventDefault();
+                const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการไล่ออกจากชุมชน?");
+                if (confirmation) {
+                    try {
+                        const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/demote`, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            }
+                        });
+                        if (response.ok) {
+                            fetchMembers(currentPage, '', sortField, sortOrder);
+                            alert("สมาชิกถูกไล่ออกจากชุมชนเรียบร้อยแล้ว");
+                        } else {
+                            alert("เกิดข้อผิดพลาดในการไล่ออกจากชุมชน");
+                        }
+                    } catch (error) {
+                        console.error('Error demoting member:', error);
                         alert("เกิดข้อผิดพลาดในการไล่ออกจากชุมชน");
                     }
-                } catch (error) {
-                    console.error('Error demoting member:', error);
-                    alert("เกิดข้อผิดพลาดในการไล่ออกจากชุมชน");
                 }
             }
-        }
 
-        async function demoteTimeBankManager(event, memberId) {
-            event.preventDefault();
-            const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลดขั้น TimeBankManager นี้?");
-            if (confirmation) {
-                try {
-                    const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/demote-timebankmanager`, {
-                        method: 'PUT',
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            async function demoteTimeBankManager(event, memberId) {
+                event.preventDefault();
+                const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลดขั้น TimeBankManager นี้?");
+                if (confirmation) {
+                    try {
+                        const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/demote-timebankmanager`, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            }
+                        });
+                        if (response.ok) {
+                            fetchMembers(currentPage, '', sortField, sortOrder);
+                            alert("TimeBankManager ถูกลดขั้นเรียบร้อยแล้ว");
+                        } else {
+                            alert("เกิดข้อผิดพลาดในการลดขั้น TimeBankManager");
                         }
-                    });
-                    if (response.ok) {
-                        fetchMembers(currentPage, '', sortField, sortOrder);
-                        alert("TimeBankManager ถูกลดขั้นเรียบร้อยแล้ว");
-                    } else {
+                    } catch (error) {
+                        console.error('Error demoting TimeBankManager:', error);
                         alert("เกิดข้อผิดพลาดในการลดขั้น TimeBankManager");
                     }
-                } catch (error) {
-                    console.error('Error demoting TimeBankManager:', error);
-                    alert("เกิดข้อผิดพลาดในการลดขั้น TimeBankManager");
                 }
             }
-        }
 
-        async function demoteAdmin(event, memberId) {
-            event.preventDefault();
-            const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลดขั้น Admin นี้?");
-            if (confirmation) {
-                try {
-                    const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/demote-admin`, {
-                        method: 'PUT',
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            async function demoteAdmin(event, memberId) {
+                event.preventDefault();
+                const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลดขั้น Admin นี้?");
+                if (confirmation) {
+                    try {
+                        const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/demote-admin`, {
+                            method: 'PUT',
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            }
+                        });
+                        if (response.ok) {
+                            fetchMembers(currentPage, '', sortField, sortOrder);
+                            alert("Admin ถูกลดขั้นเรียบร้อยแล้ว");
+                        } else {
+                            alert("เกิดข้อผิดพลาดในการลดขั้น Admin");
                         }
-                    });
-                    if (response.ok) {
-                        fetchMembers(currentPage, '', sortField, sortOrder);
-                        alert("Admin ถูกลดขั้นเรียบร้อยแล้ว");
-                    } else {
+                    } catch (error) {
+                        console.error('Error demoting Admin:', error);
                         alert("เกิดข้อผิดพลาดในการลดขั้น Admin");
                     }
-                } catch (error) {
-                    console.error('Error demoting Admin:', error);
-                    alert("เกิดข้อผิดพลาดในการลดขั้น Admin");
                 }
             }
-        }
 
-        function sortTable(field) {
-            if (sortField === field) {
-                sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
-            } else {
-                sortField = field;
-                sortOrder = 'asc';
+            function sortTable(field) {
+                if (sortField === field) {
+                    sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+                } else {
+                    sortField = field;
+                    sortOrder = 'asc';
+                }
+                fetchMembers(currentPage, '', sortField, sortOrder);
             }
-            fetchMembers(currentPage, '', sortField, sortOrder);
-        }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            checkLoginStatus();
-            fetchCommunityConfig();
-            fetchMembers(currentPage);
-        });
-    </script>
-
+            document.addEventListener('DOMContentLoaded', () => {
+                checkLoginStatus();
+                fetchCommunityConfig();
+                fetchMembers(currentPage);
+            });
+        </script>
+    
     <style>
         .toggle-container {
             display: flex;
@@ -596,7 +596,7 @@
             justify-content: space-between;
             width: 180px;
         }
-
+    
         .toggle-label {
             flex: 1;
             text-align: center;
@@ -608,14 +608,14 @@
             border-radius: 9999px;
             padding: 5px;
         }
-
+    
         .toggle-label.active {
             background-color: white;
             color: #1D4ED8;
             font-weight: bold;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
         }
-
+    
         .toggle-label.disabled {
             pointer-events: none;
             background-color: white;
@@ -623,7 +623,7 @@
             font-weight: bold;
         }
     </style>
-
+    
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             const langThai = document.getElementById('lang-th');
@@ -633,7 +633,6 @@
             const searchPlaceholder = document.querySelector('input[placeholder]');
             const addButton = document.querySelector('a[href="create-member.html"]');
             const tableHeaders = document.querySelectorAll('th');
-            const navList = document.getElementById('navList');
 
             const translations = {
                 thai: {
@@ -641,36 +640,14 @@
                     subHeading: 'สมาชิก',
                     searchPlaceholder: 'ค้นหาสมาชิก',
                     addButton: 'เพิ่ม',
-                    tableHeaders: ['รหัสสมาชิก', 'ชื่อผู้ใช้', 'ชื่อ', 'เครดิตเวลา(คะแนน)', 'สถานะ', 'บทบาท', 'ล็อกอินไลน์', 'การจัดการ'],
-                    nav: [
-                        { text: 'โปรไฟล์', icon: 'fas fa-user', href: 'profile.html' },
-                        { text: 'หน้าหลัก', icon: 'fas fa-home', href: 'index.html' },
-                        { text: 'รายงาน', icon: 'fas fa-chart-bar', href: 'reports.html' },
-                        { text: 'จัดการกิจกรรม', icon: 'fas fa-tasks', href: 'activities.html' },
-                        { text: 'จัดการสมาชิก', icon: 'fas fa-users', href: 'members.html' },
-                        { text: 'จัดการหมวดหมู่ทักษะ', icon: 'fas fa-cogs', href: 'skills.html' },
-                        { text: 'จัดการกองทุนชุมชน', icon: 'fas fa-piggy-bank', href: 'funds.html' },
-                        { text: 'จัดการชุมชน', icon: 'fas fa-building', href: 'community.html' },
-                        { text: 'ธุรกรรมทั้งหมด', icon: 'fas fa-exchange-alt', href: 'transactions.html' }
-                    ]
+                    tableHeaders: ['รหัสสมาชิก', 'ชื่อผู้ใช้', 'ชื่อ', 'เครดิตเวลา(คะแนน)', 'สถานะ', 'บทบาท', 'ล็อกอินไลน์', 'การจัดการ']
                 },
                 english: {
                     mainHeading: 'Manage Members',
                     subHeading: 'Members',
                     searchPlaceholder: 'Search Members',
                     addButton: 'Add',
-                    tableHeaders: ['Member ID', 'Username', 'Name', 'Time Credits', 'Status', 'Role', 'LINE Login', 'Actions'],
-                    nav: [
-                        { text: 'Profile', icon: 'fas fa-user', href: 'profile.html' },
-                        { text: 'Homepage', icon: 'fas fa-home', href: 'index.html' },
-                        { text: 'Reports Overview', icon: 'fas fa-chart-bar', href: 'reports.html' },
-                        { text: 'Activities Management', icon: 'fas fa-tasks', href: 'activities.html' },
-                        { text: 'Members Management', icon: 'fas fa-users', href: 'members.html' },
-                        { text: 'Skills Management', icon: 'fas fa-cogs', href: 'skills.html' },
-                        { text: 'Funds Management', icon: 'fas fa-piggy-bank', href: 'funds.html' },
-                        { text: 'Community Management', icon: 'fas fa-building', href: 'community.html' },
-                        { text: 'Transactions', icon: 'fas fa-exchange-alt', href: 'transactions.html' }
-                    ]
+                    tableHeaders: ['Member ID', 'Username', 'Name', 'Time Credits', 'Status', 'Role', 'LINE Login', 'Actions']
                 }
             };
 
@@ -689,17 +666,6 @@
                 tableHeaders.forEach((header, index) => {
                     header.textContent = langData.tableHeaders[index];
                 });
-
-                // Update navigation
-                navList.innerHTML = langData.nav.map(item => `
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="${item.href}">
-                            <i class="${item.icon} mr-3"></i>
-                            ${item.text}
-                        </a>
-                    </li>
-                `).join('');
 
                 // Toggle active state
                 if (lang === 'thai') {
@@ -727,6 +693,6 @@
             updateContent(currentLang);
         });
     </script>
-</body>
-
-</html>
+    </body>
+    
+    </html>

@@ -227,6 +227,31 @@
                             href="log-in.html">Login</a></p>
                 </div>
             </div>
+        <!-- Success Message Modal -->
+        <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+            <div class="bg-white p-6 rounded shadow-lg text-center">
+                <h2 class="text-2xl font-bold text-green-500 mb-4">สำเร็จ!</h2>
+                <p id="success-message" class="text-gray-700"></p>
+                <button onclick="closeMessage('success-modal')"
+                    class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">
+                    ตกลง
+                </button>
+            </div>
+        </div>
+        
+        <!-- Failure Message Modal -->
+        <div id="failure-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+            <div class="bg-white p-6 rounded shadow-lg text-center">
+                <h2 class="text-2xl font-bold text-red-500 mb-4">ล้มเหลว!</h2>
+                <p id="failure-message" class="text-gray-700"></p>
+                <button onclick="closeMessage('failure-modal')"
+                    class="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700">
+                    ลองใหม่
+                </button>
+            </div>
+        </div>
+
+
         </div>
     </div>
 
@@ -265,65 +290,93 @@
         }
 
         document.getElementById('registerForm').addEventListener('submit', async function (event) {
-            event.preventDefault();
+                event.preventDefault();
 
-            // Get all form values
-            const formData = {
-                username: document.getElementById('username').value.trim(),
-                email: document.getElementById('email').value.trim(),
-                password: document.getElementById('password').value.trim(),
-                confirmPassword: document.getElementById('confirmPassword').value.trim(),
-                name: document.getElementById('name').value.trim(),
-                phone: document.getElementById('phone').value.trim(),
-                address: document.getElementById('address').value.trim(),
-                branch: document.getElementById('branch').value.trim(),
-                role: 'User' // Set default role to 'User'
-            };
+                const formData = {
+                    username: document.getElementById('username').value.trim(),
+                    email: document.getElementById('email').value.trim(),
+                    password: document.getElementById('password').value.trim(),
+                    confirmPassword: document.getElementById('confirmPassword').value.trim(),
+                    name: document.getElementById('name').value.trim(),
+                    phone: document.getElementById('phone').value.trim(),
+                    address: document.getElementById('address').value.trim(),
+                    branch: document.getElementById('branch').value.trim(),
+                    role: 'User' // Default role
+                };
 
-            // Client-side validation
-            const errors = [];
-            if (!formData.name) errors.push('Name is required');
-            if (!formData.phone) errors.push('Phone is required');
-            if (!/^\d{10}$/.test(formData.phone)) errors.push('Phone must be 10 digits');
-            if (formData.password !== formData.confirmPassword) errors.push('Passwords do not match');
-            if (formData.password.length < 8) errors.push('Password must be at least 8 characters');
+                // Client-side validation
+                const errors = [];
 
-            if (errors.length > 0) {
-                alert(errors.join('\n'));
-                return;
-            }
-
-            try {
-                const response = await fetch('http://localhost:3000/api/user/auth/register', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        username: formData.username,
-                        password: formData.password,
-                        email: formData.email,
-                        role: formData.role,
-                        name: formData.name,
-                        phone: formData.phone,
-                        address: formData.address,
-                        branch: formData.branch
-                    })
-                });
-
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || 'Registration failed');
+                // Validate name: must contain at least two words (first name and surname)
+                if (!formData.name || formData.name.split(/\s+/).length < 2) {
+                    errors.push('กรุณากรอกชื่อและนามสกุลให้ครบถ้วน โดยต้องมีเว้นวรรคระหว่างชื่อและนามสกุล');
                 }
 
-                alert('Registration successful! Please login.');
-                window.location.href = 'log-in.html';
-            } catch (error) {
-                console.error('Registration Error:', error);
-                alert(error.message || 'An error occurred. Please try again.');
+                // Validate address: must contain digits and keywords like เขต/อำเภอ/ตำบล/จังหวัด
+                const addressRegex = /\d+.*(เขต|อำเภอ|ตำบล|จังหวัด)/;
+                if (!addressRegex.test(formData.address)) {
+                    errors.push('กรุณากรอกที่อยู่ให้ครบถ้วน รวมถึงเลขที่บ้าน เขต/อำเภอ และจังหวัด');
+                }
+
+                // Validate phone: must be exactly 10 digits and start with 0
+                if (!/^0[0-9]{9}$/.test(formData.phone)) {
+                    errors.push('หมายเลขโทรศัพท์ไม่ถูกต้อง ต้องมี 10 หลักและขึ้นต้นด้วยเลข 0');
+                }
+
+                // Password validations
+                if (formData.password !== formData.confirmPassword) {
+                    errors.push('รหัสผ่านไม่ตรงกัน');
+                }
+                if (formData.password.length < 8) {
+                    errors.push('รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร');
+                }
+
+                // Display errors if any
+                if (errors.length > 0) {
+                    showFailureMessage(errors.join('\n'));
+                    return;
+                }
+
+                // Submit data if validation passes
+                try {
+                    const response = await fetch('http://localhost:3000/api/user/auth/register', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+
+                    const data = await response.json();
+
+                    if (!response.ok) {
+                        throw new Error(data.error || 'การลงทะเบียนล้มเหลว กรุณาลองใหม่');
+                    }
+
+                    showSuccessMessage('ลงทะเบียนสำเร็จ! กรุณาเข้าสู่ระบบ');
+                    setTimeout(() => window.location.href = 'log-in.html', 2000); // Redirect after success message
+                } catch (error) {
+                    console.error('Registration Error:', error);
+                    showFailureMessage(error.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+                }
+            });
+
+
+        function showSuccessMessage(message) {
+                document.getElementById('success-message').textContent = message;
+                document.getElementById('success-modal').classList.remove('hidden');
             }
-        });
+
+            function showFailureMessage(message) {
+                document.getElementById('failure-message').textContent = message;
+                document.getElementById('failure-modal').classList.remove('hidden');
+            }
+
+            function closeMessage(modalId) {
+                document.getElementById(modalId).classList.add('hidden');
+            }
+
+
     </script>
     
 </body>

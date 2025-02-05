@@ -204,7 +204,9 @@ CREATE TABLE transactions (
 
 -- Insert initial data into branches
 INSERT INTO branches (branch_name) VALUES 
-('Test Branch');
+('Test Branch'),
+('โคกสลุง');
+
 
 -- Insert initial data into exchange_rates
 INSERT INTO exchange_rates (description) VALUES 

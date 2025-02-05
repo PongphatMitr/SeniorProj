@@ -316,6 +316,23 @@ const activityRoutes = (pool) => {
         }
     });
 
+    // Log a transaction
+    router.post('/transactions', async (req, res) => {
+        const { user_id, activity_id, details, time_credits, transaction_type, date, time } = req.body;
+
+        try {
+            const result = await pool.query(
+                'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type, date, time) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+                [user_id, activity_id, details, time_credits, transaction_type, date, time]
+            );
+
+            res.status(201).json(result.rows[0]);
+        } catch (err) {
+            console.error('Error logging transaction:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+
     return router;
 };
 

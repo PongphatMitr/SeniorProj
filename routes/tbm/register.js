@@ -5,7 +5,6 @@ document.getElementById('registerForm').addEventListener('submit', async functio
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     const confirmPassword = document.getElementById('confirmPassword').value;
-    const role = document.getElementById('role').value;
     const name = document.getElementById('name').value;
     const phone = document.getElementById('phone').value;
     const address = document.getElementById('address').value;
@@ -22,7 +21,7 @@ document.getElementById('registerForm').addEventListener('submit', async functio
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify({ username, email, password, role, name, phone, address, branch })
+            body: JSON.stringify({ username, email, password, name, phone, address, branch })
         });
 
         const data = await response.json();
