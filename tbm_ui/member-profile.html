@@ -239,7 +239,7 @@
 <body class="bg-gray-100">
     <div class="flex flex-col md:flex-row">
         <!-- Sidebar -->
-        <div class="w-1/6 bg-white h-screen p-5">
+        <div class="w-full md:w-1/6 bg-white h-screen p-5">
             <div class="flex items-center mb-10">
                 <img alt="Logo of Time Bank System, a clock with a handshake in the center"
                     class="w-10 h-10 rounded-full" height="50"
@@ -274,10 +274,10 @@
         </div>
         <!-- Main Content -->
         <div class="w-full md:w-5/6 bg-blue-700 text-white p-10 flex justify-center items-center">
-            <div class="bg-white text-black p-8 rounded-lg shadow-lg w-full max-w-3xl">
+            <div class="bg-white text-black p-10 rounded-xl shadow-xl w-full max-w-3xl border border-gray-200">
                 <h1 class="text-4xl font-bold mb-5 text-center">โปรไฟล์สมาชิก</h1>
                 <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">ข้อมูลสมาชิก</h2>
-                <div class="grid grid-cols-2 gap-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-36 gap-y-4 ml-24">
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="member-name">ชื่อ:</label>
                         <p class="text-gray-700 text-lg" id="member-name"></p>
@@ -316,19 +316,7 @@
                         ย้อนกลับ
                     </button>
                 </div>
-                <div class="mt-8">
-                    <h2 class="text-2xl font-bold text-center text-blue-700 mb-4">เข้าสู่ระบบผ่าน LINE</h2>
-                    <div class="flex flex-col items-center">
-                        <!-- Display the QR code image -->
-                        <img id="line-qr-code" src="QRcodeLine.jpg" alt="QR Code for LINE Login"
-                            class="mb-4 w-32 h-32" />
-
-                        <!-- Fallback clickable link -->
-                        <p class="text-gray-600 text-sm">
-                            สแกน QR Code เพื่อเข้าสู่ระบบผ่าน LINE
-                        </p>
-                    </div>
-                </div>
+                
                 <!-- Success Message Modal -->
                 <div id="success-modal"
                     class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
