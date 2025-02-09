@@ -1,5 +1,4 @@
 <html lang="en">
-
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
@@ -22,6 +21,7 @@
                 const data = await response.json();
                 document.getElementById('name').value = data.name || '';
                 document.getElementById('email').value = data.email || '';
+                document.getElementById('phone').value = data.phone || '';
             } catch (error) {
                 console.error('Error fetching user details:', error);
                 alert('เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้');
@@ -33,10 +33,11 @@
 
             const name = document.getElementById('name').value.trim();
             const email = document.getElementById('email').value.trim();
+            const phone = document.getElementById('phone').value.trim();
             const subject = document.getElementById('subject').value.trim();
             const message = document.getElementById('message').value.trim();
 
-            if (!name || !email || !subject || !message) {
+            if (!name || !phone || !subject || !message) {
                 alert('กรุณากรอกข้อมูลให้ครบถ้วน');
                 return;
             }
@@ -47,7 +48,7 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ name, email, subject, message })
+                    body: JSON.stringify({ name, email, phone, subject, message })
                 });
 
                 if (response.ok) {
@@ -92,7 +93,7 @@
                         updateSidebar(false);
                         const goToLogin = confirm('Session expired. Do you want to go to the login page?');
                         if (goToLogin) {
-                            window.location.href = 'login.html';
+                            window.location.href = 'log-in.html';
                         }
                     }
                 } catch (error) {
@@ -101,14 +102,14 @@
                     updateSidebar(false);
                     const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
                     if (goToLogin) {
-                        window.location.href = 'login.html';
+                        window.location.href = 'log-in.html';
                     }
                 }
             } else {
                 updateSidebar(false);
                 const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
                 if (goToLogin) {
-                    window.location.href = 'login.html';
+                    window.location.href = 'log-in.html';
                 }
             }
         }
@@ -296,7 +297,7 @@
                 <ul id="navList">
                     <li class="mb-5">
                         <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="login.html">
+                            href="log-in.html">
                             <i class="fas fa-sign-in-alt mr-3"></i>
                             เข้าสู่ระบบ
                         </a>
@@ -376,8 +377,12 @@
                         <input id="name" class="w-full p-2 border rounded-md" type="text" readonly />
                     </div>
                     <div>
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="email">อีเมล:</label>
-                        <input id="email" class="w-full p-2 border rounded-md" type="email" readonly />
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="email">อีเมล: <span class="text-red-500">*เลือกกรอกได้</span></label>
+                        <input id="email" class="w-full p-2 border rounded-md" type="email"/>
+                    </div>
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="phone">เบอร์โทร:</label>
+                        <input id="phone" class="w-full p-2 border rounded-md" type="text" readonly />
                     </div>
                     <div>
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="subject">หัวข้อ:</label>

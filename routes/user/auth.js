@@ -14,58 +14,53 @@ const authRoutes = (pool) => {
         const {
             username,
             password,
-            email,
-            role = 'User', // Default role to 'User'
+            email = null, // Default to null if empty
+            role = 'User',
             name,
             phone,
             address,
             branch
         } = req.body;
-
+    
         try {
             // Validate required fields
-            const requiredFields = ['username', 'password', 'email', 'role', 'name', 'phone'];
+            const requiredFields = ['username', 'password', 'role', 'name', 'phone'];
             const missingFields = requiredFields.filter(field => !req.body[field]);
-
+    
             if (missingFields.length > 0) {
                 return res.status(400).json({
-                    error: `Missing required fields: ${missingFields.join(', ')}`
+                    error: `Missing required fields: ${missingFields.join(', ')}`,
                 });
             }
-
-            // Validate role
-            const allowedRoles = ['User', 'Member', 'TimeBankManager', 'Admin'];
-            if (!allowedRoles.includes(role)) {
-                return res.status(400).json({ error: 'Invalid role' });
+    
+            // Validate address must contain "ลพบุรี"
+            if (!address.includes('ลพบุรี')) {
+                return res.status(400).json({ error: 'ที่อยู่ต้องมีคำว่า "ลพบุรี"' });
             }
-
+    
             // Validate phone format
             const phoneRegex = /^[0-9]{10}$/;
             if (!phoneRegex.test(phone)) {
-                return res.status(400).json({
-                    error: 'Phone number must be 10 digits'
-                });
+                return res.status(400).json({ error: 'หมายเลขโทรศัพท์ต้องมี 10 หลักและขึ้นต้นด้วย 0' });
             }
-
-            // Check for existing user
+    
+            // Check for existing username (email is optional)
             const userExists = await pool.query(
-                'SELECT * FROM users WHERE username = $1 OR email = $2',
+                'SELECT * FROM users WHERE username = $1 OR (email = $2 AND email IS NOT NULL)',
                 [username, email]
             );
-
+    
             if (userExists.rows.length > 0) {
-                return res.status(409).json({
-                    error: 'Username or email already exists'
-                });
+                return res.status(409).json({ error: 'Username or email already exists' });
             }
-
+    
             // Hash password
             const hashedPassword = await bcrypt.hash(password, 10);
-
+    
             // Fetch default time token from community_config
             const configResult = await pool.query('SELECT default_time_token FROM community_config LIMIT 1');
             const defaultTimeToken = configResult.rows[0].default_time_token;
-
+    
             // Fetch branch_id from branches table
             let branchId = null;
             if (branch) {
@@ -73,7 +68,6 @@ const authRoutes = (pool) => {
                 if (branchResult.rows.length > 0) {
                     branchId = branchResult.rows[0].branch_id;
                 } else {
-                    // Insert new branch if it doesn't exist
                     const newBranchResult = await pool.query(
                         'INSERT INTO branches (branch_name) VALUES ($1) RETURNING branch_id',
                         [branch]
@@ -81,36 +75,32 @@ const authRoutes = (pool) => {
                     branchId = newBranchResult.rows[0].branch_id;
                 }
             }
-
-            // Update the registration query to include status and time_credits
+    
+            // Insert user allowing email to be NULL
             const result = await pool.query(
                 `INSERT INTO users 
                 (username, password, email, role, name, phone, address, branch_id, time_credits, status) 
                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, DEFAULT) 
                 RETURNING user_id, username, email, role, name, phone, address, branch_id, time_credits, status, created_at`,
-                [username, hashedPassword, email, role, name, phone, address, branchId, defaultTimeToken]
+                [username, hashedPassword, email || null, role, name, phone, address, branchId, defaultTimeToken]
             );
-
+    
             res.status(201).json(result.rows[0]);
-
+    
         } catch (err) {
-            console.error('Registration Error Details:', {
-                message: err.message,
-                code: err.code,
-                detail: err.detail
-            });
-
-            // Handle database errors
+            console.error('Registration Error Details:', err);
+    
             if (err.code === '23505') {
                 return res.status(409).json({ error: 'Username or email already exists' });
             }
             if (err.code === '23502') {
                 return res.status(400).json({ error: `Missing required field: ${err.column}` });
             }
-
+    
             res.status(500).json({ error: 'Internal server error. Please try again.' });
         }
     });
+    
 
     // Modified login route with status check and logging
     router.post('/login', async (req, res) => {

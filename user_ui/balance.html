@@ -74,9 +74,15 @@
             <!-- User Balance Section -->
             <div class="bg-white text-gray-800 p-6 rounded-lg shadow-md mb-5">
                 <h2 class="text-xl font-bold mb-2">ยอดคงเหลือ</h2>
-                <div class="flex items-center">
-                    <i class="fas fa-wallet text-3xl text-blue-600 mr-4"></i>
-                    <span class="text-2xl font-bold" id="userBalance">000 เครดิต</span>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex items-center">
+                        <i class="fas fa-wallet text-3xl text-blue-600 mr-4"></i>
+                        <span class="text-2xl font-bold" id="userBalance">000 เครดิต</span>
+                    </div>
+                    <div class="flex items-center">
+                        <i class="fas fa-id-badge text-3xl text-blue-600 mr-4"></i>
+                        <span class="text-2xl font-bold text-blue-600" id="userId" style="font-family: 'Roboto Mono', monospace;">เลขที่บัญชี: 000</span>
+                    </div>
                 </div>
             </div>
             <!-- Transaction History Section -->
@@ -127,6 +133,9 @@
 
                 const balanceElement = document.getElementById('userBalance');
                 balanceElement.innerText = `${data.time_credits} ชั่วโมง`;
+
+                const userIdElement = document.getElementById('userId');
+                userIdElement.innerText = `เลขที่บัญชี: ${data.user_id}`;
 
                 balanceElement.style.color = data.time_credits > 0 ? "#32CD32" :
                                             data.time_credits < 0 ? "red" : "gray";

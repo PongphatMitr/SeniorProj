@@ -6,70 +6,6 @@
     <title>ลงทะเบียน</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
-    <!-- <script>
-        async function checkLoginStatus() {
-            const token = localStorage.getItem('token');
-            if (token) {
-                try {
-                    const response = await fetch('http://localhost:3000/api/auth/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-
-                    if (response.ok) {
-                        window.location.href = 'homepage.html';
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                }
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            checkLoginStatus();
-
-            document.getElementById('registerForm').addEventListener('submit', async function (event) {
-                event.preventDefault();
-
-                const username = document.getElementById('username').value;
-                const email = document.getElementById('email').value;
-                const password = document.getElementById('password').value;
-                const confirmPassword = document.getElementById('confirmPassword').value;
-                const role = document.getElementById('role').value;
-
-                if (password !== confirmPassword) {
-                    alert('Passwords do not match.');
-                    return;
-                }
-
-                try {
-                    const response = await fetch('http://localhost:3000/api/auth/register', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ username, email, password, role })
-                    });
-
-                    const data = await response.json();
-
-                    if (response.ok) {
-                        alert('Registration successful! Please login.');
-                        window.location.href = 'log-in.html';
-                    } else {
-                        console.error('Error:', data);
-                        alert(data.error);
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    alert('An error occurred. Please try again.');
-                }
-            });
-        });
-    </script> -->
 </head>
 
 <body class="bg-gray-100">
@@ -164,13 +100,13 @@
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="username">Username</label>
                             <input
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="username" placeholder="Username" type="text" />
+                                id="username" placeholder="ชื่อผู้ใช้" type="text" />
                         </div>
                         <div class="w-1/2">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="email">Email</label>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="email">Email <span class="text-red-500">*เลือกกรอกได้</span></label>
                             <input
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="email" placeholder="Email" type="email" />
+                                id="email" placeholder="อีเมล" type="email" />
                         </div>
                     </div>
                     <div class="mb-4 flex space-x-4">
@@ -178,14 +114,14 @@
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="password">Password</label>
                             <input
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="password" placeholder="Password" type="password" />
+                                id="password" placeholder="รหัสผ่าน" type="password" />
                         </div>
                         <div class="w-1/2">
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="confirmPassword">Confirm
                                 Password</label>
                             <input
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="confirmPassword" placeholder="Confirm Password" type="password" />
+                                id="confirmPassword" placeholder="ยืนยันรหัสผ่าน" type="password" />
                         </div>
                     </div>
                     <div class="mb-4 flex space-x-4">
@@ -193,38 +129,38 @@
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="name">Name</label>
                             <input
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="name" placeholder="Name" type="text" required />
+                                id="name" placeholder="ชื่อ" type="text" required />
                         </div>
                         <div class="w-1/2">
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="phone">Phone</label>
                             <input
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="phone" placeholder="Phone" type="text" />
+                                id="phone" placeholder="เบอร์โทรศัพท์" type="text" />
                         </div>
                     </div>
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="address">Address</label>
                         <textarea
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            id="address" placeholder="Address"></textarea>
+                            id="address" placeholder="ที่อยู่ปัจจุบัน"></textarea>
                     </div>
                     <div class="mb-4 relative">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="branch">Branch</label>
                         <input
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            id="branch" placeholder="Branch" type="text" oninput="searchBranches()" />
+                            id="branch" placeholder="สาขา" type="text" oninput="searchBranches()" />
                         <div id="branch-results-dropdown"
                             class="absolute bg-white shadow-lg rounded w-full mt-1 hidden z-10"></div>
                     </div>
                     <div class="flex items-center justify-center">
                         <button
                             class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                            type="submit">Register</button>
+                            type="submit">ลงทะเบียน</button>
                     </div>
                 </form>
                 <div class="text-center mt-4">
-                    <p class="text-gray-700">Already have an account? <a class="text-blue-500"
-                            href="log-in.html">Login</a></p>
+                    <p class="text-gray-700">มีบัญชีอยู่แล้ว? <a class="text-blue-500"
+                            href="log-in.html">เข้าสู่ระบบ</a></p>
                 </div>
             </div>
         <!-- Success Message Modal -->
@@ -312,11 +248,16 @@
                     errors.push('กรุณากรอกชื่อและนามสกุลให้ครบถ้วน โดยต้องมีเว้นวรรคระหว่างชื่อและนามสกุล');
                 }
 
-                // Validate address: must contain digits and keywords like เขต/อำเภอ/ตำบล/จังหวัด
-                const addressRegex = /\d+.*(เขต|อำเภอ|ตำบล|จังหวัด)/;
-                if (!addressRegex.test(formData.address)) {
-                    errors.push('กรุณากรอกที่อยู่ให้ครบถ้วน รวมถึงเลขที่บ้าน เขต/อำเภอ และจังหวัด');
-                }
+                // Validate address: must contain "ลพบุรี"
+            const addressRegex = /ลพบุรี/;
+            if (!addressRegex.test(formData.address)) {
+                errors.push('กรุณากรอกที่อยู่โดยต้องมีคำว่า "ลพบุรี" อยู่ในที่อยู่');
+            }
+
+            // Validate email: allow empty but must be a valid format if provided
+            if (formData.email && !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(formData.email)) {
+                errors.push('อีเมลไม่ถูกต้อง กรุณากรอกอีเมลให้ถูกต้องหรือเว้นว่างไว้');
+            }
 
                 // Validate phone: must be exactly 10 digits and start with 0
                 if (!/^0[0-9]{9}$/.test(formData.phone)) {

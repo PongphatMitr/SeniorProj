@@ -38,7 +38,7 @@ CREATE TABLE users (
     user_id SERIAL PRIMARY KEY,
     username VARCHAR(50) NOT NULL,
     password VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL,
+    email VARCHAR(100),
     role VARCHAR(50) NOT NULL CHECK (role IN ('User', 'Member', 'TimeBankManager', 'Admin')),
     name VARCHAR(100) NOT NULL,
     phone VARCHAR(20),
@@ -161,7 +161,8 @@ CREATE TABLE user_login_log (
 CREATE TABLE contact_us (
     contact_id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
-    email VARCHAR(100) NOT NULL,
+    email VARCHAR(100),
+	phone VARCHAR(20),
     subject VARCHAR(255) NOT NULL,
     message TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
@@ -219,8 +220,8 @@ INSERT INTO community_config (default_time_token, default_exchange_rate_id) VALU
 -- Insert initial data into users
 INSERT INTO users (username, password, email, role, name, phone, address, branch_id, time_credits, status) 
 VALUES ('testuser', '$2a$10$y2yR9UyFAUfyYCiYqDxgteWBflWnsbYdlFZDmNPmn7P1.xUfbRFtu', 'testuser@example.com', 'Member', 'Test User', '1234567890', '123 Test St, Test City', 1, 10, 'active'),
-('earth', '$2a$10$1YbqGWj36sZXoKaXWvV/p.XaSkLSjBy.Xqiw41OPh9NeVTsp4qPpG', 'testuser@example.com', 'Member', 'earth', '1234567890', '123 Test St, Test City', 1, 10, 'active'),
-('moji', '$2a$10$AfvWwUB3xPrYByh4UEpSSeptvKp07aIACEyzVJB4TJVRUM8aDNwWm', 'testuser@example.com', 'Member', 'moji', '1234567890', '123 Test St, Test City', 1, 10, 'active'),
+('earth', '$2a$10$1YbqGWj36sZXoKaXWvV/p.XaSkLSjBy.Xqiw41OPh9NeVTsp4qPpG', 'testuser@example.com', 'Member', 'กฤชนพัต จุลจู', '0822544153', '123 Test St, Test City ลพบุรี', 1, 10, 'active'),
+('moji', '$2a$10$AfvWwUB3xPrYByh4UEpSSeptvKp07aIACEyzVJB4TJVRUM8aDNwWm', 'testuser@example.com', 'Member', 'ณิชาภา เกษมวงศ์', '0811111111', '123 Test St, Test City ลพบุรี', 1, 10, 'active'),
         ('save001', '$2a$10$4tEtE.kQJrXrM2G5w.8Fs.PWVcMz/WeE0iZSfPPdxz0DTY82mVOTy', 'savewaris001@gmail.com', 'Admin', 'Test User', '1234567890', '123 Test St, Test City', 1, 10, 'active');
 
 -- Insert initial data into activities

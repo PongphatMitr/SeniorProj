@@ -136,84 +136,7 @@
             // Hide the "ย้อนกลับ" button
             backButton.style.display = 'none';
         }
-
-        async function saveChanges() {
-            const fullName = document.getElementById('member-name').value.trim();
-            const phone = document.getElementById('member-phone').value.trim();
-            const address = document.getElementById('member-address').value.trim();
-
-            // Validate name (must include at least two words)
-            if (fullName.split(' ').length < 2) {
-                alert('กรุณากรอกชื่อและนามสกุลให้ครบถ้วน');
-                return;
-            }
-
-            // Validate Thai phone number (must start with 0 and be 10 digits)
-            const phoneRegex = /^0[0-9]{9}$/;
-            if (!phoneRegex.test(phone)) {
-                alert('กรุณากรอกหมายเลขโทรศัพท์ให้ถูกต้อง (10 หลักและขึ้นต้นด้วย 0)');
-                return;
-            }
-
-            // Advanced address validation: must contain house number and keywords like เขต/อำเภอ/ตำบล/จังหวัด
-            const addressRegex = /\d+.*(เขต|อำเภอ|ตำบล|จังหวัด)/;
-            if (!addressRegex.test(address)) {
-                alert('กรุณากรอกที่อยู่ให้ครบถ้วน รวมถึงเลขที่บ้าน เขต/อำเภอ และจังหวัด');
-                return;
-            }
-
-            // Ask for confirmation before saving
-            if (!confirm('คุณต้องการบันทึกการเปลี่ยนแปลงหรือไม่?')) {
-                return;  // Stop if the user cancels
-            }
-
-            const member = {
-                name: fullName,
-                phone: phone,
-                address: address
-            };
-
-            try {
-                const response = await fetch('http://localhost:3000/api/user/auth/profile', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify(member)
-                });
-
-                if (response.ok) {
-                    showSuccessMessage('บันทึกข้อมูลโปรไฟล์สำเร็จแล้ว!');
-                    renderMemberProfile(member);
-
-                    const fields = ['member-name', 'member-phone', 'member-address'];
-                    fields.forEach(field => {
-                        const element = document.getElementById(field);
-                        const p = document.createElement('p');
-                        p.textContent = element.value;
-                        p.className = 'text-gray-700 text-lg';
-                        element.parentNode.replaceChild(p, element);
-                        p.id = field;
-                    });
-
-                    document.getElementById('edit-button').textContent = 'แก้ไข';
-                    document.getElementById('edit-button').onclick = enableEditing;
-                    document.getElementById('back-button').style.display = 'none';
-
-                    fetchMemberProfile();  // Refresh profile after saving
-                } else {
-                    const errorData = await response.json();
-                    alert(`เกิดข้อผิดพลาดในการบันทึกข้อมูล: ${errorData.error || 'ไม่ทราบสาเหตุ'}`);
-                }
-            } catch (error) {
-                console.error('Error saving member profile:', error);
-                alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
-            }
-        }
-
-
-
+        
         async function checkLoginStatus() {
             const token = localStorage.getItem('token');
             if (!token) {
@@ -386,15 +309,6 @@
             checkLoginStatus();
         });
 
-        function showSuccessMessage(message) {
-            document.getElementById('success-message').textContent = message;
-            document.getElementById('success-modal').classList.remove('hidden');
-        }
-
-        function closeSuccessMessage() {
-            document.getElementById('success-modal').classList.add('hidden');
-        }
-
     </script>
 </head>
 
@@ -538,18 +452,143 @@
                         </p>
                     </div>
                 </div>
-                <!-- Success Message Modal -->
-                <div id="success-modal"
-                    class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-                    <div class="bg-white p-6 rounded shadow-lg text-center">
-                        <h2 class="text-2xl font-bold text-green-500 mb-4">สำเร็จ!</h2>
-                        <p id="success-message" class="text-gray-700"></p>
-                        <button onclick="closeSuccessMessage()"
-                            class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">
-                            ตกลง
-                        </button>
-                    </div>
-                </div>
+
+                <!-- Confirm Change Profile Modal -->
+<div id="confirm-change-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden transition-opacity duration-300">
+    <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-xl text-center transform scale-95 transition-transform duration-300">
+        <h2 class="text-3xl font-bold text-gray-900">ยืนยันการเปลี่ยนแปลง</h2>
+        <p class="text-gray-700 text-lg mt-4">คุณต้องการบันทึกการเปลี่ยนแปลงหรือไม่?</p>
+        <div class="flex justify-center mt-6 space-x-4">
+            <button id="confirm-save-btn" class="bg-green-600 text-white text-lg px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition duration-300">
+                ตกลง
+            </button>
+            <button id="cancel-save-btn" class="bg-gray-400 text-white text-lg px-6 py-3 rounded-lg font-semibold hover:bg-gray-500 transition duration-300">
+                ยกเลิก
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Success Message Modal -->
+<div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden transition-opacity duration-300">
+    <div class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-2xl text-center transform scale-95 transition-transform duration-300">
+        <div class="flex justify-center">
+            <div class="w-24 h-24 flex items-center justify-center rounded-full bg-green-100 border-4 border-green-500 animate-bounce">
+                <svg class="w-16 h-16 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+            </div>
+        </div>
+        <h2 class="text-4xl font-bold text-green-600 mt-6">บันทึกข้อมูลสำเร็จ!</h2>
+        <p id="success-message" class="text-gray-700 text-xl mt-4">ข้อมูลของคุณได้รับการอัปเดตเรียบร้อยแล้ว</p>
+        <button id="confirm-success-btn" class="mt-8 px-8 py-4 bg-blue-600 text-white text-xl font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+            ตกลง
+        </button>
+    </div>
+</div>
+
+<script>
+    function saveChanges() {
+        const fullName = document.getElementById('member-name').value.trim();
+        const phone = document.getElementById('member-phone').value.trim();
+        const address = document.getElementById('member-address').value.trim();
+    
+        // Validate name (must include at least two words)
+        if (fullName.split(' ').length < 2) {
+            showErrorMessage('กรุณากรอกชื่อและนามสกุลให้ครบถ้วน');
+            return;
+        }
+    
+        // Validate Thai phone number (must start with 0 and be 10 digits)
+        const phoneRegex = /^0[0-9]{9}$/;
+        if (!phoneRegex.test(phone)) {
+            showErrorMessage('กรุณากรอกหมายเลขโทรศัพท์ให้ถูกต้อง (10 หลักและขึ้นต้นด้วย 0)');
+            return;
+        }
+    
+        // Validate address: must contain "ลพบุรี"
+        const addressRegex = /ลพบุรี/;
+        if (!addressRegex.test(address)) {
+            showErrorMessage('กรุณากรอกที่อยู่โดยต้องมีคำว่า "ลพบุรี" อยู่ในที่อยู่');
+            return;
+        }
+    
+        // เปิด Modal ยืนยันการเปลี่ยนแปลง
+        document.getElementById('confirm-change-modal').classList.remove('hidden');
+    
+        // ถ้าผู้ใช้กด "ตกลง"
+        document.getElementById('confirm-save-btn').onclick = async function () {
+            document.getElementById('confirm-change-modal').classList.add('hidden');
+    
+            const member = {
+                name: fullName,
+                phone: phone,
+                address: address
+            };
+    
+            try {
+                const response = await fetch('http://localhost:3000/api/user/auth/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(member)
+                });
+    
+                if (response.ok) {
+                    showSuccessMessage('บันทึกข้อมูลโปรไฟล์สำเร็จแล้ว!');
+                    renderMemberProfile(member);
+    
+                    const fields = ['member-name', 'member-phone', 'member-address'];
+                    fields.forEach(field => {
+                        const element = document.getElementById(field);
+                        const p = document.createElement('p');
+                        p.textContent = element.value;
+                        p.className = 'text-gray-700 text-lg';
+                        element.parentNode.replaceChild(p, element);
+                        p.id = field;
+                    });
+    
+                    document.getElementById('edit-button').textContent = 'แก้ไข';
+                    document.getElementById('edit-button').onclick = enableEditing;
+                    document.getElementById('back-button').style.display = 'none';
+    
+                    fetchMemberProfile();
+                } else {
+                    const errorData = await response.json();
+                    showErrorMessage(`เกิดข้อผิดพลาดในการบันทึกข้อมูล: ${errorData.error || 'ไม่ทราบสาเหตุ'}`);
+                }
+            } catch (error) {
+                showErrorMessage('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+            }
+        };
+    
+        // ถ้าผู้ใช้กด "ยกเลิก"
+        document.getElementById('cancel-save-btn').onclick = function () {
+            document.getElementById('confirm-change-modal').classList.add('hidden');
+        };
+    }
+    
+
+    function showSuccessMessage(message) {
+        document.getElementById('success-message').textContent = message;
+        const modal = document.getElementById('success-modal');
+        modal.classList.remove('hidden');
+        setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
+    }
+
+    function showErrorMessage(message) {
+        alert(message); // สามารถเปลี่ยนเป็น Modal error ได้ถ้าต้องการ
+    }
+
+    document.getElementById('confirm-success-btn').addEventListener('click', function () {
+        const modal = document.getElementById('success-modal');
+        modal.classList.remove('opacity-100', 'scale-100');
+        setTimeout(() => modal.classList.add('hidden'), 300);
+    });
+</script>
+
 
 
             </div>
