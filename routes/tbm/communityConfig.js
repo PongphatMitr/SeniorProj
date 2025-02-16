@@ -41,7 +41,7 @@ const communityConfigRoutes = (pool) => {
             return res.status(400).json({ error: 'Invalid default_exchange_rate_id value' });
         }
 
-        if (!branch_name || typeof branch_name !== 'string') {
+        if (branch_name && typeof branch_name !== 'string') {
             return res.status(400).json({ error: 'Invalid branch_name value' });
         }
 
@@ -53,11 +53,13 @@ const communityConfigRoutes = (pool) => {
             const client = await pool.connect();
             await client.query('BEGIN');
 
-            // Update branch name
-            await client.query(
-                'UPDATE branches SET branch_name = $1 WHERE branch_id = $2',
-                [branch_name, branch_id]
-            );
+            // Update branch name if provided
+            if (branch_name) {
+                await client.query(
+                    'UPDATE branches SET branch_name = $1 WHERE branch_id = $2',
+                    [branch_name, branch_id]
+                );
+            }
 
             // Update community config
             const result = await client.query(

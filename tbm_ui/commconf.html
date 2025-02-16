@@ -23,7 +23,26 @@
             </div>
             <nav>
                 <ul id="navList">
-                    <!-- Navigation items will be dynamically inserted here -->
+                    <li class="mb-4">
+                        <a href="#" class="text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-home mr-2"></i> Home
+                        </a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="#" class="text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-users mr-2"></i> Community
+                        </a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="#" class="text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-cog mr-2"></i> Settings
+                        </a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="#" class="text-gray-700 hover:text-blue-600">
+                            <i class="fas fa-sign-out-alt mr-2"></i> Logout
+                        </a>
+                    </li>
                 </ul>
             </nav>
         </div>
@@ -250,98 +269,102 @@
         }
 
         async function saveConfig() {
-            const newDefaultTimeToken = parseInt(document.getElementById('default-time-token').value, 10);
-            const newExchangeRate = document.getElementById('exchange-rate').value;
-            const newExchangeRateDescription = document.getElementById('new-exchange-rate').value;
-            const newBranch = document.getElementById('branch-name').value;
-            const newBranchName = document.getElementById('new-branch').value;
+                const newDefaultTimeToken = parseInt(document.getElementById('default-time-token').value, 10);
+                const newExchangeRate = document.getElementById('exchange-rate').value;
+                const newExchangeRateDescription = document.getElementById('new-exchange-rate').value;
+                const newBranch = document.getElementById('branch-name').value;
+                const newBranchName = document.getElementById('new-branch').value;
 
-            let defaultExchangeRateId = parseInt(newExchangeRate, 10);
-            let branchId = parseInt(newBranch, 10);
+                let defaultExchangeRateId = parseInt(newExchangeRate, 10);
+                let branchId = parseInt(newBranch, 10);
 
-            if (newExchangeRate === 'new' && newExchangeRateDescription) {
-                try {
-                    const response = await fetch('http://localhost:3000/api/tbm/exchange-rates', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        },
-                        body: JSON.stringify({ description: newExchangeRateDescription })
-                    });
+                if (newExchangeRate === 'new' && newExchangeRateDescription) {
+                    try {
+                        const response = await fetch('http://localhost:3000/api/tbm/exchange-rates', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            },
+                            body: JSON.stringify({ description: newExchangeRateDescription })
+                        });
 
-                    if (response.ok) {
-                        const data = await response.json();
-                        defaultExchangeRateId = data.rate_id;
-                    } else {
-                        const errorData = await response.json();
-                        console.error('Error response from server:', errorData);
+                        if (response.ok) {
+                            const data = await response.json();
+                            defaultExchangeRateId = data.rate_id;
+                        } else {
+                            const errorData = await response.json();
+                            console.error('Error response from server:', errorData);
+                            alert('เกิดข้อผิดพลาดในการเพิ่มอัตราแลกเปลี่ยนใหม่');
+                            return;
+                        }
+                    } catch (error) {
+                        console.error('Error adding new exchange rate:', error);
                         alert('เกิดข้อผิดพลาดในการเพิ่มอัตราแลกเปลี่ยนใหม่');
                         return;
                     }
-                } catch (error) {
-                    console.error('Error adding new exchange rate:', error);
-                    alert('เกิดข้อผิดพลาดในการเพิ่มอัตราแลกเปลี่ยนใหม่');
-                    return;
                 }
-            }
 
-            if (newBranch === 'new' && newBranchName) {
-                if (userRole !== 'Admin') {
-                    alert('คุณไม่มีสิทธิ์เพิ่มสาขาใหม่');
-                    return;
+                if (newBranch === 'new' && newBranchName) {
+                    if (userRole !== 'Admin') {
+                        alert('คุณไม่มีสิทธิ์เพิ่มสาขาใหม่');
+                        return;
+                    }
+                    try {
+                        const response = await fetch('http://localhost:3000/api/tbm/branches', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            },
+                            body: JSON.stringify({ branch_name: newBranchName })
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            branchId = data.branch_id;
+                        } else {
+                            const errorData = await response.json();
+                            console.error('Error response from server:', errorData);
+                            alert('เกิดข้อผิดพลาดในการเพิ่มสาขาใหม่');
+                            return;
+                        }
+                    } catch (error) {
+                        console.error('Error adding new branch:', error);
+                        alert('เกิดข้อผิดพลาดในการเพิ่มสาขาใหม่');
+                        return;
+                    }
                 }
+
                 try {
-                    const response = await fetch('http://localhost:3000/api/tbm/branches', {
-                        method: 'POST',
+                    const response = await fetch(`http://localhost:3000/api/tbm/community-config`, {
+                        method: 'PUT',
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
                         },
-                        body: JSON.stringify({ branch_name: newBranchName })
+                        body: JSON.stringify({
+                            default_time_token: newDefaultTimeToken,
+                            default_exchange_rate_id: defaultExchangeRateId,
+                            branch_name: newBranchName || null,
+                            branch_id: branchId
+                        })
                     });
 
                     if (response.ok) {
-                        const data = await response.json();
-                        branchId = data.branch_id;
+                        alert('การตั้งค่าชุมชนถูกบันทึกเรียบร้อยแล้ว');
+                        fetchCommunityConfig();
                     } else {
                         const errorData = await response.json();
                         console.error('Error response from server:', errorData);
-                        alert('เกิดข้อผิดพลาดในการเพิ่มสาขาใหม่');
-                        return;
+                        alert('เกิดข้อผิดพลาดในการบันทึกการตั้งค่าชุมชน');
                     }
                 } catch (error) {
-                    console.error('Error adding new branch:', error);
-                    alert('เกิดข้อผิดพลาดในการเพิ่มสาขาใหม่');
-                    return;
-                }
-            }
-
-            try {
-                const response = await fetch(`http://localhost:3000/api/tbm/branches/${branchId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({
-                        branch_name: newBranchName
-                    })
-                });
-
-                if (response.ok) {
-                    alert('การตั้งค่าชุมชนถูกบันทึกเรียบร้อยแล้ว');
-                    fetchCommunityConfig();
-                } else {
-                    const errorData = await response.json();
-                    console.error('Error response from server:', errorData);
+                    console.error('Error saving community config:', error);
                     alert('เกิดข้อผิดพลาดในการบันทึกการตั้งค่าชุมชน');
                 }
-            } catch (error) {
-                console.error('Error saving community config:', error);
-                alert('เกิดข้อผิดพลาดในการบันทึกการตั้งค่าชุมชน');
             }
-        }
+
 
         document.addEventListener('DOMContentLoaded', () => {
             const token = localStorage.getItem('token');
