@@ -202,7 +202,7 @@ const activityRoutes = (pool) => {
             // Log the transaction
             await client.query(
                 'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type, date, time) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-                [userId, activityId, `Participated in activity: ${activity.title}`, activity.time_tokens_per_participant, 'earn', new Date(), new Date().toLocaleTimeString()]
+                [userId, activityId, `Participated in activity: ${activity.title}`, activity.time_tokens_per_participant, 'earn', new Date().toISOString().split('T')[0], new Date().toLocaleTimeString()]
             );
 
             await client.query('COMMIT');
@@ -225,7 +225,7 @@ const activityRoutes = (pool) => {
             await client.query('BEGIN');
 
             // Fetch activity details
-            const activityResult = await client.query('SELECT * FROM activities WHERE activity_id = $1', [activityId]);
+            activityResult = await client.query('SELECT * FROM activities WHERE activity_id = $1', [activityId]);
             if (activityResult.rows.length === 0) {
                 throw new Error('Activity not found');
             }
@@ -274,7 +274,7 @@ const activityRoutes = (pool) => {
             // Log the transaction for the requester
             await client.query(
                 'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type, date, time) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-                [requester.user_id, activityId, `Approved activity: ${activity.title}`, totalTokensRequired, 'spend', new Date(), new Date().toLocaleTimeString()]
+                [requester.user_id, activityId, `Approved activity: ${activity.title}`, totalTokensRequired, 'spend', new Date().toISOString().split('T')[0], new Date().toLocaleTimeString()]
             );
 
             // Add time credits to each participant
@@ -284,7 +284,7 @@ const activityRoutes = (pool) => {
                 // Log the transaction for each participant
                 await client.query(
                     'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type, date, time) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-                    [participant.user_id, activityId, `Earned time credits for activity: ${activity.title}`, activity.time_tokens_per_participant, 'earn', new Date(), new Date().toLocaleTimeString()]
+                    [participant.user_id, activityId, `Earned time credits for activity: ${activity.title}`, activity.time_tokens_per_participant, 'earn', new Date().toISOString().split('T')[0], new Date().toLocaleTimeString()]
                 );
             }
 
@@ -312,23 +312,6 @@ const activityRoutes = (pool) => {
             res.json(result.rows[0]);
         } catch (err) {
             console.error('Error rejecting activity:', err.message);
-            res.status(500).json({ error: 'An error occurred. Please try again.' });
-        }
-    });
-
-    // Log a transaction
-    router.post('/transactions', async (req, res) => {
-        const { user_id, activity_id, details, time_credits, transaction_type, date, time } = req.body;
-
-        try {
-            const result = await pool.query(
-                'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type, date, time) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-                [user_id, activity_id, details, time_credits, transaction_type, date, time]
-            );
-
-            res.status(201).json(result.rows[0]);
-        } catch (err) {
-            console.error('Error logging transaction:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });

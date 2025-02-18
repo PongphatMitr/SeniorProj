@@ -11,7 +11,7 @@
 <body class="bg-gray-100">
     <div class="flex flex-col md:flex-row">
         <!-- Sidebar -->
-        <div class="w-1/6 bg-white h-screen p-5">
+        <div class="w-full md:w-1/6 bg-white h-screen p-5">
             <div class="flex items-center mb-10">
                 <img alt="Logo of Time Bank System, a clock with a handshake in the center"
                     class="w-10 h-10 rounded-full" height="50"
@@ -26,7 +26,8 @@
                     <li class="mb-4"><a href="#" class="text-gray-700 hover:text-blue-600"><i class="fas fa-home"></i>
                             หน้าหลัก</a></li>
                     <li class="mb-4"><a href="#" class="text-gray-700 hover:text-blue-600"><i
-                                class="fas fa-chart-bar"></i> รายงาน</a></li>
+                                class="fas fa-chart-bar"></i>
+                            รายงาน</a></li>
                     <li class="mb-4"><a href="#" class="text-gray-700 hover:text-blue-600"><i class="fas fa-tasks"></i>
                             จัดการกิจกรรม</a></li>
                     <li class="mb-4"><a href="#" class="text-gray-700 hover:text-blue-600"><i class="fas fa-users"></i>
@@ -34,11 +35,14 @@
                     <li class="mb-4"><a href="#" class="text-gray-700 hover:text-blue-600"><i class="fas fa-cogs"></i>
                             จัดการหมวหมู่ทักษะ</a></li>
                     <li class="mb-4"><a href="#" class="text-gray-700 hover:text-blue-600"><i
-                                class="fas fa-piggy-bank"></i> จัดการกองทุนชุมชน</a></li>
+                                class="fas fa-piggy-bank"></i>
+                            จัดการกองทุนชุมชน</a></li>
                     <li class="mb-4"><a href="#" class="text-gray-700 hover:text-blue-600"><i
-                                class="fas fa-building"></i> จัดการชุมชน</a></li>
+                                class="fas fa-building"></i>
+                            จัดการชุมชน</a></li>
                     <li class="mb-4"><a href="#" class="text-gray-700 hover:text-blue-600"><i
-                                class="fas fa-exchange-alt"></i> ธุรกรรมทั้งหมด</a></li>
+                                class="fas fa-exchange-alt"></i>
+                            ธุรกรรมทั้งหมด</a></li>
                 </ul>
             </nav>
         </div>
@@ -282,6 +286,12 @@
             const startTime = document.getElementById('start-time').value;
             const endTime = document.getElementById('end-time').value;
 
+            console.log('Max Participants:', maxParticipants);
+            console.log('Start Date:', startDate);
+            console.log('End Date:', endDate);
+            console.log('Start Time:', startTime);
+            console.log('End Time:', endTime);
+
             if (isNaN(maxParticipants) || maxParticipants <= 0 || !startDate || !endDate || !startTime || !endTime || !exchangeRate) {
                 document.getElementById('time-tokens-required').value = '0.00';
                 document.getElementById('time-tokens-per-participant').value = '0.00';
@@ -292,6 +302,10 @@
             const endDateTime = new Date(`${endDate}T${endTime}`);
             const durationInHours = Math.max(0, (endDateTime - startDateTime) / (1000 * 60 * 60));
 
+            console.log('Start DateTime:', startDateTime);
+            console.log('End DateTime:', endDateTime);
+            console.log('Duration in Hours:', durationInHours);
+
             let timeTokensRequired = 0;
             let timeTokensPerParticipant = 0;
 
@@ -301,7 +315,14 @@
             } else if (exchangeRate === '1 โทเคนเวลา ต่อ 1 กิจกรรม') {
                 timeTokensPerParticipant = 1;
                 timeTokensRequired = maxParticipants;
+            } else {
+                // Default case: use the same calculation as '1 โทเคนเวลา ต่อ 1 ชั่วโมง'
+                timeTokensPerParticipant = durationInHours;
+                timeTokensRequired = maxParticipants * durationInHours;
             }
+
+            console.log('Time Tokens Required:', timeTokensRequired);
+            console.log('Time Tokens Per Participant:', timeTokensPerParticipant);
 
             document.getElementById('time-tokens-required').value = timeTokensRequired.toFixed(2);
             document.getElementById('time-tokens-per-participant').value = timeTokensPerParticipant.toFixed(2);
@@ -327,238 +348,238 @@
             const timeTokensPerParticipant = parseFloat(timeTokensPerParticipantInput);
 
             if (isNaN(maxParticipants) || maxParticipants <= 0) {
-                alert('กรุณากรอกจำนวนผู้เข้าร่วมสูงสุดให้ถูกต้อง');
-                return;
-            }
+                        alert('กรุณากรอกจำนวนผู้เข้าร่วมสูงสุดให้ถูกต้อง');
+                        return;
+                    }
 
-            if (!Number.isInteger(maxParticipants)) {
-                alert('กรุณากรอกจำนวนผู้เข้าร่วมสูงสุดเป็นตัวเลข');
-                return;
-            }
+                    if (!Number.isInteger(maxParticipants)) {
+                        alert('กรุณากรอกจำนวนผู้เข้าร่วมสูงสุดเป็นตัวเลข');
+                        return;
+                    }
 
-            if (isNaN(timeTokensRequired) || timeTokensRequired < 0) {
-                alert('กรุณากรอกจำนวนโทเค็นเวลาที่ต้องการให้ถูกต้อง');
-                return;
-            }
+                    if (isNaN(timeTokensRequired) || timeTokensRequired < 0) {
+                        alert('กรุณากรอกจำนวนโทเค็นเวลาที่ต้องการให้ถูกต้อง');
+                        return;
+                    }
 
-            if (isNaN(timeTokensPerParticipant) || timeTokensPerParticipant < 0) {
-                alert('กรุณากรอกจำนวนโทเค็นเวลาต่อผู้เข้าร่วมให้ถูกต้อง');
-                return;
-            }
+                    if (isNaN(timeTokensPerParticipant) || timeTokensPerParticipant < 0) {
+                        alert('กรุณากรอกจำนวนโทเค็นเวลาต่อผู้เข้าร่วมให้ถูกต้อง');
+                        return;
+                    }
 
-            const activityData = {
-                title,
-                description,
-                location,
-                start_date: startDate,
-                start_time: startTime,
-                end_date: endDate,
-                end_time: endTime,
-                max_participants: maxParticipants,
-                requester_id: requesterId,
-                status,
-                timetokens_required: timeTokensRequired,
-                            time_tokens_per_participant: timeTokensPerParticipant
-                        };
+                    const activityData = {
+                        title,
+                        description,
+                        location,
+                        start_date: startDate,
+                        start_time: startTime,
+                        end_date: endDate,
+                        end_time: endTime,
+                        max_participants: maxParticipants,
+                        requester_id: requesterId,
+                        status,
+                        time_tokens_required: timeTokensRequired,
+                        time_tokens_per_participant: timeTokensPerParticipant
+                    };
 
-                        console.log('Activity Data:', activityData);
+                    console.log('Activity Data:', activityData);
 
+                    try {
+                        const response = await fetch('http://localhost:3000/api/tbm/activities', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            },
+                            body: JSON.stringify(activityData)
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json();
+                            console.error('Error response from server:', errorData);
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+
+                        alert('สร้างกิจกรรมเรียบร้อยแล้ว!');
+                        window.location.href = 'activity.html';
+                    } catch (error) {
+                        console.error('Error creating activity:', error);
+                        alert('เกิดข้อผิดพลาดในการสร้างกิจกรรม กรุณาลองใหม่อีกครั้ง');
+                    }
+                }
+
+                document.addEventListener('DOMContentLoaded', () => {
+                    const langThai = document.getElementById('lang-th');
+                    const langEnglish = document.getElementById('lang-en');
+                    const translations = {
+                        thai: {
+                            pageTitle: 'สร้างกิจกรรม - Time Bank',
+                            mainHeading: 'สร้างกิจกรรม',
+                            subHeading: 'รายละเอียดกิจกรรม',
+                            labels: {
+                                title: 'ชื่อกิจกรรม',
+                                requesterName: 'ชื่อผู้ขอ',
+                                description: 'รายละเอียด',
+                                location: 'สถานที่',
+                                startDate: 'วันที่เริ่มต้น',
+                                startTime: 'เวลาเริ่มต้น',
+                                endDate: 'วันที่สิ้นสุด',
+                                endTime: 'เวลาสิ้นสุด',
+                                maxParticipants: 'จำนวนผู้เข้าร่วมสูงสุด',
+                                status: 'สถานะ',
+                                timeTokensRequired: 'จำนวนโทเค็นเวลาที่ต้องการ',
+                                timeTokensPerParticipant: 'จำนวนโทเค็นเวลาต่อผู้เข้าร่วม',
+                                backButton: 'ย้อนกลับ',
+                                submitButton: 'สร้างกิจกรรม',
+                            },
+                            placeholders: {
+                                title: 'ระบุชื่อกิจกรรม',
+                                requesterName: 'ระบุชื่อผู้ขอ',
+                                description: 'ระบุรายละเอียดกิจกรรม',
+                                location: 'ระบุสถานที่จัดกิจกรรม',
+                            },
+                            statusOptions: ['กำลังจะเริ่ม'],
+                            nav: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
+                        },
+                        english: {
+                            pageTitle: 'Create Activity - Time Bank',
+                            mainHeading: 'Create Activity',
+                            subHeading: 'Activity Details',
+                            labels: {
+                                title: 'Activity Title',
+                                requesterName: 'Requester Name',
+                                description: 'Description',
+                                location: 'Location',
+                                startDate: 'Start Date',
+                                startTime: 'Start Time',
+                                endDate: 'End Date',
+                                endTime: 'End Time',
+                                maxParticipants: 'Maximum Participants',
+                                status: 'Status',
+                                timeTokensRequired: 'Time Tokens Required',
+                                timeTokensPerParticipant: 'Time Tokens Per Participant',
+                                backButton: 'Back',
+                                submitButton: 'Create Activity',
+                            },
+                            placeholders: {
+                                title: 'Enter activity title',
+                                requesterName: 'Enter requester name',
+                                description: 'Enter activity description',
+                                location: 'Enter activity location',
+                            },
+                            statusOptions: ['Upcoming'],
+                            nav: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
+                        },
+                    };
+
+                    let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
+
+                    const updateContent = (lang) => {
+                        const langData = translations[lang];
+                        document.title = langData.pageTitle;
+                        document.querySelector('h1').textContent = langData.mainHeading;
+                        document.querySelector('h2').textContent = langData.subHeading;
+                        document.querySelector('label[for="title"]').textContent = langData.labels.title;
+                        document.querySelector('label[for="requester-name"]').textContent = langData.labels.requesterName;
+                        document.querySelector('label[for="description"]').textContent = langData.labels.description;
+                        document.querySelector('label[for="location"]').textContent = langData.labels.location;
+                        document.querySelector('label[for="start-date"]').textContent = langData.labels.startDate;
+                        document.querySelector('label[for="start-time"]').textContent = langData.labels.startTime;
+                        document.querySelector('label[for="end-date"]').textContent = langData.labels.endDate;
+                        document.querySelector('label[for="end-time"]').textContent = langData.labels.endTime;
+                        document.querySelector('label[for="max-participants"]').textContent = langData.labels.maxParticipants;
+                        document.querySelector('label[for="status"]').textContent = langData.labels.status;
+                        document.querySelector('label[for="time-tokens-required"]').textContent = langData.labels.timeTokensRequired;
+                        document.querySelector('label[for="time-tokens-per-participant"]').textContent = langData.labels.timeTokensPerParticipant;
+                        document.getElementById('title').placeholder = langData.placeholders.title;
+                        document.getElementById('requester-name').placeholder = langData.placeholders.requesterName;
+                        document.getElementById('description').placeholder = langData.placeholders.description;
+                        document.getElementById('location').placeholder = langData.placeholders.location;
+                        document.getElementById('status').textContent = langData.statusOptions[0];
+                        document.querySelector('button[onclick="window.history.back();"]').textContent = langData.labels.backButton;
+                        document.querySelector('button[type="submit"]').textContent = langData.labels.submitButton;
+
+                        const navItems = navList.querySelectorAll('a');
+                        navItems.forEach((link, index) => {
+                            const icon = link.querySelector('i');
+                            link.innerHTML = '';
+                            if (icon) link.appendChild(icon);
+                            link.append(` ${langData.nav[index]}`);
+                        });
+
+                        if (lang === 'thai') {
+                            langThai.classList.add('active');
+                            langEnglish.classList.remove('active');
+                        } else {
+                            langEnglish.classList.add('active');
+                            langThai.classList.remove('active');
+                        }
+                    };
+
+                    langThai.addEventListener('click', () => {
+                        currentLang = 'thai';
+                        localStorage.setItem('selectedLanguage', currentLang);
+                        updateContent(currentLang);
+                    });
+
+                    langEnglish.addEventListener('click', () => {
+                        currentLang = 'english';
+                        localStorage.setItem('selectedLanguage', currentLang);
+                        updateContent(currentLang);
+                    });
+
+                    updateContent(currentLang);
+                    checkLoginStatus();
+                    fetchMembers();
+                    fetchCommunityConfig();
+
+                    document.getElementById('max-participants').addEventListener('input', calculateTimeTokens);
+                    document.getElementById('start-date').addEventListener('input', calculateTimeTokens);
+                    document.getElementById('end-date').addEventListener('input', calculateTimeTokens);
+                    document.getElementById('start-time').addEventListener('input', calculateTimeTokens);
+                    document.getElementById('end-time').addEventListener('input', calculateTimeTokens);
+                });
+
+                async function checkLoginStatus() {
+                    const token = localStorage.getItem('token');
+                    if (token) {
                         try {
-                            const response = await fetch('http://localhost:3000/api/tbm/activities', {
+                            const response = await fetch('http://localhost:3000/api/tbm/auth/verify', {
                                 method: 'POST',
                                 headers: {
                                     'Content-Type': 'application/json',
-                                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                                },
-                                body: JSON.stringify(activityData)
-                            });
-
-                            if (!response.ok) {
-                                const errorData = await response.json();
-                                console.error('Error response from server:', errorData);
-                                throw new Error(`HTTP error! status: ${response.status}`);
-                            }
-
-                            alert('สร้างกิจกรรมเรียบร้อยแล้ว!');
-                            window.location.href = 'activity.html';
-                        } catch (error) {
-                            console.error('Error creating activity:', error);
-                            alert('เกิดข้อผิดพลาดในการสร้างกิจกรรม กรุณาลองใหม่อีกครั้ง');
-                        }
-                    }
-
-                    document.addEventListener('DOMContentLoaded', () => {
-                        const langThai = document.getElementById('lang-th');
-                        const langEnglish = document.getElementById('lang-en');
-                        const translations = {
-                            thai: {
-                                pageTitle: 'สร้างกิจกรรม - Time Bank',
-                                mainHeading: 'สร้างกิจกรรม',
-                                subHeading: 'รายละเอียดกิจกรรม',
-                                labels: {
-                                    title: 'ชื่อกิจกรรม',
-                                    requesterName: 'ชื่อผู้ขอ',
-                                    description: 'รายละเอียด',
-                                    location: 'สถานที่',
-                                    startDate: 'วันที่เริ่มต้น',
-                                    startTime: 'เวลาเริ่มต้น',
-                                    endDate: 'วันที่สิ้นสุด',
-                                    endTime: 'เวลาสิ้นสุด',
-                                    maxParticipants: 'จำนวนผู้เข้าร่วมสูงสุด',
-                                    status: 'สถานะ',
-                                    timeTokensRequired: 'จำนวนโทเค็นเวลาที่ต้องการ',
-                                    timeTokensPerParticipant: 'จำนวนโทเค็นเวลาต่อผู้เข้าร่วม',
-                                    backButton: 'ย้อนกลับ',
-                                    submitButton: 'สร้างกิจกรรม',
-                                },
-                                placeholders: {
-                                    title: 'ระบุชื่อกิจกรรม',
-                                    requesterName: 'ระบุชื่อผู้ขอ',
-                                    description: 'ระบุรายละเอียดกิจกรรม',
-                                    location: 'ระบุสถานที่จัดกิจกรรม',
-                                },
-                                statusOptions: ['กำลังจะเริ่ม'],
-                                nav: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
-                            },
-                            english: {
-                                pageTitle: 'Create Activity - Time Bank',
-                                mainHeading: 'Create Activity',
-                                subHeading: 'Activity Details',
-                                labels: {
-                                    title: 'Activity Title',
-                                    requesterName: 'Requester Name',
-                                    description: 'Description',
-                                    location: 'Location',
-                                    startDate: 'Start Date',
-                                    startTime: 'Start Time',
-                                    endDate: 'End Date',
-                                    endTime: 'End Time',
-                                    maxParticipants: 'Maximum Participants',
-                                    status: 'Status',
-                                    timeTokensRequired: 'Time Tokens Required',
-                                    timeTokensPerParticipant: 'Time Tokens Per Participant',
-                                    backButton: 'Back',
-                                    submitButton: 'Create Activity',
-                                },
-                                placeholders: {
-                                    title: 'Enter activity title',
-                                    requesterName: 'Enter requester name',
-                                    description: 'Enter activity description',
-                                    location: 'Enter activity location',
-                                },
-                                statusOptions: ['Upcoming'],
-                                nav: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
-                            },
-                        };
-
-                        let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
-
-                        const updateContent = (lang) => {
-                            const langData = translations[lang];
-                            document.title = langData.pageTitle;
-                            document.querySelector('h1').textContent = langData.mainHeading;
-                            document.querySelector('h2').textContent = langData.subHeading;
-                            document.querySelector('label[for="title"]').textContent = langData.labels.title;
-                            document.querySelector('label[for="requester-name"]').textContent = langData.labels.requesterName;
-                            document.querySelector('label[for="description"]').textContent = langData.labels.description;
-                            document.querySelector('label[for="location"]').textContent = langData.labels.location;
-                            document.querySelector('label[for="start-date"]').textContent = langData.labels.startDate;
-                            document.querySelector('label[for="start-time"]').textContent = langData.labels.startTime;
-                            document.querySelector('label[for="end-date"]').textContent = langData.labels.endDate;
-                            document.querySelector('label[for="end-time"]').textContent = langData.labels.endTime;
-                            document.querySelector('label[for="max-participants"]').textContent = langData.labels.maxParticipants;
-                            document.querySelector('label[for="status"]').textContent = langData.labels.status;
-                            document.querySelector('label[for="time-tokens-required"]').textContent = langData.labels.timeTokensRequired;
-                            document.querySelector('label[for="time-tokens-per-participant"]').textContent = langData.labels.timeTokensPerParticipant;
-                            document.getElementById('title').placeholder = langData.placeholders.title;
-                            document.getElementById('requester-name').placeholder = langData.placeholders.requesterName;
-                            document.getElementById('description').placeholder = langData.placeholders.description;
-                            document.getElementById('location').placeholder = langData.placeholders.location;
-                            document.getElementById('status').textContent = langData.statusOptions[0];
-                            document.querySelector('button[onclick="window.history.back();"]').textContent = langData.labels.backButton;
-                            document.querySelector('button[type="submit"]').textContent = langData.labels.submitButton;
-
-                            const navItems = navList.querySelectorAll('a');
-                            navItems.forEach((link, index) => {
-                                const icon = link.querySelector('i');
-                                link.innerHTML = '';
-                                if (icon) link.appendChild(icon);
-                                link.append(` ${langData.nav[index]}`);
-                            });
-
-                            if (lang === 'thai') {
-                                langThai.classList.add('active');
-                                langEnglish.classList.remove('active');
-                            } else {
-                                langEnglish.classList.add('active');
-                                langThai.classList.remove('active');
-                            }
-                        };
-
-                        langThai.addEventListener('click', () => {
-                            currentLang = 'thai';
-                            localStorage.setItem('selectedLanguage', currentLang);
-                            updateContent(currentLang);
-                        });
-
-                        langEnglish.addEventListener('click', () => {
-                            currentLang = 'english';
-                            localStorage.setItem('selectedLanguage', currentLang);
-                            updateContent(currentLang);
-                        });
-
-                        updateContent(currentLang);
-                        checkLoginStatus();
-                        fetchMembers();
-                        fetchCommunityConfig();
-
-                        document.getElementById('max-participants').addEventListener('input', calculateTimeTokens);
-                        document.getElementById('start-date').addEventListener('input', calculateTimeTokens);
-                        document.getElementById('end-date').addEventListener('input', calculateTimeTokens);
-                        document.getElementById('start-time').addEventListener('input', calculateTimeTokens);
-                        document.getElementById('end-time').addEventListener('input', calculateTimeTokens);
-                    });
-
-                    async function checkLoginStatus() {
-                        const token = localStorage.getItem('token');
-                        if (token) {
-                            try {
-                                const response = await fetch('http://localhost:3000/api/tbm/auth/verify', {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'Authorization': `Bearer ${token}`
-                                    }
-                                });
-
-                                if (response.ok) {
-                                    updateSidebar(true);
-                                } else {
-                                    localStorage.removeItem('token');
-                                    updateSidebar(false);
-                                    const goToLogin = confirm('Session expired. Do you want to go to the login page?');
-                                    if (goToLogin) {
-                                        window.location.href = 'login.html';
-                                    }
+                                    'Authorization': `Bearer ${token}`
                                 }
-                            } catch (error) {
-                                console.error('Error:', error);
+                            });
+
+                            if (response.ok) {
+                                updateSidebar(true);
+                            } else {
                                 localStorage.removeItem('token');
                                 updateSidebar(false);
-                                const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
+                                const goToLogin = confirm('Session expired. Do you want to go to the login page?');
                                 if (goToLogin) {
                                     window.location.href = 'login.html';
                                 }
                             }
-                        } else {
+                        } catch (error) {
+                            console.error('Error:', error);
+                            localStorage.removeItem('token');
                             updateSidebar(false);
-                            const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
+                            const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
                             if (goToLogin) {
                                 window.location.href = 'login.html';
                             }
                         }
+                    } else {
+                        updateSidebar(false);
+                        const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
+                        if (goToLogin) {
+                            window.location.href = 'login.html';
+                        }
                     }
-                </script>
+                }
+            </script>
     <script src="navbar.js"></script>
     </body>
     
