@@ -20,63 +20,7 @@
                 <span class="ml-3 text-xl font-bold text-blue-600">TIMEBANK</span>
             </div>
             <nav>
-                <ul id="navList">
-                    <li>
-                        <a class="flex items-center p-2 text-gray-700 hover:bg-gray-200 rounded" href="login.html">
-                            <i class="fas fa-sign-in-alt"></i>
-                            Login
-                        </a>
-                    </li>
-                    <li>
-                        <a class="flex items-center p-2 text-gray-700 hover:bg-gray-200 rounded" href="homepage.html">
-                            <i class="fas fa-home"></i>
-                            Homepage
-                        </a>
-                    </li>
-                    <li>
-                        <a class="flex items-center p-2 text-gray-700 hover:bg-gray-200 rounded" href="reports.html">
-                            <i class="fas fa-chart-bar"></i>
-                            Reports Overview
-                        </a>
-                    </li>
-                    <li>
-                        <a class="flex items-center p-2 text-gray-700 hover:bg-gray-200 rounded" href="activities.html">
-                            <i class="fas fa-calendar-alt"></i>
-                            Activities Management
-                        </a>
-                    </li>
-                    <li>
-                        <a class="flex items-center p-2 text-gray-700 hover:bg-gray-200 rounded" href="members.html">
-                            <i class="fas fa-users"></i>
-                            Members Management
-                        </a>
-                    </li>
-                    <li>
-                        <a class="flex items-center p-2 text-gray-700 hover:bg-gray-200 rounded" href="skills.html">
-                            <i class="fas fa-cogs"></i>
-                            Skills Management
-                        </a>
-                    </li>
-                    <li>
-                        <a class="flex items-center p-2 text-gray-700 hover:bg-gray-200 rounded" href="funds.html">
-                            <i class="fas fa-piggy-bank"></i>
-                            Funds Management
-                        </a>
-                    </li>
-                    <li>
-                        <a class="flex items-center p-2 text-gray-700 hover:bg-gray-200 rounded" href="community.html">
-                            <i class="fas fa-building"></i>
-                            Community Management
-                        </a>
-                    </li>
-                    <li>
-                        <a class="flex items-center p-2 text-gray-700 hover:bg-gray-200 rounded"
-                            href="transactions.html">
-                            <i class="fas fa-exchange-alt"></i>
-                            Transactions
-                        </a>
-                    </li>
-                </ul>
+                <ul id="navList"></ul>
             </nav>
         </div>
         <!-- Main Content -->
@@ -152,7 +96,7 @@
                     <div class="flex items-center justify-center">
                         <button
                             class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                            type="submit">Register</button>
+                            type="submit">Next</button>
                     </div>
                 </form>
                 <div class="text-center mt-4">
@@ -417,48 +361,31 @@
                 return;
             }
 
-            // Submit data if validation passes
-            try {
-                const response = await fetch('http://localhost:3000/api/tbm/auth/register', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(formData)
-                });
+            // Store form data in session storage
+            sessionStorage.setItem('registerFormData', JSON.stringify(formData));
 
-                const data = await response.json();
-
-                if (!response.ok) {
-                    throw new Error(data.error || 'การลงทะเบียนล้มเหลว กรุณาลองใหม่');
-                }
-
-                showSuccessMessage('ลงทะเบียนสำเร็จ! กรุณาเข้าสู่ระบบ');
-                setTimeout(() => window.location.href = 'login.html', 2000); // Redirect after success message
-            } catch (error) {
-                console.error('Registration Error:', error);
-                showFailureMessage(error.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
-            }
+            // Redirect to skills selection page
+            window.location.href = 'register-skills.html';
         });
 
-                    function showSuccessMessage(message) {
-                        document.getElementById('success-message').textContent = message;
-                        document.getElementById('success-modal').classList.remove('hidden');
-                    }
+        function showSuccessMessage(message) {
+            document.getElementById('success-message').textContent = message;
+            document.getElementById('success-modal').classList.remove('hidden');
+        }
 
-                    function showFailureMessage(message) {
-                        document.getElementById('failure-message').textContent = message;
-                        document.getElementById('failure-modal').classList.remove('hidden');
-                    }
+        function showFailureMessage(message) {
+            document.getElementById('failure-message').textContent = message;
+            document.getElementById('failure-modal').classList.remove('hidden');
+        }
 
-                    function closeMessage(modalId) {
-                        document.getElementById(modalId).classList.add('hidden');
-                    }
-                </script>
+        function closeMessage(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+    </script>
     <script src="navbar.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', checkLoginStatus);
     </script>
-    </body>
-    
-    </html>
+</body>
+
+</html>

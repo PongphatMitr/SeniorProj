@@ -1,0 +1,145 @@
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>Profile Skills - Time Bank</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+</head>
+
+<body class="bg-gray-100">
+    <div class="flex flex-col md:flex-row">
+        <!-- Sidebar -->
+        <div class="w-full md:w-1/6 bg-white h-screen p-5">
+            <div class="flex items-center mb-10">
+                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
+                    class="w-10 h-10 rounded-full" height="50"
+                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
+                    width="50" />
+                <span class="ml-3 text-xl font-bold text-blue-600">
+                    TIMEBANK
+                </span>
+            </div>
+            <nav>
+                <ul id="navList">
+                    <li class="mb-4">
+                        <a href="profile.html" class="text-gray-700 hover:text-blue-600 font-bold">
+                            <i class="fas fa-user mr-2"></i> โปรไฟล์
+                        </a>
+                    </li>
+                    <li class="mb-4">
+                        <a href="profile-skills.html" class="text-gray-700 hover:text-blue-600 font-bold">
+                            <i class="fas fa-cogs mr-2"></i> ทักษะความสามารถ
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        <!-- Main Content -->
+        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10 flex flex-col justify-center items-center">
+            <!-- Menu List -->
+            <div class="w-full max-w-3xl mb-10">
+                <nav class="flex justify-around">
+                    <a href="profile.html" class="text-white hover:text-gray-300 font-bold">
+                        <i class="fas fa-user mr-2"></i> โปรไฟล์
+                    </a>
+                    <a href="profile-skills.html" class="text-white hover:text-gray-300 font-bold">
+                        <i class="fas fa-cogs mr-2"></i> ทักษะความสามารถ
+                    </a>
+                </nav>
+            </div>
+            <div class="bg-white text-black p-10 rounded-xl shadow-xl w-full max-w-3xl border border-gray-200">
+                <h1 class="text-4xl font-bold mb-5 text-center">ทักษะความสามารถ</h1>
+                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">ทักษะของผู้ใช้</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-36 gap-y-4 ml-24" id="skills-container">
+                    <!-- Skills will be dynamically inserted here -->
+                </div>
+                <div class="flex justify-center mt-4 space-x-4">
+                    <button
+                        class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        onclick="logout()">Logout</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                console.error('No token found. Redirecting to login page.');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            // Fetch user profile information to get user ID
+            fetch('http://localhost:3000/api/tbm/auth/profile', {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(profileData => {
+                    const userId = profileData.user_id;
+                    // Fetch user skills information using the user ID
+                    fetch(`http://localhost:3000/api/tbm/skills/members/${userId}/skills`, {
+                        headers: {
+                            'Authorization': `Bearer ${token}`
+                        }
+                    })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            const skills = data.skills;
+                            renderUserSkills(skills);
+                        })
+                        .catch(error => {
+                            console.error('Error:', error);
+                            alert('An error occurred. Please try again.');
+                        });
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred. Please try again.');
+                });
+
+            // Initialize the sidebar
+            checkLoginStatus();
+        });
+
+        function renderUserSkills(skills) {
+            const skillsContainer = document.getElementById('skills-container');
+            skillsContainer.innerHTML = ''; // Clear any existing content
+
+            skills.forEach((skill, index) => {
+                const skillElement = document.createElement('div');
+                skillElement.classList.add('mb-4');
+                skillElement.innerHTML = `
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="user-skill-${index + 1}">ทักษะ ${index + 1}:</label>
+                    <p class="text-gray-700 text-lg" id="user-skill-${index + 1}">${skill.name || 'N/A'}</p>
+                `;
+                skillsContainer.appendChild(skillElement);
+            });
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('profileData');
+            window.location.href = 'login.html';
+        }
+    </script>
+    <script src="navbar.js"></script>
+    <script src="selected-language.js"></script>
+</body>
+
+</html>
