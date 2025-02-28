@@ -63,7 +63,8 @@ CREATE TABLE activities (
     end_time TIME,
     max_participants INT,
     requester_id INT,
-    status activity_status NOT NULL,  -- Changed to enum type
+    requester_phone VARCHAR(20),  -- Added new column to store phone number
+    status activity_status NOT NULL,
     time_tokens_required INT DEFAULT 0,
     time_tokens_per_participant INT DEFAULT 0,
     created_at TIMESTAMP DEFAULT NOW(),
@@ -225,14 +226,14 @@ VALUES ('testuser', '$2a$10$y2yR9UyFAUfyYCiYqDxgteWBflWnsbYdlFZDmNPmn7P1.xUfbRFt
         ('save001', '$2a$10$4tEtE.kQJrXrM2G5w.8Fs.PWVcMz/WeE0iZSfPPdxz0DTY82mVOTy', 'savewaris001@gmail.com', 'Admin', 'Test User', '1234567890', '123 Test St, Test City', 1, 10, 'active');
 
 -- Insert initial data into activities
-INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, status, time_tokens_required, time_tokens_per_participant) 
+INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, requester_phone, status, time_tokens_required, time_tokens_per_participant) 
 VALUES 
-('กิจกรรมทำความสะอาดชุมชน', 'ทำความสะอาดชุมชน', 'Community Center', '2023-01-01', '09:00', '2023-01-01', '12:00', 20, 1, 'กำลังจะเริ่ม', 20, 1),
-('กิจกรรมสอนคอมพิวเตอร์', 'สอนคอมพิวเตอร์ให้กับชุมชน', 'Community Center', '2023-01-15', '10:00', '2023-01-15', '13:00', 15, 1, 'กำลังจะเริ่ม', 15, 1),
-('กิจกรรมทำอาหาร', 'ทำอาหารร่วมกัน', 'Community Kitchen', '2023-01-30', '11:00', '2023-01-30', '14:00', 10, 1, 'เสร็จสิ้น', 10, 1),
-('กิจกรรมทำสวน', 'ทำสวนร่วมกัน', 'Community Garden', '2023-02-05', '08:00', '2023-02-05', '11:00', 25, 1, 'เสร็จสิ้น', 25, 1),
-('กิจกรรมยกเลิก', 'กิจกรรมนี้ถูกยกเลิก', 'Community Center', '2023-02-20', '09:00', '2023-02-20', '12:00', 0, 1, 'ยกเลิก', 0, 0),
-('กิจกรรมยกเลิก', 'กิจกรรมนี้ถูกยกเลิก', 'Community Center', '2023-02-25', '09:00', '2023-02-25', '12:00', 0, 1, 'ยกเลิก', 0, 0);
+('กิจกรรมทำความสะอาดชุมชน', 'ทำความสะอาดชุมชน', 'Community Center', '2023-01-01', '09:00', '2023-01-01', '12:00', 20, 1, '1234567890', 'กำลังจะเริ่ม', 20, 1),
+('กิจกรรมสอนคอมพิวเตอร์', 'สอนคอมพิวเตอร์ให้กับชุมชน', 'Community Center', '2023-01-15', '10:00', '2023-01-15', '13:00', 15, 1, '0987654321', 'กำลังจะเริ่ม', 15, 1),
+('กิจกรรมทำอาหาร', 'ทำอาหารร่วมกัน', 'Community Kitchen', '2023-01-30', '11:00', '2023-01-30', '14:00', 10, 1, '0987654321', 'เสร็จสิ้น', 10, 1),
+('กิจกรรมทำสวน', 'ทำสวนร่วมกัน', 'Community Garden', '2023-02-05', '08:00', '2023-02-05', '11:00', 25, 1, '0987654321', 'เสร็จสิ้น', 25, 1),
+('กิจกรรมยกเลิก', 'กิจกรรมนี้ถูกยกเลิก', 'Community Center', '2023-02-20', '09:00', '2023-02-20', '12:00', 0, 1, '0987654321', 'ยกเลิก', 0, 0),
+('กิจกรรมยกเลิก', 'กิจกรรมนี้ถูกยกเลิก', 'Community Center', '2023-02-25', '09:00', '2023-02-25', '12:00', 0, 1, '0987654321', 'ยกเลิก', 0, 0);
 
 -- Insert initial data into categories
 INSERT INTO categories (category) 
@@ -330,3 +331,4 @@ VALUES
 INSERT INTO transactions (user_id, activity_id, date, time, time_credits, transaction_type, details, requester_id, participant_id, created_at, updated_at) 
 VALUES 
 (1, 1, '2023-01-01', '09:00:00', 1, 'earn', 'Participated in activity: กิจกรรมทำความสะอาดชุมชน', 1, 1, '2025-01-29 15:46:29.868674', '2025-01-29 15:46:29.868674');
+

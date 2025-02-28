@@ -16,17 +16,36 @@
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
+        
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
+        
                 const data = await response.json();
-                document.getElementById('requester-name').textContent = data.name || 'N/A';
-                document.getElementById('requester-id').value = data.user_id || 'N/A';
+                console.log('Fetched User Data:', data); // Debugging log
+        
+                if (data && data.user_id) {
+                    document.getElementById('requester-id').value = data.user_id;
+                }
+        
+                // FIX: Use value instead of textContent
+                if (data && data.name) {
+                    document.getElementById('requester-name').value = data.name;
+                } else {
+                    console.error('User name not found in API response');
+                    document.getElementById('requester-name').value = 'N/A';
+                }
+        
+                document.getElementById('requester-phone').value = data.phone || 'N/A';
+        
             } catch (error) {
                 console.error('Error fetching user details:', error);
                 alert('เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้');
             }
         }
+        
+        
+        
 
         async function fetchCommunityConfig() {
             try {
@@ -90,6 +109,7 @@
             const endTime = document.getElementById('end-time').value;
             const maxParticipants = parseInt(document.getElementById('max-participants').value, 10);
             const requesterId = document.getElementById('requester-id').value;
+            const requesterPhone = document.getElementById('requester-phone').value; // Ensure phone number is included
             const status = document.getElementById('status').value;
             const timeTokensRequired = parseFloat(document.getElementById('time-tokens-required').value);
             const timeTokensPerParticipant = parseFloat(document.getElementById('time-tokens-per-participant').value);
@@ -109,13 +129,13 @@
                 end_time: endTime,
                 max_participants: maxParticipants,
                 requester_id: requesterId,
+                requester_phone: requesterPhone, // Ensure phone is included
                 status,
                 time_tokens_required: timeTokensRequired,
                 time_tokens_per_participant: timeTokensPerParticipant
             };
         
             try {
-                // Step 1: Create the Activity
                 const activityResponse = await fetch('http://localhost:3000/api/user/activities', {
                     method: 'POST',
                     headers: {
@@ -130,42 +150,14 @@
                     throw new Error(`Activity creation failed: ${errorData.error}`);
                 }
         
-                const createdActivity = await activityResponse.json();
-                const activityId = createdActivity.activity_id;
-        
-                // Step 2: Log the Transaction
-                const transactionData = {
-                    user_id: requesterId,
-                    activity_id: activityId,
-                    date: new Date().toISOString().split('T')[0], // Current date
-                    time: new Date().toTimeString().split(' ')[0], // Current time
-                    time_credits: timeTokensRequired,
-                    transaction_type: 'spend',
-                    details: `Created activity: ${title}`,
-                    requester_id: requesterId
-                };
-        
-                const transactionResponse = await fetch('http://localhost:3000/api/user/transactions', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify(transactionData)
-                });
-        
-                if (!transactionResponse.ok) {
-                    const errorData = await transactionResponse.json();
-                    throw new Error(`Transaction creation failed: ${errorData.error}`);
-                }
-        
                 alert('สร้างกิจกรรมและบันทึกธุรกรรมเรียบร้อยแล้ว!');
                 window.location.href = 'myactivity.html';
             } catch (error) {
                 console.error('Error:', error);
-                alert('เกิดข้อผิดพลาดในการสร้างกิจกรรมหรือบันทึกธุรกรรม กรุณาลองใหม่อีกครั้ง');
+                alert('เกิดข้อผิดพลาดในการสร้างกิจกรรม กรุณาลองใหม่อีกครั้ง');
             }
-        }
+        }        
+        
         
         
 
@@ -370,20 +362,76 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             checkLoginStatus();
+            fetchUserDetails();
             fetchCommunityConfig();
+            
             document.getElementById('max-participants').addEventListener('input', calculateTimeTokens);
-            document.getElementById('start-date').addEventListener('input', calculateTimeTokens);
-            document.getElementById('end-date').addEventListener('input', calculateTimeTokens);
-            document.getElementById('start-time').addEventListener('input', calculateTimeTokens);
+            document.getElementById('start-date').addEventListener('input', (event) => {
+                updateEndDate(event.target.value);
+                calculateTimeTokens();
+            });
+            document.getElementById('start-time').addEventListener('input', (event) => {
+                adjustEndTime(event.target.value);
+                calculateTimeTokens();
+            });
             document.getElementById('end-time').addEventListener('input', calculateTimeTokens);
-
-            // Set min date and time for start-date and start-time
-            const now = new Date();
-            const formattedDate = now.toISOString().split('T')[0];
-            const formattedTime = now.toTimeString().split(' ')[0].substring(0, 5);
-            document.getElementById('start-date').setAttribute('min', formattedDate);
-            document.getElementById('start-time').setAttribute('min', formattedTime);
+        
+            setStartDateRange();
         });
+        
+        function setStartDateRange() {
+            const now = new Date();
+            const minStartDate = new Date();
+            minStartDate.setDate(now.getDate() + 3); // Start date must be at least 3 days ahead
+        
+            const formattedMinStartDate = minStartDate.toISOString().split('T')[0];
+        
+            const startDateInput = document.getElementById('start-date');
+            const endDateInput = document.getElementById('end-date');
+        
+            // Set the initial values and min attributes
+            startDateInput.setAttribute('min', formattedMinStartDate);
+            startDateInput.value = formattedMinStartDate;
+            endDateInput.setAttribute('min', formattedMinStartDate);
+            endDateInput.value = formattedMinStartDate;
+        
+            syncDates(formattedMinStartDate);
+        }
+        
+        function syncDates(selectedDate) {
+            const startDateInput = document.getElementById('start-date');
+            const endDateInput = document.getElementById('end-date');
+        
+            startDateInput.value = selectedDate;
+            endDateInput.value = selectedDate;
+        }
+        
+        // Event Listeners to keep start and end dates in sync
+        document.addEventListener('DOMContentLoaded', () => {
+            setStartDateRange();
+        
+            document.getElementById('start-date').addEventListener('input', (event) => {
+                syncDates(event.target.value);
+            });
+        
+            document.getElementById('end-date').addEventListener('input', (event) => {
+                syncDates(event.target.value);
+            });
+        });
+        
+        
+        
+        function adjustEndTime(startTime) {
+            if (!startTime) return;
+            
+            let [hours, minutes] = startTime.split(":").map(Number);
+            hours += 1; // Add 1 hour
+            if (hours >= 24) hours = 0; // Handle 24-hour format overflow
+            
+            const endTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+            document.getElementById('end-time').value = endTime;
+        }
+        
     </script>
 </head>
 
@@ -460,109 +508,100 @@
             </nav>
         </div>
         <!-- Main Content -->
-        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
-            <h1 class="text-4xl font-bold mb-5">สร้างกิจกรรม</h1>
-            <div class="bg-white text-black p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
-                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">รายละเอียดกิจกรรม</h2>
-                <form onsubmit="submitActivity(event)">
-                    <div class="flex flex-wrap -mx-3 mb-4">
-                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="title">ชื่อกิจกรรม</label>
-                            <input id="title"
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="text" required />
-                        </div>
-                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="requester-name">ชื่อผู้ขอ</label>
-                            <div id="requester-name"
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline bg-gray-100">
+            <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
+                <h1 class="text-4xl font-bold mb-5">สร้างกิจกรรม</h1>
+                <div class="bg-white text-black p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
+                    <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">รายละเอียดกิจกรรม</h2>
+                    <form onsubmit="submitActivity(event)">
+                        
+                        <!-- Section: Requester Information -->
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="requester-name">ชื่อผู้ขอ</label>
+                                <input id="requester-name" class="shadow border rounded w-full py-2 px-3 text-gray-700 bg-gray-100" readonly />
+                                <input id="requester-id" type="hidden" />
                             </div>
-                            <input id="requester-id" type="hidden" />
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="requester-phone">เบอร์โทรศัพท์</label>
+                                <input id="requester-phone" class="shadow border rounded w-full py-2 px-3 text-gray-700 bg-gray-100" readonly />
+                            </div>
                         </div>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="description">รายละเอียด</label>
-                        <textarea id="description"
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            required></textarea>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="location">สถานที่</label>
-                        <input id="location"
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            type="text" required />
-                    </div>
-                    <div class="flex flex-wrap -mx-3 mb-4">
-                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="start-date">วันที่เริ่มต้น</label>
-                            <input id="start-date"
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="date" required />
+                
+                        <!-- Section: Activity Details -->
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="title">ชื่อกิจกรรม</label>
+                            <input id="title" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text" required />
                         </div>
-                        <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="start-time">เวลาเริ่มต้น</label>
-                            <input id="start-time"
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="time" required />
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="description">รายละเอียด</label>
+                            <textarea id="description" class="shadow border rounded w-full py-2 px-3 text-gray-700" required></textarea>
                         </div>
-                    </div>
-                    <div class="flex flex-wrap -mx-3 mb-4">
-                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="end-date">วันที่สิ้นสุด</label>
-                            <input id="end-date"
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="date" required />
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="location">สถานที่</label>
+                            <input id="location" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text" required />
                         </div>
-                        <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="end-time">เวลาสิ้นสุด</label>
-                            <input id="end-time"
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="time" required />
+                
+                        <!-- Section: Date & Time -->
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="start-date">วันที่เริ่มต้น</label>
+                                <input id="start-date" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="date" required />
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="start-time">เวลาเริ่มต้น</label>
+                                <input id="start-time" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="time" required />
+                            </div>
                         </div>
-                    </div>
-                    <div class="flex flex-wrap -mx-3 mb-4">
-                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="max-participants">จำนวนผู้เข้าร่วมสูงสุด</label>
-                            <input id="max-participants"
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="number" oninput="calculateTimeTokens()" required />
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="end-date">วันที่สิ้นสุด</label>
+                                <input id="end-date" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="date" required />
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="end-time">เวลาสิ้นสุด</label>
+                                <input id="end-time" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="time" required />
+                            </div>
                         </div>
-                        <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="status" style="margin-left: 10px;">สถานะ</label>
-                            <select id="status"
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                required>
-                                <option value="กำลังจะเริ่ม">กำลังจะเริ่ม</option>
-                            </select>
+                
+                        <!-- Section: Participants & Status -->
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="max-participants">จำนวนผู้เข้าร่วมสูงสุด</label>
+                                <input id="max-participants" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="number" required />
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="status">สถานะ</label>
+                                <select id="status" class="shadow border rounded w-full py-2 px-3 text-gray-700" required>
+                                    <option value="กำลังจะเริ่ม">กำลังจะเริ่ม</option>
+                                </select>
+                            </div>
                         </div>
-                    </div>
-                    <div class="flex flex-wrap -mx-3 mb-4">
-                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="time-tokens-required">จำนวนโทเค็นเวลาที่ต้องการ</label>
-                            <input id="time-tokens-required"
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="text" readonly />
+                
+                        <!-- Section: Time Tokens -->
+                        <div class="grid grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="time-tokens-required">จำนวนโทเค็นเวลาที่ต้องการ</label>
+                                <input id="time-tokens-required" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text" readonly />
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="time-tokens-per-participant">จำนวนโทเค็นเวลาต่อผู้เข้าร่วม</label>
+                                <input id="time-tokens-per-participant" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text" readonly />
+                            </div>
                         </div>
-                        <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="time-tokens-per-participant">จำนวนโทเค็นเวลาต่อผู้เข้าร่วม</label>
-                            <input id="time-tokens-per-participant"
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="text" readonly />
+                
+                        <!-- Buttons -->
+                        <div class="flex justify-center space-x-4">
+                            <button onclick="window.history.back();" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
+                                ย้อนกลับ
+                            </button>
+                            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" type="submit">
+                                สร้างกิจกรรม
+                            </button>
                         </div>
-                    </div>
-                    <div class="flex items-center justify-center">
-                        <button onclick="window.history.back();"
-                            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline">
-                            ย้อนกลับ
-                        </button>
-                        <button
-                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
-                            type="submit">สร้างกิจกรรม</button>
-                    </div>
-                </form>
-            </div>
+                    </form>
+                </div>                
         </div>
-    </div>
+    </div>  
 </body>
 
 </html>

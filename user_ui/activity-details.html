@@ -36,6 +36,7 @@
                     document.getElementById('service-time-end').value = activity.end_time ? activity.end_time.substring(0, 5) : '';
                     document.getElementById('service-people').value = activity.max_participants || '';
                     document.getElementById('requester-name').value = activity.requester_name || '';
+                    document.getElementById('requester-phone').value = activity.requester_phone || '';
                     document.getElementById('service-status').value = activity.status || '';
 
                     // Fetch participants and update the participant count
@@ -443,114 +444,132 @@
                 </ul>
             </nav>
         </div>
+        
         <!-- Main Content -->
-        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
-            <h1 class="text-4xl font-bold mb-5">
-                แก้ไขกิจกรรม
-            </h1>
-            <div class="bg-white text-black p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
-                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">
-                    รายละเอียดกิจกรรม
-                </h2>
-                <form onsubmit="updateActivity(event)">
-                    <div class="flex flex-wrap -mx-3 mb-4">
-                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-title">
-                                ชื่อบริการ
-                            </label>
-                            <input id="service-title"
-                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="text" disabled />
-                        </div>
-                        <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-start-date">
-                                วันที่เริ่มต้น
-                            </label>
-                            <input id="service-start-date"
-                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="date" disabled />
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap -mx-3 mb-4">
-                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-time-start">
-                                เวลาเริ่มต้น
-                            </label>
-                            <input id="service-time-start"
-                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="time" disabled />
-                        </div>
-                        <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-end-date">
-                                วันที่สิ้นสุด
-                            </label>
-                            <input id="service-end-date"
-                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="date" disabled />
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap -mx-3 mb-4">
-                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-time-end">
-                                เวลาสิ้นสุด
-                            </label>
-                            <input id="service-time-end"
-                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="time" disabled />
-                        </div>
-                        <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-location">
-                                สถานที่จัด
-                            </label>
-                            <input id="service-location"
-                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="text" disabled />
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap -mx-3 mb-4">
-                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-people">
-                                จำนวนคน
-                            </label>
-                            <input id="service-people"
-                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="number" disabled />
-                        </div>
-                        <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="requester-name">
-                                ชื่อผู้ขอบริการ
-                            </label>
-                            <input id="requester-name"
-                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="text" disabled />
-                        </div>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="service-description">
-                            รายละเอียดบริการ
-                        </label>
-                        <textarea id="service-description"
-                            class="editable-textarea shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            disabled></textarea>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="service-status">
-                            สถานะ
-                        </label>
-                        <select id="service-status"
-                            class="editable-select shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            disabled>
-                            <option value="กำลังจะเริ่ม">กำลังจะเริ่ม</option>
-                            <option value="เสร็จสิ้น">เสร็จสิ้น</option>
-                            <option value="ยกเลิก">ยกเลิก</option>
-                        </select>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">
-                            จำนวนผู้เข้าร่วม
-                        </label>
-                        <p id="current-participants" class="text-gray-700"></p>
-                    </div>
+<div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
+    <h1 class="text-4xl font-bold mb-5">
+        แก้ไขกิจกรรม
+    </h1>
+    <div class="bg-white text-black p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
+        <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">
+            รายละเอียดกิจกรรม
+        </h2>
+        <form onsubmit="updateActivity(event)">
+            <!-- Requester Information -->
+            <div class="flex flex-wrap -mx-3 mb-4">
+                <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="requester-name">
+                        ชื่อผู้ขอบริการ
+                    </label>
+                    <input id="requester-name"
+                        class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        type="text" disabled />
+                </div>
+                <div class="w-full md:w-1/2 px-3">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="requester-phone">
+                        เบอร์โทรศัพท์
+                    </label>
+                    <input id="requester-phone"
+                        class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        type="text" disabled />
+                </div>
+            </div>
+
+            <!-- Service Information -->
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="service-title">
+                    ชื่อบริการ
+                </label>
+                <input id="service-title"
+                    class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    type="text" disabled />
+            </div>
+            <div class="mb-4">
+                <label class="block text-gray-700 text-sm font-bold mb-2" for="service-description">
+                    รายละเอียดบริการ
+                </label>
+                <textarea id="service-description"
+                    class="editable-textarea shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                    disabled></textarea>
+            </div>
+            <div class="flex flex-wrap -mx-3 mb-4">
+                <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="service-location">
+                        สถานที่จัด
+                    </label>
+                    <input id="service-location"
+                        class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        type="text" disabled />
+                </div>
+                <div class="w-full md:w-1/2 px-3">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="service-status">
+                        สถานะ
+                    </label>
+                    <select id="service-status"
+                        class="editable-select shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        disabled>
+                        <option value="กำลังจะเริ่ม">กำลังจะเริ่ม</option>
+                        <option value="เสร็จสิ้น">เสร็จสิ้น</option>
+                        <option value="ยกเลิก">ยกเลิก</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Date & Time Information -->
+            <div class="flex flex-wrap -mx-3 mb-4">
+                <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="service-start-date">
+                        วันที่เริ่มต้น
+                    </label>
+                    <input id="service-start-date"
+                        class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        type="date" disabled />
+                </div>
+                <div class="w-full md:w-1/2 px-3">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="service-end-date">
+                        วันที่สิ้นสุด
+                    </label>
+                    <input id="service-end-date"
+                        class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        type="date" disabled />
+                </div>
+            </div>
+            <div class="flex flex-wrap -mx-3 mb-4">
+                <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="service-time-start">
+                        เวลาเริ่มต้น
+                    </label>
+                    <input id="service-time-start"
+                        class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        type="time" disabled />
+                </div>
+                <div class="w-full md:w-1/2 px-3">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="service-time-end">
+                        เวลาสิ้นสุด
+                    </label>
+                    <input id="service-time-end"
+                        class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        type="time" disabled />
+                </div>
+            </div>
+
+            <!-- Participant Count -->
+            <div class="flex flex-wrap -mx-3 mb-4">
+                <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="service-people">
+                        จำนวนคน
+                    </label>
+                    <input id="service-people"
+                        class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        type="number" disabled />
+                </div>
+                <div class="w-full md:w-1/2 px-3">
+                    <label class="block text-gray-700 text-sm font-bold mb-2">
+                        จำนวนผู้เข้าร่วม
+                    </label>
+                    <p id="current-participants" class="text-gray-700"></p>
+                </div>
+            </div>
                     <div class="flex items-center justify-center">
                         <button
                             class="bg-gray-500 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"

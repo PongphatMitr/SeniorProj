@@ -66,18 +66,19 @@ const activityRoutes = (pool) => {
 
     // Create a new activity
     router.post('/', async (req, res) => {
-        const { title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, status, time_tokens_required, time_tokens_per_participant } = req.body;
-
+        const { title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, requester_phone, status, time_tokens_required, time_tokens_per_participant } = req.body;
+    
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
-
-            // Create the activity
+    
+            // Ensure `requester_phone` is included in the database query
             const result = await client.query(
-                'INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, status, time_tokens_required, time_tokens_per_participant) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *',
-                [title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, status, time_tokens_required, time_tokens_per_participant]
+                `INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, requester_phone, status, time_tokens_required, time_tokens_per_participant)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
+                [title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, requester_phone, status, time_tokens_required, time_tokens_per_participant]
             );
-
+    
             await client.query('COMMIT');
             res.status(201).json(result.rows[0]);
         } catch (err) {
@@ -88,16 +89,17 @@ const activityRoutes = (pool) => {
             client.release();
         }
     });
+    
 
     // Update an activity
     router.put('/:id', async (req, res) => {
         const { id } = req.params;
-        const { title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, status, time_tokens_required, time_tokens_per_participant } = req.body;
+        const { title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, requester_phone, status, time_tokens_required, time_tokens_per_participant } = req.body;
 
         try {
             const result = await pool.query(
-                'UPDATE activities SET title = $1, description = $2, location = $3, start_date = $4, start_time = $5, end_date = $6, end_time = $7, max_participants = $8, requester_id = $9, status = $10, time_tokens_required = $11, time_tokens_per_participant = $12 WHERE activity_id = $13 RETURNING *',
-                [title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, status, time_tokens_required, time_tokens_per_participant, id]
+                'UPDATE activities SET title = $1, description = $2, location = $3, start_date = $4, start_time = $5, end_date = $6, end_time = $7, max_participants = $8, requester_id = $9, requester_phone = $10, status = $11, time_tokens_required = $12, time_tokens_per_participant = $13 WHERE activity_id = $14 RETURNING *',
+                [title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, requester_phone, status, time_tokens_required, time_tokens_per_participant, id]
             );
 
             res.json(result.rows[0]);
@@ -141,84 +143,85 @@ const activityRoutes = (pool) => {
     // Fetch participants for a given activity
     router.get('/:activityId/participants', async (req, res) => {
         const { activityId } = req.params;
-
+    
         try {
             const participants = await pool.query(`
-                   SELECT u.user_id, u.name, u.email, COALESCE(array_agg(s.name) FILTER (WHERE s.name IS NOT NULL), '{}') as skills
+                   SELECT u.user_id, u.name, u.phone, COALESCE(array_agg(s.name) FILTER (WHERE s.name IS NOT NULL), '{}') as skills
                    FROM activity_participants ap
                    JOIN users u ON ap.user_id = u.user_id
                    LEFT JOIN member_skills ms ON u.user_id = ms.user_id
                    LEFT JOIN skills s ON ms.skill_id = s.skill_id
                    WHERE ap.activity_id = $1
-                   GROUP BY u.user_id, u.name, u.email
+                   GROUP BY u.user_id, u.name, u.phone
                `, [activityId]);
-
+    
             res.json(participants.rows);
         } catch (error) {
             console.error('Error fetching participants:', error);
             res.status(500).json({ error: 'Failed to fetch participants' });
         }
     });
+    
 
-        // Add a participant to an activity
-        router.post('/:activityId/participants', async (req, res) => {
-            const { activityId } = req.params;
-            const { memberId } = req.body;
-        
-            console.log(`Attempting to join activity ${activityId} with user ${memberId}`);  // Debug log
-        
-            const client = await pool.connect();
-            try {
-                await client.query('BEGIN');
-        
-                // Check if activity exists
-                const activityResult = await client.query('SELECT * FROM activities WHERE activity_id = $1', [activityId]);
-                if (activityResult.rows.length === 0) {
-                    console.error(`Activity with ID ${activityId} not found`);
-                    return res.status(404).json({ error: 'Activity not found' });
-                }
-        
-                const activity = activityResult.rows[0];
-        
-                // Check if the user is already a participant
-                const checkParticipant = await client.query(
-                    'SELECT * FROM activity_participants WHERE activity_id = $1 AND user_id = $2',
-                    [activityId, memberId]
-                );
-                if (checkParticipant.rows.length > 0) {
-                    console.error(`User ${memberId} is already a participant in activity ${activityId}`);
-                    return res.status(400).json({ error: 'User is already a participant in this activity.' });
-                }
-        
-                // Check if the activity is full
-                const participantCount = await client.query(
-                    'SELECT COUNT(*) FROM activity_participants WHERE activity_id = $1',
-                    [activityId]
-                );
-                if (parseInt(participantCount.rows[0].count) >= activity.max_participants) {
-                    console.error(`Activity ${activityId} is already full.`);
-                    return res.status(400).json({ error: 'Activity is already full.' });
-                }
-        
-                // Add participant to the activity
-                await client.query(
-                    'INSERT INTO activity_participants (activity_id, user_id) VALUES ($1, $2)',
-                    [activityId, memberId]
-                );
-        
-                console.log(`User ${memberId} successfully joined activity ${activityId}`);  // Success log
-        
-                await client.query('COMMIT');
-                res.status(201).json({ message: 'Successfully joined the activity.' });
-            } catch (err) {
-                await client.query('ROLLBACK');
-                console.error('Error joining activity:', err);  // More detailed error logging
-                res.status(500).json({ error: 'An error occurred. Please try again.' });
-            } finally {
-                client.release();
+    // Add a participant to an activity
+    router.post('/:activityId/participants', async (req, res) => {
+        const { activityId } = req.params;
+        const { memberId } = req.body;
+
+        console.log(`Attempting to join activity ${activityId} with user ${memberId}`);  // Debug log
+
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            // Check if activity exists
+            const activityResult = await client.query('SELECT * FROM activities WHERE activity_id = $1', [activityId]);
+            if (activityResult.rows.length === 0) {
+                console.error(`Activity with ID ${activityId} not found`);
+                return res.status(404).json({ error: 'Activity not found' });
             }
-        });
-        
+
+            const activity = activityResult.rows[0];
+
+            // Check if the user is already a participant
+            const checkParticipant = await client.query(
+                'SELECT * FROM activity_participants WHERE activity_id = $1 AND user_id = $2',
+                [activityId, memberId]
+            );
+            if (checkParticipant.rows.length > 0) {
+                console.error(`User ${memberId} is already a participant in activity ${activityId}`);
+                return res.status(400).json({ error: 'User is already a participant in this activity.' });
+            }
+
+            // Check if the activity is full
+            const participantCount = await client.query(
+                'SELECT COUNT(*) FROM activity_participants WHERE activity_id = $1',
+                [activityId]
+            );
+            if (parseInt(participantCount.rows[0].count) >= activity.max_participants) {
+                console.error(`Activity ${activityId} is already full.`);
+                return res.status(400).json({ error: 'Activity is already full.' });
+            }
+
+            // Add participant to the activity
+            await client.query(
+                'INSERT INTO activity_participants (activity_id, user_id) VALUES ($1, $2)',
+                [activityId, memberId]
+            );
+
+            console.log(`User ${memberId} successfully joined activity ${activityId}`);  // Success log
+
+            await client.query('COMMIT');
+            res.status(201).json({ message: 'Successfully joined the activity.' });
+        } catch (err) {
+            await client.query('ROLLBACK');
+            console.error('Error joining activity:', err);  // More detailed error logging
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        } finally {
+            client.release();
+        }
+    });
+
     // Approve an activity
     router.post('/:activityId/approve', async (req, res) => {
         const { activityId } = req.params;

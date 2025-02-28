@@ -19,7 +19,7 @@
     </style>
     <script>
         let activities = [];
-        let sortOrder = { title: 'asc', start_date: 'asc', status: 'asc' };
+        let sortOrder = { title: 'asc', created_at: 'asc', start_date: 'asc', status: 'asc' };
         let globalUserId = null;
 
         async function confirmAndRemove(event, rowId, activityId) {
@@ -108,7 +108,7 @@
                 let joinButtonText = 'เข้าร่วม';
                 let joinButtonClass = 'bg-blue-500';
                 let joinButtonDisabled = false;
-        
+
                 if (activity.status === 'เสร็จสิ้น') {
                     joinButtonText = 'เสร็จสิ้น';
                     joinButtonClass = 'bg-green-500';
@@ -125,12 +125,12 @@
                     joinButtonClass = 'bg-orange-500';
                     joinButtonDisabled = true;
                 }
-        
+
                 // เช็คว่าเป็นกิจกรรมของผู้ใช้เองหรือไม่
-                const activityDetailsPage = (activity.requester_id === globalUserId) 
-                    ? "myactivity-details.html" 
+                const activityDetailsPage = (activity.requester_id === globalUserId)
+                    ? "myactivity-details.html"
                     : "activity-details.html";
-        
+
                 const row = document.createElement('tr');
                 row.id = `row-${index + 1}`;
                 row.className = 'hover:bg-gray-100';
@@ -138,22 +138,25 @@
                     <td aria-colindex="1" data-label="กิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
                         ${activity.title}
                     </td>
-                    <td aria-colindex="2" data-label="วันที่" role="cell" class="py-2 px-4 border-b border-gray-200">
+                    <td aria-colindex="2" data-label="วันที่สร้างกิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${formatDate(activity.created_at)}
+                    </td>
+                    <td aria-colindex="3" data-label="วันที่เริ่มกิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
                         ${formatDate(activity.start_date)}
                     </td>
-                    <td aria-colindex="3" data-label="สถานะ" role="cell" class="py-2 px-4 border-b border-gray-200">
+                    <td aria-colindex="4" data-label="สถานะ" role="cell" class="py-2 px-4 border-b border-gray-200">
                         <span class="py-1 px-2 rounded ${activity.status === 'กำลังจะเริ่ม' ? 'bg-blue-500' : activity.status === 'เสร็จสิ้น' ? 'bg-green-500' : activity.status === 'เกินเวลา' ? 'bg-orange-500' : 'bg-red-500'} text-white">${activity.status}</span>
                     </td>
-                    <td aria-colindex="4" data-label="จำนวนผู้เข้าร่วม" role="cell" class="py-2 px-4 border-b border-gray-200">
+                    <td aria-colindex="5" data-label="จำนวนผู้เข้าร่วม" role="cell" class="py-2 px-4 border-b border-gray-200">
                         <span id="participants-${index}">${activity.current_participants}</span> / ${activity.max_participants}
                     </td>
-                    <td aria-colindex="5" data-label="การจัดการ" role="cell" class="py-2 px-4 border-b border-gray-200">
+                    <td aria-colindex="6" data-label="การจัดการ" role="cell" class="py-2 px-4 border-b border-gray-200">
                         <a href="${activityDetailsPage}?id=${activity.activity_id}" 
                            class="bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">
                             รายละเอียด
                         </a>
                     </td>
-                    <td aria-colindex="6" data-label="เข้าร่วม" role="cell" class="py-2 px-4 border-b border-gray-200">
+                    <td aria-colindex="7" data-label="เข้าร่วม" role="cell" class="py-2 px-4 border-b border-gray-200">
                         <button onclick="handleJoinButton(${activity.activity_id}, ${index})" 
                                 class="${joinButtonClass} text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline join-button" 
                                 ${joinButtonDisabled ? 'disabled' : ''}>
@@ -164,7 +167,6 @@
                 tbody.appendChild(row);
             });
         }
-        
 
         function formatDate(dateString) {
             const date = new Date(dateString);
@@ -190,7 +192,7 @@
 
         async function updateSidebar(isLoggedIn) {
             const navList = document.getElementById('navList');
-        
+
             if (isLoggedIn) {
                 try {
                     // Fetch user details to get the memberId
@@ -201,14 +203,14 @@
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
                         }
                     });
-        
+
                     if (!response.ok) {
                         throw new Error('Failed to fetch user details');
                     }
-        
+
                     const member = await response.json(); // Adjust based on your backend response
                     const memberId = member.userId || member.user_id; // Use the correct field for memberId from the response
-        
+
                     navList.innerHTML = `
                         <li class="mb-5">
                             <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
@@ -419,19 +421,19 @@
         async function joinActivity(activityId, index) {
             const token = localStorage.getItem('token');
             const userId = globalUserId; // Ensure globalUserId is set correctly
-        
+
             console.log(`Joining activity ${activityId} with userId: ${userId}`);  // Debug log
-        
+
             if (!token || !userId) {
                 alert('You need to be logged in to join an activity.');
                 return;
             }
-        
+
             if (activities[index].requester_id === userId) {
                 alert('You cannot join your own activity.');
                 return;
             }
-        
+
             try {
                 const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}/participants`, {
                     method: 'POST',
@@ -441,10 +443,10 @@
                     },
                     body: JSON.stringify({ memberId: userId })  // Ensure memberId is correct
                 });
-        
+
                 const data = await response.json();
                 console.log('Server response:', data);  // Log the server response
-        
+
                 if (response.ok) {
                     activities[index].current_participants += 1;
                     const joinButton = document.querySelector(`#row-${index + 1} .join-button`);
@@ -460,7 +462,6 @@
                 alert('An unexpected error occurred. Please try again.');
             }
         }
-        
 
         async function leaveActivity(activityId, index) {
             const token = localStorage.getItem('token');
@@ -559,7 +560,7 @@
                 </div>
                 <div class="overflow-x-auto">
                     <div class="table-responsive-sm">
-                        <table role="table" aria-busy="false" aria-colcount="5"
+                        <table role="table" aria-busy="false" aria-colcount="7"
                             class="table b-table b-table-stacked-md w-full">
                             <thead role="rowgroup" class="bg-gray-100">
                                 <tr role="row">
@@ -570,23 +571,28 @@
                                     </th>
                                     <th role="columnheader" scope="col" aria-colindex="2"
                                         class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
-                                        onclick="sortTable('start_date', 'date')">
-                                        วันที่ <i class="fas fa-sort"></i>
+                                        onclick="sortTable('created_at', 'date')">
+                                        วันที่สร้างกิจกรรม <i class="fas fa-sort"></i>
                                     </th>
                                     <th role="columnheader" scope="col" aria-colindex="3"
+                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
+                                        onclick="sortTable('start_date', 'date')">
+                                        วันที่เริ่มกิจกรรม <i class="fas fa-sort"></i>
+                                    </th>
+                                    <th role="columnheader" scope="col" aria-colindex="4"
                                         class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
                                         onclick="sortTable('status', 'string')">
                                         สถานะ <i class="fas fa-sort"></i>
                                     </th>
-                                    <th role="columnheader" scope="col" aria-colindex="4"
+                                    <th role="columnheader" scope="col" aria-colindex="5"
                                         class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
                                         จำนวนผู้เข้าร่วม
                                     </th>
-                                    <th role="columnheader" scope="col" aria-colindex="5"
+                                    <th role="columnheader" scope="col" aria-colindex="6"
                                         class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
                                         การจัดการ
                                     </th>
-                                    <th role="columnheader" scope="col" aria-colindex="6"
+                                    <th role="columnheader" scope="col" aria-colindex="7"
                                         class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
                                         เข้าร่วม
                                     </th>

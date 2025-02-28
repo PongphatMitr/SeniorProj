@@ -1,9 +1,10 @@
+<html>
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>รายชื่อผู้เข้าร่วม - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"></link>
     <script>
         let participants = [];
 
@@ -48,7 +49,7 @@
                 row.className = 'hover:bg-gray-100';
                 row.innerHTML = `
                     <td class="py-4 px-6 border-b border-gray-200">${participant.name}</td>
-                    <td class="py-4 px-6 border-b border-gray-200">${participant.email}</td>
+                    <td class="py-4 px-6 border-b border-gray-200">${participant.phone}</td>
                     <td class="py-4 px-6 border-b border-gray-200">${participant.skills.join(', ')}</td>
                 `;
                 tbody.appendChild(row);
@@ -59,6 +60,7 @@
             fetchParticipants();
             checkLoginStatus();
         });
+
         async function checkLoginStatus() {
             const token = localStorage.getItem('token');
             if (token) {
@@ -229,7 +231,7 @@
 <body class="bg-gray-100">
     <div class="flex flex-col md:flex-row">
         <!-- Sidebar -->
-        <div class="w-1/6 bg-white h-screen p-5">
+        <div class="w-full md:w-1/6 bg-white h-screen p-5">
             <div class="flex items-center mb-10">
                 <img alt="Logo of Time Bank System, a clock with a handshake in the center"
                     class="w-10 h-10 rounded-full" height="50"
@@ -265,7 +267,7 @@
                                     <th aria-colindex="2"
                                         class="py-4 px-6 text-left text-sm font-semibold text-gray-600"
                                         role="columnheader" scope="col">
-                                        อีเมล
+                                        เบอร์โทร
                                     </th>
                                     <th aria-colindex="3"
                                         class="py-4 px-6 text-left text-sm font-semibold text-gray-600"
@@ -291,5 +293,4 @@
         </div>
     </div>
 </body>
-
 </html>
