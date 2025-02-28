@@ -19,7 +19,8 @@ const authRoutes = (pool) => {
             name,
             phone,
             address,
-            branch
+            branch,
+            skills // Add skills to the request body
         } = req.body;
 
         try {
@@ -82,7 +83,7 @@ const authRoutes = (pool) => {
                 }
             }
 
-            // Update the registration query to include status and time_credits
+            // Insert the new user
             const result = await pool.query(
                 `INSERT INTO users 
                 (username, password, email, role, name, phone, address, branch_id, time_credits, status) 
@@ -91,7 +92,20 @@ const authRoutes = (pool) => {
                 [username, hashedPassword, email, role, name, phone, address, branchId, defaultTimeToken]
             );
 
-            res.status(201).json(result.rows[0]);
+            const newUser = result.rows[0];
+
+            // Insert skills for the new user
+            if (skills && skills.length > 0) {
+                const skillInsertPromises = skills.map(skillId => {
+                    return pool.query(
+                        'INSERT INTO member_skills (user_id, skill_id) VALUES ($1, $2)',
+                        [newUser.user_id, skillId]
+                    );
+                });
+                await Promise.all(skillInsertPromises);
+            }
+
+            res.status(201).json(newUser);
 
         } catch (err) {
             console.error('Registration Error Details:', {
