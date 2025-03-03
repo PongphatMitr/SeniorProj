@@ -79,6 +79,12 @@
                         </div>
                     </div>
                     <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="phone"> เบอร์โทรศัพท์ </label>
+                        <input id="phone"
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            type="text" readonly />
+                    </div>
+                    <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="description"> รายละเอียด </label>
                         <textarea id="description"
                             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -269,6 +275,7 @@
                     item.onclick = () => {
                         document.getElementById('requester-name').value = member.name;
                         document.getElementById('requester-id').value = member.user_id;
+                        document.getElementById('phone').value = member.phone; // Set phone number
                         resultsDropdown.innerHTML = '';
                     };
                     resultsDropdown.appendChild(item);
@@ -341,13 +348,14 @@
             const maxParticipantsInput = document.getElementById('max-participants').value;
             const maxParticipants = parseInt(maxParticipantsInput, 10);
             const requesterId = document.getElementById('requester-id').value;
-            const status = 'กำลังจะเริ่ม'; // Set status to "กำลังจะเริ่ม"
-            const timeTokensRequiredInput = document.getElementById('time-tokens-required').value;
-            const timeTokensRequired = parseFloat(timeTokensRequiredInput);
-            const timeTokensPerParticipantInput = document.getElementById('time-tokens-per-participant').value;
-            const timeTokensPerParticipant = parseFloat(timeTokensPerParticipantInput);
+                    const phone = document.getElementById('phone').value; // Get phone number
+                    const status = 'กำลังจะเริ่ม'; // Set status to "กำลังจะเริ่ม"
+                    const timeTokensRequiredInput = document.getElementById('time-tokens-required').value;
+                    const timeTokensRequired = parseFloat(timeTokensRequiredInput);
+                    const timeTokensPerParticipantInput = document.getElementById('time-tokens-per-participant').value;
+                    const timeTokensPerParticipant = parseFloat(timeTokensPerParticipantInput);
 
-            if (isNaN(maxParticipants) || maxParticipants <= 0) {
+                    if (isNaN(maxParticipants) || maxParticipants <= 0) {
                         alert('กรุณากรอกจำนวนผู้เข้าร่วมสูงสุดให้ถูกต้อง');
                         return;
                     }
@@ -377,6 +385,7 @@
                         end_time: endTime,
                         max_participants: maxParticipants,
                         requester_id: requesterId,
+                        requester_phone: phone, // Include phone number
                         status,
                         time_tokens_required: timeTokensRequired,
                         time_tokens_per_participant: timeTokensPerParticipant
@@ -419,6 +428,7 @@
                             labels: {
                                 title: 'ชื่อกิจกรรม',
                                 requesterName: 'ชื่อผู้ขอ',
+                                phone: 'เบอร์โทรศัพท์',
                                 description: 'รายละเอียด',
                                 location: 'สถานที่',
                                 startDate: 'วันที่เริ่มต้น',
@@ -448,6 +458,7 @@
                             labels: {
                                 title: 'Activity Title',
                                 requesterName: 'Requester Name',
+                                phone: 'Phone Number',
                                 description: 'Description',
                                 location: 'Location',
                                 startDate: 'Start Date',
@@ -481,6 +492,7 @@
                         document.querySelector('h2').textContent = langData.subHeading;
                         document.querySelector('label[for="title"]').textContent = langData.labels.title;
                         document.querySelector('label[for="requester-name"]').textContent = langData.labels.requesterName;
+                        document.querySelector('label[for="phone"]').textContent = langData.labels.phone;
                         document.querySelector('label[for="description"]').textContent = langData.labels.description;
                         document.querySelector('label[for="location"]').textContent = langData.labels.location;
                         document.querySelector('label[for="start-date"]').textContent = langData.labels.startDate;
