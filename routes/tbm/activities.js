@@ -6,6 +6,31 @@ dotenv.config();
 const activityRoutes = (pool) => {
     const router = express.Router();
 
+    // Get all activities grouped by start date
+    router.get('/by-date', async (req, res) => {
+        try {
+            const result = await pool.query(`
+            SELECT activity_id, title, start_date, status
+            FROM activities
+            ORDER BY start_date ASC
+        `);
+
+            const activitiesByDate = result.rows.reduce((acc, activity) => {
+                const date = activity.start_date.toISOString().split('T')[0];
+                if (!acc[date]) {
+                    acc[date] = [];
+                }
+                acc[date].push(activity);
+                return acc;
+            }, {});
+
+            res.json({ activities: activitiesByDate });
+        } catch (err) {
+            console.error('Error fetching activities:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+
     // Add a route to delete a participant from an activity
     router.delete('/:activityId/participants/:userId', async (req, res) => {
         const { activityId, userId } = req.params;

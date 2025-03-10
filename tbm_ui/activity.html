@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -241,6 +240,8 @@
                         type="text" placeholder="ค้นหากิจกรรม" oninput="searchActivities()" />
                     <a href="create-activity.html"
                         class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-2">เพิ่ม</a>
+                    <a href="activity-calendar.html"
+                        class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-2">ปฏิทิน</a>
                 </div>
                 <div class="overflow-x-auto">
                     <div class="table-responsive-sm">
@@ -344,6 +345,7 @@
             const subHeading = document.querySelector('h2');
             const searchPlaceholder = document.querySelector('input[placeholder]');
             const addButton = document.querySelector('a[href="create-activity.html"]');
+            const calendarButton = document.querySelector('a[href="activity-calendar.html"]');
             const tableHeaders = document.querySelectorAll('th');
 
             const translations = {
@@ -352,6 +354,7 @@
                     subHeading: 'กิจกรรม',
                     searchPlaceholder: 'ค้นหากิจกรรม',
                     addButton: 'เพิ่ม',
+                    calendarButton: 'ปฏิทิน',
                     nav: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวดหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
                     tableHeaders: ['กิจกรรม', 'วันที่', 'สถานะ', 'จำนวนผู้เข้าร่วม', 'การจัดการ'],
                 },
@@ -360,6 +363,7 @@
                     subHeading: 'Activities',
                     searchPlaceholder: 'Search Activities',
                     addButton: 'Add',
+                    calendarButton: 'Calendar',
                     nav: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
                     tableHeaders: ['Activity', 'Date', 'Status', 'Participants', 'Actions'],
                 },
@@ -375,6 +379,7 @@
                 subHeading.textContent = langData.subHeading;
                 searchPlaceholder.placeholder = langData.searchPlaceholder;
                 addButton.textContent = langData.addButton;
+                calendarButton.textContent = langData.calendarButton;
 
                 // Update table headers
                 tableHeaders.forEach((header, index) => {
