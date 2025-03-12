@@ -1,4 +1,4 @@
-<html lang="en">
+<html lang="en-GB">
 
 <head>
     <meta charset="UTF-8">
@@ -6,6 +6,7 @@
     <title>สร้างกิจกรรม - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <script src="navbar.js"></script>
 </head>
 
 <body class="bg-gray-100">
@@ -21,28 +22,7 @@
             </div>
             <nav>
                 <ul id="navList">
-                    <li class="mb-4"><a href="#" class="text-gray-700 hover:text-blue-600"><i class="fas fa-user"></i>
-                            โปรไฟล์</a></li>
-                    <li class="mb-4"><a href="#" class="text-gray-700 hover:text-blue-600"><i class="fas fa-home"></i>
-                            หน้าหลัก</a></li>
-                    <li class="mb-4"><a href="#" class="text-gray-700 hover:text-blue-600"><i
-                                class="fas fa-chart-bar"></i>
-                            รายงาน</a></li>
-                    <li class="mb-4"><a href="#" class="text-gray-700 hover:text-blue-600"><i class="fas fa-tasks"></i>
-                            จัดการกิจกรรม</a></li>
-                    <li class="mb-4"><a href="#" class="text-gray-700 hover:text-blue-600"><i class="fas fa-users"></i>
-                            จัดการสมาชิก</a></li>
-                    <li class="mb-4"><a href="#" class="text-gray-700 hover:text-blue-600"><i class="fas fa-cogs"></i>
-                            จัดการหมวหมู่ทักษะ</a></li>
-                    <li class="mb-4"><a href="#" class="text-gray-700 hover:text-blue-600"><i
-                                class="fas fa-piggy-bank"></i>
-                            จัดการกองทุนชุมชน</a></li>
-                    <li class="mb-4"><a href="#" class="text-gray-700 hover:text-blue-600"><i
-                                class="fas fa-building"></i>
-                            จัดการชุมชน</a></li>
-                    <li class="mb-4"><a href="#" class="text-gray-700 hover:text-blue-600"><i
-                                class="fas fa-exchange-alt"></i>
-                            ธุรกรรมทั้งหมด</a></li>
+                    <!-- Navigation items will be dynamically inserted here -->
                 </ul>
             </nav>
         </div>
@@ -109,7 +89,7 @@
                             </label>
                             <input id="start-time"
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="time" required />
+                                type="time" required inputmode="numeric" pattern="[0-9]{2}:[0-9]{2}" />
                         </div>
                     </div>
                     <div class="flex flex-wrap -mx-3 mb-4">
@@ -125,7 +105,7 @@
                             </label>
                             <input id="end-time"
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="time" required />
+                                type="time" required inputmode="numeric" pattern="[0-9]{2}:[0-9]{2}" />
                         </div>
                     </div>
                     <div class="flex flex-wrap -mx-3 mb-4">
@@ -210,6 +190,10 @@
             background-color: white;
             color: #6B7280;
             font-weight: bold;
+        }
+
+        input[type="time"]::-webkit-datetime-edit-ampm-field {
+            display: none;
         }
     </style>
     <script src="selected-language.js"></script>
@@ -333,21 +317,21 @@
 
             document.getElementById('time-tokens-required').value = timeTokensRequired.toFixed(2);
             document.getElementById('time-tokens-per-participant').value = timeTokensPerParticipant.toFixed(2);
-        }
+                }
 
-        async function submitActivity(event) {
-            event.preventDefault();
+                async function submitActivity(event) {
+                    event.preventDefault();
 
-            const title = document.getElementById('title').value;
-            const description = document.getElementById('description').value;
-            const location = document.getElementById('location').value;
-            const startDate = document.getElementById('start-date').value;
-            const startTime = document.getElementById('start-time').value;
-            const endDate = document.getElementById('end-date').value;
-            const endTime = document.getElementById('end-time').value;
-            const maxParticipantsInput = document.getElementById('max-participants').value;
-            const maxParticipants = parseInt(maxParticipantsInput, 10);
-            const requesterId = document.getElementById('requester-id').value;
+                    const title = document.getElementById('title').value;
+                    const description = document.getElementById('description').value;
+                    const location = document.getElementById('location').value;
+                    const startDate = document.getElementById('start-date').value;
+                    const startTime = document.getElementById('start-time').value;
+                    const endDate = document.getElementById('end-date').value;
+                    const endTime = document.getElementById('end-time').value;
+                    const maxParticipantsInput = document.getElementById('max-participants').value;
+                    const maxParticipants = parseInt(maxParticipantsInput, 10);
+                    const requesterId = document.getElementById('requester-id').value;
                     const phone = document.getElementById('phone').value; // Get phone number
                     const status = 'กำลังจะเริ่ม'; // Set status to "กำลังจะเริ่ม"
                     const timeTokensRequiredInput = document.getElementById('time-tokens-required').value;
@@ -418,6 +402,43 @@
                 }
 
                 document.addEventListener('DOMContentLoaded', () => {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const selectedDate = urlParams.get("date");
+                    const today = new Date();
+                    today.setDate(today.getDate() + 3); // Set minimum selectable date to 3 days from now
+                    const minDate = today.toISOString().split("T")[0];
+
+                    const startDateInput = document.getElementById("start-date");
+                    const endDateInput = document.getElementById("end-date");
+
+                    startDateInput.min = minDate;
+                    endDateInput.min = minDate;
+
+                    if (selectedDate) {
+                        startDateInput.value = selectedDate;
+                        endDateInput.value = selectedDate;
+                    } else {
+                        startDateInput.value = minDate;
+                        endDateInput.value = minDate;
+                    }
+
+                    const startTime = document.getElementById("start-time");
+                    const endTime = document.getElementById("end-time");
+
+                    function enforce24HourFormat(input) {
+                        input.addEventListener("input", () => {
+                            if (input.value) {
+                                const [hours, minutes] = input.value.split(":");
+                                const formattedHours = String(hours).padStart(2, "0");
+                                const formattedMinutes = String(minutes).padStart(2, "0");
+                                input.value = `${formattedHours}:${formattedMinutes}`;
+                            }
+                        });
+                    }
+
+                    enforce24HourFormat(startTime);
+                    enforce24HourFormat(endTime);
+
                     const langThai = document.getElementById('lang-th');
                     const langEnglish = document.getElementById('lang-en');
                     const translations = {
@@ -592,7 +613,6 @@
                     }
                 }
             </script>
-    <script src="navbar.js"></script>
     </body>
     
     </html>

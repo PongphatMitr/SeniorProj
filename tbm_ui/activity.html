@@ -139,289 +139,302 @@
         function formatDate(dateString) {
             const date = new Date(dateString);
             const year = date.getFullYear() + 543; // Convert to Buddhist year
-            const monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
-            const month = monthNames[date.getMonth()];
-            const day = date.getDate();
-            return `<span class="day-part">${day}</span> <span class="month-year-part">${month}</span> <span class="month-year-part">${year}</span>`;
-        }
-
-        function sortTable(column, type) {
-            const order = sortOrder[column] === 'asc' ? 'desc' : 'asc';
-            sortOrder[column] = order;
-
-            const sortedActivities = [...activities].sort((a, b) => {
-                if (type === 'string') {
-                    return order === 'asc' ? a[column].localeCompare(b[column]) : b[column].localeCompare(a[column]);
-                } else if (type === 'date') {
-                    return order === 'asc' ? new Date(a[column]) - new Date(b[column]) : new Date(b[column]) - new Date(a[column]);
+                    const monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+                    const month = monthNames[date.getMonth()];
+                    const day = date.getDate();
+                    return `<span class="day-part">${day}</span> <span class="month-year-part">${month}</span> <span class="month-year-part">${year}</span>`;
                 }
-            });
-            renderTable(sortedActivities);
-        }
 
-        function searchActivities() {
-            const searchTerm = document.getElementById('search-input').value.toLowerCase();
-            const filteredActivities = activities.filter(activity => {
-                return (
-                    (activity.activity_id && activity.activity_id.toString().includes(searchTerm)) ||
-                    (activity.title && activity.title.toLowerCase().includes(searchTerm)) ||
-                    (activity.description && activity.description.toLowerCase().includes(searchTerm)) ||
-                    (activity.location && activity.location.toLowerCase().includes(searchTerm)) ||
-                    (activity.requester_id && activity.requester_id.toString().includes(searchTerm))
-                );
-            });
-            renderTable(filteredActivities);
-        }
+                function sortTable(column, type) {
+                    const order = sortOrder[column] === 'asc' ? 'desc' : 'asc';
+                    sortOrder[column] = order;
 
-        function renderPagination() {
-            const paginationContainer = document.getElementById('pagination');
-            paginationContainer.innerHTML = '';
+                    const sortedActivities = [...activities].sort((a, b) => {
+                        if (type === 'string') {
+                            return order === 'asc' ? a[column].localeCompare(b[column]) : b[column].localeCompare(a[column]);
+                        } else if (type === 'date') {
+                            return order === 'asc' ? new Date(a[column]) - new Date(b[column]) : new Date(b[column]) - new Date(a[column]);
+                        }
+                    });
+                    renderTable(sortedActivities);
+                }
 
-            const totalPages = Math.ceil(totalActivities / pageSize);
+                function searchActivities() {
+                    const searchTerm = document.getElementById('search-input').value.toLowerCase();
+                    const filteredActivities = activities.filter(activity => {
+                        return (
+                            (activity.activity_id && activity.activity_id.toString().includes(searchTerm)) ||
+                            (activity.title && activity.title.toLowerCase().includes(searchTerm)) ||
+                            (activity.description && activity.description.toLowerCase().includes(searchTerm)) ||
+                            (activity.location && activity.location.toLowerCase().includes(searchTerm)) ||
+                            (activity.requester_id && activity.requester_id.toString().includes(searchTerm))
+                        );
+                    });
+                    renderTable(filteredActivities);
+                }
 
-            for (let i = 1; i <= totalPages; i++) {
-                const pageButton = document.createElement('button');
-                pageButton.textContent = i;
-                pageButton.className = `px-3 py-1 mx-1 rounded ${i === currentPage ? 'bg-blue-500 text-white' : 'bg-white text-blue-500'}`;
-                pageButton.onclick = () => {
-                    currentPage = i;
-                    fetchActivities(currentPage);
-                };
-                paginationContainer.appendChild(pageButton);
-            }
-        }
+                function renderPagination() {
+                    const paginationContainer = document.getElementById('pagination');
+                    paginationContainer.innerHTML = '';
 
-        document.addEventListener('DOMContentLoaded', () => {
-            checkLoginStatus();
-            fetchActivities();
-        });
-    </script>
-</head>
+                    const totalPages = Math.ceil(totalActivities / pageSize);
 
-<body class="bg-gray-100">
-    <div class="flex">
-        <!-- Sidebar -->
-        <div class="w-1/6 bg-white h-screen p-5">
-            <div class="flex items-center mb-10">
-                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
-                    class="w-10 h-10 rounded-full" height="50"
-                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
-                    width="50" />
-                <span class="ml-3 text-xl font-bold text-blue-600">
-                    TIMEBANK
-                </span>
-            </div>
-            <nav>
-                <ul id="navList">
-                    <!-- Navigation items will be dynamically inserted here -->
-                </ul>
-            </nav>
-        </div>
-        <!-- Main Content -->
-        <div class="w-5/6 bg-blue-700 text-white p-10">
-            <!-- Language Toggle Switch -->
-            <div class="absolute top-5 right-5">
-                <div class="toggle-container" id="languageToggle">
-                    <span class="toggle-label active" id="lang-th" data-lang="th">
-                        ภาษาไทย
-                    </span>
-                    <span class="toggle-label" id="lang-en" data-lang="en">
-                        English
+                    for (let i = 1; i <= totalPages; i++) {
+                        const pageButton = document.createElement('button');
+                        pageButton.textContent = i;
+                        pageButton.className = `px-3 py-1 mx-1 rounded ${i === currentPage ? 'bg-blue-500 text-white' : 'bg-white text-blue-500'}`;
+                        pageButton.onclick = () => {
+                            currentPage = i;
+                            fetchActivities(currentPage);
+                        };
+                        paginationContainer.appendChild(pageButton);
+                    }
+                }
+
+                document.addEventListener('DOMContentLoaded', () => {
+                    checkLoginStatus();
+                    fetchActivities();
+                });
+            </script>
+    </head>
+    
+    <body class="bg-gray-100">
+        <div class="flex">
+            <!-- Sidebar -->
+            <div class="w-1/6 bg-white h-screen p-5">
+                <div class="flex items-center mb-10">
+                    <img alt="Logo of Time Bank System, a clock with a handshake in the center"
+                        class="w-10 h-10 rounded-full" height="50"
+                        src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
+                        width="50" />
+                    <span class="ml-3 text-xl font-bold text-blue-600">
+                        TIMEBANK
                     </span>
                 </div>
+                <nav>
+                    <ul id="navList">
+                        <!-- Navigation items will be dynamically inserted here -->
+                    </ul>
+                </nav>
             </div>
-
-            <h1 class="text-4xl font-bold mb-5">จัดการกิจกรรม</h1>
-            <div class="bg-white text-black p-8 rounded-lg shadow-lg">
-                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">กิจกรรม</h2>
-                <div class="mb-4 flex items-center">
-                    <input id="search-input"
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        type="text" placeholder="ค้นหากิจกรรม" oninput="searchActivities()" />
-                    <a href="create-activity.html"
-                        class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-2">เพิ่ม</a>
-                    <a href="activity-calendar.html"
-                        class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-2">ปฏิทิน</a>
-                </div>
-                <div class="overflow-x-auto">
-                    <div class="table-responsive-sm">
-                        <table role="table" aria-busy="false" aria-colcount="5"
-                            class="table b-table b-table-stacked-md w-full">
-                            <thead role="rowgroup" class="bg-gray-100">
-                                <tr role="row">
-                                    <th role="columnheader" scope="col" aria-colindex="1"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
-                                        onclick="sortTable('title', 'string')">
-                                        กิจกรรม <i class="fas fa-sort"></i>
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="2"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
-                                        onclick="sortTable('start_date', 'date')">
-                                        วันที่ <i class="fas fa-sort"></i>
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="3"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
-                                        onclick="sortTable('status', 'string')">
-                                        สถานะ <i class="fas fa-sort"></i>
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="4"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                        จำนวนผู้เข้าร่วม
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="5"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                        การจัดการ
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody id="activity-tbody" role="rowgroup">
-                                <!-- Activities will be dynamically inserted here -->
-                            </tbody>
-                        </table>
+            <!-- Main Content -->
+            <div class="w-5/6 bg-blue-700 text-white p-10">
+                <!-- Language Toggle Switch -->
+                <div class="absolute top-5 right-5">
+                    <div class="toggle-container" id="languageToggle">
+                        <span class="toggle-label active" id="lang-th" data-lang="th">
+                            ภาษาไทย
+                        </span>
+                        <span class="toggle-label" id="lang-en" data-lang="en">
+                            English
+                        </span>
                     </div>
                 </div>
-                <div id="pagination" class="flex justify-center mt-4">
-                    <!-- Pagination buttons will be dynamically inserted here -->
+    
+                <h1 class="text-4xl font-bold mb-5">จัดการกิจกรรม</h1>
+                <div class="bg-white text-black p-8 rounded-lg shadow-lg">
+                    <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">กิจกรรม</h2>
+                    <div class="mb-4 flex items-center">
+                        <input id="search-input"
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            type="text" placeholder="ค้นหากิจกรรม" oninput="searchActivities()" />
+                        <a id="add-activity-btn"
+                            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-2">
+                            เพิ่ม
+                        </a>
+                        <script>
+                            document.getElementById('add-activity-btn').addEventListener('click', function (event) {
+                                event.preventDefault();
+                                const today = new Date();
+                                const next3Days = new Date(today);
+                                next3Days.setDate(today.getDate() + 3);
+                                const formattedDate = next3Days.toISOString().split('T')[0];
+                                window.location.href = `create-activity.html?date=${formattedDate}`;
+                            });
+                        </script>
+    
+                        <a href="activity-calendar.html"
+                            class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline ml-2">ปฏิทิน</a>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <div class="table-responsive-sm">
+                            <table role="table" aria-busy="false" aria-colcount="5"
+                                class="table b-table b-table-stacked-md w-full">
+                                <thead role="rowgroup" class="bg-gray-100">
+                                    <tr role="row">
+                                        <th role="columnheader" scope="col" aria-colindex="1"
+                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
+                                            onclick="sortTable('title', 'string')">
+                                            กิจกรรม <i class="fas fa-sort"></i>
+                                        </th>
+                                        <th role="columnheader" scope="col" aria-colindex="2"
+                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
+                                            onclick="sortTable('start_date', 'date')">
+                                            วันที่ <i class="fas fa-sort"></i>
+                                        </th>
+                                        <th role="columnheader" scope="col" aria-colindex="3"
+                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
+                                            onclick="sortTable('status', 'string')">
+                                            สถานะ <i class="fas fa-sort"></i>
+                                        </th>
+                                        <th role="columnheader" scope="col" aria-colindex="4"
+                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                            จำนวนผู้เข้าร่วม
+                                        </th>
+                                        <th role="columnheader" scope="col" aria-colindex="5"
+                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                            การจัดการ
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="activity-tbody" role="rowgroup">
+                                    <!-- Activities will be dynamically inserted here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div id="pagination" class="flex justify-center mt-4">
+                        <!-- Pagination buttons will be dynamically inserted here -->
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
+    
+        <style>
+            /* Toggle container */
+            .toggle-container {
+                display: flex;
+                background-color: #E5E7EB;
+                border-radius: 20px;
+                /* Increase border radius for larger container */
+                padding: 6px;
+                /* Larger padding for better spacing */
+                align-items: center;
+                justify-content: space-between;
+                width: 180px;
+                /* Increase width for a larger toggle */
+            }
+    
+            /* Labels */
+            .toggle-label {
+                flex: 1;
+                text-align: center;
+                font-size: 0.9rem;
+                font-weight: 500;
+                color: gray;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                border-radius: 9999px;
+                padding: 5px;
+            }
+    
+            .toggle-label.active {
+                background-color: white;
+                color: #1D4ED8;
+                /* Blue for active text */
+                font-weight: bold;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            }
+    
+            /* Disabled Label */
+            .toggle-label.disabled {
+                pointer-events: none;
+                /* Make it unclickable */
+                background-color: white;
+                color: #6B7280;
+                /* Light gray text */
+                font-weight: bold;
+            }
+        </style>
+    
+        <script src="selected-language.js"></script>
+    
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const langThai = document.getElementById('lang-th');
+                const langEnglish = document.getElementById('lang-en');
+                const navList = document.getElementById('navList');
+                const mainHeading = document.querySelector('h1');
+                const subHeading = document.querySelector('h2');
+                const searchPlaceholder = document.querySelector('input[placeholder]');
+                const addButton = document.querySelector('a[href="create-activity.html"]');
+                const calendarButton = document.querySelector('a[href="activity-calendar.html"]');
+                const tableHeaders = document.querySelectorAll('th');
 
-    <style>
-        /* Toggle container */
-        .toggle-container {
-            display: flex;
-            background-color: #E5E7EB;
-            border-radius: 20px;
-            /* Increase border radius for larger container */
-            padding: 6px;
-            /* Larger padding for better spacing */
-            align-items: center;
-            justify-content: space-between;
-            width: 180px;
-            /* Increase width for a larger toggle */
-        }
+                const translations = {
+                    thai: {
+                        mainHeading: 'จัดการกิจกรรม',
+                        subHeading: 'กิจกรรม',
+                        searchPlaceholder: 'ค้นหากิจกรรม',
+                        addButton: 'เพิ่ม',
+                        calendarButton: 'ปฏิทิน',
+                        nav: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวดหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
+                        tableHeaders: ['กิจกรรม', 'วันที่', 'สถานะ', 'จำนวนผู้เข้าร่วม', 'การจัดการ'],
+                    },
+                    english: {
+                        mainHeading: 'Manage Activities',
+                        subHeading: 'Activities',
+                        searchPlaceholder: 'Search Activities',
+                        addButton: 'Add',
+                        calendarButton: 'Calendar',
+                        nav: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
+                        tableHeaders: ['Activity', 'Date', 'Status', 'Participants', 'Actions'],
+                    },
+                };
 
-        /* Labels */
-        .toggle-label {
-            flex: 1;
-            text-align: center;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: gray;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border-radius: 9999px;
-            padding: 5px;
-        }
+                let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
 
-        .toggle-label.active {
-            background-color: white;
-            color: #1D4ED8;
-            /* Blue for active text */
-            font-weight: bold;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
+                const updateContent = (lang) => {
+                    const langData = translations[lang];
 
-        /* Disabled Label */
-        .toggle-label.disabled {
-            pointer-events: none;
-            /* Make it unclickable */
-            background-color: white;
-            color: #6B7280;
-            /* Light gray text */
-            font-weight: bold;
-        }
-    </style>
+                    // Update static text
+                    mainHeading.textContent = langData.mainHeading;
+                    subHeading.textContent = langData.subHeading;
+                    searchPlaceholder.placeholder = langData.searchPlaceholder;
+                    addButton.textContent = langData.addButton;
+                    calendarButton.textContent = langData.calendarButton;
 
-    <script src="selected-language.js"></script>
+                    // Update table headers
+                    tableHeaders.forEach((header, index) => {
+                        header.textContent = langData.tableHeaders[index];
+                    });
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const langThai = document.getElementById('lang-th');
-            const langEnglish = document.getElementById('lang-en');
-            const navList = document.getElementById('navList');
-            const mainHeading = document.querySelector('h1');
-            const subHeading = document.querySelector('h2');
-            const searchPlaceholder = document.querySelector('input[placeholder]');
-            const addButton = document.querySelector('a[href="create-activity.html"]');
-            const calendarButton = document.querySelector('a[href="activity-calendar.html"]');
-            const tableHeaders = document.querySelectorAll('th');
+                    // Update navigation
+                    const navItems = navList.querySelectorAll('a');
+                    navItems.forEach((link, index) => {
+                        const icon = link.querySelector('i');
+                        link.innerHTML = ''; // Clear existing content
+                        if (icon) link.appendChild(icon); // Re-add the icon
+                        link.append(` ${langData.nav[index]}`); // Add translated text
+                    });
 
-            const translations = {
-                thai: {
-                    mainHeading: 'จัดการกิจกรรม',
-                    subHeading: 'กิจกรรม',
-                    searchPlaceholder: 'ค้นหากิจกรรม',
-                    addButton: 'เพิ่ม',
-                    calendarButton: 'ปฏิทิน',
-                    nav: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวดหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
-                    tableHeaders: ['กิจกรรม', 'วันที่', 'สถานะ', 'จำนวนผู้เข้าร่วม', 'การจัดการ'],
-                },
-                english: {
-                    mainHeading: 'Manage Activities',
-                    subHeading: 'Activities',
-                    searchPlaceholder: 'Search Activities',
-                    addButton: 'Add',
-                    calendarButton: 'Calendar',
-                    nav: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
-                    tableHeaders: ['Activity', 'Date', 'Status', 'Participants', 'Actions'],
-                },
-            };
+                    // Update language toggle styles
+                    if (lang === 'thai') {
+                        langThai.classList.add('active');
+                        langEnglish.classList.remove('active');
+                    } else {
+                        langEnglish.classList.add('active');
+                        langThai.classList.remove('active');
+                    }
+                };
 
-            let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
-
-            const updateContent = (lang) => {
-                const langData = translations[lang];
-
-                // Update static text
-                mainHeading.textContent = langData.mainHeading;
-                subHeading.textContent = langData.subHeading;
-                searchPlaceholder.placeholder = langData.searchPlaceholder;
-                addButton.textContent = langData.addButton;
-                calendarButton.textContent = langData.calendarButton;
-
-                // Update table headers
-                tableHeaders.forEach((header, index) => {
-                    header.textContent = langData.tableHeaders[index];
+                // Add event listeners for language toggle
+                langThai.addEventListener('click', () => {
+                    currentLang = 'thai';
+                    localStorage.setItem('selectedLanguage', currentLang);
+                    updateContent(currentLang);
                 });
 
-                // Update navigation
-                const navItems = navList.querySelectorAll('a');
-                navItems.forEach((link, index) => {
-                    const icon = link.querySelector('i');
-                    link.innerHTML = ''; // Clear existing content
-                    if (icon) link.appendChild(icon); // Re-add the icon
-                    link.append(` ${langData.nav[index]}`); // Add translated text
+                langEnglish.addEventListener('click', () => {
+                    currentLang = 'english';
+                    localStorage.setItem('selectedLanguage', currentLang);
+                    updateContent(currentLang);
                 });
 
-                // Update language toggle styles
-                if (lang === 'thai') {
-                    langThai.classList.add('active');
-                    langEnglish.classList.remove('active');
-                } else {
-                    langEnglish.classList.add('active');
-                    langThai.classList.remove('active');
-                }
-            };
-
-            // Add event listeners for language toggle
-            langThai.addEventListener('click', () => {
-                currentLang = 'thai';
-                localStorage.setItem('selectedLanguage', currentLang);
+                // Initialize content on page load
                 updateContent(currentLang);
             });
-
-            langEnglish.addEventListener('click', () => {
-                currentLang = 'english';
-                localStorage.setItem('selectedLanguage', currentLang);
-                updateContent(currentLang);
-            });
-
-            // Initialize content on page load
-            updateContent(currentLang);
-        });
-    </script>
-</body>
-
-</html>
+        </script>
+    </body>
+    
+    </html>

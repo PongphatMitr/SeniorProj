@@ -14,94 +14,97 @@
         let currentYear = new Date().getFullYear();
 
         async function fetchActivities() {
-                try {
-                    const response = await fetch(`http://localhost:3000/api/tbm/activities/by-date`, {
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        }
-                    });
-
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! status: ${response.status}`);
+            try {
+                const response = await fetch(`http://localhost:3000/api/tbm/activities/by-date`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
+                });
 
-                    const data = await response.json();
-                    activities = data.activities; // Store activities grouped by date
-                    renderCalendar(currentMonth, currentYear);
-                } catch (error) {
-                    console.error('Error fetching activities:', error);
-                    alert('Error fetching activities. Please try again.');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
+
+                const data = await response.json();
+                activities = data.activities; // Store activities grouped by date
+                renderCalendar(currentMonth, currentYear);
+            } catch (error) {
+                console.error('Error fetching activities:', error);
+                alert('Error fetching activities. Please try again.');
             }
+        }
 
         function renderCalendar(month, year) {
-                const calendarBody = document.getElementById('calendar-body');
-                calendarBody.innerHTML = '';
+            const calendarBody = document.getElementById('calendar-body');
+            calendarBody.innerHTML = '';
 
-                const firstDay = new Date(year, month, 1).getDay();
-                const daysInMonth = new Date(year, month + 1, 0).getDate();
-                let date = 1;
+            const firstDay = new Date(year, month, 1).getDay();
+            const daysInMonth = new Date(year, month + 1, 0).getDate();
+            let date = 1;
 
-                for (let i = 0; i < 6; i++) {
-                    const row = document.createElement('tr');
+            for (let i = 0; i < 6; i++) {
+                const row = document.createElement('tr');
 
-                    for (let j = 0; j < 7; j++) {
-                        const cell = document.createElement('td');
-                        cell.className = 'border p-2 h-28 align-top relative bg-white';
+                for (let j = 0; j < 7; j++) {
+                    const cell = document.createElement('td');
+                    cell.className = 'border p-2 h-28 align-top relative bg-white';
 
-                        if (i === 0 && j < firstDay) {
-                            cell.innerHTML = '';
-                        } else if (date > daysInMonth) {
-                            break;
-                        } else {
-                            const cellDate = new Date(year, month, date);
-                            const formattedDate = cellDate.toISOString().split('T')[0];
+                    if (i === 0 && j < firstDay) {
+                        cell.innerHTML = '';
+                    } else if (date > daysInMonth) {
+                        break;
+                    } else {
+                        const cellDate = new Date(year, month, date);
+                        const formattedDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
 
-                            // **Container for Date**
-                            const dateDiv = document.createElement('div');
-                            dateDiv.className = 'date-number font-bold text-gray-800';
-                            dateDiv.innerHTML = `${date}`;
+                        // **Container for Date**
+                        const dateDiv = document.createElement('div');
+                        dateDiv.className = 'date-number font-bold text-gray-800 cursor-pointer';
+                        dateDiv.innerHTML = `${date}`;
+                        dateDiv.addEventListener("click", function () {
+                            window.location.href = `create-activity.html?date=${formattedDate}`;
+                        });
 
-                            // **Container for Activity List**
-                            const activityList = document.createElement('div');
-                            activityList.className = 'activity-list mt-2';
+                        // **Container for Activity List**
+                        const activityList = document.createElement('div');
+                        activityList.className = 'activity-list mt-2';
 
-                            if (activities[formattedDate]) {
-                                activities[formattedDate].forEach(activity => {
-                                    let activityClass = "bg-gray-400"; // Default color
-                                    switch (activity.status) {
-                                        case 'กำลังจะเริ่ม': activityClass = "bg-blue-500"; break; // Upcoming
-                                        case 'เสร็จสิ้น': activityClass = "bg-green-500"; break; // Completed
-                                        case 'ยกเลิก': activityClass = "bg-red-500"; break; // Canceled
-                                    }
+                        if (activities[formattedDate]) {
+                            activities[formattedDate].forEach(activity => {
+                                let activityClass = "bg-gray-400"; // Default color
+                                switch (activity.status) {
+                                    case 'กำลังจะเริ่ม': activityClass = "bg-blue-500"; break; // Upcoming
+                                    case 'เสร็จสิ้น': activityClass = "bg-green-500"; break; // Completed
+                                    case 'ยกเลิก': activityClass = "bg-red-500"; break; // Canceled
+                                }
 
-                                    const activityDiv = document.createElement('div');
-                                    activityDiv.className = `activity-item ${activityClass} text-white rounded px-2 py-1 mt-1 text-xs`;
-                                    activityDiv.innerHTML = `${activity.title}`;
-                                    activityDiv.setAttribute("data-id", activity.activity_id);
-                                    activityDiv.classList.add("clickable-activity");
-                                    activityDiv.addEventListener("click", function () {
-                                        window.location.href = `activity-details.html?id=${this.getAttribute("data-id")}`;
-                                    });
-
-                                    activityList.appendChild(activityDiv);
+                                const activityDiv = document.createElement('div');
+                                activityDiv.className = `activity-item ${activityClass} text-white rounded px-2 py-1 mt-1 text-xs`;
+                                activityDiv.innerHTML = `${activity.title}`;
+                                activityDiv.setAttribute("data-id", activity.activity_id);
+                                activityDiv.classList.add("clickable-activity");
+                                activityDiv.addEventListener("click", function () {
+                                    window.location.href = `activity-details.html?id=${this.getAttribute("data-id")}`;
                                 });
-                            }
 
-                            // Append date and activity list to cell
-                            cell.appendChild(dateDiv);
-                            cell.appendChild(activityList);
-                            date++;
+                                activityList.appendChild(activityDiv);
+                            });
                         }
 
-                        row.appendChild(cell);
+                        // Append date and activity list to cell
+                        cell.appendChild(dateDiv);
+                        cell.appendChild(activityList);
+                        date++;
                     }
 
-                    calendarBody.appendChild(row);
+                    row.appendChild(cell);
                 }
 
-                document.getElementById('month-year').textContent = `${year} ${new Intl.DateTimeFormat('th-TH', { month: 'long' }).format(new Date(year, month))}`;
+                calendarBody.appendChild(row);
             }
+
+            document.getElementById('month-year').textContent = `${year} ${new Intl.DateTimeFormat('th-TH', { month: 'long' }).format(new Date(year, month))}`;
+        }
 
         function changeMonth(direction) {
             if (direction === 'prev') {
@@ -121,10 +124,9 @@
         }
 
         function changeYear(year) {
-                currentYear = year;
-                renderCalendar(currentMonth, currentYear);
-            }
-
+            currentYear = year;
+            renderCalendar(currentMonth, currentYear);
+        }
 
         function changeMonthDirect(month) {
             currentMonth = month;
@@ -132,36 +134,35 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-                checkLoginStatus();
-                fetchActivities();
+            checkLoginStatus();
+            fetchActivities();
 
-                // Populate the year selection dropdown in AD format
-                populateYearSelect();
-            });
+            // Populate the year selection dropdown in AD format
+            populateYearSelect();
+        });
 
-            function populateYearSelect() {
-                const yearSelect = document.getElementById('year-select');
-                yearSelect.innerHTML = ''; // Clear existing options
+        function populateYearSelect() {
+            const yearSelect = document.getElementById('year-select');
+            yearSelect.innerHTML = ''; // Clear existing options
 
-                let currentYear = new Date().getFullYear(); // Get current year in AD format
-                let startYear = currentYear - 5; // Show last 5 years
-                let endYear = currentYear + 5; // Show next 5 years
+            let currentYear = new Date().getFullYear(); // Get current year in AD format
+            let startYear = currentYear - 5; // Show last 5 years
+            let endYear = currentYear + 5; // Show next 5 years
 
-                for (let year = startYear; year <= endYear; year++) {
-                    let option = document.createElement('option');
-                    option.value = year;
-                    option.textContent = `${year}`;
-                    if (year === currentYear) {
-                        option.selected = true; // Set current year as default
-                    }
-                    yearSelect.appendChild(option);
+            for (let year = startYear; year <= endYear; year++) {
+                let option = document.createElement('option');
+                option.value = year;
+                option.textContent = `${year}`;
+                if (year === currentYear) {
+                    option.selected = true; // Set current year as default
                 }
-
-                yearSelect.addEventListener('change', () => {
-                    changeYear(parseInt(yearSelect.value));
-                });
+                yearSelect.appendChild(option);
             }
 
+            yearSelect.addEventListener('change', () => {
+                changeYear(parseInt(yearSelect.value));
+            });
+        }
     </script>
 </head>
 
@@ -180,51 +181,7 @@
             </div>
             <nav>
                 <ul id="navList">
-                    <li class="mb-4">
-                        <a href="#" class="text-gray-700 hover:text-blue-500 flex items-center">
-                            <i class="fas fa-user mr-2"></i> โปรไฟล์
-                        </a>
-                    </li>
-                    <li class="mb-4">
-                        <a href="#" class="text-gray-700 hover:text-blue-500 flex items-center">
-                            <i class="fas fa-home mr-2"></i> หน้าหลัก
-                        </a>
-                    </li>
-                    <li class="mb-4">
-                        <a href="#" class="text-gray-700 hover:text-blue-500 flex items-center">
-                            <i class="fas fa-chart-bar mr-2"></i> รายงาน
-                        </a>
-                    </li>
-                    <li class="mb-4">
-                        <a href="#" class="text-gray-700 hover:text-blue-500 flex items-center">
-                            <i class="fas fa-calendar-alt mr-2"></i> จัดการกิจกรรม
-                        </a>
-                    </li>
-                    <li class="mb-4">
-                        <a href="#" class="text-gray-700 hover:text-blue-500 flex items-center">
-                            <i class="fas fa-users mr-2"></i> จัดการสมาชิก
-                        </a>
-                    </li>
-                    <li class="mb-4">
-                        <a href="#" class="text-gray-700 hover:text-blue-500 flex items-center">
-                            <i class="fas fa-cogs mr-2"></i> จัดการหมวดหมู่ทักษะ
-                        </a>
-                    </li>
-                    <li class="mb-4">
-                        <a href="#" class="text-gray-700 hover:text-blue-500 flex items-center">
-                            <i class="fas fa-piggy-bank mr-2"></i> จัดการกองทุนชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-4">
-                        <a href="#" class="text-gray-700 hover:text-blue-500 flex items-center">
-                            <i class="fas fa-building mr-2"></i> จัดการชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-4">
-                        <a href="#" class="text-gray-700 hover:text-blue-500 flex items-center">
-                            <i class="fas fa-exchange-alt mr-2"></i> ธุรกรรมทั้งหมด
-                        </a>
-                    </li>
+                    <!-- Navigation items will be dynamically inserted here -->
                 </ul>
             </nav>
         </div>
@@ -241,7 +198,6 @@
                     </span>
                 </div>
             </div>
-
 
             <h1 class="text-4xl font-bold mb-5">ปฏิทินกิจกรรม</h1>
             <div class="bg-white text-black p-8 rounded-lg shadow-lg">
@@ -309,171 +265,177 @@
                     </table>
                 </div>
 
-                
                 <style>
                     td {
-    width: 14.2%;
-    height: 100px;
-    text-align: left;
-    vertical-align: top;
-    padding: 5px;
-    background-color: white;
-    position: relative; /* Ensure date and activity list remain inside */
-}
+                        width: 14.2%;
+                        height: 100px;
+                        text-align: left;
+                        vertical-align: top;
+                        padding: 5px;
+                        background-color: white;
+                        position: relative;
+                    }
 
-/* Style the date number */
-.date-number {
-    position: relative;
-    top: 5px;
-    left: 5px;
-    font-size: 14px;
-    color: #333;
-}
+                    .date-number {
+                        position: relative;
+                        top: 5px;
+                        left: 5px;
+                        font-size: 14px;
+                        color: #333;
+                    }
 
-/* Activity list stays under the date */
-.activity-list {
-    margin-top: 20px; /* Push the activities below the date */
-}
+                    .activity-list {
+                        margin-top: 20px;
+                    }
 
-/* Style for activities inside the cell */
-.activity-item {
-    display: block;
-    font-size: 12px;
-    padding: 3px;
-    margin-top: 3px;
-    border-radius: 4px;
-    text-align: center;
-    color: white;
-}
+                    .activity-item {
+                        display: block;
+                        font-size: 12px;
+                        padding: 3px;
+                        margin-top: 3px;
+                        border-radius: 4px;
+                        text-align: center;
+                        color: white;
+                    }
 
-/* Color-coded statuses */
-.activity-upcoming { background-color: #3b82f6; } /* Blue */
-.activity-completed { background-color: #10b981; } /* Green */
-.activity-canceled { background-color: #ef4444; } /* Red */
-.activity-default { background-color: #9ca3af; } /* Gray */
+                    .activity-upcoming {
+                        background-color: #3b82f6;
+                    }
 
-/* Toggle container */
-.toggle-container {
-    display: flex;
-    background-color: #E5E7EB;
-    border-radius: 20px;
-    padding: 6px;
-    align-items: center;
-    justify-content: space-between;
-    width: 180px;
-}
+                    .activity-completed {
+                        background-color: #10b981;
+                    }
 
-/* Labels */
-.toggle-label {
-    flex: 1;
-    text-align: center;
-    font-size: 0.9rem;
-    font-weight: 500;
-    color: gray;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    border-radius: 9999px;
-    padding: 5px;
-}
+                    .activity-canceled {
+                        background-color: #ef4444;
+                    }
 
-.toggle-label.active {
-    background-color: white;
-    color: #1D4ED8;
-    font-weight: bold;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
+                    .activity-default {
+                        background-color: #9ca3af;
+                    }
 
-/* Disabled Label */
-.toggle-label.disabled {
-    pointer-events: none;
-    background-color: white;
-    color: #6B7280;
-    font-weight: bold;
-}
+                    .toggle-container {
+                        display: flex;
+                        background-color: #E5E7EB;
+                        border-radius: 20px;
+                        padding: 6px;
+                        align-items: center;
+                        justify-content: space-between;
+                        width: 180px;
+                    }
 
-/* Make activity box clickable */
-.clickable-activity {
-    cursor: pointer;
-    transition: opacity 0.2s ease-in-out;
-}
+                    .toggle-label {
+                        flex: 1;
+                        text-align: center;
+                        font-size: 0.9rem;
+                        font-weight: 500;
+                        color: gray;
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                        border-radius: 9999px;
+                        padding: 5px;
+                    }
 
-.clickable-activity:hover {
-    opacity: 0.8;
-}
+                    .toggle-label.active {
+                        background-color: white;
+                        color: #1D4ED8;
+                        font-weight: bold;
+                        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+                    }
 
+                    .toggle-label.disabled {
+                        pointer-events: none;
+                        background-color: white;
+                        color: #6B7280;
+                        font-weight: bold;
+                    }
+
+                    .clickable-activity {
+                        cursor: pointer;
+                        transition: opacity 0.2s ease-in-out;
+                    }
+
+                    .clickable-activity:hover {
+                        opacity: 0.8;
+                    }
                 </style>
 
-    <script src="selected-language.js"></script>
+                <script src="selected-language.js"></script>
 
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-                const langThai = document.getElementById('lang-th');
-                const langEnglish = document.getElementById('lang-en');
+                <script>
+                    document.addEventListener('DOMContentLoaded', () => {
+                        const langThai = document.getElementById('lang-th');
+                        const langEnglish = document.getElementById('lang-en');
+                        const navList = document.getElementById('navList');
+                        const mainHeading = document.querySelector('h1');
+                        const subHeading = document.querySelector('h2');
+                        const tableHeaders = document.querySelectorAll('th');
 
-                const translations = {
-                    thai: {
-                        mainHeading: 'ปฏิทินกิจกรรม',
-                        subHeading: 'ปฏิทิน',
-                        nav: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวดหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
-                        days: ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'],
-                    },
-                    english: {
-                        mainHeading: 'Activity Calendar',
-                        subHeading: 'Calendar',
-                        nav: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
-                        days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
-                    },
-                };
+                        const translations = {
+                            thai: {
+                                mainHeading: 'ปฏิทินกิจกรรม',
+                                subHeading: 'ปฏิทิน',
+                                nav: ['โปรไฟล์', 'หน้าหลัก', 'รายงาน', 'จัดการกิจกรรม', 'จัดการสมาชิก', 'จัดการหมวดหมู่ทักษะ', 'จัดการกองทุนชุมชน', 'จัดการชุมชน', 'ธุรกรรมทั้งหมด'],
+                                days: ['อาทิตย์', 'จันทร์', 'อังคาร', 'พุธ', 'พฤหัสบดี', 'ศุกร์', 'เสาร์'],
+                            },
+                            english: {
+                                mainHeading: 'Activity Calendar',
+                                subHeading: 'Calendar',
+                                nav: ['Profile', 'Homepage', 'Reports Overview', 'Activities Management', 'Members Management', 'Skills Management', 'Funds Management', 'Community Management', 'Transactions'],
+                                days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+                            },
+                        };
 
-                let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
+                        let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
 
-                const updateContent = (lang) => {
-                    const langData = translations[lang];
-                    document.querySelector('h1').textContent = langData.mainHeading;
-                    document.querySelector('h2').textContent = langData.subHeading;
+                        const updateContent = (lang) => {
+                            const langData = translations[lang];
+                            mainHeading.textContent = langData.mainHeading;
+                            subHeading.textContent = langData.subHeading;
 
-                    // Update table headers
-                    const tableHeaders = document.querySelectorAll('th');
-                    tableHeaders.forEach((header, index) => {
-                        header.textContent = langData.days[index];
+                            // Update table headers
+                            tableHeaders.forEach((header, index) => {
+                                header.textContent = langData.days[index];
+                            });
+
+                            // Update navigation
+                            const navItems = navList.querySelectorAll('a');
+                            navItems.forEach((link, index) => {
+                                const icon = link.querySelector('i');
+                                link.innerHTML = '';
+                                if (icon) link.appendChild(icon);
+                                link.append(` ${langData.nav[index]}`);
+                            });
+
+                            // Update language toggle styles
+                            if (lang === 'thai') {
+                                langThai.classList.add('active');
+                                langEnglish.classList.remove('active');
+                            } else {
+                                langEnglish.classList.add('active');
+                                langThai.classList.remove('active');
+                            }
+                        };
+
+                        langThai.addEventListener('click', () => {
+                            currentLang = 'thai';
+                            localStorage.setItem('selectedLanguage', currentLang);
+                            updateContent(currentLang);
+                        });
+
+                        langEnglish.addEventListener('click', () => {
+                            currentLang = 'english';
+                            localStorage.setItem('selectedLanguage', currentLang);
+                            updateContent(currentLang);
+                        });
+
+                        // Initialize content on page load
+                        updateContent(currentLang);
                     });
-
-                    // Update navigation
-                    const navItems = document.querySelectorAll('#navList a');
-                    navItems.forEach((link, index) => {
-                        const icon = link.querySelector('i');
-                        link.innerHTML = '';
-                        if (icon) link.appendChild(icon);
-                        link.append(` ${langData.nav[index]}`);
-                    });
-
-                    // Update language toggle styles
-                    if (lang === 'thai') {
-                        langThai.classList.add('active');
-                        langEnglish.classList.remove('active');
-                    } else {
-                        langEnglish.classList.add('active');
-                        langThai.classList.remove('active');
-                    }
-                };
-
-                langThai.addEventListener('click', () => {
-                    currentLang = 'thai';
-                    localStorage.setItem('selectedLanguage', currentLang);
-                    updateContent(currentLang);
-                });
-
-                langEnglish.addEventListener('click', () => {
-                    currentLang = 'english';
-                    localStorage.setItem('selectedLanguage', currentLang);
-                    updateContent(currentLang);
-                });
-
-                // Initialize content on page load
-                updateContent(currentLang);
-            });
-
-    </script>
+                </script>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>
