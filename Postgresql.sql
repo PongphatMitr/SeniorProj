@@ -90,15 +90,18 @@ CREATE TABLE skills (
     FOREIGN KEY (category_id) REFERENCES categories(category_id)
 );
 
--- Create the member_skills table to handle many-to-many relationship between users and skills
+-- Create the member_skills table to handle top 3 skills for each user
 CREATE TABLE member_skills (
-    user_id INT NOT NULL,
-    skill_id INT NOT NULL,
+    user_id INT PRIMARY KEY,
+    skill_1 INT,
+    skill_2 INT,
+    skill_3 INT,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    PRIMARY KEY (user_id, skill_id),
     FOREIGN KEY (user_id) REFERENCES users(user_id),
-    FOREIGN KEY (skill_id) REFERENCES skills(skill_id)
+    FOREIGN KEY (skill_1) REFERENCES skills(skill_id),
+    FOREIGN KEY (skill_2) REFERENCES skills(skill_id),
+    FOREIGN KEY (skill_3) REFERENCES skills(skill_id)
 );
 
 -- Create the community_fund table
@@ -209,7 +212,6 @@ INSERT INTO branches (branch_name) VALUES
 ('Test Branch'),
 ('โคกสลุง');
 
-
 -- Insert initial data into exchange_rates
 INSERT INTO exchange_rates (description) VALUES 
 ('1 โทเคนเวลา ต่อ 1 ชั่วโมง'),
@@ -223,7 +225,7 @@ INSERT INTO users (username, password, email, role, name, phone, address, branch
 VALUES ('testuser', '$2a$10$y2yR9UyFAUfyYCiYqDxgteWBflWnsbYdlFZDmNPmn7P1.xUfbRFtu', 'testuser@example.com', 'Member', 'Test User', '1234567890', '123 Test St, Test City', 1, 10, 'active'),
 ('earth', '$2a$10$1YbqGWj36sZXoKaXWvV/p.XaSkLSjBy.Xqiw41OPh9NeVTsp4qPpG', 'testuser@example.com', 'Member', 'กฤชนพัต จุลจู', '0822544153', '123 Test St, Test City ลพบุรี', 1, 10, 'active'),
 ('moji', '$2a$10$AfvWwUB3xPrYByh4UEpSSeptvKp07aIACEyzVJB4TJVRUM8aDNwWm', 'testuser@example.com', 'Member', 'ณิชาภา เกษมวงศ์', '0811111111', '123 Test St, Test City ลพบุรี', 1, 10, 'active'),
-        ('save001', '$2a$10$4tEtE.kQJrXrM2G5w.8Fs.PWVcMz/WeE0iZSfPPdxz0DTY82mVOTy', 'savewaris001@gmail.com', 'Admin', 'Test User', '1234567890', '123 Test St, Test City', 1, 10, 'active');
+('save001', '$2a$10$4tEtE.kQJrXrM2G5w.8Fs.PWVcMz/WeE0iZSfPPdxz0DTY82mVOTy', 'savewaris001@gmail.com', 'Admin', 'Test User', '1234567890', '123 Test St, Test City', 1, 10, 'active');
 
 -- Insert initial data into activities
 INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, requester_phone, status, time_tokens_required, time_tokens_per_participant) 
@@ -301,12 +303,10 @@ VALUES
 ('อื่นๆ (ระบุความสามารถเอง)', 6);
 
 -- Insert initial data into member_skills
-INSERT INTO member_skills (user_id, skill_id) 
+INSERT INTO member_skills (user_id, skill_1, skill_2, skill_3) 
 VALUES 
-(1, 1),
-(1, 2),
-(1, 3),
-(1, 4);
+(1, 1, 2, 3),
+(2, 1, 2, 3);
 
 -- Insert initial data into activity_participants
 INSERT INTO activity_participants (activity_id, user_id) 
@@ -331,4 +331,3 @@ VALUES
 INSERT INTO transactions (user_id, activity_id, date, time, time_credits, transaction_type, details, requester_id, participant_id, created_at, updated_at) 
 VALUES 
 (1, 1, '2023-01-01', '09:00:00', 1, 'earn', 'Participated in activity: กิจกรรมทำความสะอาดชุมชน', 1, 1, '2025-01-29 15:46:29.868674', '2025-01-29 15:46:29.868674');
-
