@@ -137,6 +137,7 @@ CREATE TABLE community_config (
     config_id SERIAL PRIMARY KEY,
     default_time_token INT DEFAULT 100,
     default_exchange_rate_id INT,
+    minimum_time_token INT DEFAULT 0, -- Added new column for minimum time token
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
     FOREIGN KEY (default_exchange_rate_id) REFERENCES exchange_rates(rate_id)
@@ -166,7 +167,7 @@ CREATE TABLE contact_us (
     contact_id SERIAL PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
     email VARCHAR(100),
-	phone VARCHAR(20),
+    phone VARCHAR(20),
     subject VARCHAR(255) NOT NULL,
     message TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
@@ -218,7 +219,7 @@ INSERT INTO exchange_rates (description) VALUES
 ('1 โทเคนเวลา ต่อ 1 กิจกรรม');
 
 -- Insert initial data into community_config
-INSERT INTO community_config (default_time_token, default_exchange_rate_id) VALUES (100, 1);
+INSERT INTO community_config (default_time_token, default_exchange_rate_id, minimum_time_token) VALUES (100, 1, 20);
 
 -- Insert initial data into users
 INSERT INTO users (username, password, email, role, name, phone, address, branch_id, time_credits, status) 

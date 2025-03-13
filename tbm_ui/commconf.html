@@ -85,6 +85,13 @@
                         class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                         id="new-exchange-rate" type="text" placeholder="อัตราแลกเปลี่ยนใหม่" />
                 </div>
+                <div id="minimum-time-token-field" class="mb-4 hidden">
+                    <label class="block text-gray-700 text-sm font-bold mb-2"
+                        for="minimum-time-token">เวลาขั้นต่ำที่จะแลกเปลี่ยนหลังทำกิจกรรมสำเร็จ</label>
+                    <input
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        id="minimum-time-token" type="number" placeholder="เวลาขั้นต่ำ" />
+                </div>
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="branch-name">ชื่อสาขา</label>
                     <select
@@ -156,6 +163,7 @@
         let branchName = '';
         let branches = [];
         let userRole = '';
+        let minimumTimeToken = 0;
 
         async function fetchCommunityConfig() {
             try {
@@ -168,6 +176,7 @@
                 if (data) {
                     defaultTimeToken = data.default_time_token || defaultTimeToken;
                     defaultExchangeRateId = data.default_exchange_rate_id;
+                    minimumTimeToken = data.minimum_time_token || minimumTimeToken;
                     await fetchExchangeRates();
                     await fetchBranches();
                     renderConfig();
@@ -213,6 +222,7 @@
 
         function renderConfig() {
             document.getElementById('default-time-token').value = defaultTimeToken;
+            document.getElementById('minimum-time-token').value = minimumTimeToken;
             const exchangeRateSelect = document.getElementById('exchange-rate');
             exchangeRateSelect.innerHTML = '';
             exchangeRates.forEach(rate => {
@@ -246,15 +256,26 @@
                 newBranchOption.textContent = 'เพิ่มสาขาใหม่';
                 branchSelect.appendChild(newBranchOption);
             }
+
+            // Show minimum time token field if the selected exchange rate is "1 โทเคนเวลา ต่อ 1 ชั่วโมง"
+            if (exchangeRateSelect.options[exchangeRateSelect.selectedIndex].text === '1 โทเคนเวลา ต่อ 1 ชั่วโมง') {
+                document.getElementById('minimum-time-token-field').classList.remove('hidden');
+            }
         }
 
         function handleExchangeRateChange() {
             const exchangeRateSelect = document.getElementById('exchange-rate');
             const newExchangeRateField = document.getElementById('new-exchange-rate-field');
+            const minimumTimeTokenField = document.getElementById('minimum-time-token-field');
             if (exchangeRateSelect.value === 'new') {
                 newExchangeRateField.classList.remove('hidden');
+                minimumTimeTokenField.classList.add('hidden');
+            } else if (exchangeRateSelect.options[exchangeRateSelect.selectedIndex].text === '1 โทเคนเวลา ต่อ 1 ชั่วโมง') {
+                minimumTimeTokenField.classList.remove('hidden');
+                newExchangeRateField.classList.add('hidden');
             } else {
                 newExchangeRateField.classList.add('hidden');
+                minimumTimeTokenField.classList.add('hidden');
             }
         }
 
@@ -269,102 +290,103 @@
         }
 
         async function saveConfig() {
-                const newDefaultTimeToken = parseInt(document.getElementById('default-time-token').value, 10);
-                const newExchangeRate = document.getElementById('exchange-rate').value;
-                const newExchangeRateDescription = document.getElementById('new-exchange-rate').value;
-                const newBranch = document.getElementById('branch-name').value;
-                const newBranchName = document.getElementById('new-branch').value;
+            const newDefaultTimeToken = parseInt(document.getElementById('default-time-token').value, 10);
+            const newExchangeRate = document.getElementById('exchange-rate').value;
+            const newExchangeRateDescription = document.getElementById('new-exchange-rate').value;
+            const newBranch = document.getElementById('branch-name').value;
+            const newBranchName = document.getElementById('new-branch').value;
+            const minimumTimeToken = parseInt(document.getElementById('minimum-time-token').value, 10);
 
-                let defaultExchangeRateId = parseInt(newExchangeRate, 10);
-                let branchId = parseInt(newBranch, 10);
+            let defaultExchangeRateId = parseInt(newExchangeRate, 10);
+            let branchId = parseInt(newBranch, 10);
 
-                if (newExchangeRate === 'new' && newExchangeRateDescription) {
-                    try {
-                        const response = await fetch('http://localhost:3000/api/tbm/exchange-rates', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${localStorage.getItem('token')}`
-                            },
-                            body: JSON.stringify({ description: newExchangeRateDescription })
-                        });
-
-                        if (response.ok) {
-                            const data = await response.json();
-                            defaultExchangeRateId = data.rate_id;
-                        } else {
-                            const errorData = await response.json();
-                            console.error('Error response from server:', errorData);
-                            alert('เกิดข้อผิดพลาดในการเพิ่มอัตราแลกเปลี่ยนใหม่');
-                            return;
-                        }
-                    } catch (error) {
-                        console.error('Error adding new exchange rate:', error);
-                        alert('เกิดข้อผิดพลาดในการเพิ่มอัตราแลกเปลี่ยนใหม่');
-                        return;
-                    }
-                }
-
-                if (newBranch === 'new' && newBranchName) {
-                    if (userRole !== 'Admin') {
-                        alert('คุณไม่มีสิทธิ์เพิ่มสาขาใหม่');
-                        return;
-                    }
-                    try {
-                        const response = await fetch('http://localhost:3000/api/tbm/branches', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': `Bearer ${localStorage.getItem('token')}`
-                            },
-                            body: JSON.stringify({ branch_name: newBranchName })
-                        });
-
-                        if (response.ok) {
-                            const data = await response.json();
-                            branchId = data.branch_id;
-                        } else {
-                            const errorData = await response.json();
-                            console.error('Error response from server:', errorData);
-                            alert('เกิดข้อผิดพลาดในการเพิ่มสาขาใหม่');
-                            return;
-                        }
-                    } catch (error) {
-                        console.error('Error adding new branch:', error);
-                        alert('เกิดข้อผิดพลาดในการเพิ่มสาขาใหม่');
-                        return;
-                    }
-                }
-
+            if (newExchangeRate === 'new' && newExchangeRateDescription) {
                 try {
-                    const response = await fetch(`http://localhost:3000/api/tbm/community-config`, {
-                        method: 'PUT',
+                    const response = await fetch('http://localhost:3000/api/tbm/exchange-rates', {
+                        method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
                         },
-                        body: JSON.stringify({
-                            default_time_token: newDefaultTimeToken,
-                            default_exchange_rate_id: defaultExchangeRateId,
-                            branch_name: newBranchName || null,
-                            branch_id: branchId
-                        })
+                        body: JSON.stringify({ description: newExchangeRateDescription })
                     });
 
                     if (response.ok) {
-                        alert('การตั้งค่าชุมชนถูกบันทึกเรียบร้อยแล้ว');
-                        fetchCommunityConfig();
+                        const data = await response.json();
+                        defaultExchangeRateId = data.rate_id;
                     } else {
                         const errorData = await response.json();
                         console.error('Error response from server:', errorData);
-                        alert('เกิดข้อผิดพลาดในการบันทึกการตั้งค่าชุมชน');
+                        alert('เกิดข้อผิดพลาดในการเพิ่มอัตราแลกเปลี่ยนใหม่');
+                        return;
                     }
                 } catch (error) {
-                    console.error('Error saving community config:', error);
-                    alert('เกิดข้อผิดพลาดในการบันทึกการตั้งค่าชุมชน');
+                    console.error('Error adding new exchange rate:', error);
+                    alert('เกิดข้อผิดพลาดในการเพิ่มอัตราแลกเปลี่ยนใหม่');
+                    return;
                 }
             }
 
+            if (newBranch === 'new' && newBranchName) {
+                if (userRole !== 'Admin') {
+                    alert('คุณไม่มีสิทธิ์เพิ่มสาขาใหม่');
+                    return;
+                }
+                try {
+                    const response = await fetch('http://localhost:3000/api/tbm/branches', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({ branch_name: newBranchName })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        branchId = data.branch_id;
+                    } else {
+                        const errorData = await response.json();
+                        console.error('Error response from server:', errorData);
+                        alert('เกิดข้อผิดพลาดในการเพิ่มสาขาใหม่');
+                        return;
+                    }
+                } catch (error) {
+                    console.error('Error adding new branch:', error);
+                    alert('เกิดข้อผิดพลาดในการเพิ่มสาขาใหม่');
+                    return;
+                }
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/tbm/community-config`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({
+                        default_time_token: newDefaultTimeToken,
+                        default_exchange_rate_id: defaultExchangeRateId,
+                        branch_name: newBranchName || null,
+                        branch_id: branchId,
+                        minimum_time_token: minimumTimeToken || null
+                    })
+                });
+
+                if (response.ok) {
+                    alert('การตั้งค่าชุมชนถูกบันทึกเรียบร้อยแล้ว');
+                    fetchCommunityConfig();
+                } else {
+                    const errorData = await response.json();
+                    console.error('Error response from server:', errorData);
+                    alert('เกิดข้อผิดพลาดในการบันทึกการตั้งค่าชุมชน');
+                }
+            } catch (error) {
+                console.error('Error saving community config:', error);
+                alert('เกิดข้อผิดพลาดในการบันทึกการตั้งค่าชุมชน');
+            }
+        }
 
         document.addEventListener('DOMContentLoaded', () => {
             const token = localStorage.getItem('token');
