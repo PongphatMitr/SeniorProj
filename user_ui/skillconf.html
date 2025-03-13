@@ -6,6 +6,7 @@
     <title>ความสามารถ - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
     <script>
         let memberId;
         let skills = [];
@@ -99,34 +100,47 @@
             }
         
             skillContainer1.innerHTML = `
-                <div>
-                    <h3 class="text-2xl font-bold">หมวดหมู่: ${memberSkills[0]?.category || 'N/A'}</h3>
-                    <h3 class="text-2xl font-bold mt-1">ทักษะ: ${memberSkills[0]?.name || 'N/A'}</h3>
-                    <div class="flex justify-center mt-3">
-                        <button class="bg-blue-500 text-white px-4 py-2 rounded" onclick="toggleEdit(1)">แก้ไข</button>
-                    </div>
+            <div>
+                <h3 class="text-xl font-semibold text-gray-700">หมวดหมู่: 
+                    <span class="text-2xl font-bold text-blue-600">${memberSkills[0]?.category || 'N/A'}</span>
+                </h3>
+                <h3 class="text-xl font-semibold text-gray-700 mt-1">ทักษะ: 
+                    <span class="text-2xl font-bold text-green-600">${memberSkills[0]?.name || 'N/A'}</span>
+                </h3>
+                <div class="flex justify-center mt-3">
+                    <button class="bg-blue-500 text-white px-4 py-2 rounded" onclick="toggleEdit(1)">แก้ไข</button>
                 </div>
-            `;
-
+            </div>
+        `;
+        
             skillContainer2.innerHTML = `
                 <div>
-                    <h3 class="text-2xl font-bold">หมวดหมู่: ${memberSkills[1]?.category || 'N/A'}</h3>
-                    <h3 class="text-2xl font-bold mt-1">ทักษะ: ${memberSkills[1]?.name || 'N/A'}</h3>
+                    <h3 class="text-xl font-semibold text-gray-700">หมวดหมู่: 
+                        <span class="text-2xl font-bold text-blue-600">${memberSkills[1]?.category || 'N/A'}</span>
+                    </h3>
+                    <h3 class="text-xl font-semibold text-gray-700 mt-1">ทักษะ: 
+                        <span class="text-2xl font-bold text-green-600">${memberSkills[1]?.name || 'N/A'}</span>
+                    </h3>
                     <div class="flex justify-center mt-3">
                         <button class="bg-blue-500 text-white px-4 py-2 rounded" onclick="toggleEdit(2)">แก้ไข</button>
                     </div>
                 </div>
             `;
-
+            
             skillContainer3.innerHTML = `
                 <div>
-                    <h3 class="text-2xl font-bold">หมวดหมู่: ${memberSkills[2]?.category || 'N/A'}</h3>
-                    <h3 class="text-2xl font-bold mt-1">ทักษะ: ${memberSkills[2]?.name || 'N/A'}</h3>
+                    <h3 class="text-xl font-semibold text-gray-700">หมวดหมู่: 
+                        <span class="text-2xl font-bold text-blue-600">${memberSkills[2]?.category || 'N/A'}</span>
+                    </h3>
+                    <h3 class="text-xl font-semibold text-gray-700 mt-1">ทักษะ: 
+                        <span class="text-2xl font-bold text-green-600">${memberSkills[2]?.name || 'N/A'}</span>
+                    </h3>
                     <div class="flex justify-center mt-3">
                         <button class="bg-blue-500 text-white px-4 py-2 rounded" onclick="toggleEdit(3)">แก้ไข</button>
                     </div>
                 </div>
             `;
+        
         }
         
 
@@ -175,11 +189,14 @@
             skillDropdown.innerHTML = '<option value="">กรุณาเลือกทักษะ</option>';
         
             if (!selectedCategory || selectedCategory === "all") {
-                return; // Don't populate skills if category is not selected
+                return; // Don't populate skills if no category is selected
             }
         
-            // Filter skills based on selected category
-            const filteredSkills = skills.filter(skill => skill.category === selectedCategory);
+            // Get currently registered skill IDs
+            const registeredSkillIds = memberSkills.map(skill => skill.skill_id).filter(id => id !== null && id !== undefined);
+        
+            // Filter skills based on the selected category and remove already registered skills
+            const filteredSkills = skills.filter(skill => skill.category === selectedCategory && !registeredSkillIds.includes(skill.skill_id));
         
             filteredSkills.forEach(skill => {
                 const option = document.createElement('option');
@@ -191,6 +208,7 @@
             // Ensure users must select a category before choosing a skill
             skillDropdown.disabled = filteredSkills.length === 0;
         }
+        
         
         function populateCategoryDropdowns() {
             if (!skills || skills.length === 0) {
@@ -218,68 +236,54 @@
             });
         }
         
-        async function searchSkills(event) {
+        async function searchSkills(event, index) {
             const searchTerm = event.target.value.toLowerCase();
+            const skillDropdown = document.getElementById(`skill-dropdown-${index}`);
+            
+            // Clear previous options
+            skillDropdown.innerHTML = '<option value="">กรุณาเลือกทักษะ</option>';
+        
+            if (!searchTerm.trim()) {
+                return; // Do nothing if search term is empty
+            }
+        
             try {
                 const response = await fetch(`http://localhost:3000/api/user/skills/search?term=${encodeURIComponent(searchTerm)}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
+        
                 const data = await response.json();
-                if (Array.isArray(data)) {
-                    renderSkills(data);
-                } else {
+        
+                if (!Array.isArray(data)) {
                     console.error('Expected an array but got:', data);
-                    alert('เกิดข้อผิดพลาดในการค้นหาทักษะ');
+                    showErrorMessage('เกิดข้อผิดพลาดในการค้นหาทักษะ');
+                    return;
                 }
-            } catch (error) {
-                console.error('Error searching skills:', error);
-                alert('เกิดข้อผิดพลาดในการค้นหาทักษะ');
-            }
-        }
-
-        async function saveSkill(index) {
-            const dropdown = document.getElementById(`skill-dropdown-${index}`);
-            const selectedSkillId = dropdown.value;
         
-            // Check if the skill is already registered
-            if (memberSkills.some(skill => skill.skill_id === selectedSkillId)) {
-                showErrorMessage("คุณได้ลงทะเบียนทักษะนี้แล้ว กรุณาเลือกทักษะอื่น");
-                return;
-            }
+                // Get already registered skills to prevent duplicates
+                const registeredSkillIds = memberSkills.map(skill => skill.skill_id).filter(id => id !== null);
         
-            // Prepare the payload
-            const payload = {};
-            payload[`skill_${index}`] = selectedSkillId;
+                // Filter out already selected skills
+                const filteredSkills = data.filter(skill => !registeredSkillIds.includes(skill.skill_id));
         
-            try {
-                const response = await fetch(`http://localhost:3000/api/user/members/${memberId}/skills`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify(payload)
+                // Populate dropdown with search results
+                filteredSkills.forEach(skill => {
+                    const option = document.createElement('option');
+                    option.value = skill.skill_id;
+                    option.textContent = skill.name;
+                    skillDropdown.appendChild(option);
                 });
         
-                const responseData = await response.json();
+                // Enable dropdown if skills are found
+                skillDropdown.disabled = filteredSkills.length === 0;
         
-                if (response.ok) {
-                    await fetchMemberSkills(); // Refresh the skills display
-                    renderSkills(); // Update the UI
-                    cancelEdit(index); // Hide the edit section
-                    showSuccessMessage(responseData.message || `บันทึกทักษะที่ ${index} สำเร็จ!`);
-                } else {
-                    console.error('Server responded with an error:', responseData);
-                    showErrorMessage(responseData.error || 'เกิดข้อผิดพลาดในการบันทึกทักษะ');
-                }
             } catch (error) {
-                console.error('Error in saveSkill:', error);
-                showErrorMessage('เกิดข้อผิดพลาดในการบันทึกทักษะ');
+                console.error('Error searching skills:', error);
+                showErrorMessage('เกิดข้อผิดพลาดในการค้นหาทักษะ');
             }
         }
-        
         
 
         async function updateSidebar(isLoggedIn) {
@@ -564,14 +568,15 @@
                 <!-- ทักษะที่ 1 -->
                 <div class="bg-white text-black p-8 rounded-lg shadow-lg">
                     <div id="skill-container-1" class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-bold">ทักษะที่ 1</h3>
+                        <h3 class="text-2xl font-semibold text-gray-800" style="font-family: 'Sarabun', sans-serif;">ทักษะที่ 1</h3>
                     </div>
                     <div id="skill-display-1"></div>
                     <div id="edit-container-1" class="hidden">
                         <div class="mb-4 flex items-center">
                             <input
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="search-bar-1" oninput="searchSkills(event)" placeholder="ค้นหาทักษะหรือหมวดหมู่" type="text" />
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="search-bar-1" oninput="searchSkills(event, 1)" placeholder="ค้นหาทักษะหรือหมวดหมู่" type="text" />
+                        
                         </div>
                         <div class="mb-4">
                             <label for="category-dropdown-1" class="block text-gray-700 text-sm font-bold mb-2">เลือกหมวดหมู่:</label>
@@ -594,14 +599,15 @@
                 <!-- ทักษะที่ 2 -->
                 <div class="bg-white text-black p-8 rounded-lg shadow-lg">
                     <div id="skill-container-2" class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-bold">ทักษะที่ 2</h3>
+                        <h3 class="text-2xl font-semibold text-gray-800" style="font-family: 'Sarabun', sans-serif;">ทักษะที่ 2</h3>
                     </div>
                     <div id="skill-display-2"></div>
                     <div id="edit-container-2" class="hidden">
                         <div class="mb-4 flex items-center">
                             <input
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="search-bar-2" oninput="searchSkills(event)" placeholder="ค้นหาทักษะหรือหมวดหมู่" type="text" />
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="search-bar-1" oninput="searchSkills(event, 1)" placeholder="ค้นหาทักษะหรือหมวดหมู่" type="text" />
+                        
                         </div>
                         <div class="mb-4">
                             <label for="category-dropdown-2" class="block text-gray-700 text-sm font-bold mb-2">เลือกหมวดหมู่:</label>
@@ -624,14 +630,15 @@
                 <!-- ทักษะที่ 3 -->
                 <div class="bg-white text-black p-8 rounded-lg shadow-lg">
                     <div id="skill-container-3" class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-bold">ทักษะที่ 3</h3>
+                        <h3 class="text-2xl font-semibold text-gray-800" style="font-family: 'Sarabun', sans-serif;">ทักษะที่ 3</h3>
                     </div>
                     <div id="skill-display-3"></div>
                     <div id="edit-container-3" class="hidden">
                         <div class="mb-4 flex items-center">
                             <input
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="search-bar-3" oninput="searchSkills(event)" placeholder="ค้นหาทักษะหรือหมวดหมู่" type="text" />
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="search-bar-1" oninput="searchSkills(event, 1)" placeholder="ค้นหาทักษะหรือหมวดหมู่" type="text" />
+                        
                         </div>
                         <div class="mb-4">
                             <label for="category-dropdown-3" class="block text-gray-700 text-sm font-bold mb-2">เลือกหมวดหมู่:</label>
@@ -652,58 +659,146 @@
                 </div>
             </div>
             
-            <!-- Confirm Save Skills Modal -->
-            <div id="confirm-save-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden transition-opacity duration-300">
-                <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-xl text-center transform scale-95 transition-transform duration-300">
-                    <h2 class="text-3xl font-bold text-gray-900">ยืนยันการบันทึกทักษะ</h2>
-                    <p class="text-gray-700 text-lg mt-4">คุณต้องการบันทึกการเปลี่ยนแปลงหรือไม่?</p>
+            <!-- Confirmation Modal -->
+            <div id="confirm-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-xl text-center">
+                    <h2 class="text-3xl font-bold text-gray-900">ยืนยันการกระทำ</h2>
+                    <p id="confirm-message" class="text-gray-700 text-lg mt-4"></p>
                     <div class="flex justify-center mt-6 space-x-4">
-                        <button id="confirm-save-btn" class="bg-green-600 text-white text-lg px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition duration-300">
-                            ตกลง
-                        </button>
-                        <button id="cancel-save-btn" class="bg-gray-400 text-white text-lg px-6 py-3 rounded-lg font-semibold hover:bg-gray-500 transition duration-300">
-                            ยกเลิก
-                        </button>
+                        <button id="confirm-btn" class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition">ตกลง</button>
+                        <button id="cancel-btn" class="bg-gray-400 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-500 transition">ยกเลิก</button>
                     </div>
                 </div>
             </div>
 
-            <!-- Success Message Modal -->
-            <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden transition-opacity duration-300">
-                <div class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-2xl text-center transform scale-95 transition-transform duration-300">
-                    <div class="flex justify-center">
-                        <div class="w-24 h-24 flex items-center justify-center rounded-full bg-green-100 border-4 border-green-500 animate-bounce">
-                            <svg class="w-16 h-16 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                            </svg>
-                        </div>
-                    </div>
-                    <h2 class="text-4xl font-bold text-green-600 mt-6">บันทึกทักษะสำเร็จ!</h2>
-                    <p id="success-message" class="text-gray-700 text-xl mt-4">ข้อมูลทักษะของคุณได้รับการอัปเดตแล้ว</p>
-                    <button id="confirm-success-btn" class="mt-8 px-8 py-4 bg-blue-600 text-white text-xl font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
-                        ตกลง
-                    </button>
+            <!-- Success Modal -->
+            <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                <div class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-2xl text-center">
+                    <h2 class="text-4xl font-bold text-green-600 mt-6">✅ สำเร็จ!</h2>
+                    <p id="success-message" class="text-gray-700 text-xl mt-4"></p>
+                    <button id="confirm-success-btn" class="mt-8 px-8 py-4 bg-blue-600 text-white text-xl font-semibold rounded-lg hover:bg-blue-700 transition">ตกลง</button>
                 </div>
             </div>
+
+            <!-- Error Modal -->
+            <div id="error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                <div class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-2xl text-center">
+                    <h2 class="text-4xl font-bold text-red-600 mt-6">❌ เกิดข้อผิดพลาด</h2>
+                    <p id="error-message" class="text-gray-700 text-xl mt-4"></p>
+                    <button id="confirm-error-btn" class="mt-8 px-8 py-4 bg-red-600 text-white text-xl font-semibold rounded-lg hover:bg-red-700 transition">ตกลง</button>
+                </div>
+            </div>
+
 
             <script>
 
-                function showSuccessMessage(message) {
+                function showSuccessMessage(message, redirectUrl = null) {
                     document.getElementById('success-message').textContent = message;
                     const modal = document.getElementById('success-modal');
                     modal.classList.remove('hidden');
                     setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
+                
+                    // Auto-close the modal after 3 seconds and navigate if needed
+                    setTimeout(() => {
+                        closeModal('success-modal');
+                        if (redirectUrl) {
+                            window.location.href = redirectUrl;
+                        }
+                    }, 3000);
                 }
-
-                function showErrorMessage(message) {
-                    alert(message); // สามารถเปลี่ยนเป็น Modal error ได้ถ้าต้องการ
+                
+                function showErrorMessage(message, redirectUrl = null) {
+                    document.getElementById('error-message').textContent = message;
+                    const modal = document.getElementById('error-modal');
+                    modal.classList.remove('hidden');
+                    setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
+                
+                    // Auto-close the modal after 3 seconds and navigate if needed
+                    setTimeout(() => {
+                        closeModal('error-modal');
+                        if (redirectUrl) {
+                            window.location.href = redirectUrl;
+                        }
+                    }, 3000);
                 }
-
-                document.getElementById('confirm-success-btn').addEventListener('click', function () {
-                    const modal = document.getElementById('success-modal');
+                
+                function confirmAction(message, onConfirm) {
+                    document.getElementById('confirm-message').textContent = message;
+                    const modal = document.getElementById('confirm-modal');
+                    modal.classList.remove('hidden');
+                    setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
+                
+                    // Confirm action
+                    document.getElementById('confirm-btn').onclick = function () {
+                        closeModal('confirm-modal');
+                        onConfirm();
+                    };
+                
+                    // Cancel action
+                    document.getElementById('cancel-btn').onclick = function () {
+                        closeModal('confirm-modal');
+                    };
+                }
+                
+                function closeModal(modalId) {
+                    const modal = document.getElementById(modalId);
                     modal.classList.remove('opacity-100', 'scale-100');
                     setTimeout(() => modal.classList.add('hidden'), 300);
+                }
+                
+                // Hook up modals close button
+                document.getElementById('confirm-success-btn').addEventListener('click', function () {
+                    closeModal('success-modal');
                 });
+                
+                document.getElementById('confirm-error-btn').addEventListener('click', function () {
+                    closeModal('error-modal');
+                });
+                
+                // Updated saveSkill function with confirmation and error handling
+                async function saveSkill(index) {
+                    const dropdown = document.getElementById(`skill-dropdown-${index}`);
+                    const selectedSkillId = dropdown.value;
+                
+                    if (!selectedSkillId) {
+                        showErrorMessage("❌ กรุณาเลือกทักษะก่อนบันทึก!");
+                        return;
+                    }
+                
+                    confirmAction("คุณต้องการบันทึกการเปลี่ยนแปลงหรือไม่?", async function () {
+                        const payload = { [`skill_${index}`]: selectedSkillId };
+                
+                        console.log("📤 Sending Payload to Server:", payload);
+                
+                        try {
+                            const response = await fetch(`http://localhost:3000/api/user/members/${memberId}/skills`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                                },
+                                body: JSON.stringify(payload)
+                            });
+                
+                            const responseData = await response.json();
+                
+                            if (response.ok) {
+                                console.log("✅ Server Response:", responseData);
+                                await fetchMemberSkills();
+                                renderSkills();
+                                cancelEdit(index);
+                                showSuccessMessage(`✅ บันทึกทักษะที่ ${index} สำเร็จ!`, "skillconf.html");
+                            } else {
+                                console.error('❌ Server responded with an error:', responseData);
+                                showErrorMessage(responseData.error || '❌ เกิดข้อผิดพลาดในการบันทึกทักษะ');
+                            }
+                        } catch (error) {
+                            console.error('❌ Error in saveSkill:', error);
+                            showErrorMessage('❌ เกิดข้อผิดพลาดในการบันทึกทักษะ');
+                        }
+                    });
+                }
+                
 
             </script>
         </div>

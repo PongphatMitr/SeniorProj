@@ -198,6 +198,9 @@ const memberRoutes = (pool) => {
         const { id } = req.params;
         let { skill_1, skill_2, skill_3 } = req.body;
     
+        console.log("🔹 Received User ID:", id);
+        console.log("🔹 Received Payload:", req.body);
+    
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid member ID' });
         }
@@ -212,6 +215,8 @@ const memberRoutes = (pool) => {
                 [id]
             );
     
+            console.log("🔹 Existing Skills:", existingSkillsQuery.rows);
+    
             let existingSkills = existingSkillsQuery.rows[0] || {};
             let existingSkillIds = [existingSkills.skill_1, existingSkills.skill_2, existingSkills.skill_3].filter(Boolean);
     
@@ -223,11 +228,16 @@ const memberRoutes = (pool) => {
                 return res.status(400).json({ error: 'ไม่สามารถลงทะเบียนทักษะซ้ำกันได้ กรุณาเลือกทักษะอื่น' });
             }
     
-            // Check if any new skill is already registered in skill_1, skill_2, or skill_3
-            for (let skill of selectedSkills) {
-                if (existingSkillIds.includes(skill)) {
-                    return res.status(400).json({ error: `ทักษะ '${skill}' ได้ถูกลงทะเบียนแล้ว กรุณาเลือกทักษะอื่น` });
-                }
+            // Validate if skills exist in the database
+            const skillCheck = await pool.query(
+                `SELECT skill_id FROM skills WHERE skill_id IN ($1, $2, $3)`,
+                [skill_1, skill_2, skill_3]
+            );
+    
+            console.log("🔹 Skill Check in DB:", skillCheck.rows);
+    
+            if (skillCheck.rowCount !== selectedSkills.length) {
+                return res.status(400).json({ error: 'One or more skills do not exist in the database' });
             }
     
             // Update skills, keeping null if no change
@@ -235,7 +245,9 @@ const memberRoutes = (pool) => {
             skill_2 = skill_2 || existingSkills.skill_2 || null;
             skill_3 = skill_3 || existingSkills.skill_3 || null;
     
-            // Remove existing entry before inserting new one
+            console.log("🔹 Final Skill Values:", { skill_1, skill_2, skill_3 });
+    
+            // Remove existing entry before inserting a new one
             await client.query('DELETE FROM member_skills WHERE user_id = $1', [id]);
     
             // Insert new skills
@@ -248,12 +260,13 @@ const memberRoutes = (pool) => {
             res.status(200).json({ message: 'อัปเดตทักษะของสมาชิกเรียบร้อยแล้ว' });
         } catch (err) {
             await client.query('ROLLBACK');
-            console.error('Error:', err.message);
+            console.error('❌ Server Error:', err.message);
             res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
         } finally {
             client.release();
         }
     });
+    
     
 
 
