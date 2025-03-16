@@ -43,6 +43,130 @@
                 alert('เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้');
             }
         }
+
+        let skills = []; // Store all skills
+        let categories = []; // Store all categories
+        let selectedSkills = []; // Store selected skill objects (max 3)
+        
+        async function fetchSkillsAndCategories() {
+            try {
+                const response = await fetch('http://localhost:3000/api/user/skills', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+        
+                if (Array.isArray(data)) {
+                    skills = data;
+                    categories = [...new Set(skills.map(skill => skill.category))]; // Extract unique categories
+                    populateCategoryDropdown();
+                } else {
+                    console.error('Expected an array but got:', data);
+                    alert('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะ');
+                }
+            } catch (error) {
+                console.error('Error fetching skills:', error);
+                alert('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะ');
+            }
+        }
+        
+        function populateCategoryDropdown() {
+            const categoryDropdown = document.getElementById('category-dropdown');
+            categoryDropdown.innerHTML = '<option value="">กรุณาเลือกหมวดหมู่</option>'; // Reset options
+        
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                categoryDropdown.appendChild(option);
+            });
+        
+            // Initially disable the skill dropdown
+            document.getElementById('skill-dropdown').disabled = true;
+        }
+        
+        function updateSkillDropdown() {
+            const selectedCategory = document.getElementById('category-dropdown').value;
+            const skillDropdown = document.getElementById('skill-dropdown');
+        
+            skillDropdown.innerHTML = '<option value="">กรุณาเลือกทักษะ</option>'; // Reset
+        
+            if (!selectedCategory) {
+                skillDropdown.disabled = true;
+                return;
+            }
+        
+            const filteredSkills = skills.filter(skill => skill.category === selectedCategory);
+        
+            filteredSkills.forEach(skill => {
+                if (!selectedSkills.some(selected => selected.skill_id === skill.skill_id)) { // Prevent duplicates
+                    const option = document.createElement('option');
+                    option.value = skill.skill_id;
+                    option.textContent = skill.name;
+                    skillDropdown.appendChild(option);
+                }
+            });
+        
+            skillDropdown.disabled = false;
+        }
+        
+        function addSkill() {
+            const skillDropdown = document.getElementById('skill-dropdown');
+            const selectedSkillId = skillDropdown.value;
+        
+            if (!selectedSkillId) return; // No selection
+        
+            // Prevent duplicate selections
+            if (selectedSkills.some(skill => skill.skill_id == selectedSkillId)) {
+                alert('คุณได้เลือกทักษะนี้แล้ว');
+                return;
+            }
+        
+            // Get the full skill object
+            const skill = skills.find(s => s.skill_id == selectedSkillId);
+            if (!skill) return;
+        
+            // Limit to 3 skills
+            if (selectedSkills.length >= 3) {
+                alert('คุณสามารถเลือกได้สูงสุด 3 ทักษะเท่านั้น');
+                return;
+            }
+        
+            // Add skill to selectedSkills list
+            selectedSkills.push(skill);
+            updateSelectedSkillsDisplay();
+        
+            // Reset skill dropdown
+            skillDropdown.value = '';
+        }
+        
+        function updateSelectedSkillsDisplay() {
+            const selectedSkillsList = document.getElementById('selected-skills-list');
+            selectedSkillsList.innerHTML = ''; // Clear previous list
+        
+            selectedSkills.forEach((skill, index) => {
+                const listItem = document.createElement('li');
+                listItem.className = "bg-gray-200 p-2 rounded flex justify-between items-center mb-2";
+                listItem.innerHTML = `
+                    <span>🛠 <strong>หมวดหมู่:</strong> ${skill.category} | <strong>ทักษะ:</strong> ${skill.name}</span>
+                    <button class="text-red-600 font-bold" onclick="removeSkill(${index})">❌</button>
+                `;
+                selectedSkillsList.appendChild(listItem);
+            });
+        
+            // Disable skill dropdown if 3 skills are selected
+            document.getElementById('skill-dropdown').disabled = selectedSkills.length >= 3;
+        }
+        
+        function removeSkill(index) {
+            selectedSkills.splice(index, 1); // Remove skill from list
+            updateSelectedSkillsDisplay(); // Refresh display
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchSkillsAndCategories();
+        });
+        
+    
         
         
         
@@ -100,6 +224,7 @@
 
         async function submitActivity(event) {
             event.preventDefault();
+        
             const title = document.getElementById('title').value;
             const description = document.getElementById('description').value;
             const location = document.getElementById('location').value;
@@ -109,13 +234,16 @@
             const endTime = document.getElementById('end-time').value;
             const maxParticipants = parseInt(document.getElementById('max-participants').value, 10);
             const requesterId = document.getElementById('requester-id').value;
-            const requesterPhone = document.getElementById('requester-phone').value; // Ensure phone number is included
+            const requesterPhone = document.getElementById('requester-phone').value;
             const status = document.getElementById('status').value;
             const timeTokensRequired = parseFloat(document.getElementById('time-tokens-required').value);
             const timeTokensPerParticipant = parseFloat(document.getElementById('time-tokens-per-participant').value);
+            
+            // Get selected skills and format them as a comma-separated string
+            const requiredSkills = selectedSkills.map(skill => skill.name).join(', '); 
         
-            if (isNaN(maxParticipants) || maxParticipants <= 0) {
-                alert('กรุณากรอกจำนวนผู้เข้าร่วมสูงสุดให้ถูกต้อง');
+            if (selectedSkills.length === 0) {
+                alert('กรุณาเลือกอย่างน้อย 1 ทักษะที่ต้องการสำหรับกิจกรรม');
                 return;
             }
         
@@ -129,14 +257,15 @@
                 end_time: endTime,
                 max_participants: maxParticipants,
                 requester_id: requesterId,
-                requester_phone: requesterPhone, // Ensure phone is included
+                requester_phone: requesterPhone,
                 status,
                 time_tokens_required: timeTokensRequired,
-                time_tokens_per_participant: timeTokensPerParticipant
+                time_tokens_per_participant: timeTokensPerParticipant,
+                required_skills: JSON.stringify(selectedSkills.map(skill => skill.name)) // Store as string (comma-separated)
             };
         
             try {
-                const activityResponse = await fetch('http://localhost:3000/api/user/activities', {
+                const response = await fetch('http://localhost:3000/api/user/activities', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -145,18 +274,19 @@
                     body: JSON.stringify(activityData)
                 });
         
-                if (!activityResponse.ok) {
-                    const errorData = await activityResponse.json();
+                if (!response.ok) {
+                    const errorData = await response.json();
                     throw new Error(`Activity creation failed: ${errorData.error}`);
                 }
         
-                alert('สร้างกิจกรรมและบันทึกธุรกรรมเรียบร้อยแล้ว!');
+                alert('สร้างกิจกรรมสำเร็จ!');
                 window.location.href = 'myactivity.html';
             } catch (error) {
                 console.error('Error:', error);
-                alert('เกิดข้อผิดพลาดในการสร้างกิจกรรม กรุณาลองใหม่อีกครั้ง');
+                alert('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
             }
-        }        
+        }
+        
         
         
         
@@ -364,6 +494,7 @@
             checkLoginStatus();
             fetchUserDetails();
             fetchCommunityConfig();
+            fetchSkillsAndCategories();
             
             document.getElementById('max-participants').addEventListener('input', calculateTimeTokens);
             document.getElementById('start-date').addEventListener('input', (event) => {
@@ -540,6 +671,31 @@
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="location">สถานที่</label>
                             <input id="location" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text" placeholder="ระบุสถานที่จัดกิจกรรม" required />
                         </div>
+
+                        <!-- Section: Skill Selection Details -->
+                        <div class="mb-4">
+                            <label for="category-dropdown" class="block text-gray-700 text-sm font-bold mb-2">เลือกหมวดหมู่:</label>
+                            <select id="category-dropdown" class="shadow border rounded w-full py-2 px-3 text-gray-700" onchange="updateSkillDropdown()">
+                                <option value="">กรุณาเลือกหมวดหมู่</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="skill-dropdown" class="block text-gray-700 text-sm font-bold mb-2">เลือกทักษะ (เลือกได้สูงสุด 3 ทักษะ):</label>
+                            <select id="skill-dropdown" class="shadow border rounded w-full py-2 px-3 text-gray-700" disabled onchange="addSkill()">
+                                <option value="">กรุณาเลือกทักษะ</option>
+                            </select>
+                        </div>
+
+                        <!-- Selected Skills Display -->
+                        <div id="selected-skills-container" class="mt-4">
+                            <h3 class="text-lg font-semibold">ทักษะที่เลือก:</h3>
+                            <ul id="selected-skills-list" class="mt-2"></ul>
+                        </div>
+
+                        
+
+                        
                 
                         <!-- Section: Date & Time -->
                         <div class="grid grid-cols-2 gap-4 mb-4">

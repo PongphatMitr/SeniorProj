@@ -45,50 +45,63 @@ const activityRoutes = (pool) => {
     // Get an activity by ID
     router.get('/:id', async (req, res) => {
         const { id } = req.params;
-
+    
         try {
             const result = await pool.query(`
-                SELECT a.*, m.name as requester_name
-                FROM activities a
-                JOIN users m ON a.requester_id = m.user_id
+                SELECT a.*, 
+                    COALESCE(json_agg(s.skill_name), '[]') AS skills_list 
+                FROM activities a,
+                    LATERAL jsonb_array_elements_text(a.required_skills) AS s(skill_name)
                 WHERE a.activity_id = $1
+                GROUP BY a.activity_id
             `, [id]);
+    
             if (result.rows.length === 0) {
                 res.status(404).json({ error: 'Activity not found' });
             } else {
                 res.json(result.rows[0]);
             }
         } catch (err) {
-            console.error('Error:', err.message);
+            console.error('Error fetching activity:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
+    
 
     // Create a new activity
     router.post('/', async (req, res) => {
-        const { title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, requester_phone, status, time_tokens_required, time_tokens_per_participant } = req.body;
+        const { 
+            title, description, location, start_date, start_time, end_date, end_time, 
+            max_participants, requester_id, requester_phone, status, 
+            time_tokens_required, time_tokens_per_participant, required_skills 
+        } = req.body;
     
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
     
-            // Ensure `requester_phone` is included in the database query
             const result = await client.query(
-                `INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, requester_phone, status, time_tokens_required, time_tokens_per_participant)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) RETURNING *`,
-                [title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, requester_phone, status, time_tokens_required, time_tokens_per_participant]
+                `INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, 
+                                         max_participants, requester_id, requester_phone, status, 
+                                         time_tokens_required, time_tokens_per_participant, required_skills)
+                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) 
+                 RETURNING *`,
+                [title, description, location, start_date, start_time, end_date, end_time, 
+                 max_participants, requester_id, requester_phone, status, 
+                 time_tokens_required, time_tokens_per_participant, required_skills]
             );
     
             await client.query('COMMIT');
             res.status(201).json(result.rows[0]);
         } catch (err) {
             await client.query('ROLLBACK');
-            console.error('Error:', err.message);
-            res.status(500).json({ error: 'An error occurred. Please try again.' });
+            console.error('Error creating activity:', err); // Show full error
+            res.status(500).json({ error: `Activity creation failed: ${err.message}` }); // Send error details to frontend            
         } finally {
             client.release();
         }
     });
+    
     
 
     // Update an activity
@@ -146,14 +159,18 @@ const activityRoutes = (pool) => {
     
         try {
             const participants = await pool.query(`
-                   SELECT u.user_id, u.name, u.phone, COALESCE(array_agg(s.name) FILTER (WHERE s.name IS NOT NULL), '{}') as skills
-                   FROM activity_participants ap
-                   JOIN users u ON ap.user_id = u.user_id
-                   LEFT JOIN member_skills ms ON u.user_id = ms.user_id
-                   LEFT JOIN skills s ON ms.skill_id = s.skill_id
-                   WHERE ap.activity_id = $1
-                   GROUP BY u.user_id, u.name, u.phone
-               `, [activityId]);
+                SELECT u.user_id, u.name, u.phone,
+                       ARRAY[
+                           (SELECT name FROM skills WHERE skill_id = ms.skill_1),
+                           (SELECT name FROM skills WHERE skill_id = ms.skill_2),
+                           (SELECT name FROM skills WHERE skill_id = ms.skill_3)
+                       ] AS skills
+                FROM activity_participants ap
+                JOIN users u ON ap.user_id = u.user_id
+                LEFT JOIN member_skills ms ON u.user_id = ms.user_id
+                WHERE ap.activity_id = $1
+            `, [activityId]);
+            
     
             res.json(participants.rows);
         } catch (error) {
