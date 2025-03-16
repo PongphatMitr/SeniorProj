@@ -51,26 +51,28 @@ CREATE TABLE users (
     FOREIGN KEY (branch_id) REFERENCES branches(branch_id)
 );
 
--- Create the activities table with enum status
+-- Create the new activities table
 CREATE TABLE activities (
     activity_id SERIAL PRIMARY KEY,
     title VARCHAR(100) NOT NULL,
-    description TEXT,
-    location VARCHAR(100),
+    description TEXT NOT NULL,
+    location VARCHAR(255) NOT NULL,
     start_date DATE NOT NULL,
-    start_time TIME,
+    start_time TIME NOT NULL,
     end_date DATE NOT NULL,
-    end_time TIME,
-    max_participants INT,
-    requester_id INT,
-    requester_phone VARCHAR(20),  -- Added new column to store phone number
-    status activity_status NOT NULL,
+    end_time TIME NOT NULL,
+    max_participants INT NOT NULL CHECK (max_participants > 0),
+    requester_id INT NOT NULL,
+    requester_phone VARCHAR(20) NOT NULL,
+    status VARCHAR(50) NOT NULL CHECK (status IN ('กำลังจะเริ่ม', 'เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา')),
     time_tokens_required INT DEFAULT 0,
     time_tokens_per_participant INT DEFAULT 0,
+    required_skills JSON NOT NULL DEFAULT '[]',  -- Store skills as JSON array (e.g., ["งานตัดไม้", "งานขับรถ", "งานทำสวน"])
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    FOREIGN KEY (requester_id) REFERENCES users(user_id)
+    FOREIGN KEY (requester_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
+
 
 -- Create the categories table
 CREATE TABLE categories (
@@ -228,15 +230,36 @@ VALUES ('testuser', '$2a$10$y2yR9UyFAUfyYCiYqDxgteWBflWnsbYdlFZDmNPmn7P1.xUfbRFt
 ('moji', '$2a$10$AfvWwUB3xPrYByh4UEpSSeptvKp07aIACEyzVJB4TJVRUM8aDNwWm', 'testuser@example.com', 'Member', 'ณิชาภา เกษมวงศ์', '0811111111', '123 Test St, Test City ลพบุรี', 1, 10, 'active'),
 ('save001', '$2a$10$4tEtE.kQJrXrM2G5w.8Fs.PWVcMz/WeE0iZSfPPdxz0DTY82mVOTy', 'savewaris001@gmail.com', 'Admin', 'Test User', '1234567890', '123 Test St, Test City', 1, 10, 'active');
 
--- Insert initial data into activities
-INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, requester_phone, status, time_tokens_required, time_tokens_per_participant) 
-VALUES 
-('กิจกรรมทำความสะอาดชุมชน', 'ทำความสะอาดชุมชน', 'Community Center', '2023-01-01', '09:00', '2023-01-01', '12:00', 20, 1, '1234567890', 'กำลังจะเริ่ม', 20, 1),
-('กิจกรรมสอนคอมพิวเตอร์', 'สอนคอมพิวเตอร์ให้กับชุมชน', 'Community Center', '2023-01-15', '10:00', '2023-01-15', '13:00', 15, 1, '0987654321', 'กำลังจะเริ่ม', 15, 1),
-('กิจกรรมทำอาหาร', 'ทำอาหารร่วมกัน', 'Community Kitchen', '2023-01-30', '11:00', '2023-01-30', '14:00', 10, 1, '0987654321', 'เสร็จสิ้น', 10, 1),
-('กิจกรรมทำสวน', 'ทำสวนร่วมกัน', 'Community Garden', '2023-02-05', '08:00', '2023-02-05', '11:00', 25, 1, '0987654321', 'เสร็จสิ้น', 25, 1),
-('กิจกรรมยกเลิก', 'กิจกรรมนี้ถูกยกเลิก', 'Community Center', '2023-02-20', '09:00', '2023-02-20', '12:00', 0, 1, '0987654321', 'ยกเลิก', 0, 0),
-('กิจกรรมยกเลิก', 'กิจกรรมนี้ถูกยกเลิก', 'Community Center', '2023-02-25', '09:00', '2023-02-25', '12:00', 0, 1, '0987654321', 'ยกเลิก', 0, 0);
+-- Insert initial data into activities (with required_skills)
+INSERT INTO activities (
+    title, description, location, start_date, start_time, end_date, end_time, 
+    max_participants, requester_id, requester_phone, status, 
+    time_tokens_required, time_tokens_per_participant, required_skills
+) VALUES 
+('กิจกรรมทำความสะอาดชุมชน', 'ทำความสะอาดชุมชน', 'Community Center', 
+ '2023-01-01', '09:00', '2023-01-01', '12:00', 
+  20, 1, '1234567890', 'กำลังจะเริ่ม', 
+  20, 1, 
+  '["งานทำความสะอาด", "งานขนของ", "งานซ่อมบำรุง"]'::json),
+
+('กิจกรรมสอนคอมพิวเตอร์', 'สอนคอมพิวเตอร์ให้กับชุมชน', 'Community Center', 
+ '2023-01-15', '10:00', '2023-01-15', '13:00', 
+  15, 1, '0987654321', 'กำลังจะเริ่ม', 
+  15, 1, 
+  '["งานสอนคอมพิวเตอร์", "งานช่วยเอกสาร", "งานพิมพ์เอกสาร"]'::json),
+
+('กิจกรรมทำอาหาร', 'ทำอาหารร่วมกัน', 'Community Kitchen', 
+ '2023-01-30', '11:00', '2023-01-30', '14:00', 
+  10, 1, '0987654321', 'เสร็จสิ้น', 
+  10, 1, 
+  '["งานทำอาหาร", "งานทำขนม", "งานเสิร์ฟอาหาร"]'::json),
+
+('กิจกรรมทำสวน', 'ทำสวนร่วมกัน', 'Community Garden', 
+ '2023-02-05', '08:00', '2023-02-05', '11:00', 
+  25, 1, '0987654321', 'เสร็จสิ้น', 
+  25, 1, 
+  '["งานตัดไม้", "งานทำสวน", "งานปลูกต้นไม้"]'::json);
+
 
 -- Insert initial data into categories
 INSERT INTO categories (category) 
