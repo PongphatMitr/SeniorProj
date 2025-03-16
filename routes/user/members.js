@@ -99,16 +99,29 @@
         router.get('/', async (req, res) => {
             const { page = 1, pageSize = 10 } = req.query;
             const offset = (page - 1) * pageSize;
-
+        
             try {
-                const result = await pool.query('SELECT * FROM users LIMIT $1 OFFSET $2', [pageSize, offset]);
+                const result = await pool.query(
+                    `SELECT u.user_id, u.username, u.name, u.email, 
+                            COALESCE(array_agg(s.name) FILTER (WHERE s.name IS NOT NULL), ARRAY['ยังไม่มีทักษะที่ลงทะเบียน']) AS skills
+                    FROM users u
+                    LEFT JOIN member_skills ms ON u.user_id = ms.user_id
+                    LEFT JOIN skills s ON s.skill_id IN (ms.skill_1, ms.skill_2, ms.skill_3)
+                    GROUP BY u.user_id, u.username, u.name, u.email
+                    ORDER BY u.user_id ASC
+                    LIMIT $1 OFFSET $2`,
+                    [pageSize, offset]
+                );
+        
                 const totalResult = await pool.query('SELECT COUNT(*) FROM users');
                 res.json({ members: result.rows, total: parseInt(totalResult.rows[0].count, 10) });
             } catch (err) {
                 console.error('Error:', err.message);
-                res.status(500).json({ error: 'An error occurred. Please try again.' });
+                res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
             }
         });
+        
+        
 
         // Get a member by ID
         router.get('/:id', async (req, res) => {
@@ -132,15 +145,15 @@
             const { id } = req.params;
         
             if (isNaN(id)) {
-                return res.status(400).json({ error: 'Invalid member ID' });
+                return res.status(400).json({ error: 'รหัสสมาชิกไม่ถูกต้อง' });
             }
         
             try {
                 const result = await pool.query(
                     `SELECT 
-                        s1.skill_id AS skill_1_id, s1.name AS skill_1_name, c1.category AS skill_1_category,
-                        s2.skill_id AS skill_2_id, s2.name AS skill_2_name, c2.category AS skill_2_category,
-                        s3.skill_id AS skill_3_id, s3.name AS skill_3_name, c3.category AS skill_3_category
+                        COALESCE(s1.skill_id, NULL) AS skill_1_id, COALESCE(s1.name, 'ไม่ลงทะเบียนทักษะ') AS skill_1_name, COALESCE(c1.category, 'ไม่ระบุหมวดหมู่') AS skill_1_category,
+                        COALESCE(s2.skill_id, NULL) AS skill_2_id, COALESCE(s2.name, 'ไม่ลงทะเบียนทักษะ') AS skill_2_name, COALESCE(c2.category, 'ไม่ระบุหมวดหมู่') AS skill_2_category,
+                        COALESCE(s3.skill_id, NULL) AS skill_3_id, COALESCE(s3.name, 'ไม่ลงทะเบียนทักษะ') AS skill_3_name, COALESCE(c3.category, 'ไม่ระบุหมวดหมู่') AS skill_3_category
                     FROM member_skills
                     LEFT JOIN skills s1 ON member_skills.skill_1 = s1.skill_id
                     LEFT JOIN categories c1 ON s1.category_id = c1.category_id
@@ -153,21 +166,28 @@
                 );
         
                 if (result.rows.length === 0) {
-                    return res.status(404).json({ error: 'No skills found for this member' });
+                    return res.json({ skills: [
+                        { skill_id: null, name: "ไม่ลงทะเบียนทักษะ", category: "ไม่ระบุหมวดหมู่" },
+                        { skill_id: null, name: "ไม่ลงทะเบียนทักษะ", category: "ไม่ระบุหมวดหมู่" },
+                        { skill_id: null, name: "ไม่ลงทะเบียนทักษะ", category: "ไม่ระบุหมวดหมู่" }
+                    ]});
                 }
         
                 const skills = [
                     { skill_id: result.rows[0].skill_1_id, name: result.rows[0].skill_1_name, category: result.rows[0].skill_1_category },
                     { skill_id: result.rows[0].skill_2_id, name: result.rows[0].skill_2_name, category: result.rows[0].skill_2_category },
                     { skill_id: result.rows[0].skill_3_id, name: result.rows[0].skill_3_name, category: result.rows[0].skill_3_category }
-                ].filter(skill => skill.skill_id !== null); // Remove null skills
+                ];
         
                 res.json({ skills });
             } catch (err) {
                 console.error('Error:', err.message);
-                res.status(500).json({ error: 'An error occurred. Please try again.' });
+                res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
             }
         });
+        
+        
+        
         
 
         // Get activities of a member
@@ -202,57 +222,36 @@
             console.log("🔹 Received Payload:", req.body);
         
             if (isNaN(id)) {
-                return res.status(400).json({ error: 'Invalid member ID' });
+                return res.status(400).json({ error: 'รหัสสมาชิกไม่ถูกต้อง' });
             }
         
             const client = await pool.connect();
             try {
                 await client.query('BEGIN');
         
-                // Fetch existing skills for this user
-                const existingSkillsQuery = await client.query(
-                    'SELECT skill_1, skill_2, skill_3 FROM member_skills WHERE user_id = $1',
-                    [id]
-                );
+                // Allow users to "clear" skills by sending an empty string or null
+                skill_1 = skill_1 === "" ? null : skill_1;
+                skill_2 = skill_2 === "" ? null : skill_2;
+                skill_3 = skill_3 === "" ? null : skill_3;
         
-                console.log("🔹 Existing Skills:", existingSkillsQuery.rows);
-        
-                let existingSkills = existingSkillsQuery.rows[0] || {};
-                let existingSkillIds = [existingSkills.skill_1, existingSkills.skill_2, existingSkills.skill_3].filter(Boolean);
-        
-                // Ensure selected skills are unique
-                const selectedSkills = [skill_1, skill_2, skill_3].filter(Boolean);
-                const uniqueSkills = new Set(selectedSkills);
-        
-                if (selectedSkills.length !== uniqueSkills.size) {
-                    return res.status(400).json({ error: 'ไม่สามารถลงทะเบียนทักษะซ้ำกันได้ กรุณาเลือกทักษะอื่น' });
+                // Validate if skills exist in the database (except null)
+                const validSkills = [skill_1, skill_2, skill_3].filter(Boolean); // Remove null values
+                if (validSkills.length > 0) {
+                    const skillCheck = await pool.query(
+                        `SELECT skill_id FROM skills WHERE skill_id = ANY($1)`,
+                        [validSkills]
+                    );
+                    if (skillCheck.rowCount !== validSkills.length) {
+                        return res.status(400).json({ error: 'One or more skills do not exist in the database' });
+                    }
                 }
         
-                // Validate if skills exist in the database
-                const skillCheck = await pool.query(
-                    `SELECT skill_id FROM skills WHERE skill_id IN ($1, $2, $3)`,
-                    [skill_1, skill_2, skill_3]
-                );
-        
-                console.log("🔹 Skill Check in DB:", skillCheck.rows);
-        
-                if (skillCheck.rowCount !== selectedSkills.length) {
-                    return res.status(400).json({ error: 'One or more skills do not exist in the database' });
-                }
-        
-                // Update skills, keeping null if no change
-                skill_1 = skill_1 || existingSkills.skill_1 || null;
-                skill_2 = skill_2 || existingSkills.skill_2 || null;
-                skill_3 = skill_3 || existingSkills.skill_3 || null;
-        
-                console.log("🔹 Final Skill Values:", { skill_1, skill_2, skill_3 });
-        
-                // Remove existing entry before inserting a new one
-                await client.query('DELETE FROM member_skills WHERE user_id = $1', [id]);
-        
-                // Insert new skills
+                // Update skills, allowing null values
                 await client.query(
-                    'INSERT INTO member_skills (user_id, skill_1, skill_2, skill_3) VALUES ($1, $2, $3, $4)',
+                    `INSERT INTO member_skills (user_id, skill_1, skill_2, skill_3)
+                     VALUES ($1, $2, $3, $4)
+                     ON CONFLICT (user_id) 
+                     DO UPDATE SET skill_1 = $2, skill_2 = $3, skill_3 = $4`,
                     [id, skill_1, skill_2, skill_3]
                 );
         
@@ -266,6 +265,7 @@
                 client.release();
             }
         });
+        
         
         
 
