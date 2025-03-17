@@ -9,23 +9,27 @@
     <script>
         let globalUserId = null;
         let activityId = null;
-    
+
         async function fetchActivityDetails() {
             const urlParams = new URLSearchParams(window.location.search);
             activityId = urlParams.get('id');
-    
+        
             if (!activityId) {
                 alert('ไม่พบรหัสกิจกรรม');
                 return;
             }
-    
+        
             try {
                 const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
-    
+        
+                if (!response.ok) {
+                    throw new Error('Error fetching activity details');
+                }
+        
                 const activity = await response.json();
-    
+        
                 if (activity) {
                     document.getElementById('service-title').value = activity.title || '';
                     document.getElementById('service-description').value = activity.description || '';
@@ -38,10 +42,15 @@
                     document.getElementById('requester-name').value = activity.requester_name || '';
                     document.getElementById('requester-phone').value = activity.requester_phone || '';
                     document.getElementById('service-status').value = activity.status || '';
-    
+        
+                    // ✅ NEW: Handle required skills
+                    displayRequiredSkills(activity.required_skills);
+        
                     // Fetch participants and update the participant count
                     await fetchParticipants(activityId, activity.max_participants);
-    
+        
+                    // Update join button based on activity status
+                    updateJoinButton(activity.status);
                 } else {
                     alert('ไม่พบรายละเอียดกิจกรรม');
                 }
@@ -50,38 +59,112 @@
                 alert('เกิดข้อผิดพลาดในการดึงรายละเอียดกิจกรรม');
             }
         }
-    
+
+        function updateJoinButton(status) {
+            const joinButton = document.getElementById('join-button');
+            if (!joinButton) {
+                console.warn("Join button not found in DOM.");
+                return;
+            }
+        
+            if (status === 'กำลังจะเริ่ม') {
+                joinButton.innerText = 'เข้าร่วม';
+                joinButton.classList.remove('bg-red-500');
+                joinButton.classList.add('bg-green-500');
+            } else {
+                joinButton.innerText = 'ปิดรับสมัคร';
+                joinButton.classList.remove('bg-green-500');
+                joinButton.classList.add('bg-gray-500');
+                joinButton.disabled = true;
+            }
+        }
+        
+        
+        function displayRequiredSkills(requiredSkills) {
+            const skillsContainer = document.getElementById('selected-skills-list');
+            skillsContainer.innerHTML = ''; // Clear previous content
+        
+            try {
+                // Check if `requiredSkills` is already an array or a string
+                const skills = typeof requiredSkills === 'string' ? JSON.parse(requiredSkills) : requiredSkills;
+        
+                if (Array.isArray(skills) && skills.length > 0) {
+                    skills.forEach(skill => {
+                        const listItem = document.createElement('li');
+                        listItem.textContent = skill; // Display skill name
+                        skillsContainer.appendChild(listItem);
+                    });
+                } else {
+                    skillsContainer.innerHTML = '<li class="text-gray-500">ไม่มีทักษะที่ระบุ</li>';
+                }
+            } catch (error) {
+                console.error('Error parsing required skills:', error);
+                skillsContainer.innerHTML = '<li class="text-red-500">เกิดข้อผิดพลาดในการโหลดทักษะ</li>';
+            }
+        }
+        
+
+
         async function fetchParticipants(activityId, maxParticipants) {
             try {
                 const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}/participants`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
-    
+        
+                if (!response.ok) {
+                    throw new Error('Error fetching participants');
+                }
+        
                 const participants = await response.json();
                 const participantCount = participants.length;
-    
+        
                 // Ensure maxParticipants is retrieved correctly if not provided
                 if (!maxParticipants) {
                     const activityResponse = await fetch(`http://localhost:3000/api/user/activities/${activityId}`, {
                         headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                     });
+        
+                    if (!activityResponse.ok) {
+                        throw new Error('Error fetching activity details');
+                    }
+        
                     const activityData = await activityResponse.json();
                     maxParticipants = activityData.max_participants;
                 }
-    
+        
                 // Update the participant count in activity-detail
-                document.getElementById('current-participants').innerText = `${participantCount} / ${maxParticipants}`;
-    
+                const participantElement = document.getElementById('current-participants');
+                if (participantElement) {
+                    participantElement.innerText = `${participantCount} / ${maxParticipants}`;
+                } else {
+                    console.warn("Element 'current-participants' not found in DOM.");
+                }
+        
                 // Check if the user has joined the activity
                 const userJoined = participants.some(participant => participant.user_id === globalUserId);
-    
-    
+                const joinButton = document.getElementById('join-button');
+        
+                if (joinButton) {
+                    if (userJoined) {
+                        joinButton.innerText = 'ยกเลิก';
+                        joinButton.classList.remove('bg-green-500');
+                        joinButton.classList.add('bg-red-500');
+                    } else {
+                        joinButton.innerText = 'เข้าร่วม';
+                        joinButton.classList.remove('bg-red-500');
+                        joinButton.classList.add('bg-green-500');
+                    }
+                } else {
+                    console.warn("Join button not found in DOM.");
+                }
+        
             } catch (error) {
                 console.error('Error fetching participants:', error);
                 alert('เกิดข้อผิดพลาดในการดึงข้อมูลผู้เข้าร่วม');
             }
         }
-    
+        
+
         async function fetchMemberProfile() {
             try {
                 const response = await fetch(`http://localhost:3000/api/user/auth/profile`, {
@@ -327,6 +410,15 @@
             checkLoginStatus();
             updateSidebar();
         });
+
+        function goBack() {
+            if (document.referrer) {
+                window.history.back();
+            } else {
+                window.location.href = 'homepage.html'; // Change this to your default fallback page
+            }
+        }
+        
     </script>
 </head>
 
@@ -379,6 +471,8 @@
                 </div>
             </div>
 
+            <hr class="my-8 border-gray-200">
+
             <!-- Service Information -->
             <div class="mb-4">
                 <label class="block text-gray-700 text-sm font-bold mb-2" for="service-title">
@@ -418,6 +512,15 @@
                     </select>
                 </div>
             </div>
+
+            <hr class="my-8 border-gray-200">
+
+            <!-- Selected Skills Display -->
+            <div id="selected-skills-container" class="mt-4 bg-white p-4 rounded-lg shadow-sm">
+                <h3 class="text-lg font-semibold text-blue-700">ทักษะที่ต้องการ:</h3>
+                <ul id="selected-skills-list" class="mt-2 list-disc list-inside text-gray-700"></ul>
+            </div>
+            <hr class="my-8 border-gray-200">
             
             <!-- Date & Time Information -->
             <div class="flex flex-wrap -mx-3 mb-4">
@@ -479,8 +582,9 @@
             <div class="flex items-center justify-center">
                 <button
                     class="bg-gray-500 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
-                    type="button" onclick="window.history.back()">ย้อนกลับ</button>
+                    type="button" onclick="goBack()">ย้อนกลับ</button>
             </div>
+
         </form>
     </div>
 </div>

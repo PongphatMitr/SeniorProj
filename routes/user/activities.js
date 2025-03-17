@@ -49,23 +49,26 @@ const activityRoutes = (pool) => {
         try {
             const result = await pool.query(`
                 SELECT a.*, 
-                    COALESCE(json_agg(s.skill_name), '[]') AS skills_list 
-                FROM activities a,
-                    LATERAL jsonb_array_elements_text(a.required_skills) AS s(skill_name)
+                       m.name as requester_name, 
+                       a.required_skills::text AS required_skills  -- Convert JSON to text
+                FROM activities a
+                JOIN users m ON a.requester_id = m.user_id
                 WHERE a.activity_id = $1
-                GROUP BY a.activity_id
             `, [id]);
     
             if (result.rows.length === 0) {
-                res.status(404).json({ error: 'Activity not found' });
-            } else {
-                res.json(result.rows[0]);
+                return res.status(404).json({ error: 'Activity not found' });
             }
+    
+            res.json(result.rows[0]); // Send JSON response
         } catch (err) {
-            console.error('Error fetching activity:', err.message);
+            console.error('Error fetching activity details:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
+    
+    
+    
     
 
     // Create a new activity
