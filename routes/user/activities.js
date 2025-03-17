@@ -49,8 +49,10 @@ const activityRoutes = (pool) => {
         try {
             const result = await pool.query(`
                 SELECT a.*, 
+                       TO_CHAR(a.start_time, 'HH24:MI') AS start_time, 
+                       TO_CHAR(a.end_time, 'HH24:MI') AS end_time, 
                        m.name as requester_name, 
-                       a.required_skills::text AS required_skills  -- Convert JSON to text
+                       a.required_skills::text AS required_skills  
                 FROM activities a
                 JOIN users m ON a.requester_id = m.user_id
                 WHERE a.activity_id = $1
@@ -60,12 +62,13 @@ const activityRoutes = (pool) => {
                 return res.status(404).json({ error: 'Activity not found' });
             }
     
-            res.json(result.rows[0]); // Send JSON response
+            res.json(result.rows[0]);
         } catch (err) {
             console.error('Error fetching activity details:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
+    
     
     
     
@@ -83,11 +86,12 @@ const activityRoutes = (pool) => {
         try {
             await client.query('BEGIN');
     
+            // ✅ Ensure time values are stored in correct `TIME` format
             const result = await client.query(
                 `INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, 
                                          max_participants, requester_id, requester_phone, status, 
                                          time_tokens_required, time_tokens_per_participant, required_skills)
-                 VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) 
+                 VALUES ($1, $2, $3, $4, $5::TIME, $6, $7::TIME, $8, $9, $10, $11, $12, $13, $14) 
                  RETURNING *`,
                 [title, description, location, start_date, start_time, end_date, end_time, 
                  max_participants, requester_id, requester_phone, status, 
@@ -98,12 +102,13 @@ const activityRoutes = (pool) => {
             res.status(201).json(result.rows[0]);
         } catch (err) {
             await client.query('ROLLBACK');
-            console.error('Error creating activity:', err); // Show full error
-            res.status(500).json({ error: `Activity creation failed: ${err.message}` }); // Send error details to frontend            
+            console.error('Error creating activity:', err); 
+            res.status(500).json({ error: `Activity creation failed: ${err.message}` });            
         } finally {
             client.release();
         }
     });
+    
     
     
 

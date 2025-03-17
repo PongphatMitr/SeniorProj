@@ -178,38 +178,55 @@
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
+        
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
+        
                 const data = await response.json();
                 exchangeRate = data.default_exchange_rate_description;
                 console.log('Exchange Rate:', exchangeRate);
+        
+                // Recalculate tokens after fetching exchange rate
+                calculateTimeTokens();
             } catch (error) {
                 console.error('Error fetching community config:', error);
                 alert('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
             }
         }
+        
 
         function calculateTimeTokens() {
-            const maxParticipants = parseInt(document.getElementById('max-participants').value, 10);
-            const startDate = document.getElementById('start-date').value;
-            const endDate = document.getElementById('end-date').value;
-            const startTime = document.getElementById('start-time').value;
-            const endTime = document.getElementById('end-time').value;
-
-            if (isNaN(maxParticipants) || maxParticipants <= 0 || !startDate || !endDate || !startTime || !endTime || !exchangeRate) {
+            // Ensure elements exist before accessing their values
+            const startHours = document.getElementById('start-hours')?.value;
+            const startMinutes = document.getElementById('start-minutes')?.value;
+            const endHours = document.getElementById('end-hours')?.value;
+            const endMinutes = document.getElementById('end-minutes')?.value;
+            const maxParticipants = parseInt(document.getElementById('max-participants')?.value, 10) || 0;
+            
+            if (!startHours || !startMinutes || !endHours || !endMinutes || maxParticipants <= 0) {
                 document.getElementById('time-tokens-required').value = '0.00';
                 document.getElementById('time-tokens-per-participant').value = '0.00';
                 return;
             }
-
-            const startDateTime = new Date(`${startDate}T${startTime}`);
-            const endDateTime = new Date(`${endDate}T${endTime}`);
-            const durationInHours = Math.max(0, (endDateTime - startDateTime) / (1000 * 60 * 60));
-
+        
+            // Convert selected times to Date objects for calculation
+            const startTime = new Date();
+            startTime.setHours(parseInt(startHours, 10), parseInt(startMinutes, 10), 0);
+        
+            const endTime = new Date();
+            endTime.setHours(parseInt(endHours, 10), parseInt(endMinutes, 10), 0);
+        
+            // Calculate duration in hours
+            let durationInHours = (endTime - startTime) / (1000 * 60 * 60);
+            if (durationInHours < 0) {
+                durationInHours += 24; // Handle cases where end time is past midnight
+            }
+        
             let timeTokensRequired = 0;
             let timeTokensPerParticipant = 0;
-
+        
+            // Exchange rate should be defined before calling this function
             if (exchangeRate === '1 โทเคนเวลา ต่อ 1 ชั่วโมง') {
                 timeTokensPerParticipant = durationInHours;
                 timeTokensRequired = maxParticipants * durationInHours;
@@ -217,51 +234,66 @@
                 timeTokensPerParticipant = 1;
                 timeTokensRequired = maxParticipants;
             }
-
+        
+            // Update the input fields
             document.getElementById('time-tokens-required').value = timeTokensRequired.toFixed(2);
             document.getElementById('time-tokens-per-participant').value = timeTokensPerParticipant.toFixed(2);
         }
+        
 
         async function submitActivity(event) {
             event.preventDefault();
-        
+            
             const title = document.getElementById('title').value;
             const description = document.getElementById('description').value;
             const location = document.getElementById('location').value;
             const startDate = document.getElementById('start-date').value;
-            const startTime = document.getElementById('start-time').value;
             const endDate = document.getElementById('end-date').value;
-            const endTime = document.getElementById('end-time').value;
             const maxParticipants = parseInt(document.getElementById('max-participants').value, 10);
             const requesterId = document.getElementById('requester-id').value;
             const requesterPhone = document.getElementById('requester-phone').value;
             const status = document.getElementById('status').value;
             const timeTokensRequired = parseFloat(document.getElementById('time-tokens-required').value);
             const timeTokensPerParticipant = parseFloat(document.getElementById('time-tokens-per-participant').value);
-            
-            // Get selected skills and format them as a comma-separated string
-            const requiredSkills = selectedSkills.map(skill => skill.name).join(', '); 
         
-            if (selectedSkills.length === 0) {
+            // ✅ Extract time from dropdowns and format as HH:MM (SQL TIME format)
+            const startHours = document.getElementById('start-hours').value;
+            const startMinutes = document.getElementById('start-minutes').value;
+            const endHours = document.getElementById('end-hours').value;
+            const endMinutes = document.getElementById('end-minutes').value;
+        
+            if (!startHours || !startMinutes || !endHours || !endMinutes) {
+                alert('กรุณาเลือกเวลาเริ่มต้นและเวลาสิ้นสุดให้ครบ');
+                return;
+            }
+        
+            const startTime = `${startHours}:${startMinutes}`;
+            const endTime = `${endHours}:${endMinutes}`;
+        
+            // ✅ Fix: Ensure `selectedSkills` is defined
+            if (!selectedSkills || selectedSkills.length === 0) {
                 alert('กรุณาเลือกอย่างน้อย 1 ทักษะที่ต้องการสำหรับกิจกรรม');
                 return;
             }
+        
+            // ✅ Convert selected skills to a JSON string
+            const required_skills = JSON.stringify(selectedSkills.map(skill => skill.name));
         
             const activityData = {
                 title,
                 description,
                 location,
                 start_date: startDate,
-                start_time: startTime,
+                start_time: startTime,  // ✅ Now sending `HH:MM` format
                 end_date: endDate,
-                end_time: endTime,
+                end_time: endTime,      // ✅ Now sending `HH:MM` format
                 max_participants: maxParticipants,
                 requester_id: requesterId,
                 requester_phone: requesterPhone,
                 status,
                 time_tokens_required: timeTokensRequired,
                 time_tokens_per_participant: timeTokensPerParticipant,
-                required_skills: JSON.stringify(selectedSkills.map(skill => skill.name)) // Store as string (comma-separated)
+                required_skills // ✅ Fixed missing variable
             };
         
             try {
@@ -286,6 +318,8 @@
                 alert('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
             }
         }
+        
+        
         
         
         
@@ -489,6 +523,26 @@
                 `;
             }
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            // Ensure elements exist before accessing them
+            const startHours = document.getElementById('start-hours');
+            const startMinutes = document.getElementById('start-minutes');
+            const endHours = document.getElementById('end-hours');
+            const endMinutes = document.getElementById('end-minutes');
+            const maxParticipants = document.getElementById('max-participants');
+        
+            if (startHours && startMinutes && endHours && endMinutes && maxParticipants) {
+                startHours.addEventListener('change', calculateTimeTokens);
+                startMinutes.addEventListener('change', calculateTimeTokens);
+                endHours.addEventListener('change', calculateTimeTokens);
+                endMinutes.addEventListener('change', calculateTimeTokens);
+                maxParticipants.addEventListener('input', calculateTimeTokens);
+            } else {
+                console.error("One or more elements are missing in the DOM.");
+            }
+        });
+        
 
         document.addEventListener('DOMContentLoaded', () => {
             checkLoginStatus();
@@ -706,26 +760,91 @@
 
                         <hr class="my-8 border-gray-200">
 
-                        <!-- Section: Date & Time -->
+                        <!-- Section: Date -->
                         <div class="grid grid-cols-2 gap-4 mb-4">
                             <div>
                                 <label class="block text-gray-700 text-sm font-bold mb-2" for="start-date">วันที่เริ่มต้น</label>
                                 <input id="start-date" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="date" required />
                             </div>
                             <div>
-                                <label class="block text-gray-700 text-sm font-bold mb-2" for="start-time">เวลาเริ่มต้น</label>
-                                <input id="start-time" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="time" required />
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-2 gap-4 mb-4">
-                            <div>
                                 <label class="block text-gray-700 text-sm font-bold mb-2" for="end-date">วันที่สิ้นสุด</label>
                                 <input id="end-date" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="date" required />
                             </div>
-                            <div>
-                                <label class="block text-gray-700 text-sm font-bold mb-2" for="end-time">เวลาสิ้นสุด</label>
-                                <input id="end-time" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="time" required />
+                        </div>
+                        <!-- Section: Time -->
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="mb-6">
+                                <label for="start-time" class="block text-gray-700 text-sm font-bold mb-2">เวลาเริ่มต้น</label>
+                                <div class="flex items-center bg-white border shadow border rounded w-full py-2 px-3 text-gray-700">
+                                    <!-- Hour Selector -->
+                                    <select id="start-hours" name="start-hours" class="text-gray-700 w-full text-center focus:outline-none">
+                                        <option value="" selected disabled>-- ชั่วโมง --</option>
+                                        <script>
+                                            for (let i = 0; i < 24; i++) {
+                                                document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาฬิกา</option>`);
+                                            }
+                                        </script>
+                                    </select>
+                                    
+                                    
+                                    <!-- Minute Selector -->
+                                    <select id="start-minutes" name="start-minutes" class="text-gray-700 w-full text-center focus:outline-none">
+                                        <option value="00" selected>00 นาที</option>
+                                        <script>
+                                            for (let i = 0; i < 60; i += 5) {
+                                                document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาที</option>`);
+                                            }
+                                        </script>
+                                    </select>
+                                </div>
                             </div>
+                            
+                            <div class="mb-6">
+                                <label for="end-time" class="block text-gray-700 text-sm font-bold mb-2">เวลาสิ้นสุด</label>
+                                <div class="flex items-center bg-white border shadow border rounded w-full py-2 px-3 text-gray-700">
+                                    <!-- Hour Selector -->
+                                    <select id="end-hours" name="end-hours" class="text-gray-700 w-full text-center focus:outline-none">
+                                        <option value="" selected disabled>-- ชั่วโมง --</option>
+                                        <script>
+                                            for (let i = 0; i < 24; i++) {
+                                                document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาฬิกา</option>`);
+                                            }
+                                        </script>
+                                    </select>
+                                    
+
+                                    
+                                    <!-- Minute Selector -->
+                                    <select id="end-minutes" name="end-minutes" class="text-gray-700 w-full text-center focus:outline-none">
+                                        <option value="00" selected>00 นาที</option>
+                                        <script>
+                                            for (let i = 0; i < 60; i += 5) {
+                                                document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาที</option>`);
+                                            }
+                                        </script>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <script>
+                                // Auto-update end time when start time is selected
+                                document.getElementById('start-hours').addEventListener('change', updateEndTime);
+                                document.getElementById('start-minutes').addEventListener('change', updateEndTime);
+                            
+                                function updateEndTime() {
+                                    let startHours = parseInt(document.getElementById("start-hours").value, 10);
+                                    let startMinutes = parseInt(document.getElementById("start-minutes").value, 10);
+                                    
+                                    if (!isNaN(startHours) && !isNaN(startMinutes)) {
+                                        let endHours = startHours + 1;
+                                        if (endHours >= 24) endHours = 0; // Handle 24-hour overflow
+                                        
+                                        document.getElementById("end-hours").value = endHours.toString().padStart(2, '0');
+                                        document.getElementById("end-minutes").value = startMinutes.toString().padStart(2, '0');
+                                    }
+                                }
+                            </script>
+                            
                         </div>
                 
                         <!-- Section: Participants & Status -->
