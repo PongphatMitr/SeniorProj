@@ -290,301 +290,301 @@
             const paginationContainer = document.getElementById('pagination');
             paginationContainer.innerHTML = '';
 
-            const totalPages = Math.ceil(totalMembers / pageSize);
+                    const totalPages = Math.ceil(totalMembers / pageSize);
 
-            const firstButton = document.createElement('button');
-            firstButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1';
-            firstButton.textContent = 'First';
-            firstButton.onclick = () => {
-                currentPage = 1;
-                fetchMembers(currentPage, '', sortField, sortOrder);
-            };
-            paginationContainer.appendChild(firstButton);
+                    const firstButton = document.createElement('button');
+                    firstButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1';
+                    firstButton.textContent = 'First';
+                    firstButton.onclick = () => {
+                        currentPage = 1;
+                        fetchMembers(currentPage, '', sortField, sortOrder);
+                    };
+                    paginationContainer.appendChild(firstButton);
 
-            const prevButton = document.createElement('button');
-            prevButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1';
-            prevButton.textContent = 'Prev';
-            prevButton.onclick = () => {
-                if (currentPage > 1) {
-                    currentPage--;
-                    fetchMembers(currentPage, '', sortField, sortOrder);
+                    const prevButton = document.createElement('button');
+                    prevButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1';
+                    prevButton.textContent = 'Prev';
+                    prevButton.onclick = () => {
+                        if (currentPage > 1) {
+                            currentPage--;
+                            fetchMembers(currentPage, '', sortField, sortOrder);
+                        }
+                    };
+                    paginationContainer.appendChild(prevButton);
+
+                    for (let i = 1; i <= totalPages; i++) {
+                        const pageButton = document.createElement('button');
+                        pageButton.className = `bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1 ${i === currentPage ? 'bg-blue-700' : ''}`;
+                        pageButton.textContent = i;
+                        pageButton.onclick = () => {
+                            currentPage = i;
+                            fetchMembers(currentPage, '', sortField, sortOrder);
+                        };
+                        paginationContainer.appendChild(pageButton);
+                    }
+
+                    const nextButton = document.createElement('button');
+                    nextButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1';
+                    nextButton.textContent = 'Next';
+                    nextButton.onclick = () => {
+                        if (currentPage < totalPages) {
+                            currentPage++;
+                            fetchMembers(currentPage, '', sortField, sortOrder);
+                        }
+                    };
+                    paginationContainer.appendChild(nextButton);
+
+                    const lastButton = document.createElement('button');
+                    lastButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1';
+                    lastButton.textContent = 'Last';
+                    lastButton.onclick = () => {
+                        currentPage = totalPages;
+                        fetchMembers(currentPage, '', sortField, sortOrder);
+                    };
+                    paginationContainer.appendChild(lastButton);
                 }
-            };
-            paginationContainer.appendChild(prevButton);
 
-            for (let i = 1; i <= totalPages; i++) {
-                const pageButton = document.createElement('button');
-                pageButton.className = `bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1 ${i === currentPage ? 'bg-blue-700' : ''}`;
-                pageButton.textContent = i;
-                pageButton.onclick = () => {
-                    currentPage = i;
-                    fetchMembers(currentPage, '', sortField, sortOrder);
-                };
-                paginationContainer.appendChild(pageButton);
-            }
-
-            const nextButton = document.createElement('button');
-            nextButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1';
-            nextButton.textContent = 'Next';
-            nextButton.onclick = () => {
-                if (currentPage < totalPages) {
-                    currentPage++;
-                    fetchMembers(currentPage, '', sortField, sortOrder);
+                function toggleDropdown(event, index) {
+                    event.stopPropagation();
+                    const dropdownContent = document.querySelector(`#dropdown-${index}__BV_toggle_`).nextElementSibling;
+                    const rect = event.currentTarget.getBoundingClientRect();
+                    dropdownContent.style.top = `${rect.bottom}px`;
+                    dropdownContent.style.left = `${rect.left}px`;
+                    dropdownContent.classList.toggle('show');
                 }
-            };
-            paginationContainer.appendChild(nextButton);
 
-            const lastButton = document.createElement('button');
-            lastButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1';
-            lastButton.textContent = 'Last';
-            lastButton.onclick = () => {
-                currentPage = totalPages;
-                fetchMembers(currentPage, '', sortField, sortOrder);
-            };
-            paginationContainer.appendChild(lastButton);
-        }
-
-        function toggleDropdown(event, index) {
-            event.stopPropagation();
-            const dropdownContent = document.querySelector(`#dropdown-${index}__BV_toggle_`).nextElementSibling;
-            const rect = event.currentTarget.getBoundingClientRect();
-            dropdownContent.style.top = `${rect.bottom}px`;
-            dropdownContent.style.left = `${rect.left}px`;
-            dropdownContent.classList.toggle('show');
-        }
-
-        window.onclick = function (event) {
-            if (!event.target.matches('.dropdown-button')) {
-                const dropdowns = document.getElementsByClassName("dropdown-content");
-                for (let i = 0; i < dropdowns.length; i++) {
-                    const openDropdown = dropdowns[i];
-                    if (openDropdown.classList.contains('show')) {
-                        openDropdown.classList.remove('show');
+                window.onclick = function (event) {
+                    if (!event.target.matches('.dropdown-button')) {
+                        const dropdowns = document.getElementsByClassName("dropdown-content");
+                        for (let i = 0; i < dropdowns.length; i++) {
+                            const openDropdown = dropdowns[i];
+                            if (openDropdown.classList.contains('show')) {
+                                openDropdown.classList.remove('show');
+                            }
+                        }
                     }
                 }
-            }
-        }
 
-        async function searchMembers() {
-            currentPage = 1;
-            const searchTerm = document.getElementById('search-bar').value.toLowerCase();
+                async function searchMembers() {
+                    currentPage = 1;
+                    const searchTerm = document.getElementById('search-bar').value.toLowerCase();
 
-            if (searchTerm.trim() === '') {
-                fetchMembers(currentPage, '', sortField, sortOrder);
-                return;
-            }
+                    if (searchTerm.trim() === '') {
+                        fetchMembers(currentPage, '', sortField, sortOrder);
+                        return;
+                    }
 
-            try {
-                const response = await fetch(`http://localhost:3000/api/tbm/members/search?term=${encodeURIComponent(searchTerm)}&page=${currentPage}&pageSize=${pageSize}&sortField=${sortField}&sortOrder=${sortOrder}`, {
-            headers: {
-                'Authorization': `Bearer ${localStorage.getItem('token')}`
-            }
-                });
-            const data = await response.json();
-            if (Array.isArray(data.members)) {
-                members = data.members;
-                totalMembers = data.total;
-                renderTable(members);
-                renderPagination();
-            } else {
-                console.error('Expected an array but got:', data);
-                alert('เกิดข้อผิดพลาดในการค้นหาสมาชิก');
-            }
-            } catch (error) {
-                console.error('Error searching members:', error);
-                alert('เกิดข้อผิดพลาดในการค้นหาสมาชิก');
-            }
-        }
-
-            async function confirmAndRemove(event, rowId, memberId) {
-                event.preventDefault();
-                const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลบสมาชิกนี้?");
-                if (confirmation) {
                     try {
-                        const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}`, {
-                            method: 'DELETE',
+                        const response = await fetch(`http://localhost:3000/api/tbm/members/search?term=${encodeURIComponent(searchTerm)}&page=${currentPage}&pageSize=${pageSize}&sortField=${sortField}&sortOrder=${sortOrder}`, {
                             headers: {
                                 'Authorization': `Bearer ${localStorage.getItem('token')}`
                             }
                         });
-                        if (response.ok) {
-                            document.getElementById(rowId).remove();
-                            alert("สมาชิกถูกลบเรียบร้อยแล้ว");
+                        const data = await response.json();
+                        if (Array.isArray(data.members)) {
+                            members = data.members;
+                            totalMembers = data.total;
+                            renderTable(members);
+                            renderPagination();
                         } else {
+                            console.error('Expected an array but got:', data);
+                            alert('เกิดข้อผิดพลาดในการค้นหาสมาชิก');
+                        }
+                    } catch (error) {
+                        console.error('Error searching members:', error);
+                        alert('เกิดข้อผิดพลาดในการค้นหาสมาชิก');
+                    }
+                }
+
+                async function confirmAndRemove(event, rowId, memberId) {
+                    event.preventDefault();
+                    const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลบสมาชิกนี้?");
+                    if (confirmation) {
+                        try {
+                            const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                                }
+                            });
+                            if (response.ok) {
+                                document.getElementById(rowId).remove();
+                                alert("สมาชิกถูกลบเรียบร้อยแล้ว");
+                            } else {
+                                alert("เกิดข้อผิดพลาดในการลบสมาชิก");
+                            }
+                        } catch (error) {
+                            console.error('Error deleting member:', error);
                             alert("เกิดข้อผิดพลาดในการลบสมาชิก");
                         }
-                    } catch (error) {
-                        console.error('Error deleting member:', error);
-                        alert("เกิดข้อผิดพลาดในการลบสมาชิก");
                     }
                 }
-            }
 
-            async function confirmAndRestore(event, rowId, memberId) {
-                event.preventDefault();
-                const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการกู้คืนสมาชิกนี้?");
-                if (confirmation) {
-                    try {
-                        const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/restore`, {
-                            method: 'PUT',
-                            headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                async function confirmAndRestore(event, rowId, memberId) {
+                    event.preventDefault();
+                    const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการกู้คืนสมาชิกนี้?");
+                    if (confirmation) {
+                        try {
+                            const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/restore`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                                }
+                            });
+                            if (response.ok) {
+                                fetchMembers(currentPage, '', sortField, sortOrder);
+                                alert("สมาชิกถูกกู้คืนเรียบร้อยแล้ว");
+                            } else {
+                                alert("เกิดข้อผิดพลาดในการกู้คืนสมาชิก");
                             }
-                        });
-                        if (response.ok) {
-                            fetchMembers(currentPage, '', sortField, sortOrder);
-                            alert("สมาชิกถูกกู้คืนเรียบร้อยแล้ว");
-                        } else {
+                        } catch (error) {
+                            console.error('Error restoring member:', error);
                             alert("เกิดข้อผิดพลาดในการกู้คืนสมาชิก");
                         }
-                    } catch (error) {
-                        console.error('Error restoring member:', error);
-                        alert("เกิดข้อผิดพลาดในการกู้คืนสมาชิก");
                     }
                 }
-            }
 
-            async function approveUser(event, memberId) {
-                event.preventDefault();
-                const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการอนุมัติสมาชิกนี้?");
-                if (confirmation) {
-                    try {
-                        const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/approve`, {
-                            method: 'PUT',
-                            headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                                'Content-Type': 'application/json'
+                async function approveUser(event, memberId) {
+                    event.preventDefault();
+                    const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการอนุมัติสมาชิกนี้?");
+                    if (confirmation) {
+                        try {
+                            const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/approve`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                                    'Content-Type': 'application/json'
+                                }
+                            });
+                            if (response.ok) {
+                                fetchMembers(currentPage, '', sortField, sortOrder);
+                                alert("สมาชิกถูกอนุมัติเรียบร้อยแล้ว");
+                            } else {
+                                const errorData = await response.json();
+                                alert(`เกิดข้อผิดพลาดในการอนุมัติสมาชิก: ${errorData.error}`);
                             }
-                        });
-                        if (response.ok) {
-                            fetchMembers(currentPage, '', sortField, sortOrder);
-                            alert("สมาชิกถูกอนุมัติเรียบร้อยแล้ว");
-                        } else {
-                            const errorData = await response.json();
-                            alert(`เกิดข้อผิดพลาดในการอนุมัติสมาชิก: ${errorData.error}`);
+                        } catch (error) {
+                            console.error('Error approving member:', error);
+                            alert("เกิดข้อผิดพลาดในการอนุมัติสมาชิก");
                         }
-                    } catch (error) {
-                        console.error('Error approving member:', error);
-                        alert("เกิดข้อผิดพลาดในการอนุมัติสมาชิก");
                     }
                 }
-            }
 
-            async function promoteRole(event, memberId, newRole) {
-                event.preventDefault();
-                const confirmation = confirm(`คุณแน่ใจหรือไม่ว่าต้องการเลื่อนขั้นสมาชิกนี้เป็น ${newRole}?`);
-                if (confirmation) {
-                    try {
-                        const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/promote`, {
-                            method: 'PUT',
-                            headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                                'Content-Type': 'application/json'
-                            },
-                            body: JSON.stringify({ newRole })
-                        });
-                        if (response.ok) {
-                            fetchMembers(currentPage, '', sortField, sortOrder);
-                            alert(`สมาชิกถูกเลื่อนขั้นเป็น ${newRole} เรียบร้อยแล้ว`);
-                        } else {
-                            const errorData = await response.json();
-                            alert(`เกิดข้อผิดพลาดในการเลื่อนขั้นสมาชิก: ${errorData.error}`);
-                        }
-                    } catch (error) {
-                        console.error('Error promoting member:', error);
-                        alert("เกิดข้อผิดพลาดในการเลื่อนขั้นสมาชิก");
-                    }
-                }
-            }
-
-            async function demoteToUser(event, memberId) {
-                event.preventDefault();
-                const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการไล่ออกจากชุมชน?");
-                if (confirmation) {
-                    try {
-                        const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/demote`, {
-                            method: 'PUT',
-                            headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                async function promoteRole(event, memberId, newRole) {
+                    event.preventDefault();
+                    const confirmation = confirm(`คุณแน่ใจหรือไม่ว่าต้องการเลื่อนขั้นสมาชิกนี้เป็น ${newRole}?`);
+                    if (confirmation) {
+                        try {
+                            const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/promote`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify({ newRole })
+                            });
+                            if (response.ok) {
+                                fetchMembers(currentPage, '', sortField, sortOrder);
+                                alert(`สมาชิกถูกเลื่อนขั้นเป็น ${newRole} เรียบร้อยแล้ว`);
+                            } else {
+                                const errorData = await response.json();
+                                alert(`เกิดข้อผิดพลาดในการเลื่อนขั้นสมาชิก: ${errorData.error}`);
                             }
-                        });
-                        if (response.ok) {
-                            fetchMembers(currentPage, '', sortField, sortOrder);
-                            alert("สมาชิกถูกไล่ออกจากชุมชนเรียบร้อยแล้ว");
-                        } else {
+                        } catch (error) {
+                            console.error('Error promoting member:', error);
+                            alert("เกิดข้อผิดพลาดในการเลื่อนขั้นสมาชิก");
+                        }
+                    }
+                }
+
+                async function demoteToUser(event, memberId) {
+                    event.preventDefault();
+                    const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการไล่ออกจากชุมชน?");
+                    if (confirmation) {
+                        try {
+                            const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/demote`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                                }
+                            });
+                            if (response.ok) {
+                                fetchMembers(currentPage, '', sortField, sortOrder);
+                                alert("สมาชิกถูกไล่ออกจากชุมชนเรียบร้อยแล้ว");
+                            } else {
+                                alert("เกิดข้อผิดพลาดในการไล่ออกจากชุมชน");
+                            }
+                        } catch (error) {
+                            console.error('Error demoting member:', error);
                             alert("เกิดข้อผิดพลาดในการไล่ออกจากชุมชน");
                         }
-                    } catch (error) {
-                        console.error('Error demoting member:', error);
-                        alert("เกิดข้อผิดพลาดในการไล่ออกจากชุมชน");
                     }
                 }
-            }
 
-            async function demoteTimeBankManager(event, memberId) {
-                event.preventDefault();
-                const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลดขั้น TimeBankManager นี้?");
-                if (confirmation) {
-                    try {
-                        const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/demote-timebankmanager`, {
-                            method: 'PUT',
-                            headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                async function demoteTimeBankManager(event, memberId) {
+                    event.preventDefault();
+                    const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลดขั้น TimeBankManager นี้?");
+                    if (confirmation) {
+                        try {
+                            const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/demote-timebankmanager`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                                }
+                            });
+                            if (response.ok) {
+                                fetchMembers(currentPage, '', sortField, sortOrder);
+                                alert("TimeBankManager ถูกลดขั้นเรียบร้อยแล้ว");
+                            } else {
+                                alert("เกิดข้อผิดพลาดในการลดขั้น TimeBankManager");
                             }
-                        });
-                        if (response.ok) {
-                            fetchMembers(currentPage, '', sortField, sortOrder);
-                            alert("TimeBankManager ถูกลดขั้นเรียบร้อยแล้ว");
-                        } else {
+                        } catch (error) {
+                            console.error('Error demoting TimeBankManager:', error);
                             alert("เกิดข้อผิดพลาดในการลดขั้น TimeBankManager");
                         }
-                    } catch (error) {
-                        console.error('Error demoting TimeBankManager:', error);
-                        alert("เกิดข้อผิดพลาดในการลดขั้น TimeBankManager");
                     }
                 }
-            }
 
-            async function demoteAdmin(event, memberId) {
-                event.preventDefault();
-                const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลดขั้น Admin นี้?");
-                if (confirmation) {
-                    try {
-                        const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/demote-admin`, {
-                            method: 'PUT',
-                            headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                async function demoteAdmin(event, memberId) {
+                    event.preventDefault();
+                    const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลดขั้น Admin นี้?");
+                    if (confirmation) {
+                        try {
+                            const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/demote-admin`, {
+                                method: 'PUT',
+                                headers: {
+                                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                                }
+                            });
+                            if (response.ok) {
+                                fetchMembers(currentPage, '', sortField, sortOrder);
+                                alert("Admin ถูกลดขั้นเรียบร้อยแล้ว");
+                            } else {
+                                alert("เกิดข้อผิดพลาดในการลดขั้น Admin");
                             }
-                        });
-                        if (response.ok) {
-                            fetchMembers(currentPage, '', sortField, sortOrder);
-                            alert("Admin ถูกลดขั้นเรียบร้อยแล้ว");
-                        } else {
+                        } catch (error) {
+                            console.error('Error demoting Admin:', error);
                             alert("เกิดข้อผิดพลาดในการลดขั้น Admin");
                         }
-                    } catch (error) {
-                        console.error('Error demoting Admin:', error);
-                        alert("เกิดข้อผิดพลาดในการลดขั้น Admin");
                     }
                 }
-            }
 
-            function sortTable(field) {
-                if (sortField === field) {
-                    sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
-                } else {
-                    sortField = field;
-                    sortOrder = 'asc';
+                function sortTable(field) {
+                    if (sortField === field) {
+                        sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        sortField = field;
+                        sortOrder = 'asc';
+                    }
+                    fetchMembers(currentPage, '', sortField, sortOrder);
                 }
-                fetchMembers(currentPage, '', sortField, sortOrder);
-            }
 
-            document.addEventListener('DOMContentLoaded', () => {
-                checkLoginStatus();
-                fetchCommunityConfig();
-                fetchMembers(currentPage);
-            });
-        </script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    checkLoginStatus();
+                    fetchCommunityConfig();
+                    fetchMembers(currentPage);
+                });
+            </script>
     
     <style>
         .toggle-container {

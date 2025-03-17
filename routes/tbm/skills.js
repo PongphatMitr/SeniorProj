@@ -66,12 +66,34 @@ const skillRoutes = (pool) => {
 
         try {
             const result = await pool.query(
-                'SELECT skills.skill_id, skills.name, categories.category FROM member_skills JOIN skills ON member_skills.skill_id = skills.skill_id JOIN categories ON skills.category_id = categories.category_id WHERE member_skills.user_id = $1',
+                `SELECT 
+                ms.skill_1, s1.name AS skill_1_name, c1.category AS skill_1_category,
+                ms.skill_2, s2.name AS skill_2_name, c2.category AS skill_2_category,
+                ms.skill_3, s3.name AS skill_3_name, c3.category AS skill_3_category
+            FROM member_skills ms
+            LEFT JOIN skills s1 ON ms.skill_1 = s1.skill_id
+            LEFT JOIN categories c1 ON s1.category_id = c1.category_id
+            LEFT JOIN skills s2 ON ms.skill_2 = s2.skill_id
+            LEFT JOIN categories c2 ON s2.category_id = c2.category_id
+            LEFT JOIN skills s3 ON ms.skill_3 = s3.skill_id
+            LEFT JOIN categories c3 ON s3.category_id = c3.category_id
+            WHERE ms.user_id = $1`,
                 [memberId]
             );
-            res.json({ skills: result.rows });
+
+            if (result.rows.length === 0) {
+                return res.json({ skills: [] });
+            }
+
+            const skills = [
+                { skill_id: result.rows[0].skill_1 || null, name: result.rows[0].skill_1_name || 'ยังไม่มีทักษะ', category: result.rows[0].skill_1_category || 'ไม่ระบุ' },
+                { skill_id: result.rows[0].skill_2 || null, name: result.rows[0].skill_2_name || 'ยังไม่มีทักษะ', category: result.rows[0].skill_2_category || 'ไม่ระบุ' },
+                { skill_id: result.rows[0].skill_3 || null, name: result.rows[0].skill_3_name || 'ยังไม่มีทักษะ', category: result.rows[0].skill_3_category || 'ไม่ระบุ' }
+            ];
+
+            res.json({ skills });
         } catch (err) {
-            console.error('Error:', err.message);
+            console.error('Error fetching member skills:', err);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
@@ -145,7 +167,7 @@ const skillRoutes = (pool) => {
             await client.query('BEGIN');
 
             // Delete references to the skill in member_skills table
-            await client.query('DELETE FROM member_skills WHERE skill_id = $1', [id]);
+            await client.query('DELETE FROM member_skills WHERE skill_1 = $1 OR skill_2 = $1 OR skill_3 = $1', [id]);
 
             // Delete the skill itself
             const result = await client.query('DELETE FROM skills WHERE skill_id = $1 RETURNING *', [id]);
