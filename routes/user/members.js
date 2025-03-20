@@ -38,30 +38,33 @@
                 res.status(500).json({ error: 'An error occurred. Please try again.' });
             }
         });
-
-        // Get all transactions
+        
+        // Get all transactions with required_skills (✅ FIXED required_skills as skill_id)
         router.get('/transactions/all', async (req, res) => {
             const { page = 1, pageSize = 10 } = req.query;
             const offset = (page - 1) * pageSize;
 
             try {
                 const result = await pool.query(
-                    `SELECT t.*, a.title AS activity_title, r.name AS requester_name, p.name AS participant_name
+                    `SELECT t.*, a.title AS activity_title, 
+                            r.name AS requester_name, p.name AS participant_name, 
+                            s.name AS required_skill_name
                     FROM transactions t
-                    JOIN activities a ON t.activity_id = a.activity_id
-                    JOIN users r ON t.requester_id = r.user_id
-                    JOIN users p ON t.participant_id = p.user_id
+                    LEFT JOIN activities a ON t.activity_id = a.activity_id
+                    LEFT JOIN users r ON t.requester_id = r.user_id
+                    LEFT JOIN users p ON t.participant_id = p.user_id
+                    LEFT JOIN skills s ON a.required_skills = s.skill_id
                     ORDER BY t.date DESC, t.time DESC
                     LIMIT $1 OFFSET $2`,
                     [pageSize, offset]
                 );
-                const totalResult = await pool.query('SELECT COUNT(*) FROM transactions');
-                res.json({ transactions: result.rows, total: parseInt(totalResult.rows[0].count, 10) });
+                res.json({ transactions: result.rows });
             } catch (err) {
-                console.error('Error:', err.message);
+                console.error('Error fetching transactions:', err.message);
                 res.status(500).json({ error: 'An error occurred. Please try again.' });
             }
         });
+
 
         // Search members by name or user_id
         router.get('/search', async (req, res) => {
@@ -188,9 +191,7 @@
         
         
         
-        
-
-        // Get activities of a member
+        // Get activities of a member (✅ FIXED required_skills display)
         router.get('/:id/activities', async (req, res) => {
             const { id } = req.params;
 
@@ -200,18 +201,21 @@
 
             try {
                 const result = await pool.query(
-                    `SELECT activities.activity_id, activities.title, activities.status
-                    FROM activity_participants
-                    JOIN activities ON activity_participants.activity_id = activities.activity_id
-                    WHERE activity_participants.user_id = $1`,
+                    `SELECT a.activity_id, a.title, a.status, 
+                            s.name AS required_skill_name
+                    FROM activity_participants ap
+                    JOIN activities a ON ap.activity_id = a.activity_id
+                    LEFT JOIN skills s ON a.required_skills = s.skill_id
+                    WHERE ap.user_id = $1`,
                     [id]
                 );
                 res.json({ activities: result.rows });
             } catch (err) {
-                console.error('Error:', err.message);
+                console.error('Error fetching activities for member:', err.message);
                 res.status(500).json({ error: 'An error occurred. Please try again.' });
             }
         });
+
 
         // Update skills of a member (Top 3 prioritized skills)
         router.put('/:id/skills', async (req, res) => {

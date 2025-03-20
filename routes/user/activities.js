@@ -27,9 +27,11 @@ const activityRoutes = (pool) => {
         try {
             const result = await pool.query(
                 `SELECT a.*, 
-                        COALESCE(r.name, '') AS requester_name
+                        COALESCE(r.name, '') AS requester_name,
+                        s.name AS required_skill_name
                  FROM activities a
                  LEFT JOIN users r ON a.requester_id = r.user_id
+                 LEFT JOIN skills s ON a.required_skills = s.skill_id
                  ORDER BY a.start_date DESC, a.start_time DESC
                  LIMIT $1 OFFSET $2`,
                 [parseInt(pageSize), parseInt(offset)]
@@ -52,9 +54,10 @@ const activityRoutes = (pool) => {
                        TO_CHAR(a.start_time, 'HH24:MI') AS start_time, 
                        TO_CHAR(a.end_time, 'HH24:MI') AS end_time, 
                        m.name as requester_name, 
-                       a.required_skills::text AS required_skills  
+                       s.name AS required_skill_name  
                 FROM activities a
                 JOIN users m ON a.requester_id = m.user_id
+                LEFT JOIN skills s ON a.required_skills = s.skill_id
                 WHERE a.activity_id = $1
             `, [id]);
     
@@ -82,11 +85,14 @@ const activityRoutes = (pool) => {
             time_tokens_required, time_tokens_per_participant, required_skills 
         } = req.body;
     
+        if (isNaN(required_skills)) {
+            return res.status(400).json({ error: 'Invalid required_skills. It should be a valid skill_id (integer).' });
+        }
+
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
     
-            // ✅ Ensure time values are stored in correct `TIME` format
             const result = await client.query(
                 `INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, 
                                          max_participants, requester_id, requester_phone, status, 
@@ -115,17 +121,28 @@ const activityRoutes = (pool) => {
     // Update an activity
     router.put('/:id', async (req, res) => {
         const { id } = req.params;
-        const { title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, requester_phone, status, time_tokens_required, time_tokens_per_participant } = req.body;
+        const { title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, requester_phone, status, time_tokens_required, time_tokens_per_participant, required_skills } = req.body;
+
+        if (isNaN(required_skills)) {
+            return res.status(400).json({ error: 'Invalid required_skills. It should be a valid skill_id (integer).' });
+        }
 
         try {
             const result = await pool.query(
-                'UPDATE activities SET title = $1, description = $2, location = $3, start_date = $4, start_time = $5, end_date = $6, end_time = $7, max_participants = $8, requester_id = $9, requester_phone = $10, status = $11, time_tokens_required = $12, time_tokens_per_participant = $13 WHERE activity_id = $14 RETURNING *',
-                [title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, requester_phone, status, time_tokens_required, time_tokens_per_participant, id]
+                `UPDATE activities 
+                 SET title = $1, description = $2, location = $3, start_date = $4, start_time = $5, 
+                     end_date = $6, end_time = $7, max_participants = $8, requester_id = $9, 
+                     requester_phone = $10, status = $11, time_tokens_required = $12, 
+                     time_tokens_per_participant = $13, required_skills = $14
+                 WHERE activity_id = $15 RETURNING *`,
+                [title, description, location, start_date, start_time, end_date, end_time, 
+                 max_participants, requester_id, requester_phone, status, 
+                 time_tokens_required, time_tokens_per_participant, required_skills, id]
             );
 
             res.json(result.rows[0]);
         } catch (err) {
-            console.error('Error:', err.message);
+            console.error('Error updating activity:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });

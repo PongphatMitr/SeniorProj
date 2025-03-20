@@ -85,23 +85,44 @@
             skillsContainer.innerHTML = ''; // Clear previous content
         
             try {
-                // Check if `requiredSkills` is already an array or a string
-                const skills = typeof requiredSkills === 'string' ? JSON.parse(requiredSkills) : requiredSkills;
-        
-                if (Array.isArray(skills) && skills.length > 0) {
-                    skills.forEach(skill => {
-                        const listItem = document.createElement('li');
-                        listItem.textContent = skill; // Display skill name
-                        skillsContainer.appendChild(listItem);
-                    });
-                } else {
+                // Ensure requiredSkills is an integer (skill_id) and fetch skill details from API
+                if (!requiredSkills || isNaN(requiredSkills)) {
                     skillsContainer.innerHTML = '<li class="text-gray-500">ไม่มีทักษะที่ระบุ</li>';
+                    return;
                 }
+        
+                // Fetch skill details using the skill_id
+                fetch(`http://localhost:3000/api/user/skills/${requiredSkills}`, {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                })
+                .then(response => response.json())
+                .then(skill => {
+                    if (!skill || !skill.name || !skill.category) {
+                        skillsContainer.innerHTML = '<li class="text-gray-500">ไม่พบข้อมูลทักษะ</li>';
+                        return;
+                    }
+        
+                    // Create list item with proper spacing
+                    const listItem = document.createElement('li');
+                    listItem.innerHTML = `
+                        <strong class="text-blue-600 text-lg font-semibold">หมวดหมู่:</strong> 
+                        <span class="mr-4">${skill.category}</span>  
+                        <strong class="text-green-600 text-lg font-semibold">ทักษะ:</strong> 
+                        <span>${skill.name}</span>
+                    `;
+                    skillsContainer.appendChild(listItem);
+                })
+                .catch(error => {
+                    console.error('Error fetching skill details:', error);
+                    skillsContainer.innerHTML = '<li class="text-red-500">เกิดข้อผิดพลาดในการโหลดทักษะ</li>';
+                });
+        
             } catch (error) {
                 console.error('Error parsing required skills:', error);
                 skillsContainer.innerHTML = '<li class="text-red-500">เกิดข้อผิดพลาดในการโหลดทักษะ</li>';
             }
         }
+        
         
 
 

@@ -115,9 +115,9 @@
         
             if (!selectedSkillId) return; // No selection
         
-            // Prevent duplicate selections
-            if (selectedSkills.some(skill => skill.skill_id == selectedSkillId)) {
-                alert('คุณได้เลือกทักษะนี้แล้ว');
+            // Ensure only one skill can be selected
+            if (selectedSkills.length > 0) {
+                alert('คุณสามารถเลือกได้เพียง 1 ทักษะเท่านั้น');
                 return;
             }
         
@@ -125,19 +125,14 @@
             const skill = skills.find(s => s.skill_id == selectedSkillId);
             if (!skill) return;
         
-            // Limit to 3 skills
-            if (selectedSkills.length >= 3) {
-                alert('คุณสามารถเลือกได้สูงสุด 3 ทักษะเท่านั้น');
-                return;
-            }
-        
-            // Add skill to selectedSkills list
-            selectedSkills.push(skill);
+            // Clear the list and add the new skill
+            selectedSkills = [skill];
             updateSelectedSkillsDisplay();
         
             // Reset skill dropdown
             skillDropdown.value = '';
         }
+        
         
         function updateSelectedSkillsDisplay() {
             const selectedSkillsList = document.getElementById('selected-skills-list');
@@ -153,23 +148,19 @@
                 selectedSkillsList.appendChild(listItem);
             });
         
-            // Disable skill dropdown if 3 skills are selected
-            document.getElementById('skill-dropdown').disabled = selectedSkills.length >= 3;
+            // Disable skill dropdown if 1 skill is selected
+            document.getElementById('skill-dropdown').disabled = selectedSkills.length >= 1;
         }
+        
         
         function removeSkill(index) {
             selectedSkills.splice(index, 1); // Remove skill from list
             updateSelectedSkillsDisplay(); // Refresh display
+        
+            // Enable skill dropdown again
+            document.getElementById('skill-dropdown').disabled = false;
         }
-        
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchSkillsAndCategories();
-        });
-        
-    
-        
-        
-        
+
 
         async function fetchCommunityConfig() {
             try {
@@ -256,7 +247,6 @@
             const timeTokensRequired = parseFloat(document.getElementById('time-tokens-required').value);
             const timeTokensPerParticipant = parseFloat(document.getElementById('time-tokens-per-participant').value);
         
-            // ✅ Extract time from dropdowns and format as HH:MM (SQL TIME format)
             const startHours = document.getElementById('start-hours').value;
             const startMinutes = document.getElementById('start-minutes').value;
             const endHours = document.getElementById('end-hours').value;
@@ -270,30 +260,29 @@
             const startTime = `${startHours}:${startMinutes}`;
             const endTime = `${endHours}:${endMinutes}`;
         
-            // ✅ Fix: Ensure `selectedSkills` is defined
-            if (!selectedSkills || selectedSkills.length === 0) {
-                alert('กรุณาเลือกอย่างน้อย 1 ทักษะที่ต้องการสำหรับกิจกรรม');
+            // ✅ Fix: Ensure only ONE skill is selected and sent as an integer
+            if (selectedSkills.length === 0) {
+                alert('กรุณาเลือก 1 ทักษะสำหรับกิจกรรม');
                 return;
             }
         
-            // ✅ Convert selected skills to a JSON string
-            const required_skills = JSON.stringify(selectedSkills.map(skill => skill.name));
+            const required_skill = selectedSkills[0].skill_id; // Send only 1 skill ID
         
             const activityData = {
                 title,
                 description,
                 location,
                 start_date: startDate,
-                start_time: startTime,  // ✅ Now sending `HH:MM` format
+                start_time: startTime,
                 end_date: endDate,
-                end_time: endTime,      // ✅ Now sending `HH:MM` format
+                end_time: endTime,
                 max_participants: maxParticipants,
                 requester_id: requesterId,
                 requester_phone: requesterPhone,
                 status,
                 time_tokens_required: timeTokensRequired,
                 time_tokens_per_participant: timeTokensPerParticipant,
-                required_skills // ✅ Fixed missing variable
+                required_skills: required_skill // ✅ Send as an integer, not JSON
             };
         
             try {
@@ -318,12 +307,7 @@
                 alert('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
             }
         }
-        
-        
-        
-        
-        
-        
+         
 
         async function checkLoginStatus() {
             const token = localStorage.getItem('token');
@@ -525,44 +509,87 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Ensure elements exist before accessing them
-            const startHours = document.getElementById('start-hours');
-            const startMinutes = document.getElementById('start-minutes');
-            const endHours = document.getElementById('end-hours');
-            const endMinutes = document.getElementById('end-minutes');
-            const maxParticipants = document.getElementById('max-participants');
-        
-            if (startHours && startMinutes && endHours && endMinutes && maxParticipants) {
-                startHours.addEventListener('change', calculateTimeTokens);
-                startMinutes.addEventListener('change', calculateTimeTokens);
-                endHours.addEventListener('change', calculateTimeTokens);
-                endMinutes.addEventListener('change', calculateTimeTokens);
-                maxParticipants.addEventListener('input', calculateTimeTokens);
-            } else {
-                console.error("One or more elements are missing in the DOM.");
-            }
-        });
-        
-
-        document.addEventListener('DOMContentLoaded', () => {
             checkLoginStatus();
             fetchUserDetails();
             fetchCommunityConfig();
             fetchSkillsAndCategories();
             
-            document.getElementById('max-participants').addEventListener('input', calculateTimeTokens);
-            document.getElementById('start-date').addEventListener('input', (event) => {
-                updateEndDate(event.target.value);
-                calculateTimeTokens();
-            });
-            document.getElementById('start-time').addEventListener('input', (event) => {
-                adjustEndTime(event.target.value);
-                calculateTimeTokens();
-            });
-            document.getElementById('end-time').addEventListener('input', calculateTimeTokens);
-        
             setStartDateRange();
+        
+            // ✅ Ensure elements exist before adding event listeners
+            const startHours = document.getElementById('start-hours');
+            const startMinutes = document.getElementById('start-minutes');
+            const endHours = document.getElementById('end-hours');
+            const endMinutes = document.getElementById('end-minutes');
+            const maxParticipants = document.getElementById('max-participants');
+            const startDate = document.getElementById('start-date');
+            const endDate = document.getElementById('end-date');
+            const startTime = document.getElementById('start-time');
+            const endTime = document.getElementById('end-time');
+        
+            if (maxParticipants) {
+                maxParticipants.addEventListener('input', calculateTimeTokens);
+            } else {
+                console.warn("⚠️ Warning: #max-participants element not found.");
+            }
+        
+            if (startDate) {
+                startDate.addEventListener('input', (event) => {
+                    updateEndDate(event.target.value);
+                    calculateTimeTokens();
+                });
+            } else {
+                console.warn("⚠️ Warning: #start-date element not found.");
+            }
+        
+            if (endDate) {
+                endDate.addEventListener('input', (event) => {
+                    syncDates(event.target.value);
+                });
+            } else {
+                console.warn("⚠️ Warning: #end-date element not found.");
+            }
+        
+            if (startTime) {
+                startTime.addEventListener('input', (event) => {
+                    adjustEndTime(event.target.value);
+                    calculateTimeTokens();
+                });
+            } else {
+                console.warn("⚠️ Warning: #start-time element not found.");
+            }
+        
+            if (endTime) {
+                endTime.addEventListener('input', calculateTimeTokens);
+            } else {
+                console.warn("⚠️ Warning: #end-time element not found.");
+            }
+        
+            if (startHours) {
+                startHours.addEventListener('change', calculateTimeTokens);
+            } else {
+                console.warn("⚠️ Warning: #start-hours element not found.");
+            }
+        
+            if (startMinutes) {
+                startMinutes.addEventListener('change', calculateTimeTokens);
+            } else {
+                console.warn("⚠️ Warning: #start-minutes element not found.");
+            }
+        
+            if (endHours) {
+                endHours.addEventListener('change', calculateTimeTokens);
+            } else {
+                console.warn("⚠️ Warning: #end-hours element not found.");
+            }
+        
+            if (endMinutes) {
+                endMinutes.addEventListener('change', calculateTimeTokens);
+            } else {
+                console.warn("⚠️ Warning: #end-minutes element not found.");
+            }
         });
+        
         
         function setStartDateRange() {
             const now = new Date();
@@ -745,7 +772,7 @@
                             </div>
 
                             <div class="mb-4">
-                                <label for="skill-dropdown" class="block text-gray-700 text-sm font-bold mb-2">เลือกทักษะ (เลือกได้สูงสุด 3 ทักษะ):</label>
+                                <label for="skill-dropdown" class="block text-gray-700 text-sm font-bold mb-2">เลือกทักษะ (สามารถเลือกได้เพียง 1 ทักษะเท่านั้น):</label>
                                 <select id="skill-dropdown" class="shadow border rounded w-full py-2 px-3 text-gray-700" disabled onchange="addSkill()">
                                     <option value="">กรุณาเลือกทักษะ</option>
                                 </select>

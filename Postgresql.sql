@@ -67,7 +67,7 @@ CREATE TABLE activities (
     status VARCHAR(50) NOT NULL CHECK (status IN ('กำลังจะเริ่ม', 'เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา')),
     time_tokens_required INT DEFAULT 0,
     time_tokens_per_participant INT DEFAULT 0,
-    required_skills JSON NOT NULL DEFAULT '[]',  -- Store skills as JSON array (e.g., ["งานตัดไม้", "งานขับรถ", "งานทำสวน"])
+    required_skills INT NOT NULL ,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
     FOREIGN KEY (requester_id) REFERENCES users(user_id) ON DELETE CASCADE
@@ -240,25 +240,25 @@ INSERT INTO activities (
  '2023-01-01', '09:00', '2023-01-01', '12:00', 
   20, 1, '1234567890', 'กำลังจะเริ่ม', 
   20, 1, 
-  '["งานทำความสะอาด", "งานขนของ", "งานซ่อมบำรุง"]'::json),
+  4),
 
 ('กิจกรรมสอนคอมพิวเตอร์', 'สอนคอมพิวเตอร์ให้กับชุมชน', 'Community Center', 
  '2023-01-15', '10:00', '2023-01-15', '13:00', 
   15, 1, '0987654321', 'กำลังจะเริ่ม', 
   15, 1, 
-  '["งานสอนคอมพิวเตอร์", "งานช่วยเอกสาร", "งานพิมพ์เอกสาร"]'::json),
+  5),
 
 ('กิจกรรมทำอาหาร', 'ทำอาหารร่วมกัน', 'Community Kitchen', 
  '2023-01-30', '11:00', '2023-01-30', '14:00', 
   10, 1, '0987654321', 'เสร็จสิ้น', 
   10, 1, 
-  '["งานทำอาหาร", "งานทำขนม", "งานเสิร์ฟอาหาร"]'::json),
+  6),
 
 ('กิจกรรมทำสวน', 'ทำสวนร่วมกัน', 'Community Garden', 
  '2023-02-05', '08:00', '2023-02-05', '11:00', 
   25, 1, '0987654321', 'เสร็จสิ้น', 
   25, 1, 
-  '["งานตัดไม้", "งานทำสวน", "งานปลูกต้นไม้"]'::json);
+  7);
 
 
 -- Insert initial data into categories
