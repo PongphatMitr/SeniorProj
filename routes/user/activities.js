@@ -209,60 +209,74 @@ const activityRoutes = (pool) => {
     router.post('/:activityId/participants', async (req, res) => {
         const { activityId } = req.params;
         const { memberId } = req.body;
-
-        console.log(`Attempting to join activity ${activityId} with user ${memberId}`);  // Debug log
-
+    
+        console.log(`🔹 Checking join eligibility for activity ${activityId} and user ${memberId}`);
+    
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
-
-            // Check if activity exists
-            const activityResult = await client.query('SELECT * FROM activities WHERE activity_id = $1', [activityId]);
-            if (activityResult.rows.length === 0) {
-                console.error(`Activity with ID ${activityId} not found`);
-                return res.status(404).json({ error: 'Activity not found' });
-            }
-
-            const activity = activityResult.rows[0];
-
-            // Check if the user is already a participant
-            const checkParticipant = await client.query(
-                'SELECT * FROM activity_participants WHERE activity_id = $1 AND user_id = $2',
-                [activityId, memberId]
-            );
-            if (checkParticipant.rows.length > 0) {
-                console.error(`User ${memberId} is already a participant in activity ${activityId}`);
-                return res.status(400).json({ error: 'User is already a participant in this activity.' });
-            }
-
-            // Check if the activity is full
-            const participantCount = await client.query(
-                'SELECT COUNT(*) FROM activity_participants WHERE activity_id = $1',
+    
+            // Get activity details
+            const activityResult = await client.query(
+                `SELECT required_skills FROM activities WHERE activity_id = $1`,
                 [activityId]
             );
-            if (parseInt(participantCount.rows[0].count) >= activity.max_participants) {
-                console.error(`Activity ${activityId} is already full.`);
-                return res.status(400).json({ error: 'Activity is already full.' });
+            if (activityResult.rows.length === 0) {
+                return res.status(404).json({ error: 'ไม่พบกิจกรรมที่คุณต้องการเข้าร่วม' });
             }
-
-            // Add participant to the activity
-            await client.query(
-                'INSERT INTO activity_participants (activity_id, user_id) VALUES ($1, $2)',
+            const requiredSkillId = activityResult.rows[0].required_skills;
+    
+            // Get user's skills
+            const skillResult = await client.query(
+                `SELECT skill_1, skill_2, skill_3 FROM member_skills WHERE user_id = $1`,
+                [memberId]
+            );
+            if (skillResult.rows.length === 0) {
+                return res.status(400).json({ error: 'คุณยังไม่ได้ลงทะเบียนทักษะของคุณ' });
+            }
+    
+            const { skill_1, skill_2, skill_3 } = skillResult.rows[0];
+    
+            // Check if the user has the required skill
+            if (![skill_1, skill_2, skill_3].includes(requiredSkillId)) {
+                return res.status(403).json({ error: 'คุณไม่มีทักษะที่เหมาะสมสำหรับกิจกรรมนี้' });
+            }
+    
+            // Check if the user is already a participant
+            const participantCheck = await client.query(
+                `SELECT * FROM activity_participants WHERE activity_id = $1 AND user_id = $2`,
                 [activityId, memberId]
             );
-
-            console.log(`User ${memberId} successfully joined activity ${activityId}`);  // Success log
-
+            if (participantCheck.rows.length > 0) {
+                return res.status(400).json({ error: 'คุณได้เข้าร่วมกิจกรรมนี้แล้ว' });
+            }
+    
+            // Check if the activity is full
+            const participantCount = await client.query(
+                `SELECT COUNT(*) FROM activity_participants WHERE activity_id = $1`,
+                [activityId]
+            );
+            if (parseInt(participantCount.rows[0].count) >= requiredSkillId.max_participants) {
+                return res.status(400).json({ error: 'กิจกรรมนี้เต็มแล้ว ไม่สามารถเข้าร่วมได้' });
+            }
+    
+            // Add participant to the activity
+            await client.query(
+                `INSERT INTO activity_participants (activity_id, user_id) VALUES ($1, $2)`,
+                [activityId, memberId]
+            );
+    
             await client.query('COMMIT');
-            res.status(201).json({ message: 'Successfully joined the activity.' });
+            res.status(201).json({ message: 'เข้าร่วมกิจกรรมสำเร็จ!' });
         } catch (err) {
             await client.query('ROLLBACK');
-            console.error('Error joining activity:', err);  // More detailed error logging
-            res.status(500).json({ error: 'An error occurred. Please try again.' });
+            console.error('❌ Error joining activity:', err);
+            res.status(500).json({ error: 'เกิดข้อผิดพลาดในการเข้าร่วมกิจกรรม กรุณาลองใหม่อีกครั้ง' });
         } finally {
             client.release();
         }
     });
+    
 
     // Approve an activity
     router.post('/:activityId/approve', async (req, res) => {
