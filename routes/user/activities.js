@@ -378,6 +378,30 @@ const activityRoutes = (pool) => {
         }
     });
 
+        // Cancel an activity by updating its status
+    router.put('/:id/cancel', async (req, res) => {
+        const { id } = req.params;
+
+        try {
+            const result = await pool.query(
+                `UPDATE activities 
+                SET status = 'ยกเลิก' 
+                WHERE activity_id = $1 
+                RETURNING *`,
+                [id]
+            );
+
+            if (result.rows.length === 0) {
+                return res.status(404).json({ error: 'ไม่พบกิจกรรมที่ต้องการยกเลิก' });
+            }
+
+            res.json({ message: 'กิจกรรมถูกยกเลิกเรียบร้อยแล้ว', activity: result.rows[0] });
+        } catch (err) {
+            console.error('Error cancelling activity:', err.message);
+            res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
+        }
+    });
+
     return router;
 };
 

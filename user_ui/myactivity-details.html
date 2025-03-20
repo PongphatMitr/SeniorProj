@@ -43,13 +43,25 @@
                     document.getElementById('requester-phone').value = activity.requester_phone || '';
                     document.getElementById('service-status').value = activity.status || '';
         
-                    // ✅ NEW: Handle required skills
+                    const cancelButton = document.getElementById('cancel-activity-button');
+        
+                    // ✅ If the activity is already canceled, disable or hide the cancel button
+                    if (activity.status === 'ยกเลิก') {
+                        cancelButton.disabled = true;
+                        cancelButton.innerText = 'กิจกรรมถูกยกเลิกแล้ว';
+                        cancelButton.classList.add('bg-gray-500');
+        
+                        // ✅ Optionally, hide the button completely
+                        // cancelButton.style.display = 'none';
+                    }
+        
+                    // ✅ Handle required skills
                     displayRequiredSkills(activity.required_skills);
         
-                    // Fetch participants and update the participant count
+                    // ✅ Fetch participants and update the join button
                     await fetchParticipants(activityId, activity.max_participants);
         
-                    // Update join button based on activity status
+                    // ✅ Update join button based on activity status
                     updateJoinButton(activity.status);
                 } else {
                     alert('ไม่พบรายละเอียดกิจกรรม');
@@ -59,6 +71,7 @@
                 alert('เกิดข้อผิดพลาดในการดึงรายละเอียดกิจกรรม');
             }
         }
+        
 
         function updateJoinButton(status) {
             const joinButton = document.getElementById('join-button');
@@ -440,6 +453,129 @@
             }
         }
         
+        async function cancelActivity() {
+            if (!activityId) {
+                showMessage("ไม่พบรหัสกิจกรรม", false);
+                return;
+            }
+        
+            const cancelButton = document.getElementById('cancel-activity-button');
+        
+            // ✅ Prevent duplicate cancel attempts
+            if (cancelButton.disabled) {
+                return;
+            }
+        
+            // ✅ Show confirmation message before proceeding
+            showConfirmation("คุณแน่ใจหรือไม่ว่าต้องการยกเลิกกิจกรรมนี้?", async () => {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}/cancel`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+        
+                    const data = await response.json();
+        
+                    if (response.ok) {
+                        showMessage("กิจกรรมถูกยกเลิกเรียบร้อยแล้ว!", true);
+        
+                        // ✅ Update status text
+                        document.getElementById('service-status').value = 'ยกเลิก';
+        
+                        // ✅ Disable the cancel button
+                        cancelButton.disabled = true;
+                        cancelButton.innerText = 'กิจกรรมถูกยกเลิกแล้ว';
+                        cancelButton.classList.add('bg-gray-500');
+        
+                        // ✅ Hide the cancel button after canceling (Optional)
+                        // cancelButton.style.display = 'none';
+        
+                        // ✅ Disable join button
+                        const joinButton = document.getElementById('join-button');
+                        if (joinButton) {
+                            joinButton.innerText = 'ปิดรับสมัคร';
+                            joinButton.classList.remove('bg-green-500', 'bg-red-500');
+                            joinButton.classList.add('bg-gray-500');
+                            joinButton.disabled = true;
+                        }
+                    } else {
+                        showMessage(data.error || "เกิดข้อผิดพลาดในการยกเลิกกิจกรรม", false);
+                    }
+                } catch (error) {
+                    console.error('Error cancelling activity:', error);
+                    showMessage("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง", false);
+                }
+            });
+        }
+        
+        
+        function showMessage(message, isSuccess = true) {
+            const modal = document.getElementById('message-modal');
+            const title = document.getElementById('message-title');
+            const text = document.getElementById('message-text');
+            const icon = document.getElementById('message-icon');
+            const iconSvg = document.getElementById('message-icon-svg');
+            const iconPath = document.getElementById('message-icon-path');
+        
+            if (isSuccess) {
+                // ✅ "สำเร็จ!" in green
+                title.textContent = "สำเร็จ!";
+                title.classList.add('text-green-600'); // Green title
+        
+                // ✅ Message text (default black)
+                text.textContent = message;
+                text.classList.remove('text-green-500', 'text-red-500'); // Remove any previous color classes
+        
+                // ✅ Apply green icon styles
+                icon.classList.add('bg-green-100', 'border-green-500');
+                iconSvg.classList.add('text-green-500');
+                iconPath.setAttribute("d", "M5 13l4 4L19 7"); // Checkmark icon
+            } else {
+                // ❌ "เกิดข้อผิดพลาด!" in red
+                title.textContent = "เกิดข้อผิดพลาด!";
+                title.classList.add('text-red-600');
+        
+                // ❌ Message text (default black)
+                text.textContent = message;
+                text.classList.remove('text-green-500', 'text-red-500');
+        
+                // ❌ Apply red icon styles
+                icon.classList.add('bg-red-100', 'border-red-500');
+                iconSvg.classList.add('text-red-500');
+                iconPath.setAttribute("d", "M6 18L18 6M6 6l12 12"); // Error cross icon
+            }
+        
+            // Show the modal
+            modal.classList.remove('hidden');
+        
+            // Close modal on button click
+            document.getElementById('confirm-message-btn').onclick = () => {
+                modal.classList.add('hidden');
+            };
+        }
+        
+
+        function showConfirmation(message, callback) {
+            document.getElementById('confirm-message').textContent = message;
+            const modal = document.getElementById('confirm-modal');
+            modal.classList.remove('hidden');
+        
+            document.getElementById('confirm-yes-btn').onclick = () => {
+                modal.classList.add('hidden');
+                callback(); // ✅ Execute the callback function (cancelActivity)
+            };
+        
+            document.getElementById('confirm-no-btn').onclick = () => {
+                modal.classList.add('hidden');
+            };
+        }
+        
+        
+        
+
     </script>
 </head>
 
@@ -604,16 +740,54 @@
                 <button
                     class="bg-gray-500 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
                     type="button" onclick="goBack()">ย้อนกลับ</button>
-
+                <button id="cancel-activity-button"
+                    class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
+                    type="button" onclick="cancelActivity()">ยกเลิกกิจกรรม
+                </button>                
                 <button
                     class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
                     type="button"
                     onclick="window.location.href='participant-detail.html?id=' + new URLSearchParams(window.location.search).get('id')">รายชื่อผู้เข้าร่วม</button>
             </div>
-
-        </form>
+            </form>
+        </div>
     </div>
-</div>
+
+    <!-- Success & Error Message Modal -->
+    <div id="message-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden transition-opacity duration-300">
+        <div class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-2xl text-center transform scale-95 transition-transform duration-300">
+            <div class="flex justify-center">
+                <div id="message-icon" class="w-24 h-24 flex items-center justify-center rounded-full border-4 animate-bounce">
+                    <svg id="message-icon-svg" class="w-16 h-16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path id="message-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                    </svg>
+                </div>
+            </div>
+            <h2 id="message-title" class="text-4xl font-bold mt-6"></h2>
+            <p id="message-text" class="text-gray-700 text-xl mt-4"></p>
+            <button id="confirm-message-btn" class="mt-8 px-8 py-4 bg-blue-600 text-white text-xl font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ตกลง
+            </button>
+        </div>
+    </div>
+
+        <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden transition-opacity duration-300">
+        <div class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-lg text-center transform scale-95 transition-transform duration-300">
+            <h2 id="confirm-title" class="text-3xl font-bold text-yellow-600">ยืนยันการทำรายการ</h2>
+            <p id="confirm-message" class="text-gray-700 text-xl mt-4"></p>
+            <div class="mt-6 flex justify-center gap-4">
+                <button id="confirm-yes-btn" class="px-6 py-3 bg-green-600 text-white text-lg font-semibold rounded-lg hover:bg-green-700 transition duration-300">
+                    ยืนยัน
+                </button>
+                <button id="confirm-no-btn" class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300">
+                    ยกเลิก
+                </button>
+            </div>
+        </div>
+    </div>
+
+
 
 </body>
 
