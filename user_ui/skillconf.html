@@ -231,10 +231,11 @@
         
         async function searchSkills(event, index) {
             const searchTerm = event.target.value.toLowerCase();
-            const skillDropdown = document.getElementById(`skill-dropdown-${index}`);
+            const suggestionsContainer = document.getElementById(`suggestions-${index}`);
             
-            // Clear previous options
-            skillDropdown.innerHTML = '<option value="">กรุณาเลือกทักษะ</option>';
+            // Clear previous suggestions
+            suggestionsContainer.innerHTML = '';
+            suggestionsContainer.classList.add('hidden');
         
             if (!searchTerm.trim()) {
                 return; // Do nothing if search term is empty
@@ -261,21 +262,37 @@
                 // Filter out already selected skills
                 const filteredSkills = data.filter(skill => !registeredSkillIds.includes(skill.skill_id));
         
-                // Populate dropdown with search results
+                // Populate suggestions container with search results
                 filteredSkills.forEach(skill => {
-                    const option = document.createElement('option');
-                    option.value = skill.skill_id;
-                    option.textContent = skill.name;
-                    skillDropdown.appendChild(option);
+                    const suggestionItem = document.createElement('div');
+                    suggestionItem.className = 'px-4 py-2 cursor-pointer hover:bg-gray-200';
+                    suggestionItem.textContent = `${skill.name} (${skill.category})`;
+                    suggestionItem.onclick = () => selectSkill(skill, index);
+                    suggestionsContainer.appendChild(suggestionItem);
                 });
         
-                // Enable dropdown if skills are found
-                skillDropdown.disabled = filteredSkills.length === 0;
+                // Show suggestions container if skills are found
+                if (filteredSkills.length > 0) {
+                    suggestionsContainer.classList.remove('hidden');
+                }
         
             } catch (error) {
                 console.error('Error searching skills:', error);
                 showErrorMessage('เกิดข้อผิดพลาดในการค้นหาทักษะ');
             }
+        }
+        
+        function selectSkill(skill, index) {
+            const skillDropdown = document.getElementById(`skill-dropdown-${index}`);
+            const categoryDropdown = document.getElementById(`category-dropdown-${index}`);
+            const suggestionsContainer = document.getElementById(`suggestions-${index}`);
+        
+            // Set the selected skill and category
+            skillDropdown.innerHTML = `<option value="${skill.skill_id}">${skill.name}</option>`;
+            categoryDropdown.innerHTML = `<option value="${skill.category_id}">${skill.category}</option>`;
+        
+            // Hide suggestions container
+            suggestionsContainer.classList.add('hidden');
         }
         
 
@@ -565,11 +582,11 @@
                     </div>
                     <div id="skill-display-1"></div>
                     <div id="edit-container-1" class="hidden">
-                        <div class="mb-4 flex items-center">
+                        <div class="mb-4 flex items-center relative">
                             <input
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            id="search-bar-1" oninput="searchSkills(event, 1)" placeholder="ค้นหาทักษะหรือหมวดหมู่" type="text" />
-                        
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="search-bar-1" oninput="searchSkills(event, 1)" placeholder="ค้นหาทักษะหรือหมวดหมู่" type="text" />
+                            <div id="suggestions-1" class="absolute top-full left-0 w-full bg-white border border-gray-300 rounded shadow-lg z-10 hidden max-h-48 overflow-y-auto"></div>
                         </div>
                         <div class="mb-4">
                             <label for="category-dropdown-1" class="block text-gray-700 text-sm font-bold mb-2">เลือกหมวดหมู่:</label>
@@ -602,12 +619,12 @@
                     </div>
                     <div id="skill-display-2"></div>
                     <div id="edit-container-2" class="hidden">
-                        <div class="mb-4 flex items-center">
+                        <div class="mb-4 flex items-center relative">
                             <input
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            id="search-bar-1" oninput="searchSkills(event, 1)" placeholder="ค้นหาทักษะหรือหมวดหมู่" type="text" />
-                        
-                        </div>
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="search-bar-2" oninput="searchSkills(event, 2)" placeholder="ค้นหาทักษะหรือหมวดหมู่" type="text" />
+                            <div id="suggestions-2" class="absolute top-full left-0 w-full bg-white border border-gray-300 rounded shadow-lg z-10 hidden max-h-48 overflow-y-auto"></div>
+                        </div>                        
                         <div class="mb-4">
                             <label for="category-dropdown-2" class="block text-gray-700 text-sm font-bold mb-2">เลือกหมวดหมู่:</label>
                             <select id="category-dropdown-2" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" onchange="filterSkillsByCategory(event)">
@@ -639,12 +656,12 @@
                     </div>
                     <div id="skill-display-3"></div>
                     <div id="edit-container-3" class="hidden">
-                        <div class="mb-4 flex items-center">
+                        <div class="mb-4 flex items-center relative">
                             <input
-                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            id="search-bar-1" oninput="searchSkills(event, 1)" placeholder="ค้นหาทักษะหรือหมวดหมู่" type="text" />
-                        
-                        </div>
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="search-bar-3" oninput="searchSkills(event, 3)" placeholder="ค้นหาทักษะหรือหมวดหมู่" type="text" />
+                            <div id="suggestions-3" class="absolute top-full left-0 w-full bg-white border border-gray-300 rounded shadow-lg z-10 hidden max-h-48 overflow-y-auto"></div>
+                        </div>                        
                         <div class="mb-4">
                             <label for="category-dropdown-3" class="block text-gray-700 text-sm font-bold mb-2">เลือกหมวดหมู่:</label>
                             <select id="category-dropdown-3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" onchange="filterSkillsByCategory(event)">

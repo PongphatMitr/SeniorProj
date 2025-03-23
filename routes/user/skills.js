@@ -12,7 +12,13 @@ const skillRoutes = (pool) => {
 
         try {
             const result = await pool.query(
-                'SELECT skills.skill_id, skills.name, skills.category_id, categories.category FROM skills JOIN categories ON skills.category_id = categories.category_id WHERE LOWER(skills.name) LIKE $1 OR LOWER(categories.category) LIKE $1',
+                `SELECT skills.skill_id, skills.name, skills.category_id, categories.category 
+                FROM skills 
+                JOIN categories ON skills.category_id = categories.category_id 
+                WHERE LOWER(skills.name) LIKE $1 
+                OR LOWER(categories.category) LIKE $1 
+                OR SIMILARITY(LOWER(skills.name), $1) > 0.3 
+                OR SIMILARITY(LOWER(categories.category), $1) > 0.3`,
                 [`%${term.toLowerCase()}%`]
             );
             res.json(result.rows);
