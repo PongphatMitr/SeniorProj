@@ -63,8 +63,8 @@ const communityConfigRoutes = (pool) => {
 
             // Update community config
             const result = await client.query(
-                'UPDATE community_config SET default_time_token = $1, default_exchange_rate_id = $2 RETURNING *',
-                [default_time_token, default_exchange_rate_id]
+                'UPDATE community_config SET default_time_token = $1, default_exchange_rate_id = $2 , minimum_time_token = $3 RETURNING *',
+                [default_time_token, default_exchange_rate_id, minimum_time_token]
             );
 
             await client.query('COMMIT');
