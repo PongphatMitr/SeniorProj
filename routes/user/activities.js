@@ -21,28 +21,90 @@ const activityRoutes = (pool) => {
 
     // Get all activities with pagination
     router.get('/', async (req, res) => {
-        const { page = 1, pageSize = 10 } = req.query;
+        const {
+            title,
+            location,
+            status,
+            description,
+            required_skill,
+            start_date,
+            end_date,
+            requester_id,
+            page = 1,
+            pageSize = 10
+        } = req.query;
+    
         const offset = (page - 1) * pageSize;
-
+        const conditions = [];
+        const values = [];
+        let idx = 1;
+    
+        if (title) {
+            conditions.push(`LOWER(a.title) LIKE LOWER($${idx++})`);
+            values.push(`%${title}%`);
+        }
+    
+        if (location) {
+            conditions.push(`LOWER(a.location) LIKE LOWER($${idx++})`);
+            values.push(`%${location}%`);
+        }
+    
+        if (status) {
+            conditions.push(`a.status = $${idx++}`);
+            values.push(status);
+        }
+    
+        if (description) {
+            conditions.push(`LOWER(a.description) LIKE LOWER($${idx++})`);
+            values.push(`%${description}%`);
+        }
+    
+        if (required_skill) {
+            conditions.push(`a.required_skills = $${idx++}`);
+            values.push(required_skill);
+        }
+    
+        if (start_date) {
+            conditions.push(`a.start_date = $${idx++}`);
+            values.push(start_date);
+        }
+    
+        if (end_date) {
+            conditions.push(`a.end_date = $${idx++}`);
+            values.push(end_date);
+        }
+    
+        if (requester_id) {
+            conditions.push(`a.requester_id = $${idx++}`);
+            values.push(requester_id);
+        }
+    
+        const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+    
         try {
-            const result = await pool.query(
-                `SELECT a.*, 
-                        COALESCE(r.name, '') AS requester_name,
-                        s.name AS required_skill_name
-                 FROM activities a
-                 LEFT JOIN users r ON a.requester_id = r.user_id
-                 LEFT JOIN skills s ON a.required_skills = s.skill_id
-                 ORDER BY a.start_date DESC, a.start_time DESC
-                 LIMIT $1 OFFSET $2`,
-                [parseInt(pageSize), parseInt(offset)]
-            );
-            const totalResult = await pool.query('SELECT COUNT(*) FROM activities');
-            res.json({ activities: result.rows, total: parseInt(totalResult.rows[0].count, 10) });
+            const query = `
+                SELECT a.*, 
+                       COALESCE(r.name, '') AS requester_name,
+                       s.name AS required_skill_name
+                FROM activities a
+                LEFT JOIN users r ON a.requester_id = r.user_id
+                LEFT JOIN skills s ON a.required_skills = s.skill_id
+                ${whereClause}
+                ORDER BY a.start_date DESC, a.start_time DESC
+                LIMIT $${idx++} OFFSET $${idx}
+            `;
+    
+            values.push(parseInt(pageSize), parseInt(offset));
+    
+            const result = await pool.query(query, values);
+            const countResult = await pool.query(`SELECT COUNT(*) FROM activities ${whereClause}`, values.slice(0, -2));
+            res.json({ activities: result.rows, total: parseInt(countResult.rows[0].count, 10) });
         } catch (err) {
             console.error('Error fetching activities:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
+    
 
     // Get an activity by ID
     router.get('/:id', async (req, res) => {

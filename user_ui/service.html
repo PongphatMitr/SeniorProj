@@ -166,6 +166,16 @@
                 `;
                 tbody.appendChild(row);
             });
+            if (data.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="7" class="text-center text-gray-500 py-6">
+                        ไม่พบกิจกรรมที่ตรงกับการค้นหา
+                    </td>
+                `;
+                tbody.appendChild(row);
+            }
+            
         }
 
         function formatDate(dateString) {
@@ -389,19 +399,30 @@
             }
         }
 
-        function searchActivities() {
-            const searchTerm = document.getElementById('search-input').value.toLowerCase();
-            const filteredActivities = activities.filter(activity => {
-                return (
-                    (activity.activity_id && activity.activity_id.toString().includes(searchTerm)) ||
-                    (activity.title && activity.title.toLowerCase().includes(searchTerm)) ||
-                    (activity.description && activity.description.toLowerCase().includes(searchTerm)) ||
-                    (activity.location && activity.location.toLowerCase().includes(searchTerm)) ||
-                    (activity.requester_id && activity.requester_id.toString().includes(searchTerm))
-                );
-            });
-            renderTable(filteredActivities);
-        }
+async function searchActivities() {
+    const baseSearch = document.getElementById('search-input').value.toLowerCase();
+    const location = document.getElementById('filter-location').value.toLowerCase();
+    const status = document.getElementById('filter-status').value;
+    const startDate = document.getElementById('filter-start-date').value;
+    const skill = document.getElementById('filter-skill').value;
+
+    const filteredActivities = activities.filter(activity => {
+        const matchesText =
+            (activity.title && activity.title.toLowerCase().includes(baseSearch)) ||
+            (activity.description && activity.description.toLowerCase().includes(baseSearch)) ||
+            (activity.location && activity.location.toLowerCase().includes(baseSearch)) ||
+            (activity.requester_id && activity.requester_id.toString().includes(baseSearch));
+
+        const matchesLocation = location ? activity.location.toLowerCase().includes(location) : true;
+        const matchesStatus = status ? activity.status === status : true;
+        const matchesDate = startDate ? activity.start_date === startDate : true;
+        const matchesSkill = skill ? activity.required_skills?.toString() === skill : true;
+
+        return matchesText && matchesLocation && matchesStatus && matchesDate && matchesSkill;
+    });
+
+    renderTable(filteredActivities);
+}
 
         async function handleJoinButton(activityId, index) {
             const joinButton = document.querySelector(`#row-${index + 1} .join-button`);
@@ -524,6 +545,7 @@
         document.addEventListener('DOMContentLoaded', () => {
             checkLoginStatus();
             fetchMemberProfile();
+            fetchSkills();
         });
 
         function showMessage(message, isError = false) {
@@ -610,15 +632,86 @@
             </div>
             
             <div class="bg-white text-black p-8 rounded-lg shadow-lg">
-                <div class="mb-4 flex items-center">
+                <!-- 🌟 Search Bar & Filters -->
+                <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-4 mb-6 items-start">
+                  
+                <!-- Search Input -->
+                <div class="flex-grow min-w-0">
+                    <div class="relative">
                     <input id="search-input"
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        type="text" placeholder="ค้นหากิจกรรม" oninput="searchActivities()" />
-                    <a href="create-service.html" 
-                        class="bg-green-500 hover:bg-green-700 text-white text-center font-semibold text-sm py-1.5 px-3 rounded focus:outline-none focus:shadow-outline ml-2">
-                        สร้างกิจกรรม
-                    </a>
+                        type="text"
+                        placeholder="ค้นหากิจกรรม..."
+                        class="w-full bg-white border border-gray-300 text-gray-800 placeholder-gray-400 rounded-xl px-5 py-3 focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-200 shadow-sm text-base"
+                        oninput="searchActivities()" />
+                    <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                        <i class="fas fa-search text-gray-400"></i>
+                    </div>
+                    </div>
                 </div>
+  
+              
+                  <!-- ตัวกรองเพิ่มเติม Button -->
+                  <div class="relative flex-1">
+                    <button onclick="toggleAdvancedFilter()"
+                      class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2.5 rounded-xl shadow transition duration-200">
+                      <i class="fas fa-sliders-h"></i>
+                      ตัวกรองเพิ่มเติม
+                    </button>
+              
+                    <!-- Dropdown box -->
+                    <div id="advanced-filter"
+                      class="absolute right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl w-80 p-4 z-50 hidden">
+                      <div class="space-y-4">
+                        <div>
+                          <label class="block text-sm font-semibold text-gray-700 mb-1">สถานที่</label>
+                          <input id="filter-location" type="text" placeholder="เช่น ศูนย์ชุมชน"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:outline-none" />
+                        </div>
+                        <div>
+                          <label class="block text-sm font-semibold text-gray-700 mb-1">สถานะกิจกรรม</label>
+                          <select id="filter-status"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:outline-none">
+                            <option value="">-- เลือกสถานะ --</option>
+                            <option value="กำลังจะเริ่ม">กำลังจะเริ่ม</option>
+                            <option value="เสร็จสิ้น">เสร็จสิ้น</option>
+                            <option value="ยกเลิก">ยกเลิก</option>
+                            <option value="เกินเวลา">เกินเวลา</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label class="block text-sm font-semibold text-gray-700 mb-1">วันที่เริ่ม</label>
+                          <input id="filter-start-date" type="date"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:outline-none" />
+                        </div>
+                        <div>
+                          <label class="block text-sm font-semibold text-gray-700 mb-1">ทักษะที่ต้องการ</label>
+                          <select id="filter-skill"
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:outline-none">
+                            <option value="">-- เลือกทักษะ --</option>
+                            <!-- Options will be inserted here via JavaScript -->
+                          </select>
+                        </div>
+                        <div class="flex justify-end">
+                          <button onclick="searchActivities()"
+                            class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition duration-200">
+                            🔍 ค้นหา
+                          </button>
+                          <button onclick="clearFilters()"
+                            class="mt-2 ml-2 bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded-lg font-medium transition duration-200">
+                            ❌ ล้างตัวกรอง
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+              
+                  <!-- สร้างกิจกรรม Button -->
+                  <a href="create-service.html"
+                    class="flex-1 flex items-center justify-center gap-2 bg-green-500 hover:bg-green-700 text-white font-medium px-4 py-2.5 rounded-xl shadow transition duration-200 w-full">
+                    สร้างกิจกรรม
+                  </a>
+                </div>
+              
                 <div class="overflow-x-auto">
                     <div class="table-responsive-sm">
                         <table role="table" aria-busy="false" aria-colcount="7"
@@ -668,6 +761,7 @@
             </div>
         </div>
     </div>
+</div>
 
     <!-- Success & Error Message Modal -->
     <div id="message-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden transition-opacity duration-300">
@@ -703,6 +797,40 @@
         </div>
     </div>
 
+    <script>
+        function toggleAdvancedFilter() {
+            const filterBox = document.getElementById('advanced-filter');
+            filterBox.classList.toggle('hidden');
+        }
+
+        async function fetchSkills() {
+            try {
+                const response = await fetch('http://localhost:3000/api/skills');
+                const skills = await response.json();
+        
+                const skillDropdown = document.getElementById('filter-skill');
+                skills.forEach(skill => {
+                    const option = document.createElement('option');
+                    option.value = skill.skill_id;
+                    option.textContent = skill.name;
+                    skillDropdown.appendChild(option);
+                });
+            } catch (err) {
+                console.error('Error fetching skills:', err);
+            }
+        }
+        
+        function clearFilters() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('filter-location').value = '';
+            document.getElementById('filter-status').value = '';
+            document.getElementById('filter-start-date').value = '';
+            document.getElementById('filter-skill').value = '';
+            searchActivities();
+        }
+        
+        
+    </script>
 
 </body>
 
