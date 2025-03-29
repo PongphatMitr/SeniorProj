@@ -10,10 +10,10 @@ const activityRoutes = (pool) => {
     router.get('/by-date', async (req, res) => {
         try {
             const result = await pool.query(`
-            SELECT activity_id, title, start_date, status
-            FROM activities
-            ORDER BY start_date ASC
-        `);
+                SELECT activity_id, title, start_date, status
+                FROM activities
+                ORDER BY start_date ASC
+            `);
 
             const activitiesByDate = result.rows.reduce((acc, activity) => {
                 const date = activity.start_date.toISOString().split('T')[0];
@@ -46,21 +46,84 @@ const activityRoutes = (pool) => {
 
     // Get all activities with pagination
     router.get('/', async (req, res) => {
-        const { page = 1, pageSize = 10 } = req.query;
+        const {
+            title,
+            location,
+            status,
+            description,
+            required_skill,
+            start_date,
+            end_date,
+            requester_id,
+            page = 1,
+            pageSize = 10
+        } = req.query;
+
         const offset = (page - 1) * pageSize;
+        const conditions = [];
+        const values = [];
+        let idx = 1;
+
+        if (title) {
+            conditions.push(`LOWER(a.title) LIKE LOWER($${idx++})`);
+            values.push(`%${title}%`);
+        }
+
+        if (location) {
+            conditions.push(`LOWER(a.location) LIKE LOWER($${idx++})`);
+            values.push(`%${location}%`);
+        }
+
+        if (status) {
+            conditions.push(`a.status = $${idx++}`);
+            values.push(status);
+        }
+
+        if (description) {
+            conditions.push(`LOWER(a.description) LIKE LOWER($${idx++})`);
+            values.push(`%${description}%`);
+        }
+
+        if (required_skill) {
+            conditions.push(`a.required_skills = $${idx++}`);
+            values.push(required_skill);
+        }
+
+        if (start_date) {
+            conditions.push(`a.start_date = $${idx++}`);
+            values.push(start_date);
+        }
+
+        if (end_date) {
+            conditions.push(`a.end_date = $${idx++}`);
+            values.push(end_date);
+        }
+
+        if (requester_id) {
+            conditions.push(`a.requester_id = $${idx++}`);
+            values.push(requester_id);
+        }
+
+        const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
         try {
-            const result = await pool.query(
-                `SELECT a.*, 
-                        COALESCE(r.name, '') AS requester_name
-                 FROM activities a
-                 LEFT JOIN users r ON a.requester_id = r.user_id
-                 ORDER BY a.start_date DESC, a.start_time DESC
-                 LIMIT $1 OFFSET $2`,
-                [parseInt(pageSize), parseInt(offset)]
-            );
-            const totalResult = await pool.query('SELECT COUNT(*) FROM activities');
-            res.json({ activities: result.rows, total: parseInt(totalResult.rows[0].count, 10) });
+            const query = `
+                SELECT a.*, 
+                       COALESCE(r.name, '') AS requester_name,
+                       s.name AS required_skill_name
+                FROM activities a
+                LEFT JOIN users r ON a.requester_id = r.user_id
+                LEFT JOIN skills s ON a.required_skills = s.skill_id
+                ${whereClause}
+                ORDER BY a.start_date DESC, a.start_time DESC
+                LIMIT $${idx++} OFFSET $${idx}
+            `;
+
+            values.push(parseInt(pageSize), parseInt(offset));
+
+            const result = await pool.query(query, values);
+            const countResult = await pool.query(`SELECT COUNT(*) FROM activities ${whereClause}`, values.slice(0, -2));
+            res.json({ activities: result.rows, total: parseInt(countResult.rows[0].count, 10) });
         } catch (err) {
             console.error('Error fetching activities:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
@@ -73,9 +136,14 @@ const activityRoutes = (pool) => {
 
         try {
             const activityResult = await pool.query(`
-                SELECT a.*, m.name as requester_name
+                SELECT a.*, 
+                       TO_CHAR(a.start_time, 'HH24:MI') AS start_time, 
+                       TO_CHAR(a.end_time, 'HH24:MI') AS end_time, 
+                       m.name as requester_name, 
+                       s.name AS required_skill_name  
                 FROM activities a
                 JOIN users m ON a.requester_id = m.user_id
+                LEFT JOIN skills s ON a.required_skills = s.skill_id
                 WHERE a.activity_id = $1
             `, [id]);
 
@@ -107,7 +175,21 @@ const activityRoutes = (pool) => {
 
     // Create a new activity
     router.post('/', async (req, res) => {
-        const { title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, time_tokens_required, time_tokens_per_participant } = req.body;
+        const {
+            title, description, location, start_date, start_time, end_date, end_time,
+            max_participants, requester_id, requester_phone, status,
+            time_tokens_required, time_tokens_per_participant, required_skills
+        } = req.body;
+
+        // Validate time format (HH:MM)
+        const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
+        if (!timeRegex.test(start_time) || !timeRegex.test(end_time)) {
+            return res.status(400).json({ error: 'Invalid time format. Time should be in HH:MM format.' });
+        }
+
+        if (isNaN(required_skills)) {
+            return res.status(400).json({ error: 'Invalid required_skills. It should be a valid skill_id (integer).' });
+        }
 
         const client = await pool.connect();
         try {
@@ -115,8 +197,14 @@ const activityRoutes = (pool) => {
 
             // Create the activity with status set to "กำลังจะเริ่ม"
             const result = await client.query(
-                'INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, status, time_tokens_required, time_tokens_per_participant) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *',
-                [title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, 'กำลังจะเริ่ม', time_tokens_required, time_tokens_per_participant]
+                `INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, 
+                                     max_participants, requester_id, requester_phone, status, 
+                                     time_tokens_required, time_tokens_per_participant, required_skills)
+                 VALUES ($1, $2, $3, $4, $5::TIME, $6, $7::TIME, $8, $9, $10, $11, $12, $13, $14) 
+                 RETURNING *`,
+                [title, description, location, start_date, start_time, end_date, end_time,
+                    max_participants, requester_id, requester_phone, 'กำลังจะเริ่ม',
+                    time_tokens_required, time_tokens_per_participant, required_skills]
             );
 
             await client.query('COMMIT');
@@ -133,17 +221,27 @@ const activityRoutes = (pool) => {
     // Update an activity
     router.put('/:id', async (req, res) => {
         const { id } = req.params;
-        const { title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, status, time_tokens_required, time_tokens_per_participant } = req.body;
+        const { title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, requester_phone, status, time_tokens_required, time_tokens_per_participant, required_skills } = req.body;
+
+        if (isNaN(required_skills)) {
+            return res.status(400).json({ error: 'Invalid required_skills. It should be a valid skill_id (integer).' });
+        }
 
         try {
             const result = await pool.query(
-                'UPDATE activities SET title = $1, description = $2, location = $3, start_date = $4, start_time = $5, end_date = $6, end_time = $7, max_participants = $8, requester_id = $9, status = $10, time_tokens_required = $11, time_tokens_per_participant = $12 WHERE activity_id = $13 RETURNING *',
-                [title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, status, time_tokens_required, time_tokens_per_participant, id]
+                `UPDATE activities 
+                 SET title = $1, description = $2, location = $3, start_date = $4, start_time = $5, 
+                     end_date = $6, end_time = $7, max_participants = $8, requester_id = $9, 
+                     requester_phone = $10, status = $11, time_tokens_required = $12, 
+                     time_tokens_per_participant = $13, required_skills = $14
+                 WHERE activity_id = $15 RETURNING *`,
+                [title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, requester_phone, status,
+                    time_tokens_required, time_tokens_per_participant, required_skills, id]
             );
 
             res.json(result.rows[0]);
         } catch (err) {
-            console.error('Error:', err.message);
+            console.error('Error updating activity:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
@@ -151,28 +249,28 @@ const activityRoutes = (pool) => {
     // DELETE activity
     router.delete('/:id', async (req, res) => {
         const { id } = req.params;
+        console.log(`📌 API Request: Deleting activity ID ${id}`);
+
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
 
-            // Delete related records in transactions table
             await client.query('DELETE FROM transactions WHERE activity_id = $1', [id]);
-
-            // Delete related records in activity_participants table
             await client.query('DELETE FROM activity_participants WHERE activity_id = $1', [id]);
 
-            // Delete the activity
             const result = await client.query('DELETE FROM activities WHERE activity_id = $1 RETURNING *', [id]);
             if (result.rows.length === 0) {
                 await client.query('ROLLBACK');
+                console.warn(`⚠️ Activity ID ${id} not found.`);
                 return res.status(404).json({ error: 'Activity not found' });
             }
 
             await client.query('COMMIT');
+            console.log(`✅ Activity ID ${id} deleted successfully.`);
             res.json({ message: 'Activity deleted successfully' });
         } catch (error) {
             await client.query('ROLLBACK');
-            console.error('Error deleting activity:', error);
+            console.error(`❌ Error deleting activity ID ${id}:`, error);
             res.status(500).json({ error: 'Internal Server Error' });
         } finally {
             client.release();
@@ -185,14 +283,17 @@ const activityRoutes = (pool) => {
 
         try {
             const participants = await pool.query(`
-                   SELECT u.user_id, u.name, u.email, COALESCE(array_agg(s.name) FILTER (WHERE s.name IS NOT NULL), '{}') as skills
-                   FROM activity_participants ap
-                   JOIN users u ON ap.user_id = u.user_id
-                   LEFT JOIN member_skills ms ON u.user_id = ms.user_id
-                   LEFT JOIN skills s ON ms.skill_id = s.skill_id
-                   WHERE ap.activity_id = $1
-                   GROUP BY u.user_id, u.name, u.email
-               `, [activityId]);
+                SELECT u.user_id, u.name, u.phone,
+                       ARRAY[
+                           (SELECT name FROM skills WHERE skill_id = ms.skill_1),
+                           (SELECT name FROM skills WHERE skill_id = ms.skill_2),
+                           (SELECT name FROM skills WHERE skill_id = ms.skill_3)
+                       ] AS skills
+                FROM activity_participants ap
+                JOIN users u ON ap.user_id = u.user_id
+                LEFT JOIN member_skills ms ON u.user_id = ms.user_id
+                WHERE ap.activity_id = $1
+            `, [activityId]);
 
             res.json(participants.rows);
         } catch (error) {
@@ -250,7 +351,7 @@ const activityRoutes = (pool) => {
             await client.query('BEGIN');
 
             // Fetch activity details
-            activityResult = await client.query('SELECT * FROM activities WHERE activity_id = $1', [activityId]);
+            const activityResult = await client.query('SELECT * FROM activities WHERE activity_id = $1', [activityId]);
             if (activityResult.rows.length === 0) {
                 throw new Error('Activity not found');
             }
@@ -338,6 +439,30 @@ const activityRoutes = (pool) => {
         } catch (err) {
             console.error('Error rejecting activity:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+
+    // Cancel an activity by updating its status
+    router.put('/:id/cancel', async (req, res) => {
+        const { id } = req.params;
+
+        try {
+            const result = await pool.query(
+                `UPDATE activities 
+                SET status = 'ยกเลิก' 
+                WHERE activity_id = $1 
+                RETURNING *`,
+                [id]
+            );
+
+            if (result.rows.length === 0) {
+                return res.status(404).json({ error: 'ไม่พบกิจกรรมที่ต้องการยกเลิก' });
+            }
+
+            res.json({ message: 'กิจกรรมถูกยกเลิกเรียบร้อยแล้ว', activity: result.rows[0] });
+        } catch (err) {
+            console.error('Error cancelling activity:', err.message);
+            res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
         }
     });
 
