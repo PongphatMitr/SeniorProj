@@ -30,7 +30,7 @@ const communityConfigRoutes = (pool) => {
 
     // Update community configuration
     router.put('/', async (req, res) => {
-        const { default_time_token, default_exchange_rate_id, branch_name, branch_id } = req.body;
+        const { default_time_token, default_exchange_rate_id, branch_name, branch_id, minimum_time_token } = req.body;
 
         // Validate input
         if (typeof default_time_token !== 'number' || default_time_token < 0) {
@@ -49,8 +49,8 @@ const communityConfigRoutes = (pool) => {
             return res.status(400).json({ error: 'Invalid branch_id value' });
         }
 
+        const client = await pool.connect();
         try {
-            const client = await pool.connect();
             await client.query('BEGIN');
 
             // Update branch name if provided
@@ -63,7 +63,7 @@ const communityConfigRoutes = (pool) => {
 
             // Update community config
             const result = await client.query(
-                'UPDATE community_config SET default_time_token = $1, default_exchange_rate_id = $2 , minimum_time_token = $3 RETURNING *',
+                'UPDATE community_config SET default_time_token = $1, default_exchange_rate_id = $2, minimum_time_token = $3 RETURNING *',
                 [default_time_token, default_exchange_rate_id, minimum_time_token]
             );
 
@@ -78,6 +78,8 @@ const communityConfigRoutes = (pool) => {
             await client.query('ROLLBACK');
             console.error('Error updating community configuration:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
+        } finally {
+            client.release();
         }
     });
 
