@@ -81,7 +81,7 @@
                 } catch (error) {
                     console.error(`Error fetching participants for activity ${activity.activity_id}:`, error);
                     activity.current_participants = 0;
-                    activity.participants = [];
+                    activity.participants = []; // Ensure participants is an empty array on error
                 }
             }
         }
@@ -104,11 +104,11 @@
             const tbody = document.getElementById('activity-tbody');
             tbody.innerHTML = '';
             data.forEach((activity, index) => {
-                const userJoined = activity.participants.some(participant => participant.user_id === globalUserId);
+                const userJoined = activity.participants && activity.participants.some(participant => participant.user_id === globalUserId);
                 let joinButtonText = 'เข้าร่วม';
                 let joinButtonClass = 'bg-blue-500';
                 let joinButtonDisabled = false;
-
+        
                 if (activity.status === 'เสร็จสิ้น') {
                     joinButtonText = 'เสร็จสิ้น';
                     joinButtonClass = 'bg-green-500';
@@ -125,12 +125,12 @@
                     joinButtonClass = 'bg-orange-500';
                     joinButtonDisabled = true;
                 }
-
+        
                 // เช็คว่าเป็นกิจกรรมของผู้ใช้เองหรือไม่
                 const activityDetailsPage = (activity.requester_id === globalUserId)
                     ? "myactivity-details.html"
                     : "activity-details.html";
-
+        
                 const row = document.createElement('tr');
                 row.id = `row-${index + 1}`;
                 row.className = 'hover:bg-gray-100';
@@ -175,7 +175,6 @@
                 `;
                 tbody.appendChild(row);
             }
-            
         }
 
         function formatDate(dateString) {
@@ -399,56 +398,80 @@
             }
         }
 
-async function searchActivities() {
-    const baseSearch = document.getElementById('search-input').value.toLowerCase();
-    const location = document.getElementById('filter-location').value.toLowerCase();
-    const status = document.getElementById('filter-status').value;
-    const startDate = document.getElementById('filter-start-date').value;
-    const skill = document.getElementById('filter-skill').value;
-
-    const filteredActivities = activities.filter(activity => {
-        const matchesText =
-            (activity.title && activity.title.toLowerCase().includes(baseSearch)) ||
-            (activity.description && activity.description.toLowerCase().includes(baseSearch)) ||
-            (activity.location && activity.location.toLowerCase().includes(baseSearch)) ||
-            (activity.requester_id && activity.requester_id.toString().includes(baseSearch));
-
-        const matchesLocation = location ? activity.location.toLowerCase().includes(location) : true;
-        const matchesStatus = status ? activity.status === status : true;
-        const matchesDate = startDate ? activity.start_date === startDate : true;
-        const matchesSkill = skill ? activity.required_skills?.toString() === skill : true;
-
-        return matchesText && matchesLocation && matchesStatus && matchesDate && matchesSkill;
-    });
-
-    renderTable(filteredActivities);
-}
+        async function searchActivities() {
+            const baseSearch = document.getElementById('search-input')?.value.toLowerCase() || '';
+            const status = document.getElementById('filter-status')?.value || '';
+            const startDate = document.getElementById('filter-start-date')?.value;
+            const endDate = document.getElementById('filter-end-date')?.value;
+            const startHours = document.getElementById('start-hours')?.value;
+            const startMinutes = document.getElementById('start-minutes')?.value;
+            const endHours = document.getElementById('end-hours')?.value;
+            const endMinutes = document.getElementById('end-minutes')?.value;
+            const skill = document.getElementById('skill-dropdown')?.value || '';
+            const availableSlots = document.getElementById('filter-available-slots')?.checked || false;
+        
+            const startTimeFilter = (startHours && startMinutes) ? `${startHours}:${startMinutes}` : null;
+            const endTimeFilter = (endHours && endMinutes) ? `${endHours}:${endMinutes}` : null;
+        
+            const filteredActivities = activities.filter(activity => {
+                const matchesText =
+                    (activity.title && activity.title.toLowerCase().includes(baseSearch)) ||
+                    (activity.description && activity.description.toLowerCase().includes(baseSearch)) ||
+                    (activity.requester_id && activity.requester_id.toString().includes(baseSearch));
+        
+                const matchesStatus = status ? activity.status === status : true;
+                const matchesStartDate = startDate ? new Date(activity.start_date) >= new Date(startDate) : true;
+                const matchesEndDate = endDate ? new Date(activity.end_date) <= new Date(endDate) : true;
+                const matchesStartTime = startTimeFilter ? activity.start_time >= startTimeFilter : true;
+                const matchesEndTime = endTimeFilter ? activity.end_time <= endTimeFilter : true;
+        
+                // ✅ Skill match based on skill_id from dropdown
+                const matchesSkill = skill ? activity.required_skills === Number(skill) : true;
+        
+                const matchesAvailableSlots = availableSlots
+                    ? activity.current_participants < activity.max_participants
+                    : true;
+        
+                return (
+                    matchesText &&
+                    matchesStatus &&
+                    matchesStartDate &&
+                    matchesEndDate &&
+                    matchesStartTime &&
+                    matchesEndTime &&
+                    matchesSkill &&
+                    matchesAvailableSlots
+                );
+            });
+        
+            renderTable(filteredActivities);
+        }
+        
 
         async function handleJoinButton(activityId, index) {
             const joinButton = document.querySelector(`#row-${index + 1} .join-button`);
-        
+
             if (joinButton.innerText === 'เข้าร่วม') {
                 await joinActivity(activityId, index);
             } else if (joinButton.innerText === 'ยกเลิก') {
                 await leaveActivity(activityId, index);
             }
         }
-        
 
         async function joinActivity(activityId, index) {
             const token = localStorage.getItem('token');
             const userId = globalUserId;
-        
+
             if (!token || !userId) {
                 showMessage("คุณต้องเข้าสู่ระบบก่อนเข้าร่วมกิจกรรม", true);
                 return;
             }
-        
+
             if (activities[index].requester_id === userId) {
                 showMessage("คุณไม่สามารถเข้าร่วมกิจกรรมของตนเองได้", true);
                 return;
             }
-        
+
             showConfirmation("คุณต้องการเข้าร่วมกิจกรรมนี้หรือไม่?", async () => {
                 try {
                     const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}/participants`, {
@@ -459,9 +482,9 @@ async function searchActivities() {
                         },
                         body: JSON.stringify({ memberId: userId })
                     });
-        
+
                     const data = await response.json();
-        
+
                     if (response.ok) {
                         activities[index].current_participants += 1;
                         const joinButton = document.querySelector(`#row-${index + 1} .join-button`);
@@ -469,7 +492,7 @@ async function searchActivities() {
                         joinButton.classList.remove('bg-blue-500');
                         joinButton.classList.add('bg-red-500');
                         document.getElementById(`participants-${index}`).innerText = activities[index].current_participants;
-        
+
                         showMessage("เข้าร่วมกิจกรรมสำเร็จ!");
                     } else {
                         showMessage(data.error || "เกิดข้อผิดพลาดในการเข้าร่วมกิจกรรม", true);
@@ -480,18 +503,16 @@ async function searchActivities() {
                 }
             });
         }
-        
-        
 
         async function leaveActivity(activityId, index) {
             const token = localStorage.getItem('token');
             const userId = globalUserId;
-        
+
             if (!token || !userId) {
                 showMessage("คุณต้องเข้าสู่ระบบก่อนออกจากกิจกรรม", true);
                 return;
             }
-        
+
             showConfirmation("คุณต้องการยกเลิกการเข้าร่วมกิจกรรมนี้หรือไม่?", async () => {
                 try {
                     const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}/participants/${userId}`, {
@@ -500,7 +521,7 @@ async function searchActivities() {
                             'Authorization': `Bearer ${token}`
                         }
                     });
-        
+
                     if (response.ok) {
                         activities[index].current_participants -= 1;
                         const joinButton = document.querySelector(`#row-${index + 1} .join-button`);
@@ -508,7 +529,7 @@ async function searchActivities() {
                         joinButton.classList.remove('bg-red-500');
                         joinButton.classList.add('bg-blue-500');
                         document.getElementById(`participants-${index}`).innerText = activities[index].current_participants;
-        
+
                         showMessage("ออกจากกิจกรรมสำเร็จ!");
                     } else {
                         const data = await response.json();
@@ -520,8 +541,6 @@ async function searchActivities() {
                 }
             });
         }
-        
-        
 
         async function fetchMemberProfile() {
             try {
@@ -545,7 +564,6 @@ async function searchActivities() {
         document.addEventListener('DOMContentLoaded', () => {
             checkLoginStatus();
             fetchMemberProfile();
-            fetchSkills();
         });
 
         function showMessage(message, isError = false) {
@@ -555,10 +573,10 @@ async function searchActivities() {
             const icon = document.getElementById('message-icon');
             const iconSvg = document.getElementById('message-icon-svg');
             const iconPath = document.getElementById('message-icon-path');
-        
+
             text.textContent = message;
             modal.classList.remove('hidden');
-        
+
             if (isError) {
                 title.textContent = "เกิดข้อผิดพลาด!";
                 title.classList.add('text-red-600');
@@ -572,33 +590,46 @@ async function searchActivities() {
                 iconSvg.classList.add('text-green-500');
                 iconPath.setAttribute("d", "M5 13l4 4L19 7"); // Checkmark icon
             }
-        
+
             setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
-        
+
             document.getElementById('confirm-message-btn').onclick = () => {
                 modal.classList.add('hidden');
                 modal.classList.remove('opacity-100', 'scale-100');
             };
         }
-        
+
         function showConfirmation(message, onConfirm) {
             const modal = document.getElementById('confirm-modal');
             const text = document.getElementById('confirm-message');
-        
+
             text.textContent = message;
             modal.classList.remove('hidden');
-        
+
             document.getElementById('confirm-yes-btn').onclick = () => {
                 modal.classList.add('hidden');
                 onConfirm(); // Execute the function if confirmed
             };
-        
+
             document.getElementById('confirm-no-btn').onclick = () => {
                 modal.classList.add('hidden');
             };
         }
-        
-        
+
+        function clearFilters() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('filter-status').value = '';
+            document.getElementById('filter-start-date').value = '';
+            document.getElementById('filter-end-date').value = '';
+            document.getElementById('start-hours').value = '';
+            document.getElementById('start-minutes').value = '00';
+            document.getElementById('end-hours').value = '';
+            document.getElementById('end-minutes').value = '00';
+            document.getElementById('filter-category').value = '';
+            document.getElementById('filter-skill').innerHTML = '<option value="">-- เลือกทักษะ --</option>';
+            document.getElementById('filter-available-slots').checked = false;
+            searchActivities();
+        }
     </script>
 </head>
 
@@ -621,7 +652,7 @@ async function searchActivities() {
                 </ul>
             </nav>
         </div>
-        
+
         <!-- Main Content -->
         <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
             <h1 class="text-3xl font-bold mb-6 text-center">กิจกรรมชุมชน</h1>
@@ -630,88 +661,146 @@ async function searchActivities() {
                     <i class="fas fa-clipboard-list text-3xl mr-3"></i> กิจกรรมของฉัน
                 </a>
             </div>
-            
+
             <div class="bg-white text-black p-8 rounded-lg shadow-lg">
                 <!-- 🌟 Search Bar & Filters -->
                 <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-4 mb-6 items-start">
-                  
-                <!-- Search Input -->
-                <div class="flex-grow min-w-0">
-                    <div class="relative">
-                    <input id="search-input"
-                        type="text"
-                        placeholder="ค้นหากิจกรรม..."
-                        class="w-full bg-white border border-gray-300 text-gray-800 placeholder-gray-400 rounded-xl px-5 py-3 focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-200 shadow-sm text-base"
-                        oninput="searchActivities()" />
-                    <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
-                        <i class="fas fa-search text-gray-400"></i>
+
+                    <!-- Search Input -->
+                    <div class="flex-grow min-w-0">
+                        <div class="relative">
+                            <input id="search-input"
+                                type="text"
+                                placeholder="ค้นหากิจกรรม..."
+                                class="w-full bg-white border border-gray-300 text-gray-800 placeholder-gray-400 rounded-xl px-5 py-3 focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-200 shadow-sm text-base"
+                                oninput="searchActivities()" />
+                            <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- ตัวกรองเพิ่มเติม Button -->
+                    <div class="relative flex-1">
+                        <button onclick="toggleAdvancedFilter()"
+                            class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2.5 rounded-xl shadow transition duration-200">
+                            <i class="fas fa-sliders-h"></i>
+                            ตัวกรองเพิ่มเติม
+                        </button>
+
+                        <!-- Dropdown box -->
+                        <div id="advanced-filter"
+                            class="absolute right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl w-80 p-4 z-50 hidden">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-1">สถานะกิจกรรม</label>
+                                    <select id="filter-status"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:outline-none">
+                                        <option value="">-- เลือกสถานะ --</option>
+                                        <option value="กำลังจะเริ่ม">กำลังจะเริ่ม</option>
+                                        <option value="เสร็จสิ้น">เสร็จสิ้น</option>
+                                        <option value="ยกเลิก">ยกเลิก</option>
+                                        <option value="เกินเวลา">เกินเวลา</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-1">วันที่เริ่ม</label>
+                                    <input id="filter-start-date" type="date"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:outline-none" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-1">วันที่สิ้นสุด</label>
+                                    <input id="filter-end-date" type="date"
+                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:outline-none" />
+                                </div>
+                                <!-- Section: Time -->
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div class="mb-6">
+                                        <label for="start-time" class="block text-gray-700 text-sm font-bold mb-2">เวลาเริ่มต้น</label>
+                                        <div class="flex items-center bg-white border shadow border rounded w-full py-2 px-3 text-gray-700">
+                                            <!-- Hour Selector -->
+                                            <select id="start-hours" name="start-hours" class="text-gray-700 w-full text-center focus:outline-none">
+                                                <option value="" selected disabled>-- ชั่วโมง --</option>
+                                                <script>
+                                                    for (let i = 0; i < 24; i++) {
+                                                        document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาฬิกา</option>`);
+                                                    }
+                                                </script>
+                                            </select>
+                                            <!-- Minute Selector -->
+                                            <select id="start-minutes" name="start-minutes" class="text-gray-700 w-full text-center focus:outline-none">
+                                                <option value="00" selected>00 นาที</option>
+                                                <script>
+                                                    for (let i = 0; i < 60; i += 5) {
+                                                        document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาที</option>`);
+                                                    }
+                                                </script>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="mb-6">
+                                        <label for="end-time" class="block text-gray-700 text-sm font-bold mb-2">เวลาสิ้นสุด</label>
+                                        <div class="flex items-center bg-white border shadow border rounded w-full py-2 px-3 text-gray-700">
+                                            <!-- Hour Selector -->
+                                            <select id="end-hours" name="end-hours" class="text-gray-700 w-full text-center focus:outline-none">
+                                                <option value="" selected disabled>-- ชั่วโมง --</option>
+                                                <script>
+                                                    for (let i = 0; i < 24; i++) {
+                                                        document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาฬิกา</option>`);
+                                                    }
+                                                </script>
+                                            </select>
+                                            <!-- Minute Selector -->
+                                            <select id="end-minutes" name="end-minutes" class="text-gray-700 w-full text-center focus:outline-none">
+                                                <option value="00" selected>00 นาที</option>
+                                                <script>
+                                                    for (let i = 0; i < 60; i += 5) {
+                                                        document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาที</option>`);
+                                                    }
+                                                </script>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="mb-4">
+                                    <label for="category-dropdown" class="block text-gray-700 text-sm font-bold mb-2">เลือกหมวดหมู่:</label>
+                                    <select id="category-dropdown" class="shadow border rounded w-full py-2 px-3 text-gray-700" onchange="updateSkillDropdown()">
+                                        <option value="">กรุณาเลือกหมวดหมู่</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="mb-4">
+                                    <label for="skill-dropdown" class="block text-gray-700 text-sm font-bold mb-2">เลือกทักษะ (สามารถเลือกได้เพียง 1 ทักษะเท่านั้น):</label>
+                                    <select id="skill-dropdown" class="shadow border rounded w-full py-2 px-3 text-gray-700" disabled>
+                                        <option value="">กรุณาเลือกทักษะ</option>
+                                    </select>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="filter-available-slots" type="checkbox"
+                                        class="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
+                                    <label for="filter-available-slots" class="text-sm font-semibold text-gray-700">แสดงเฉพาะกิจกรรมที่มีที่ว่าง</label>
+                                </div>
+                                <div class="flex justify-end">
+                                    <button onclick="searchActivities()"
+                                        class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition duration-200">
+                                        🔍 ค้นหา
+                                    </button>
+                                    <button onclick="clearFilters()"
+                                        class="mt-2 ml-2 bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded-lg font-medium transition duration-200">
+                                        ❌ ล้างตัวกรอง
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
+
+                    <!-- สร้างกิจกรรม Button -->
+                    <a href="create-service.html"
+                        class="flex-1 flex items-center justify-center gap-2 bg-green-500 hover:bg-green-700 text-white font-medium px-4 py-2.5 rounded-xl shadow transition duration-200 w-full">
+                        สร้างกิจกรรม
+                    </a>
                 </div>
-  
-              
-                  <!-- ตัวกรองเพิ่มเติม Button -->
-                  <div class="relative flex-1">
-                    <button onclick="toggleAdvancedFilter()"
-                      class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2.5 rounded-xl shadow transition duration-200">
-                      <i class="fas fa-sliders-h"></i>
-                      ตัวกรองเพิ่มเติม
-                    </button>
-              
-                    <!-- Dropdown box -->
-                    <div id="advanced-filter"
-                      class="absolute right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl w-80 p-4 z-50 hidden">
-                      <div class="space-y-4">
-                        <div>
-                          <label class="block text-sm font-semibold text-gray-700 mb-1">สถานที่</label>
-                          <input id="filter-location" type="text" placeholder="เช่น ศูนย์ชุมชน"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:outline-none" />
-                        </div>
-                        <div>
-                          <label class="block text-sm font-semibold text-gray-700 mb-1">สถานะกิจกรรม</label>
-                          <select id="filter-status"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:outline-none">
-                            <option value="">-- เลือกสถานะ --</option>
-                            <option value="กำลังจะเริ่ม">กำลังจะเริ่ม</option>
-                            <option value="เสร็จสิ้น">เสร็จสิ้น</option>
-                            <option value="ยกเลิก">ยกเลิก</option>
-                            <option value="เกินเวลา">เกินเวลา</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label class="block text-sm font-semibold text-gray-700 mb-1">วันที่เริ่ม</label>
-                          <input id="filter-start-date" type="date"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:outline-none" />
-                        </div>
-                        <div>
-                          <label class="block text-sm font-semibold text-gray-700 mb-1">ทักษะที่ต้องการ</label>
-                          <select id="filter-skill"
-                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:outline-none">
-                            <option value="">-- เลือกทักษะ --</option>
-                            <!-- Options will be inserted here via JavaScript -->
-                          </select>
-                        </div>
-                        <div class="flex justify-end">
-                          <button onclick="searchActivities()"
-                            class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition duration-200">
-                            🔍 ค้นหา
-                          </button>
-                          <button onclick="clearFilters()"
-                            class="mt-2 ml-2 bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded-lg font-medium transition duration-200">
-                            ❌ ล้างตัวกรอง
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-              
-                  <!-- สร้างกิจกรรม Button -->
-                  <a href="create-service.html"
-                    class="flex-1 flex items-center justify-center gap-2 bg-green-500 hover:bg-green-700 text-white font-medium px-4 py-2.5 rounded-xl shadow transition duration-200 w-full">
-                    สร้างกิจกรรม
-                  </a>
-                </div>
-              
+
                 <div class="overflow-x-auto">
                     <div class="table-responsive-sm">
                         <table role="table" aria-busy="false" aria-colcount="7"
@@ -761,7 +850,6 @@ async function searchActivities() {
             </div>
         </div>
     </div>
-</div>
 
     <!-- Success & Error Message Modal -->
     <div id="message-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden transition-opacity duration-300">
@@ -803,32 +891,100 @@ async function searchActivities() {
             filterBox.classList.toggle('hidden');
         }
 
-        async function fetchSkills() {
+        let skills = [];       // All skills from backend
+        let categories = [];   // Unique category names
+        let selectedSkills = []; // Only needed if allowing multiple skills
+    
+        // Fetch skills and extract unique categories
+        async function fetchSkillsAndCategories() {
             try {
-                const response = await fetch('http://localhost:3000/api/skills');
-                const skills = await response.json();
-        
-                const skillDropdown = document.getElementById('filter-skill');
-                skills.forEach(skill => {
-                    const option = document.createElement('option');
-                    option.value = skill.skill_id;
-                    option.textContent = skill.name;
-                    skillDropdown.appendChild(option);
+                const response = await fetch('http://localhost:3000/api/user/skills', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
                 });
-            } catch (err) {
-                console.error('Error fetching skills:', err);
+        
+                const data = await response.json();
+        
+                if (Array.isArray(data)) {
+                    skills = data;
+                    categories = [...new Set(skills.map(skill => skill.category))];
+                    populateCategoryDropdown();
+                } else {
+                    console.error('Expected an array but got:', data);
+                    alert('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะ');
+                }
+            } catch (error) {
+                console.error('Error fetching skills:', error);
+                alert('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะ');
             }
         }
+    
+        // Populate category dropdown
+        function populateCategoryDropdown() {
+            const categoryDropdown = document.getElementById('category-dropdown');
+            categoryDropdown.innerHTML = '<option value="">กรุณาเลือกหมวดหมู่</option>';
         
-        function clearFilters() {
-            document.getElementById('search-input').value = '';
-            document.getElementById('filter-location').value = '';
-            document.getElementById('filter-status').value = '';
-            document.getElementById('filter-start-date').value = '';
-            document.getElementById('filter-skill').value = '';
-            searchActivities();
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category;
+                option.textContent = category;
+                categoryDropdown.appendChild(option);
+            });
+        
+            document.getElementById('skill-dropdown').disabled = true;
+        }
+    
+        // Populate skill dropdown based on selected category
+        function updateSkillDropdown() {
+            const selectedCategory = document.getElementById('category-dropdown').value;
+            const skillDropdown = document.getElementById('skill-dropdown');
+            skillDropdown.innerHTML = '<option value="">กรุณาเลือกทักษะ</option>';
+        
+            if (!selectedCategory) {
+                skillDropdown.disabled = true;
+                return;
+            }
+        
+            const filteredSkills = skills.filter(skill => skill.category === selectedCategory);
+        
+            filteredSkills.forEach(skill => {
+                const option = document.createElement('option');
+                option.value = skill.skill_id;
+                option.textContent = skill.name;
+                skillDropdown.appendChild(option);
+            });
+        
+            skillDropdown.disabled = false;
         }
         
+    
+        // Call this when the page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchSkillsAndCategories(); // Fetch skills and categories
+            checkLoginStatus(); // Check login status and fetch activities if logged in
+            fetchMemberProfile(); // Fetch member profile
+        });
+
+        function clearFilters() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('filter-status').value = '';
+            document.getElementById('filter-start-date').value = '';
+            document.getElementById('filter-end-date').value = '';
+            document.getElementById('start-hours').value = '';
+            document.getElementById('start-minutes').value = '00';
+            document.getElementById('end-hours').value = '';
+            document.getElementById('end-minutes').value = '00';
+            document.getElementById('category-dropdown').value = '';
+        
+            const skillDropdown = document.getElementById('skill-dropdown');
+            skillDropdown.innerHTML = '<option value="">กรุณาเลือกทักษะ</option>';
+            skillDropdown.disabled = true;
+        
+            document.getElementById('filter-available-slots').checked = false;
+        
+            searchActivities();
+        }
         
     </script>
 
