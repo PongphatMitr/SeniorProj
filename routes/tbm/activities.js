@@ -6,37 +6,12 @@ dotenv.config();
 const activityRoutes = (pool) => {
     const router = express.Router();
 
-    // Get all activities grouped by start date
-    router.get('/by-date', async (req, res) => {
-        try {
-            const result = await pool.query(`
-                SELECT activity_id, title, start_date, status
-                FROM activities
-                ORDER BY start_date ASC
-            `);
-
-            const activitiesByDate = result.rows.reduce((acc, activity) => {
-                const date = activity.start_date.toISOString().split('T')[0];
-                if (!acc[date]) {
-                    acc[date] = [];
-                }
-                acc[date].push(activity);
-                return acc;
-            }, {});
-
-            res.json({ activities: activitiesByDate });
-        } catch (err) {
-            console.error('Error fetching activities:', err.message);
-            res.status(500).json({ error: 'An error occurred. Please try again.' });
-        }
-    });
-
     // Add a route to delete a participant from an activity
-    router.delete('/:activityId/participants/:userId', async (req, res) => {
-        const { activityId, userId } = req.params;
+    router.delete('/:activityId/participants/:memberId', async (req, res) => {
+        const { activityId, memberId } = req.params;
 
         try {
-            await pool.query('DELETE FROM activity_participants WHERE activity_id = $1 AND user_id = $2', [activityId, userId]);
+            await pool.query('DELETE FROM activity_participants WHERE activity_id = $1 AND user_id = $2', [activityId, memberId]);
             res.status(204).send();
         } catch (err) {
             console.error('Error:', err.message);
@@ -130,12 +105,13 @@ const activityRoutes = (pool) => {
         }
     });
 
+
     // Get an activity by ID
     router.get('/:id', async (req, res) => {
         const { id } = req.params;
 
         try {
-            const activityResult = await pool.query(`
+            const result = await pool.query(`
                 SELECT a.*, 
                        TO_CHAR(a.start_time, 'HH24:MI') AS start_time, 
                        TO_CHAR(a.end_time, 'HH24:MI') AS end_time, 
@@ -147,31 +123,21 @@ const activityRoutes = (pool) => {
                 WHERE a.activity_id = $1
             `, [id]);
 
-            if (activityResult.rows.length === 0) {
+            if (result.rows.length === 0) {
                 return res.status(404).json({ error: 'Activity not found' });
             }
 
-            const activity = activityResult.rows[0];
-
-            // Fetch participants for the activity
-            const participantsResult = await pool.query(`
-                SELECT p.user_id, u.name as participant_name
-                FROM activity_participants p
-                JOIN users u ON p.user_id = u.user_id
-                WHERE p.activity_id = $1
-            `, [id]);
-
-            const participants = participantsResult.rows;
-
-            // Add participants to the activity response
-            activity.participants = participants;
-
-            res.json(activity);
+            res.json(result.rows[0]);
         } catch (err) {
-            console.error('Error fetching activity:', err.message);
+            console.error('Error fetching activity details:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
+
+
+
+
+
 
     // Create a new activity
     router.post('/', async (req, res) => {
@@ -181,12 +147,6 @@ const activityRoutes = (pool) => {
             time_tokens_required, time_tokens_per_participant, required_skills
         } = req.body;
 
-        // Validate time format (HH:MM)
-        const timeRegex = /^([01]\d|2[0-3]):([0-5]\d)$/;
-        if (!timeRegex.test(start_time) || !timeRegex.test(end_time)) {
-            return res.status(400).json({ error: 'Invalid time format. Time should be in HH:MM format.' });
-        }
-
         if (isNaN(required_skills)) {
             return res.status(400).json({ error: 'Invalid required_skills. It should be a valid skill_id (integer).' });
         }
@@ -195,15 +155,14 @@ const activityRoutes = (pool) => {
         try {
             await client.query('BEGIN');
 
-            // Create the activity with status set to "กำลังจะเริ่ม"
             const result = await client.query(
                 `INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, 
-                                     max_participants, requester_id, requester_phone, status, 
-                                     time_tokens_required, time_tokens_per_participant, required_skills)
+                                         max_participants, requester_id, requester_phone, status, 
+                                         time_tokens_required, time_tokens_per_participant, required_skills)
                  VALUES ($1, $2, $3, $4, $5::TIME, $6, $7::TIME, $8, $9, $10, $11, $12, $13, $14) 
                  RETURNING *`,
                 [title, description, location, start_date, start_time, end_date, end_time,
-                    max_participants, requester_id, requester_phone, 'กำลังจะเริ่ม',
+                    max_participants, requester_id, requester_phone, status,
                     time_tokens_required, time_tokens_per_participant, required_skills]
             );
 
@@ -211,12 +170,15 @@ const activityRoutes = (pool) => {
             res.status(201).json(result.rows[0]);
         } catch (err) {
             await client.query('ROLLBACK');
-            console.error('Error:', err.message);
-            res.status(500).json({ error: 'An error occurred. Please try again.' });
+            console.error('Error creating activity:', err);
+            res.status(500).json({ error: `Activity creation failed: ${err.message}` });
         } finally {
             client.release();
         }
     });
+
+
+
 
     // Update an activity
     router.put('/:id', async (req, res) => {
@@ -235,7 +197,8 @@ const activityRoutes = (pool) => {
                      requester_phone = $10, status = $11, time_tokens_required = $12, 
                      time_tokens_per_participant = $13, required_skills = $14
                  WHERE activity_id = $15 RETURNING *`,
-                [title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, requester_phone, status,
+                [title, description, location, start_date, start_time, end_date, end_time,
+                    max_participants, requester_id, requester_phone, status,
                     time_tokens_required, time_tokens_per_participant, required_skills, id]
             );
 
@@ -249,28 +212,28 @@ const activityRoutes = (pool) => {
     // DELETE activity
     router.delete('/:id', async (req, res) => {
         const { id } = req.params;
-        console.log(`📌 API Request: Deleting activity ID ${id}`);
-
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
 
+            // Delete related records in transactions table
             await client.query('DELETE FROM transactions WHERE activity_id = $1', [id]);
+
+            // Delete related records in activity_participants table
             await client.query('DELETE FROM activity_participants WHERE activity_id = $1', [id]);
 
+            // Delete the activity
             const result = await client.query('DELETE FROM activities WHERE activity_id = $1 RETURNING *', [id]);
             if (result.rows.length === 0) {
                 await client.query('ROLLBACK');
-                console.warn(`⚠️ Activity ID ${id} not found.`);
                 return res.status(404).json({ error: 'Activity not found' });
             }
 
             await client.query('COMMIT');
-            console.log(`✅ Activity ID ${id} deleted successfully.`);
             res.json({ message: 'Activity deleted successfully' });
         } catch (error) {
             await client.query('ROLLBACK');
-            console.error(`❌ Error deleting activity ID ${id}:`, error);
+            console.error('Error deleting activity:', error);
             res.status(500).json({ error: 'Internal Server Error' });
         } finally {
             client.release();
@@ -295,6 +258,7 @@ const activityRoutes = (pool) => {
                 WHERE ap.activity_id = $1
             `, [activityId]);
 
+
             res.json(participants.rows);
         } catch (error) {
             console.error('Error fetching participants:', error);
@@ -302,45 +266,79 @@ const activityRoutes = (pool) => {
         }
     });
 
+
     // Add a participant to an activity
     router.post('/:activityId/participants', async (req, res) => {
         const { activityId } = req.params;
-        const { userId } = req.body;
+        const { memberId } = req.body;
+
+        console.log(`🔹 Checking join eligibility for activity ${activityId} and user ${memberId}`);
 
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
 
-            // Fetch activity details
-            const activityResult = await client.query('SELECT * FROM activities WHERE activity_id = $1', [activityId]);
+            // Get activity details
+            const activityResult = await client.query(
+                `SELECT required_skills FROM activities WHERE activity_id = $1`,
+                [activityId]
+            );
             if (activityResult.rows.length === 0) {
-                throw new Error('Activity not found');
+                return res.status(404).json({ error: 'ไม่พบกิจกรรมที่คุณต้องการเข้าร่วม' });
+            }
+            const requiredSkillId = activityResult.rows[0].required_skills;
+
+            // Get user's skills
+            const skillResult = await client.query(
+                `SELECT skill_1, skill_2, skill_3 FROM member_skills WHERE user_id = $1`,
+                [memberId]
+            );
+            if (skillResult.rows.length === 0) {
+                return res.status(400).json({ error: 'คุณยังไม่ได้ลงทะเบียนทักษะของคุณ' });
             }
 
-            const activity = activityResult.rows[0];
+            const { skill_1, skill_2, skill_3 } = skillResult.rows[0];
+
+            // Check if the user has the required skill
+            if (![skill_1, skill_2, skill_3].includes(requiredSkillId)) {
+                return res.status(403).json({ error: 'คุณไม่มีทักษะที่เหมาะสมสำหรับกิจกรรมนี้' });
+            }
+
+            // Check if the user is already a participant
+            const participantCheck = await client.query(
+                `SELECT * FROM activity_participants WHERE activity_id = $1 AND user_id = $2`,
+                [activityId, memberId]
+            );
+            if (participantCheck.rows.length > 0) {
+                return res.status(400).json({ error: 'คุณได้เข้าร่วมกิจกรรมนี้แล้ว' });
+            }
+
+            // Check if the activity is full
+            const participantCount = await client.query(
+                `SELECT COUNT(*) FROM activity_participants WHERE activity_id = $1`,
+                [activityId]
+            );
+            if (parseInt(participantCount.rows[0].count) >= requiredSkillId.max_participants) {
+                return res.status(400).json({ error: 'กิจกรรมนี้เต็มแล้ว ไม่สามารถเข้าร่วมได้' });
+            }
 
             // Add participant to the activity
-            const result = await client.query(
-                'INSERT INTO activity_participants (activity_id, user_id) VALUES ($1, $2) RETURNING *',
-                [activityId, userId]
-            );
-
-            // Log the transaction
             await client.query(
-                'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type, date, time) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-                [userId, activityId, `Participated in activity: ${activity.title}`, activity.time_tokens_per_participant, 'earn', new Date().toISOString().split('T')[0], new Date().toLocaleTimeString()]
+                `INSERT INTO activity_participants (activity_id, user_id) VALUES ($1, $2)`,
+                [activityId, memberId]
             );
 
             await client.query('COMMIT');
-            res.status(201).json(result.rows[0]);
+            res.status(201).json({ message: 'เข้าร่วมกิจกรรมสำเร็จ!' });
         } catch (err) {
             await client.query('ROLLBACK');
-            console.error('Error:', err.message);
-            res.status(500).json({ error: 'An error occurred. Please try again.' });
+            console.error('❌ Error joining activity:', err);
+            res.status(500).json({ error: 'เกิดข้อผิดพลาดในการเข้าร่วมกิจกรรม กรุณาลองใหม่อีกครั้ง' });
         } finally {
             client.release();
         }
     });
+
 
     // Approve an activity
     router.post('/:activityId/approve', async (req, res) => {
@@ -388,7 +386,7 @@ const activityRoutes = (pool) => {
             }
 
             const requester = requesterResult.rows[0];
-            const totalTokensRequired = participants.length * exchangeRate * activity.time_tokens_per_participant;
+            const totalTokensRequired = participants.length * exchangeRate;
 
             if (requester.time_credits < totalTokensRequired) {
                 res.status(400).json({ error: 'Not enough time credits', available_credits: requester.time_credits });
@@ -399,8 +397,8 @@ const activityRoutes = (pool) => {
 
             // Log the transaction for the requester
             await client.query(
-                'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type, date, time) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-                [requester.user_id, activityId, `Approved activity: ${activity.title}`, totalTokensRequired, 'spend', new Date().toISOString().split('T')[0], new Date().toLocaleTimeString()]
+                'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type) VALUES ($1, $2, $3, $4, $5)',
+                [requester.user_id, activityId, `Approved activity: ${activity.title}`, totalTokensRequired, 'spend']
             );
 
             // Add time credits to each participant
@@ -409,8 +407,8 @@ const activityRoutes = (pool) => {
 
                 // Log the transaction for each participant
                 await client.query(
-                    'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type, date, time) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-                    [participant.user_id, activityId, `Earned time credits for activity: ${activity.title}`, activity.time_tokens_per_participant, 'earn', new Date().toISOString().split('T')[0], new Date().toLocaleTimeString()]
+                    'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type) VALUES ($1, $2, $3, $4, $5)',
+                    [participant.user_id, activityId, `Earned time credits for activity: ${activity.title}`, activity.time_tokens_per_participant, 'earn']
                 );
             }
 
