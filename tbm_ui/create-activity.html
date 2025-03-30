@@ -10,10 +10,9 @@
         let members = [];
         let exchangeRate = null;
         let minimumTimeToken = null;
-
-        let skills = []; // Store all skills
-        let categories = []; // Store all categories
-        let selectedSkills = []; // Store selected skill objects (max 3)
+        let skills = [];
+        let categories = [];
+        let selectedSkills = [];
 
         async function fetchMembers() {
             try {
@@ -76,7 +75,7 @@
                     item.onclick = () => {
                         document.getElementById('requester-name').value = member.name;
                         document.getElementById('requester-id').value = member.user_id;
-                        document.getElementById('phone').value = member.phone; // Set phone number
+                        document.getElementById('phone').value = member.phone;
                         resultsDropdown.innerHTML = '';
                     };
                     resultsDropdown.appendChild(item);
@@ -90,13 +89,14 @@
         async function fetchSkillsAndCategories() {
             try {
                 const response = await fetch('http://localhost:3000/api/tbm/skills', {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
                 });
                 const data = await response.json();
-
                 if (Array.isArray(data)) {
                     skills = data;
-                    categories = [...new Set(skills.map(skill => skill.category))]; // Extract unique categories
+                    categories = [...new Set(skills.map(skill => skill.category))];
                     populateCategoryDropdown();
                 } else {
                     console.error('Expected an array but got:', data);
@@ -110,72 +110,54 @@
 
         function populateCategoryDropdown() {
             const categoryDropdown = document.getElementById('category-dropdown');
-            categoryDropdown.innerHTML = '<option value="">กรุณาเลือกหมวดหมู่</option>'; // Reset options
-
+            categoryDropdown.innerHTML = '<option value="">กรุณาเลือกหมวดหมู่</option>';
             categories.forEach(category => {
                 const option = document.createElement('option');
                 option.value = category;
                 option.textContent = category;
                 categoryDropdown.appendChild(option);
             });
-
-            // Initially disable the skill dropdown
             document.getElementById('skill-dropdown').disabled = true;
         }
 
         function updateSkillDropdown() {
             const selectedCategory = document.getElementById('category-dropdown').value;
             const skillDropdown = document.getElementById('skill-dropdown');
-
-            skillDropdown.innerHTML = '<option value="">กรุณาเลือกทักษะ</option>'; // Reset
-
+            skillDropdown.innerHTML = '<option value="">กรุณาเลือกทักษะ</option>';
             if (!selectedCategory) {
                 skillDropdown.disabled = true;
                 return;
             }
-
             const filteredSkills = skills.filter(skill => skill.category === selectedCategory);
-
             filteredSkills.forEach(skill => {
-                if (!selectedSkills.some(selected => selected.skill_id === skill.skill_id)) { // Prevent duplicates
+                if (!selectedSkills.some(selected => selected.skill_id === skill.skill_id)) {
                     const option = document.createElement('option');
                     option.value = skill.skill_id;
                     option.textContent = skill.name;
                     skillDropdown.appendChild(option);
                 }
             });
-
             skillDropdown.disabled = false;
         }
 
         function addSkill() {
             const skillDropdown = document.getElementById('skill-dropdown');
             const selectedSkillId = skillDropdown.value;
-
-            if (!selectedSkillId) return; // No selection
-
-            // Ensure only one skill can be selected
+            if (!selectedSkillId) return;
             if (selectedSkills.length > 0) {
                 alert('คุณสามารถเลือกได้เพียง 1 ทักษะเท่านั้น');
                 return;
             }
-
-            // Get the full skill object
             const skill = skills.find(s => s.skill_id == selectedSkillId);
             if (!skill) return;
-
-            // Clear the list and add the new skill
             selectedSkills = [skill];
             updateSelectedSkillsDisplay();
-
-            // Reset skill dropdown
             skillDropdown.value = '';
         }
 
         function updateSelectedSkillsDisplay() {
             const selectedSkillsList = document.getElementById('selected-skills-list');
-            selectedSkillsList.innerHTML = ''; // Clear previous list
-
+            selectedSkillsList.innerHTML = '';
             selectedSkills.forEach((skill, index) => {
                 const listItem = document.createElement('li');
                 listItem.className = "bg-gray-200 p-2 rounded flex justify-between items-center mb-2";
@@ -185,16 +167,12 @@
                 `;
                 selectedSkillsList.appendChild(listItem);
             });
-
-            // Disable skill dropdown if 1 skill is selected
             document.getElementById('skill-dropdown').disabled = selectedSkills.length >= 1;
         }
 
         function removeSkill(index) {
-            selectedSkills.splice(index, 1); // Remove skill from list
-            updateSelectedSkillsDisplay(); // Refresh display
-
-            // Enable skill dropdown again
+            selectedSkills.splice(index, 1);
+            updateSelectedSkillsDisplay();
             document.getElementById('skill-dropdown').disabled = false;
         }
 
@@ -205,19 +183,15 @@
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-
                 const data = await response.json();
                 exchangeRate = data.default_exchange_rate_description;
                 minimumTimeToken = data.minimum_time_token;
                 console.log('Exchange Rate:', exchangeRate);
                 console.log('Minimum Time Token:', minimumTimeToken);
                 document.getElementById('minimum-time-token').innerText = `ใช้เวลาขั้นต่ำ ${minimumTimeToken} เพื่อแลกเปลี่ยนโทเคนของกิจกรรมที่ร้องขอ`;
-
-                // Recalculate tokens after fetching exchange rate
                 calculateTimeTokens();
             } catch (error) {
                 console.error('Error fetching community config:', error);
@@ -226,36 +200,26 @@
         }
 
         function calculateTimeTokens() {
-            // Ensure elements exist before accessing their values
             const startHours = document.getElementById('start-hours')?.value;
             const startMinutes = document.getElementById('start-minutes')?.value;
             const endHours = document.getElementById('end-hours')?.value;
             const endMinutes = document.getElementById('end-minutes')?.value;
             const maxParticipants = parseInt(document.getElementById('max-participants')?.value, 10) || 0;
-
             if (!startHours || !startMinutes || !endHours || !endMinutes || maxParticipants <= 0) {
                 document.getElementById('time-tokens-required').value = '0.00';
                 document.getElementById('time-tokens-per-participant').value = '0.00';
                 return;
             }
-
-            // Convert selected times to Date objects for calculation
             const startTime = new Date();
             startTime.setHours(parseInt(startHours, 10), parseInt(startMinutes, 10), 0);
-
             const endTime = new Date();
             endTime.setHours(parseInt(endHours, 10), parseInt(endMinutes, 10), 0);
-
-            // Calculate duration in hours
             let durationInHours = (endTime - startTime) / (1000 * 60 * 60);
             if (durationInHours < 0) {
-                durationInHours += 24; // Handle cases where end time is past midnight
+                durationInHours += 24;
             }
-
             let timeTokensRequired = 0;
             let timeTokensPerParticipant = 0;
-
-            // Exchange rate should be defined before calling this function
             if (exchangeRate === '1 โทเคนเวลา ต่อ 1 ชั่วโมง') {
                 timeTokensPerParticipant = durationInHours;
                 timeTokensRequired = maxParticipants * durationInHours;
@@ -263,15 +227,12 @@
                 timeTokensPerParticipant = 1;
                 timeTokensRequired = maxParticipants;
             }
-
-            // Update the input fields
             document.getElementById('time-tokens-required').value = timeTokensRequired.toFixed(2);
             document.getElementById('time-tokens-per-participant').value = timeTokensPerParticipant.toFixed(2);
         }
 
         async function submitActivity(event) {
             event.preventDefault();
-
             const title = document.getElementById('title').value;
             const description = document.getElementById('description').value;
             const location = document.getElementById('location').value;
@@ -283,28 +244,21 @@
             const status = document.getElementById('status').value;
             const timeTokensRequired = parseFloat(document.getElementById('time-tokens-required').value);
             const timeTokensPerParticipant = parseFloat(document.getElementById('time-tokens-per-participant').value);
-
             const startHours = document.getElementById('start-hours').value;
             const startMinutes = document.getElementById('start-minutes').value;
             const endHours = document.getElementById('end-hours').value;
             const endMinutes = document.getElementById('end-minutes').value;
-
             if (!startHours || !startMinutes || !endHours || !endMinutes) {
                 alert('กรุณาเลือกเวลาเริ่มต้นและเวลาสิ้นสุดให้ครบ');
                 return;
             }
-
             const startTime = `${startHours}:${startMinutes}`;
             const endTime = `${endHours}:${endMinutes}`;
-
-            // ✅ Fix: Ensure only ONE skill is selected and sent as an integer
             if (selectedSkills.length === 0) {
                 alert('กรุณาเลือก 1 ทักษะสำหรับกิจกรรม');
                 return;
             }
-
-            const required_skill = selectedSkills[0].skill_id; // Send only 1 skill ID
-
+            const required_skill = selectedSkills[0].skill_id;
             const activityData = {
                 title,
                 description,
@@ -319,9 +273,8 @@
                 status,
                 time_tokens_required: timeTokensRequired,
                 time_tokens_per_participant: timeTokensPerParticipant,
-                required_skills: required_skill // ✅ Send as an integer, not JSON
+                required_skills: required_skill
             };
-
             try {
                 const response = await fetch('http://localhost:3000/api/tbm/activities', {
                     method: 'POST',
@@ -331,12 +284,10 @@
                     },
                     body: JSON.stringify(activityData)
                 });
-
                 if (!response.ok) {
                     const errorData = await response.json();
                     throw new Error(`Activity creation failed: ${errorData.error}`);
                 }
-
                 alert('สร้างกิจกรรมสำเร็จ!');
                 window.location.href = 'activity.html';
             } catch (error) {
@@ -395,10 +346,7 @@
             fetchCommunityConfig();
             fetchSkillsAndCategories();
             fetchMembers();
-
             setStartDateRange();
-
-            // ✅ Ensure elements exist before adding event listeners
             const startHours = document.getElementById('start-hours');
             const startMinutes = document.getElementById('start-minutes');
             const endHours = document.getElementById('end-hours');
@@ -408,13 +356,11 @@
             const endDate = document.getElementById('end-date');
             const startTime = document.getElementById('start-time');
             const endTime = document.getElementById('end-time');
-
             if (maxParticipants) {
                 maxParticipants.addEventListener('input', calculateTimeTokens);
             } else {
                 console.warn("⚠️ Warning: #max-participants element not found.");
             }
-
             if (startDate) {
                 startDate.addEventListener('input', (event) => {
                     updateEndDate(event.target.value);
@@ -423,7 +369,6 @@
             } else {
                 console.warn("⚠️ Warning: #start-date element not found.");
             }
-
             if (endDate) {
                 endDate.addEventListener('input', (event) => {
                     syncDates(event.target.value);
@@ -431,7 +376,6 @@
             } else {
                 console.warn("⚠️ Warning: #end-date element not found.");
             }
-
             if (startTime) {
                 startTime.addEventListener('input', (event) => {
                     adjustEndTime(event.target.value);
@@ -440,31 +384,26 @@
             } else {
                 console.warn("⚠️ Warning: #start-time element not found.");
             }
-
             if (endTime) {
                 endTime.addEventListener('input', calculateTimeTokens);
             } else {
                 console.warn("⚠️ Warning: #end-time element not found.");
             }
-
             if (startHours) {
                 startHours.addEventListener('change', calculateTimeTokens);
             } else {
                 console.warn("⚠️ Warning: #start-hours element not found.");
             }
-
             if (startMinutes) {
                 startMinutes.addEventListener('change', calculateTimeTokens);
             } else {
                 console.warn("⚠️ Warning: #start-minutes element not found.");
             }
-
             if (endHours) {
                 endHours.addEventListener('change', calculateTimeTokens);
             } else {
                 console.warn("⚠️ Warning: #end-hours element not found.");
             }
-
             if (endMinutes) {
                 endMinutes.addEventListener('change', calculateTimeTokens);
             } else {
@@ -475,51 +414,41 @@
         function setStartDateRange() {
             const now = new Date();
             const minStartDate = new Date();
-            minStartDate.setDate(now.getDate() + 3); // Start date must be at least 3 days ahead
-
+            minStartDate.setDate(now.getDate() + 3);
             const formattedMinStartDate = minStartDate.toISOString().split('T')[0];
-
             const startDateInput = document.getElementById('start-date');
             const endDateInput = document.getElementById('end-date');
-
-            // Set the initial values and min attributes
             startDateInput.setAttribute('min', formattedMinStartDate);
             endDateInput.setAttribute('min', formattedMinStartDate);
-                    endDateInput.value = formattedMinStartDate;
+            endDateInput.value = formattedMinStartDate;
+            syncDates(formattedMinStartDate);
+        }
 
-                    syncDates(formattedMinStartDate);
-                }
+        function syncDates(selectedDate) {
+            const startDateInput = document.getElementById('start-date');
+            const endDateInput = document.getElementById('end-date');
+            startDateInput.value = selectedDate;
+            endDateInput.value = selectedDate;
+        }
 
-                function syncDates(selectedDate) {
-                    const startDateInput = document.getElementById('start-date');
-                    const endDateInput = document.getElementById('end-date');
+        document.addEventListener('DOMContentLoaded', () => {
+            setStartDateRange();
+            document.getElementById('start-date').addEventListener('input', (event) => {
+                syncDates(event.target.value);
+            });
+            document.getElementById('end-date').addEventListener('input', (event) => {
+                syncDates(event.target.value);
+            });
+        });
 
-                    startDateInput.value = selectedDate;
-                    endDateInput.value = selectedDate;
-                }
-
-                // Event Listeners to keep start and end dates in sync
-                document.addEventListener('DOMContentLoaded', () => {
-                    setStartDateRange();
-                    document.getElementById('start-date').addEventListener('input', (event) => {
-                        syncDates(event.target.value);
-                    });
-
-                    document.getElementById('end-date').addEventListener('input', (event) => {
-                        syncDates(event.target.value);
-                    });
-                });
-
-                function adjustEndTime(startTime) {
-                    if (!startTime) return;
-
-                    let [hours, minutes] = startTime.split(":").map(Number);
-                    hours += 1; // Add 1 hour
-                    if (hours >= 24) hours = 0; // Handle 24-hour format overflow
-
-                    const endTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-                    document.getElementById('end-time').value = endTime;
-                }
+        function adjustEndTime(startTime) {
+            if (!startTime) return;
+            let [hours, minutes] = startTime.split(":").map(Number);
+            hours += 1;
+            if (hours >= 24) hours = 0;
+            const endTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+            document.getElementById('end-time').value = endTime;
+                } 
             </script>
     </head>
     
@@ -547,7 +476,6 @@
                     <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">รายละเอียดกิจกรรม</h2>
                     <p id="minimum-time-token" class="text-red-600 text-center mb-6"></p>
                     <form onsubmit="submitActivity(event)">
-    
                         <!-- Section: Requester Information -->
                         <div class="grid grid-cols-2 gap-4 mb-4">
                             <div class="relative">
@@ -569,7 +497,6 @@
                             </div>
                         </div>
                         <hr class="my-8 border-gray-200">
-    
                         <!-- Section: Activity Details -->
                         <div class="mb-4">
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="title">ชื่อกิจกรรม</label>
@@ -586,15 +513,12 @@
                             <input id="location" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text"
                                 placeholder="ระบุสถานที่จัดกิจกรรม" required />
                         </div>
-    
                         <!-- Section: Skill Selection -->
                         <hr class="my-8 border-gray-200">
-    
                         <!-- Title -->
                         <div class="text-center">
                             <h1 class="text-2xl font-bold text-blue-700 mb-4">เลือกทักษะที่ต้องการ</h1>
                         </div>
-    
                         <!-- Skill Selection Details -->
                         <div class="bg-gray-100 p-6 rounded-lg shadow-md">
                             <div class="mb-4">
@@ -605,7 +529,6 @@
                                     <option value="">กรุณาเลือกหมวดหมู่</option>
                                 </select>
                             </div>
-    
                             <div class="mb-4">
                                 <label for="skill-dropdown" class="block text-gray-700 text-sm font-bold mb-2">เลือกทักษะ
                                     (สามารถเลือกได้เพียง 1 ทักษะเท่านั้น):</label>
@@ -614,16 +537,13 @@
                                     <option value="">กรุณาเลือกทักษะ</option>
                                 </select>
                             </div>
-    
                             <!-- Selected Skills Display -->
                             <div id="selected-skills-container" class="mt-4 bg-white p-4 rounded-lg shadow-sm">
                                 <h3 class="text-lg font-semibold text-blue-700">ทักษะที่เลือก:</h3>
                                 <ul id="selected-skills-list" class="mt-2 list-disc list-inside text-gray-700"></ul>
                             </div>
                         </div>
-    
                         <hr class="my-8 border-gray-200">
-    
                         <!-- Section: Date -->
                         <div class="grid grid-cols-2 gap-4 mb-4">
                             <div>
@@ -653,11 +573,9 @@
                                         <script>
                                             for (let i = 0; i < 24; i++) {
                                                 document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาฬิกา</option>`);
-                                            }
+                                            } 
                                         </script>
                                     </select>
-    
-    
                                     <!-- Minute Selector -->
                                     <select id="start-minutes" name="start-minutes"
                                         class="text-gray-700 w-full text-center focus:outline-none">
@@ -665,12 +583,11 @@
                                         <script>
                                             for (let i = 0; i < 60; i += 5) {
                                                 document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาที</option>`);
-                                            }
+                                            } 
                                         </script>
                                     </select>
                                 </div>
                             </div>
-    
                             <div class="mb-6">
                                 <label for="end-time" class="block text-gray-700 text-sm font-bold mb-2">เวลาสิ้นสุด</label>
                                 <div
@@ -682,12 +599,9 @@
                                         <script>
                                             for (let i = 0; i < 24; i++) {
                                                 document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาฬิกา</option>`);
-                                            }
+                                            } 
                                         </script>
                                     </select>
-    
-    
-    
                                     <!-- Minute Selector -->
                                     <select id="end-minutes" name="end-minutes"
                                         class="text-gray-700 w-full text-center focus:outline-none">
@@ -695,33 +609,54 @@
                                         <script>
                                             for (let i = 0; i < 60; i += 5) {
                                                 document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาที</option>`);
-                                            }
+                                            } 
                                         </script>
                                     </select>
                                 </div>
                             </div>
-    
+                            <div class="mb-6">
+                                <label for="time-difference"
+                                    class="block text-gray-700 text-sm font-bold mb-2">เวลาต่าง</label>
+                                <input id="time-difference" class="shadow border rounded w-full py-2 px-3 text-gray-700"
+                                    type="text" readonly />
+                            </div>
                             <script>
-                                // Auto-update end time when start time is selected
                                 document.getElementById('start-hours').addEventListener('change', updateEndTime);
                                 document.getElementById('start-minutes').addEventListener('change', updateEndTime);
-
+                                document.getElementById('end-hours').addEventListener('change', calculateTimeDifference);
+                                document.getElementById('end-minutes').addEventListener('change', calculateTimeDifference);
                                 function updateEndTime() {
                                     let startHours = parseInt(document.getElementById("start-hours").value, 10);
                                     let startMinutes = parseInt(document.getElementById("start-minutes").value, 10);
-
                                     if (!isNaN(startHours) && !isNaN(startMinutes)) {
                                         let endHours = startHours + 1;
-                                        if (endHours >= 24) endHours = 0; // Handle 24-hour overflow
-
+                                        if (endHours >= 24) endHours = 0;
                                         document.getElementById("end-hours").value = endHours.toString().padStart(2, '0');
                                         document.getElementById("end-minutes").value = startMinutes.toString().padStart(2, '0');
+                                        calculateTimeDifference();
                                     }
                                 }
+                                function calculateTimeDifference() {
+                                    const startHours = parseInt(document.getElementById("start-hours").value, 10);
+                                    const startMinutes = parseInt(document.getElementById("start-minutes").value, 10);
+                                    const endHours = parseInt(document.getElementById("end-hours").value, 10);
+                                    const endMinutes = parseInt(document.getElementById("end-minutes").value, 10);
+                                    if (!isNaN(startHours) && !isNaN(startMinutes) && !isNaN(endHours) && !isNaN(endMinutes)) {
+                                        let startTime = new Date();
+                                        startTime.setHours(startHours, startMinutes, 0);
+                                        let endTime = new Date();
+                                        endTime.setHours(endHours, endMinutes, 0);
+                                        let durationInMinutes = (endTime - startTime) / (1000 * 60);
+                                        if (durationInMinutes < 0) {
+                                            durationInMinutes += 24 * 60;
+                                        }
+                                        const hours = Math.floor(durationInMinutes / 60);
+                                        const minutes = durationInMinutes % 60;
+                                        document.getElementById("time-difference").value = `${hours} ชั่วโมง ${minutes} นาที`;
+                                    }
+                                } 
                             </script>
-    
                         </div>
-    
                         <!-- Section: Participants & Status -->
                         <div class="grid grid-cols-2 gap-4 mb-4">
                             <div>
@@ -737,7 +672,6 @@
                                 </select>
                             </div>
                         </div>
-    
                         <!-- Section: Time Tokens -->
                         <div class="grid grid-cols-2 gap-4 mb-4">
                             <div>
@@ -753,17 +687,13 @@
                                     class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text" readonly />
                             </div>
                         </div>
-    
                         <!-- Buttons -->
                         <div class="flex justify-center space-x-4">
                             <button onclick="window.history.back();"
-                                class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
-                                ย้อนกลับ
+                                class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"> ย้อนกลับ
                             </button>
                             <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                                type="submit">
-                                สร้างกิจกรรม
-                            </button>
+                                type="submit"> สร้างกิจกรรม </button>
                         </div>
                     </form>
                 </div>
