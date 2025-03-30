@@ -109,34 +109,32 @@ const activityRoutes = (pool) => {
     // Get an activity by ID
     router.get('/:id', async (req, res) => {
         const { id } = req.params;
-    
+
         try {
             const result = await pool.query(`
                 SELECT a.*, 
-                       TO_CHAR(a.start_time, 'HH24:MI') AS start_time, 
-                       TO_CHAR(a.end_time, 'HH24:MI') AS end_time, 
-                       m.name as requester_name, 
-                       s.name AS required_skill_name  
+                    TO_CHAR(a.start_time, 'HH24:MI') AS start_time, 
+                    TO_CHAR(a.end_time, 'HH24:MI') AS end_time, 
+                    TO_CHAR(a.start_date, 'YYYY-MM-DD') AS start_date,  -- Ensure date is correctly formatted
+                    TO_CHAR(a.end_date, 'YYYY-MM-DD') AS end_date,      -- Ensure date is correctly formatted
+                    m.name as requester_name, 
+                    s.name AS required_skill_name  
                 FROM activities a
                 JOIN users m ON a.requester_id = m.user_id
                 LEFT JOIN skills s ON a.required_skills = s.skill_id
                 WHERE a.activity_id = $1
             `, [id]);
-    
+
             if (result.rows.length === 0) {
                 return res.status(404).json({ error: 'Activity not found' });
             }
-    
+
             res.json(result.rows[0]);
         } catch (err) {
             console.error('Error fetching activity details:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
-    
-    
-    
-    
     
 
     // Create a new activity
@@ -271,23 +269,25 @@ const activityRoutes = (pool) => {
     router.post('/:activityId/participants', async (req, res) => {
         const { activityId } = req.params;
         const { memberId } = req.body;
-    
+
         console.log(`🔹 Checking join eligibility for activity ${activityId} and user ${memberId}`);
-    
+
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
-    
+
             // Get activity details
             const activityResult = await client.query(
-                `SELECT required_skills FROM activities WHERE activity_id = $1`,
+                `SELECT required_skills, max_participants FROM activities WHERE activity_id = $1`,
                 [activityId]
             );
             if (activityResult.rows.length === 0) {
                 return res.status(404).json({ error: 'ไม่พบกิจกรรมที่คุณต้องการเข้าร่วม' });
             }
-            const requiredSkillId = activityResult.rows[0].required_skills;
-    
+            const { required_skills, max_participants } = activityResult.rows[0];
+
+            console.log(`🔹 Activity required skills: ${required_skills}, max participants: ${max_participants}`);
+
             // Get user's skills
             const skillResult = await client.query(
                 `SELECT skill_1, skill_2, skill_3 FROM member_skills WHERE user_id = $1`,
@@ -296,14 +296,16 @@ const activityRoutes = (pool) => {
             if (skillResult.rows.length === 0) {
                 return res.status(400).json({ error: 'คุณยังไม่ได้ลงทะเบียนทักษะของคุณ' });
             }
-    
+
             const { skill_1, skill_2, skill_3 } = skillResult.rows[0];
-    
+
+            console.log(`🔹 User skills: ${skill_1}, ${skill_2}, ${skill_3}`);
+
             // Check if the user has the required skill
-            if (![skill_1, skill_2, skill_3].includes(requiredSkillId)) {
+            if (![skill_1, skill_2, skill_3].includes(required_skills)) {
                 return res.status(403).json({ error: 'คุณไม่มีทักษะที่เหมาะสมสำหรับกิจกรรมนี้' });
             }
-    
+
             // Check if the user is already a participant
             const participantCheck = await client.query(
                 `SELECT * FROM activity_participants WHERE activity_id = $1 AND user_id = $2`,
@@ -312,22 +314,22 @@ const activityRoutes = (pool) => {
             if (participantCheck.rows.length > 0) {
                 return res.status(400).json({ error: 'คุณได้เข้าร่วมกิจกรรมนี้แล้ว' });
             }
-    
+
             // Check if the activity is full
             const participantCount = await client.query(
                 `SELECT COUNT(*) FROM activity_participants WHERE activity_id = $1`,
                 [activityId]
             );
-            if (parseInt(participantCount.rows[0].count) >= requiredSkillId.max_participants) {
+            if (parseInt(participantCount.rows[0].count) >= max_participants) {
                 return res.status(400).json({ error: 'กิจกรรมนี้เต็มแล้ว ไม่สามารถเข้าร่วมได้' });
             }
-    
+
             // Add participant to the activity
             await client.query(
                 `INSERT INTO activity_participants (activity_id, user_id) VALUES ($1, $2)`,
                 [activityId, memberId]
             );
-    
+
             await client.query('COMMIT');
             res.status(201).json({ message: 'เข้าร่วมกิจกรรมสำเร็จ!' });
         } catch (err) {
@@ -461,6 +463,92 @@ const activityRoutes = (pool) => {
         } catch (err) {
             console.error('Error cancelling activity:', err.message);
             res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
+        }
+    });
+
+    router.get('/history/:userId', async (req, res) => {
+        const { userId } = req.params;
+        const { role } = req.query;
+    
+        if (isNaN(userId)) {
+            return res.status(400).json({ error: 'Invalid user ID' });
+        }
+    
+        let whereClause = `
+            (a.requester_id = $1 OR ap.user_id = $1)
+            AND a.status != 'กำลังจะเริ่ม'
+        `;
+    
+        if (role === 'requester') {
+            whereClause = `a.requester_id = $1 AND a.status != 'กำลังจะเริ่ม'`;
+        } else if (role === 'provider') {
+            whereClause = `ap.user_id = $1 AND a.status != 'กำลังจะเริ่ม'`;
+        }
+    
+        try {
+            const result = await pool.query(`
+                SELECT DISTINCT a.*, 
+                    u.name AS requester_name, 
+                    s.name AS required_skill_name,
+                    (
+                        SELECT COUNT(*) 
+                        FROM activity_participants ap2 
+                        WHERE ap2.activity_id = a.activity_id
+                    ) AS current_participants,
+                    CASE 
+                        WHEN a.requester_id = $1 THEN 'requester'
+                        ELSE 'provider'
+                    END AS role
+                FROM activities a
+                LEFT JOIN users u ON a.requester_id = u.user_id
+                LEFT JOIN skills s ON a.required_skills = s.skill_id
+                LEFT JOIN activity_participants ap ON a.activity_id = ap.activity_id
+                WHERE ${whereClause}
+                ORDER BY a.start_date DESC, a.start_time DESC
+            `, [userId]);
+    
+            res.json({ activities: result.rows });
+        } catch (err) {
+            console.error('Error fetching user activity history:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+    
+    // Get ongoing activities for a user
+    router.get('/ongoing/:userId', async (req, res) => {
+        const { userId } = req.params;
+
+        if (isNaN(userId)) {
+            return res.status(400).json({ error: 'Invalid user ID' });
+        }
+
+        try {
+            const query = `
+                SELECT a.activity_id, a.title, a.status, a.created_at, a.start_date, a.end_date, 
+                    a.max_participants,
+                    s.name AS required_skill_name, 
+                    (
+                        SELECT COUNT(*) FROM activity_participants ap2
+                        WHERE ap2.activity_id = a.activity_id
+                    ) AS current_participants,
+                    CASE 
+                        WHEN a.requester_id = $1 THEN 'requester'
+                        ELSE 'provider'
+                    END AS role
+                FROM activities a
+                LEFT JOIN activity_participants ap ON a.activity_id = ap.activity_id AND ap.user_id = $1
+                LEFT JOIN skills s ON a.required_skills = s.skill_id
+                WHERE (a.requester_id = $1 OR ap.user_id = $1) 
+                AND a.status = 'กำลังจะเริ่ม'
+                ORDER BY a.start_date DESC, a.start_time DESC
+
+            `;
+
+            const result = await pool.query(query, [userId]);
+            res.json({ activities: result.rows });
+        } catch (err) {
+            console.error('Error fetching ongoing activities:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
 

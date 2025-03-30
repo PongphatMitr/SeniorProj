@@ -655,13 +655,76 @@
 
         <!-- Main Content -->
         <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
-            <h1 class="text-3xl font-bold mb-6 text-center">กิจกรรมชุมชน</h1>
+
+        <!-- 🧠 Refined Header with Gentle Hover Animation -->
+        <div class="flex items-center justify-between mb-10 relative z-10">
+
+            <!-- 🕊️ Back Button -->
+            <button onclick="window.history.back()"
+                class="group inline-flex items-center gap-2 px-5 py-2.5 bg-white text-gray-900 font-medium rounded-full border border-gray-300 shadow-sm hover:bg-gray-100 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-300">
+
+                <!-- Arrow Icon that gently wiggles on hover -->
+                <i class="fas fa-arrow-left text-sm wiggle-icon"></i>
+
+                <!-- Label -->
+                <span class="text-sm">
+                    ย้อนกลับ
+                </span>
+            </button>
+
+            <!-- Title -->
+            <a class="text-4xl md:text-4xl font-bold text-white text-center absolute left-1/2 transform -translate-x-1/2">
+                กิจกรรมทั้งหมดของชุมชน
+            </a>
+
+            <div class="w-[160px]"></div>
+        </div>
+
+
+
+        <style>
+            @keyframes gentle-wiggle {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-3px); }
+            50% { transform: translateX(3px); }
+            75% { transform: translateX(-2px); }
+            }
+            
+            /* Only animate on hover */
+            .group:hover .wiggle-icon {
+            animation: gentle-wiggle 2.5s ease-in-out infinite;
+            }
+            </style>
+    
+
             <div class="flex items-center justify-between border-b pb-2 mb-5">
-                <a href="myactivity.html" class="text-3xl font-bold mb-5 text-white-600 hover:text-black underline hover:underline-offset-2 flex items-center">
-                    <i class="fas fa-clipboard-list text-3xl mr-3"></i> กิจกรรมของฉัน
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 max-w-2xl mx-auto">
+                <!-- Ongoing Activities -->
+                <a href="actOngoing.html"
+                    class="flex items-center justify-start gap-4 bg-white hover:bg-blue-50 border border-blue-200 text-blue-700 hover:text-blue-900 font-medium px-6 py-4 rounded-2xl shadow-md transition duration-200">
+                    <div class="bg-blue-100 text-blue-600 rounded-full p-3">
+                        <i class="fas fa-clock text-xl"></i>
+                    </div>
+                    <div class="text-left">
+                        <h2 class="text-lg font-semibold">กิจกรรมที่ดำเนินอยู่</h2>
+                        <p class="text-sm text-blue-500">ดูรายการกิจกรรมที่กำลังดำเนินการ</p>
+                    </div>
+                </a>
+            
+                <!-- Activity History -->
+                <a href="actHistory.html"
+                    class="flex items-center justify-start gap-4 bg-white hover:bg-green-50 border border-green-200 text-green-700 hover:text-green-900 font-medium px-6 py-4 rounded-2xl shadow-md transition duration-200">
+                    <div class="bg-green-100 text-green-600 rounded-full p-3">
+                        <i class="fas fa-history text-xl"></i>
+                    </div>
+                    <div class="text-left">
+                        <h2 class="text-lg font-semibold">ประวัติกิจกรรม</h2>
+                        <p class="text-sm text-green-500">ดูบันทึกกิจกรรมในอดีตทั้งหมด</p>
+                    </div>
                 </a>
             </div>
-
+            
             <div class="bg-white text-black p-8 rounded-lg shadow-lg">
                 <!-- 🌟 Search Bar & Filters -->
                 <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-4 mb-6 items-start">

@@ -1,0 +1,618 @@
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>กิจกรรมที่ฉันสร้าง - Time Bank</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <style>
+        .day-part {
+            display: inline-block;
+            width: 40px;
+        }
+
+        .month-year-part {
+            display: inline-block;
+            width: 80px;
+        }
+    </style>
+
+    <script>
+        let activities = [];
+        let sortOrder = {
+            title: 'asc',
+            start_date: 'asc',
+            status: 'asc',
+            requester_name: 'asc'
+        };
+
+        async function confirmAndRemove(event, rowId, activityId) {
+            event.preventDefault();
+            const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลบกิจกรรมนี้?");
+            if (confirmation) {
+                const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                if (response.ok) {
+                    document.getElementById(rowId).remove();
+                    alert("กิจกรรมถูกลบเรียบร้อยแล้ว");
+                } else {
+                    alert("เกิดข้อผิดพลาดในการลบกิจกรรม");
+                }
+            }
+        }
+
+        async function fetchActivities() {
+            try {
+                console.log('Fetching activities...');
+                const response = await fetch('http://localhost:3000/api/user/activities', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                console.log('Response status:', response.status);
+                const data = await response.json();
+                console.log('Response data:', data);
+
+                if (response.ok) {
+                    activities = data.activities.filter(activity => activity.requester_id === parseInt(localStorage.getItem('user_id')));
+                    await fetchParticipants();
+                    await fetchRequesterNames();
+                    updateActivityStatus();
+                    renderTable(activities);
+                } else {
+                    console.error('Error:', data);
+                    alert('Error fetching activities. Please try again.');
+                }
+            } catch (error) {
+                console.error('Error fetching activities:', error);
+                alert('Error fetching activities. Please try again.');
+            }
+        }
+
+        async function fetchParticipants() {
+            for (let activity of activities) {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/user/activities/${activity.activity_id}/participants`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    const participants = await response.json();
+                    activity.current_participants = participants.length;
+                    activity.participants = participants; // Store participants for later use
+                } catch (error) {
+                    console.error(`Error fetching participants for activity ${activity.activity_id}:`, error);
+                    activity.current_participants = 0;
+                    activity.participants = []; // Ensure participants is an empty array on error
+                }
+            }
+        }
+
+        async function fetchRequesterNames() {
+            for (let activity of activities) {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/user/members/${activity.requester_id}`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch user details for user ${activity.requester_id}`);
+                    }
+                    const user = await response.json();
+                    activity.requester_name = user.name;
+                } catch (error) {
+                    console.error(`Error fetching requester name for user ${activity.requester_id}:`, error);
+                    activity.requester_name = 'Unknown';
+                }
+            }
+        }
+
+        function updateActivityStatus() {
+            const now = new Date();
+            activities.forEach(activity => {
+                if (activity.status === 'กำลังจะเริ่ม') {
+                    const activityEndDate = new Date(activity.end_date);
+                    const activityEndTime = activity.end_time.split(':');
+                    activityEndDate.setHours(activityEndTime[0], activityEndTime[1], activityEndTime[2]);
+
+                    if (activityEndDate < now) {
+                        activity.status = 'เกินเวลา';
+                    }
+                }
+            });
+        }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('activity-tbody');
+            tbody.innerHTML = '';
+            data.forEach((activity, index) => {
+                const row = document.createElement('tr');
+                row.id = `row-${index + 1}`;
+                row.className = 'hover:bg-gray-100';
+                row.innerHTML = `
+                    <td aria-colindex="1" data-label="ชื่อผู้ขอ" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${activity.requester_name}
+                    </td>
+                    <td aria-colindex="2" data-label="กิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${activity.title}
+                    </td>
+                    <td aria-colindex="3" data-label="วันที่สร้างกิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${formatDate(activity.created_at)}
+                    </td>
+                    <td aria-colindex="4" data-label="วันที่เริ่มกิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${formatDate(activity.start_date)}
+                    </td>
+                    <td aria-colindex="5" data-label="สถานะ" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        <span class="py-1 px-2 rounded ${activity.status === 'กำลังจะเริ่ม' ? 'bg-blue-500' : activity.status === 'เสร็จสิ้น' ? 'bg-green-500' : activity.status === 'เกินเวลา' ? 'bg-orange-500' : 'bg-red-500'} text-white">${activity.status}</span>
+                    </td>
+                    <td aria-colindex="6" data-label="จำนวนผู้เข้าร่วม" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${activity.current_participants} / ${activity.max_participants}
+                    </td>
+                    <td aria-colindex="7" data-label="การจัดการ" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        <a href="myactivity-details.html?id=${activity.activity_id}" class="bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">รายละเอียด</a>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const year = date.getFullYear() + 543; // Convert to Buddhist year
+            const monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
+            const month = monthNames[date.getMonth()];
+            const day = date.getDate();
+            return `<span class="day-part">${day}</span> <span class="month-year-part">${month}</span> <span class="month-year-part">${year}</span>`;
+        }
+
+        function sortTable(column, type) {
+            const order = sortOrder[column] === 'asc' ? 'desc' : 'asc';
+            sortOrder[column] = order;
+
+            const sortedActivities = [...activities].sort((a, b) => {
+                if (type === 'string') {
+                    return order === 'asc' ? a[column].localeCompare(b[column]) : b[column].localeCompare(a[column]);
+                } else if (type === 'date') {
+                    return order === 'asc' ? new Date(a[column]) - new Date(b[column]) : new Date(b[column]) - new Date(a[column]);
+                }
+            });
+            renderTable(sortedActivities);
+        }
+
+        async function updateSidebar(isLoggedIn) {
+            const navList = document.getElementById('navList');
+        
+            if (isLoggedIn) {
+                try {
+                    // Fetch user details to get the memberId
+                    const response = await fetch('http://localhost:3000/api/user/auth/verify', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+        
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch user details');
+                    }
+        
+                    const member = await response.json(); // Adjust based on your backend response
+                    const memberId = member.userId || member.user_id; // Use the correct field for memberId from the response
+        
+                    navList.innerHTML = `
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                                href="log-out.html">
+                                <i class="fas fa-user mr-3"></i>
+                                โปรไฟล์
+                            </a>
+                        </li>
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                                href="homepage.html">
+                                <i class="fas fa-home mr-3"></i>
+                                หน้าหลัก
+                            </a>
+                        </li>
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                                href="service.html">
+                                <i class="fas fa-clipboard-list mr-3"></i>
+                                กิจกรรมชุมชน
+                            </a>
+                        </li>
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                                href="profile.html">
+                                <i class="fas fa-user-edit mr-3"></i>
+                                แก้ไขประวัติ
+                            </a>
+                        </li>
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                                href="skillconf.html">
+                                <i class="fas fa-tools mr-3"></i>
+                                แก้ไขทักษะ
+                            </a>
+                        </li>
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                                href="balance.html">
+                                <i class="fas fa-wallet mr-3"></i>
+                                ยอดคงเหลือ
+                            </a>
+                        </li>
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                                href="history.html">
+                                <i class="fas fa-history mr-3"></i>
+                                ประวัติการเข้าร่วมกิจกรรม
+                            </a>
+                        </li>
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                                href="exchange.html">
+                                <i class="fas fa-exchange-alt mr-3"></i>
+                                แลกเปลี่ยนเวลา
+                            </a>
+                        </li>
+                        <li class="mb-5">
+                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                                href="contact.html">
+                                <i class="fas fa-phone mr-3"></i>
+                                ติดต่อเรา
+                            </a>
+                        </li>
+                    `;
+                } catch (error) {
+                    console.error('Error fetching user details:', error);
+                    alert('เกิดข้อผิดพลาดขณะโหลดข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
+                }
+            } else {
+                navList.innerHTML = `
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
+                            href="log-in.html">
+                            <i class="fas fa-sign-in-alt mr-3"></i>
+                            เข้าสู่ระบบ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="homepage.html">
+                            <i class="fas fa-home mr-3"></i>
+                            หน้าหลัก
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="service.html">
+                            <i class="fas fa-clipboard-list mr-3"></i>
+                            กิจกรรมชุมชน
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="profile.html">
+                            <i class="fas fa-user-edit mr-3"></i>
+                            แก้ไขประวัติ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="skillconf.html">
+                            <i class="fas fa-tools mr-3"></i>
+                            แก้ไขทักษะ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="balance.html">
+                            <i class="fas fa-wallet mr-3"></i>
+                            ยอดคงเหลือ
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="history.html">
+                            <i class="fas fa-history mr-3"></i>
+                            ประวัติการเข้าร่วมกิจกรรม
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="exchange.html">
+                            <i class="fas fa-exchange-alt mr-3"></i>
+                            แลกเปลี่ยนเวลา
+                        </a>
+                    </li>
+                    <li class="mb-5">
+                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
+                            href="contact.html">
+                            <i class="fas fa-phone mr-3"></i>
+                            ติดต่อเรา
+                        </a>
+                    </li>
+                `;
+            }
+        }
+
+        async function checkLoginStatus() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const response = await fetch('http://localhost:3000/api/user/auth/verify', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+        
+                    if (response.ok) {
+                        const userData = await response.json();
+                        localStorage.setItem('user_id', userData.user.userId);
+                        localStorage.setItem('user_name', userData.user.name);
+                        updateSidebar(true);
+        
+                        // ✅ Only fetch history for this page (not created activities)
+                        fetchActivityHistory();
+                    } else {
+                        localStorage.removeItem('token');
+                        updateSidebar(false);
+                        const goToLogin = confirm('Session expired. Do you want to go to the login page?');
+                        if (goToLogin) {
+                            window.location.href = 'log-in.html';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    localStorage.removeItem('token');
+                    updateSidebar(false);
+                    const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
+                    if (goToLogin) {
+                        window.location.href = 'log-in.html';
+                    }
+                }
+            } else {
+                updateSidebar(false);
+                const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
+                if (goToLogin) {
+                    window.location.href = 'log-in.html';
+                }
+            }
+        }
+        
+            
+        function searchActivities() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const filteredActivities = activities.filter(activity => {
+                return (
+                    (activity.activity_id && activity.activity_id.toString().includes(searchTerm)) ||
+                    (activity.title && activity.title.toLowerCase().includes(searchTerm)) ||
+                    (activity.description && activity.description.toLowerCase().includes(searchTerm)) ||
+                    (activity.location && activity.location.toLowerCase().includes(searchTerm)) ||
+                    (activity.requester_id && activity.requester_id.toString().includes(searchTerm))
+                );
+            });
+            renderTable(filteredActivities);
+        }
+
+        let allOngoingActivities = [];
+
+        async function fetchActivityHistory(role = '') {
+            const userId = localStorage.getItem('user_id');
+            if (!userId) {
+                alert('User ID not found. Please log in again.');
+                return;
+            }
+        
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/activities/ongoing/${userId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+        
+                if (!response.ok) {
+                    throw new Error('Failed to fetch ongoing activities');
+                }
+        
+                const data = await response.json();
+                allOngoingActivities = data.activities; // ✅ store all
+                filterActivityHistory(role); // ✅ call filter after fetch
+            } catch (error) {
+                console.error('Error fetching ongoing activity:', error);
+                alert('Error fetching ongoing activity. Please try again.');
+            }
+        }
+        
+        
+
+        function renderActivityOngoing(activities) {
+            const historyTbody = document.getElementById('history-tbody');
+            historyTbody.innerHTML = '';
+        
+            if (activities.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = `
+                    <td colspan="7" class="text-center py-4 text-gray-500">
+                        ไม่มีข้อมูลกิจกรรมที่กำลังจะเริ่ม
+                    </td>
+                `;
+                historyTbody.appendChild(emptyRow);
+                return;
+            }
+        
+            activities.forEach((activity, index) => {
+                const row = document.createElement('tr');
+                row.id = `history-row-${index + 1}`;
+                row.className = 'hover:bg-gray-100';
+        
+                // 👇 Determine which page to link to
+                const detailPage = activity.role === 'requester'
+                    ? 'myactivity-details.html'
+                    : 'activity-details.html';
+        
+                row.innerHTML = `
+                    <td aria-colindex="1" data-label="กิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${activity.title}
+                    </td>
+                    <td aria-colindex="2" data-label="วันที่สร้างกิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${formatDate(activity.created_at)}
+                    </td>
+                    <td aria-colindex="3" data-label="วันที่เริ่มกิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${formatDate(activity.start_date)}
+                    </td>
+                    <td aria-colindex="4" data-label="สถานะ" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        <span class="py-1 px-2 rounded bg-blue-500 text-white">${activity.status}</span>
+                    </td>
+                    <td aria-colindex="5" data-label="จำนวนผู้เข้าร่วม" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${activity.current_participants} / ${activity.max_participants}
+                    </td>
+                    <td aria-colindex="6" data-label="บทบาท" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        ${activity.role === 'requester' ? 'ผู้สร้าง' : 'ผู้เข้าร่วม'}
+                    </td>
+                    <td aria-colindex="7" data-label="การจัดการ" role="cell" class="py-2 px-4 border-b border-gray-200">
+                        <a href="${detailPage}?id=${activity.activity_id}" class="bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">
+                            รายละเอียด
+                        </a>
+                    </td>
+                `;
+                historyTbody.appendChild(row);
+            });
+        }
+        
+        
+        
+
+        function filterActivityHistory(role) {
+            let filtered = allOngoingActivities;
+        
+            if (role === 'requester') {
+                filtered = allOngoingActivities.filter(act => act.role === 'requester');
+            } else if (role === 'provider') {
+                filtered = allOngoingActivities.filter(act => act.role === 'provider');
+            }
+        
+            renderActivityOngoing(filtered);
+        }
+        
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkLoginStatus();
+            fetchActivityHistory(); // Fetch activity history when the page loads
+        });
+    </script>
+</head>
+
+    <body class="bg-gray-100">
+        <div class="flex flex-col md:flex-row">
+            <!-- Sidebar -->
+            <div class="w-full md:w-1/6 bg-white h-screen p-5">
+                <div class="flex items-center mb-10">
+                    <img alt="Logo of Time Bank System, a clock with a handshake in the center"
+                        class="w-10 h-10 rounded-full" height="50"
+                        src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
+                        width="50" />
+                    <span class="ml-3 text-xl font-bold text-blue-600">
+                        TIMEBANK
+                    </span>
+                </div>
+                <nav>
+                    <ul id="navList">
+                        <!-- Navigation items will be dynamically inserted here -->
+                    </ul>
+                </nav>
+            </div>
+
+            <!-- Main Content -->
+            <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
+            <!-- 🧠 Refined Header with Gentle Hover Animation -->
+            <div class="flex items-center justify-between mb-10 relative z-10">
+
+                <!-- 🕊️ Back Button -->
+                <button onclick="window.history.back()"
+                    class="group inline-flex items-center gap-2 px-5 py-2.5 bg-white text-gray-900 font-medium rounded-full border border-gray-300 shadow-sm hover:bg-gray-100 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-300">
+
+                    <!-- Arrow Icon that gently wiggles on hover -->
+                    <i class="fas fa-arrow-left text-sm wiggle-icon"></i>
+
+                    <!-- Label -->
+                    <span class="text-sm">
+                        ย้อนกลับ
+                    </span>
+                </button>
+
+                <div class="w-[160px]"></div>
+            </div>
+
+
+
+            <style>
+                @keyframes gentle-wiggle {
+                0%, 100% { transform: translateX(0); }
+                25% { transform: translateX(-3px); }
+                50% { transform: translateX(3px); }
+                75% { transform: translateX(-2px); }
+                }
+                
+                /* Only animate on hover */
+                .group:hover .wiggle-icon {
+                animation: gentle-wiggle 2.5s ease-in-out infinite;
+                }
+            </style>            
+                <div class="bg-white text-black p-8 rounded-lg shadow-lg mt-10">
+                    <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">กิจกรรมที่ดำเนินอยู่</h2>
+                    <div class="mb-4 flex items-center justify-center">
+                        <button onclick="filterActivityHistory('')" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full mx-2 shadow-lg transition duration-300 ease-in-out transform hover:scale-105">กิจกรรมทั้งหมด</button>
+                        <button onclick="filterActivityHistory('requester')" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full mx-2 shadow-lg transition duration-300 ease-in-out transform hover:scale-105">ผู้สร้างกิจกรรม</button>
+                        <button onclick="filterActivityHistory('provider')" class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-full mx-2 shadow-lg transition duration-300 ease-in-out transform hover:scale-105">ผู้เข้าร่วมกิจกรรม</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <div class="table-responsive-sm">
+                            <table role="table" aria-busy="false" aria-colcount="7" class="table b-table b-table-stacked-md w-full">
+                                <thead role="rowgroup" class="bg-gray-100">
+                                    <tr role="row">
+                                        <th role="columnheader" scope="col" aria-colindex="1" class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                            กิจกรรม
+                                        </th>
+                                        <th role="columnheader" scope="col" aria-colindex="2" class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                            วันที่สร้างกิจกรรม
+                                        </th>
+                                        <th role="columnheader" scope="col" aria-colindex="3" class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                            วันที่เริ่มกิจกรรม
+                                        </th>
+                                        <th role="columnheader" scope="col" aria-colindex="4" class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                            สถานะ
+                                        </th>
+                                        <th role="columnheader" scope="col" aria-colindex="5" class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                            จำนวนผู้เข้าร่วม
+                                        </th>
+                                        <th role="columnheader" scope="col" aria-colindex="6" class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                            บทบาท
+                                        </th>
+                                        <th role="columnheader" scope="col" aria-colindex="7" class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                            การจัดการ
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="history-tbody" role="rowgroup">
+                                    <!-- Activity history will be dynamically inserted here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+
+</html>
