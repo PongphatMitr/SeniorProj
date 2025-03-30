@@ -73,7 +73,6 @@ CREATE TABLE activities (
     FOREIGN KEY (requester_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
 
-
 -- Create the categories table
 CREATE TABLE categories (
     category_id SERIAL PRIMARY KEY,
@@ -139,7 +138,8 @@ CREATE TABLE community_config (
     config_id SERIAL PRIMARY KEY,
     default_time_token INT DEFAULT 100,
     default_exchange_rate_id INT,
-    minimum_time_token INT DEFAULT 0, -- Added new column for minimum time token
+    minimum_time_token_hours INT DEFAULT 0, -- Added new column for minimum time token hours
+    minimum_time_token_minutes INT DEFAULT 0, -- Added new column for minimum time token minutes
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
     FOREIGN KEY (default_exchange_rate_id) REFERENCES exchange_rates(rate_id)
@@ -221,7 +221,7 @@ INSERT INTO exchange_rates (description) VALUES
 ('1 โทเคนเวลา ต่อ 1 กิจกรรม');
 
 -- Insert initial data into community_config
-INSERT INTO community_config (default_time_token, default_exchange_rate_id, minimum_time_token) VALUES (100, 1, 20);
+INSERT INTO community_config (default_time_token, default_exchange_rate_id, minimum_time_token_hours, minimum_time_token_minutes) VALUES (100, 1, 0, 20);
 
 -- Insert initial data into users
 INSERT INTO users (username, password, email, role, name, phone, address, branch_id, time_credits, status) 

@@ -9,7 +9,8 @@
     <script>
         let members = [];
         let exchangeRate = null;
-        let minimumTimeToken = null;
+        let minimumTimeTokenHours = null;
+        let minimumTimeTokenMinutes = null;
         let skills = [];
         let categories = [];
         let selectedSkills = [];
@@ -44,10 +45,11 @@
                 }
                 const data = await response.json();
                 exchangeRate = data.default_exchange_rate_description;
-                minimumTimeToken = data.minimum_time_token;
+                minimumTimeTokenHours = data.minimum_time_token_hours;
+                minimumTimeTokenMinutes = data.minimum_time_token_minutes;
                 console.log('Exchange Rate:', exchangeRate);
-                console.log('Minimum Time Token:', minimumTimeToken);
-                document.getElementById('minimum-time-token').innerText = `ใช้เวลาขั้นต่ำ ${minimumTimeToken} เพื่อแลกเปลี่ยนโทเคนของกิจกรรมที่ร้องขอ`;
+                console.log('Minimum Time Token:', minimumTimeTokenHours, minimumTimeTokenMinutes);
+                document.getElementById('minimum-time-token').innerText = `ใช้เวลาขั้นต่ำ ${minimumTimeTokenHours} ชั่วโมง ${minimumTimeTokenMinutes} นาที เพื่อแลกเปลี่ยนโทเคนของกิจกรรมที่ร้องขอ`;
             } catch (error) {
                 console.error('Error fetching community config:', error);
                 alert('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
@@ -188,10 +190,11 @@
                 }
                 const data = await response.json();
                 exchangeRate = data.default_exchange_rate_description;
-                minimumTimeToken = data.minimum_time_token;
+                minimumTimeTokenHours = data.minimum_time_token_hours;
+                minimumTimeTokenMinutes = data.minimum_time_token_minutes;
                 console.log('Exchange Rate:', exchangeRate);
-                console.log('Minimum Time Token:', minimumTimeToken);
-                document.getElementById('minimum-time-token').innerText = `ใช้เวลาขั้นต่ำ ${minimumTimeToken} เพื่อแลกเปลี่ยนโทเคนของกิจกรรมที่ร้องขอ`;
+                console.log('Minimum Time Token:', minimumTimeTokenHours, minimumTimeTokenMinutes);
+                document.getElementById('minimum-time-token').innerText = `ใช้เวลาขั้นต่ำ ${minimumTimeTokenHours} ชั่วโมง ${minimumTimeTokenMinutes} นาที เพื่อแลกเปลี่ยนโทเคนของกิจกรรมที่ร้องขอ`;
                 calculateTimeTokens();
             } catch (error) {
                 console.error('Error fetching community config:', error);
@@ -217,6 +220,12 @@
             let durationInHours = (endTime - startTime) / (1000 * 60 * 60);
             if (durationInHours < 0) {
                 durationInHours += 24;
+            }
+            const minimumDurationInHours = minimumTimeTokenHours + (minimumTimeTokenMinutes / 60);
+            if (durationInHours < minimumDurationInHours) {
+                document.getElementById('time-tokens-required').value = '0.00';
+                document.getElementById('time-tokens-per-participant').value = '0.00';
+                return;
             }
             let timeTokensRequired = 0;
             let timeTokensPerParticipant = 0;
@@ -427,279 +436,290 @@
         function syncDates(selectedDate) {
             const startDateInput = document.getElementById('start-date');
             const endDateInput = document.getElementById('end-date');
-            startDateInput.value = selectedDate;
-            endDateInput.value = selectedDate;
-        }
+                    startDateInput.value = selectedDate;
+                    endDateInput.value = selectedDate;
+                }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            setStartDateRange();
-            document.getElementById('start-date').addEventListener('input', (event) => {
-                syncDates(event.target.value);
-            });
-            document.getElementById('end-date').addEventListener('input', (event) => {
-                syncDates(event.target.value);
-            });
-        });
+                document.addEventListener('DOMContentLoaded', () => {
+                    setStartDateRange();
+                    document.getElementById('start-date').addEventListener('input', (event) => {
+                        syncDates(event.target.value);
+                    });
+                    document.getElementById('end-date').addEventListener('input', (event) => {
+                        syncDates(event.target.value);
+                    });
+                });
 
-        function adjustEndTime(startTime) {
-            if (!startTime) return;
-            let [hours, minutes] = startTime.split(":").map(Number);
-            hours += 1;
-            if (hours >= 24) hours = 0;
-            const endTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-            document.getElementById('end-time').value = endTime;
-                } 
+                function adjustEndTime(startTime) {
+                    if (!startTime) return;
+                    let [hours, minutes] = startTime.split(":").map(Number);
+                    hours += 1;
+                    if (hours >= 24) hours = 0;
+                    const endTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+                    document.getElementById('end-time').value = endTime;
+                }
+
+                function calculateTimeDifference() {
+                    const startHours = parseInt(document.getElementById("start-hours").value, 10);
+                    const startMinutes = parseInt(document.getElementById("start-minutes").value, 10);
+                    const endHours = parseInt(document.getElementById("end-hours").value, 10);
+                    const endMinutes = parseInt(document.getElementById("end-minutes").value, 10);
+                    if (!isNaN(startHours) && !isNaN(startMinutes) && !isNaN(endHours) && !isNaN(endMinutes)) {
+                        let startTime = new Date();
+                        startTime.setHours(startHours, startMinutes, 0);
+                        let endTime = new Date();
+                        endTime.setHours(endHours, endMinutes, 0);
+                        let durationInMinutes = (endTime - startTime) / (1000 * 60);
+                        if (durationInMinutes < 0) {
+                            durationInMinutes += 24 * 60;
+                        }
+                        const hours = Math.floor(durationInMinutes / 60);
+                        const minutes = durationInMinutes % 60;
+                        const totalDurationInHours = hours + (minutes / 60);
+                        const timeDifferenceElement = document.getElementById("time-difference");
+                        timeDifferenceElement.value = `${hours} ชั่วโมง ${minutes} นาที`;
+                        const minimumDurationInHours = minimumTimeTokenHours + (minimumTimeTokenMinutes / 60);
+                        if (totalDurationInHours < minimumDurationInHours) {
+                            timeDifferenceElement.classList.remove('text-green-600');
+                            timeDifferenceElement.classList.add('text-red-600');
+                        } else {
+                            timeDifferenceElement.classList.remove('text-red-600');
+                            timeDifferenceElement.classList.add('text-green-600');
+                        }
+                    }
+                }
             </script>
-    </head>
-    
-    <body class="bg-gray-100">
-        <div class="flex flex-col md:flex-row">
-            <!-- Sidebar -->
-            <div class="w-full md:w-1/6 bg-white h-screen p-5">
-                <div class="flex items-center mb-10">
-                    <img alt="Logo of Time Bank System, a clock with a handshake in the center"
-                        class="w-10 h-10 rounded-full" height="50"
-                        src="https://storage.googleapis.com/a1aa/image/JaxOKaMKHJqGHJDHlmCWQKBMBfv2lD9sfUrO418JFJjqfSRoA.jpg"
-                        width="50">
-                    <span class="ml-3 text-xl font-bold text-blue-600">TIMEBANK</span>
-                </div>
-                <nav>
-                    <ul id="navList">
-                        <!-- Navigation items will be dynamically inserted here -->
-                    </ul>
-                </nav>
+</head>
+
+<body class="bg-gray-100">
+    <div class="flex flex-col md:flex-row">
+        <!-- Sidebar -->
+        <div class="w-full md:w-1/6 bg-white h-screen p-5">
+            <div class="flex items-center mb-10">
+                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
+                    class="w-10 h-10 rounded-full" height="50"
+                    src="https://storage.googleapis.com/a1aa/image/JaxOKaMKHJqGHJDHlmCWQKBMBfv2lD9sfUrO418JFJjqfSRoA.jpg"
+                    width="50">
+                <span class="ml-3 text-xl font-bold text-blue-600">TIMEBANK</span>
             </div>
-            <!-- Main Content -->
-            <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
-                <h1 class="text-4xl font-bold mb-5">สร้างกิจกรรม</h1>
-                <div class="bg-white text-black p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
-                    <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">รายละเอียดกิจกรรม</h2>
-                    <p id="minimum-time-token" class="text-red-600 text-center mb-6"></p>
-                    <form onsubmit="submitActivity(event)">
-                        <!-- Section: Requester Information -->
-                        <div class="grid grid-cols-2 gap-4 mb-4">
-                            <div class="relative">
-                                <label class="block text-gray-700 text-sm font-bold mb-2" for="requester-name"> ชื่อผู้ขอ
-                                </label>
-                                <input id="requester-name"
-                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                    type="text" oninput="searchMembers()" placeholder="กรอก เลขบัญชี หรือ ชื่อ" required />
-                                <input id="requester-id" type="hidden" />
-                                <div id="search-results-dropdown"
-                                    class="absolute w-full bg-white border rounded-lg mt-1 hidden z-10"></div>
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 text-sm font-bold mb-2" for="phone"> เบอร์โทรศัพท์
-                                </label>
-                                <input id="phone"
-                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                    type="text" readonly />
-                            </div>
+            <nav>
+                <ul id="navList">
+                    <!-- Navigation items will be dynamically inserted here -->
+                </ul>
+            </nav>
+        </div>
+        <!-- Main Content -->
+        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
+            <h1 class="text-4xl font-bold mb-5">สร้างกิจกรรม</h1>
+            <div class="bg-white text-black p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
+                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">รายละเอียดกิจกรรม</h2>
+                <p id="minimum-time-token" class="text-red-600 text-center mb-6"></p>
+                <form onsubmit="submitActivity(event)">
+                    <!-- Section: Requester Information -->
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div class="relative">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="requester-name"> ชื่อผู้ขอ
+                            </label>
+                            <input id="requester-name"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="text" oninput="searchMembers()" placeholder="กรอก เลขบัญชี หรือ ชื่อ" required />
+                            <input id="requester-id" type="hidden" />
+                            <div id="search-results-dropdown"
+                                class="absolute w-full bg-white border rounded-lg mt-1 hidden z-10"></div>
                         </div>
-                        <hr class="my-8 border-gray-200">
-                        <!-- Section: Activity Details -->
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="phone"> เบอร์โทรศัพท์
+                            </label>
+                            <input id="phone"
+                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="text" readonly />
+                        </div>
+                    </div>
+                    <hr class="my-8 border-gray-200">
+                    <!-- Section: Activity Details -->
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="title">ชื่อกิจกรรม</label>
+                        <input id="title" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text"
+                            placeholder="ระบุชื่อกิจกรรม" required />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="description">รายละเอียด</label>
+                        <textarea id="description" class="shadow border rounded w-full py-2 px-3 text-gray-700"
+                            placeholder="ระบุรายละเอียดกิจกรรม" required></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="location">สถานที่</label>
+                        <input id="location" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text"
+                            placeholder="ระบุสถานที่จัดกิจกรรม" required />
+                    </div>
+                    <!-- Section: Skill Selection -->
+                    <hr class="my-8 border-gray-200">
+                    <!-- Title -->
+                    <div class="text-center">
+                        <h1 class="text-2xl font-bold text-blue-700 mb-4">เลือกทักษะที่ต้องการ</h1>
+                    </div>
+                    <!-- Skill Selection Details -->
+                    <div class="bg-gray-100 p-6 rounded-lg shadow-md">
                         <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="title">ชื่อกิจกรรม</label>
-                            <input id="title" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text"
-                                placeholder="ระบุชื่อกิจกรรม" required />
+                            <label for="category-dropdown"
+                                class="block text-gray-700 text-sm font-bold mb-2">เลือกหมวดหมู่:</label>
+                            <select id="category-dropdown" class="shadow border rounded w-full py-2 px-3 text-gray-700"
+                                onchange="updateSkillDropdown()">
+                                <option value="">กรุณาเลือกหมวดหมู่</option>
+                            </select>
                         </div>
                         <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="description">รายละเอียด</label>
-                            <textarea id="description" class="shadow border rounded w-full py-2 px-3 text-gray-700"
-                                placeholder="ระบุรายละเอียดกิจกรรม" required></textarea>
+                            <label for="skill-dropdown" class="block text-gray-700 text-sm font-bold mb-2">เลือกทักษะ
+                                (สามารถเลือกได้เพียง 1 ทักษะเท่านั้น):</label>
+                            <select id="skill-dropdown" class="shadow border rounded w-full py-2 px-3 text-gray-700"
+                                disabled onchange="addSkill()">
+                                <option value="">กรุณาเลือกทักษะ</option>
+                            </select>
                         </div>
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="location">สถานที่</label>
-                            <input id="location" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text"
-                                placeholder="ระบุสถานที่จัดกิจกรรม" required />
+                        <!-- Selected Skills Display -->
+                        <div id="selected-skills-container" class="mt-4 bg-white p-4 rounded-lg shadow-sm">
+                            <h3 class="text-lg font-semibold text-blue-700">ทักษะที่เลือก:</h3>
+                            <ul id="selected-skills-list" class="mt-2 list-disc list-inside text-gray-700"></ul>
                         </div>
-                        <!-- Section: Skill Selection -->
-                        <hr class="my-8 border-gray-200">
-                        <!-- Title -->
-                        <div class="text-center">
-                            <h1 class="text-2xl font-bold text-blue-700 mb-4">เลือกทักษะที่ต้องการ</h1>
+                    </div>
+                    <hr class="my-8 border-gray-200">
+                    <!-- Section: Date -->
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2"
+                                for="start-date">วันที่เริ่มต้น</label>
+                            <input id="start-date" class="shadow border rounded w-full py-2 px-3 text-gray-700"
+                                type="date" required />
                         </div>
-                        <!-- Skill Selection Details -->
-                        <div class="bg-gray-100 p-6 rounded-lg shadow-md">
-                            <div class="mb-4">
-                                <label for="category-dropdown"
-                                    class="block text-gray-700 text-sm font-bold mb-2">เลือกหมวดหมู่:</label>
-                                <select id="category-dropdown" class="shadow border rounded w-full py-2 px-3 text-gray-700"
-                                    onchange="updateSkillDropdown()">
-                                    <option value="">กรุณาเลือกหมวดหมู่</option>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2"
+                                for="end-date">วันที่สิ้นสุด</label>
+                            <input id="end-date" class="shadow border rounded w-full py-2 px-3 text-gray-700"
+                                type="date" required />
+                        </div>
+                    </div>
+                    <!-- Section: Time -->
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="mb-6">
+                            <label for="start-time"
+                                class="block text-gray-700 text-sm font-bold mb-2">เวลาเริ่มต้น</label>
+                            <div
+                                class="flex items-center bg-white border shadow border rounded w-full py-2 px-3 text-gray-700">
+                                <!-- Hour Selector -->
+                                <select id="start-hours" name="start-hours"
+                                    class="text-gray-700 w-full text-center focus:outline-none">
+                                    <option value="" selected disabled>-- ชั่วโมง --</option>
+                                    <script>
+                                        for (let i = 0; i < 24; i++) {
+                                            document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาฬิกา</option>`);
+                                        } 
+                                    </script>
+                                </select>
+                                <!-- Minute Selector -->
+                                <select id="start-minutes" name="start-minutes"
+                                    class="text-gray-700 w-full text-center focus:outline-none">
+                                    <option value="00" selected>00 นาที</option>
+                                    <script>
+                                        for (let i = 0; i < 60; i += 5) {
+                                            document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาที</option>`);
+                                        } 
+                                    </script>
                                 </select>
                             </div>
-                            <div class="mb-4">
-                                <label for="skill-dropdown" class="block text-gray-700 text-sm font-bold mb-2">เลือกทักษะ
-                                    (สามารถเลือกได้เพียง 1 ทักษะเท่านั้น):</label>
-                                <select id="skill-dropdown" class="shadow border rounded w-full py-2 px-3 text-gray-700"
-                                    disabled onchange="addSkill()">
-                                    <option value="">กรุณาเลือกทักษะ</option>
+                        </div>
+                        <div class="mb-6">
+                            <label for="end-time" class="block text-gray-700 text-sm font-bold mb-2">เวลาสิ้นสุด</label>
+                            <div
+                                class="flex items-center bg-white border shadow border rounded w-full py-2 px-3 text-gray-700">
+                                <!-- Hour Selector -->
+                                <select id="end-hours" name="end-hours"
+                                    class="text-gray-700 w-full text-center focus:outline-none">
+                                    <option value="" selected disabled>-- ชั่วโมง --</option>
+                                    <script>
+                                        for (let i = 0; i < 24; i++) {
+                                            document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาฬิกา</option>`);
+                                        } 
+                                    </script>
+                                </select>
+                                <!-- Minute Selector -->
+                                <select id="end-minutes" name="end-minutes"
+                                    class="text-gray-700 w-full text-center focus:outline-none">
+                                    <option value="00" selected>00 นาที</option>
+                                    <script>
+                                        for (let i = 0; i < 60; i += 5) {
+                                            document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาที</option>`);
+                                        } 
+                                    </script>
                                 </select>
                             </div>
-                            <!-- Selected Skills Display -->
-                            <div id="selected-skills-container" class="mt-4 bg-white p-4 rounded-lg shadow-sm">
-                                <h3 class="text-lg font-semibold text-blue-700">ทักษะที่เลือก:</h3>
-                                <ul id="selected-skills-list" class="mt-2 list-disc list-inside text-gray-700"></ul>
-                            </div>
                         </div>
-                        <hr class="my-8 border-gray-200">
-                        <!-- Section: Date -->
-                        <div class="grid grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label class="block text-gray-700 text-sm font-bold mb-2"
-                                    for="start-date">วันที่เริ่มต้น</label>
-                                <input id="start-date" class="shadow border rounded w-full py-2 px-3 text-gray-700"
-                                    type="date" required />
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 text-sm font-bold mb-2"
-                                    for="end-date">วันที่สิ้นสุด</label>
-                                <input id="end-date" class="shadow border rounded w-full py-2 px-3 text-gray-700"
-                                    type="date" required />
-                            </div>
+                        <div class="mb-6">
+                            <label for="time-difference"
+                                class="block text-gray-700 text-sm font-bold mb-2">เวลาต่าง</label>
+                            <input id="time-difference" class="shadow border rounded w-full py-2 px-3 text-gray-700"
+                                type="text" readonly />
                         </div>
-                        <!-- Section: Time -->
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="mb-6">
-                                <label for="start-time"
-                                    class="block text-gray-700 text-sm font-bold mb-2">เวลาเริ่มต้น</label>
-                                <div
-                                    class="flex items-center bg-white border shadow border rounded w-full py-2 px-3 text-gray-700">
-                                    <!-- Hour Selector -->
-                                    <select id="start-hours" name="start-hours"
-                                        class="text-gray-700 w-full text-center focus:outline-none">
-                                        <option value="" selected disabled>-- ชั่วโมง --</option>
-                                        <script>
-                                            for (let i = 0; i < 24; i++) {
-                                                document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาฬิกา</option>`);
-                                            } 
-                                        </script>
-                                    </select>
-                                    <!-- Minute Selector -->
-                                    <select id="start-minutes" name="start-minutes"
-                                        class="text-gray-700 w-full text-center focus:outline-none">
-                                        <option value="00" selected>00 นาที</option>
-                                        <script>
-                                            for (let i = 0; i < 60; i += 5) {
-                                                document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาที</option>`);
-                                            } 
-                                        </script>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="mb-6">
-                                <label for="end-time" class="block text-gray-700 text-sm font-bold mb-2">เวลาสิ้นสุด</label>
-                                <div
-                                    class="flex items-center bg-white border shadow border rounded w-full py-2 px-3 text-gray-700">
-                                    <!-- Hour Selector -->
-                                    <select id="end-hours" name="end-hours"
-                                        class="text-gray-700 w-full text-center focus:outline-none">
-                                        <option value="" selected disabled>-- ชั่วโมง --</option>
-                                        <script>
-                                            for (let i = 0; i < 24; i++) {
-                                                document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาฬิกา</option>`);
-                                            } 
-                                        </script>
-                                    </select>
-                                    <!-- Minute Selector -->
-                                    <select id="end-minutes" name="end-minutes"
-                                        class="text-gray-700 w-full text-center focus:outline-none">
-                                        <option value="00" selected>00 นาที</option>
-                                        <script>
-                                            for (let i = 0; i < 60; i += 5) {
-                                                document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาที</option>`);
-                                            } 
-                                        </script>
-                                    </select>
-                                </div>
-                            </div>
-                            <div class="mb-6">
-                                <label for="time-difference"
-                                    class="block text-gray-700 text-sm font-bold mb-2">เวลาต่าง</label>
-                                <input id="time-difference" class="shadow border rounded w-full py-2 px-3 text-gray-700"
-                                    type="text" readonly />
-                            </div>
-                            <script>
-                                document.getElementById('start-hours').addEventListener('change', updateEndTime);
-                                document.getElementById('start-minutes').addEventListener('change', updateEndTime);
-                                document.getElementById('end-hours').addEventListener('change', calculateTimeDifference);
-                                document.getElementById('end-minutes').addEventListener('change', calculateTimeDifference);
-                                function updateEndTime() {
-                                    let startHours = parseInt(document.getElementById("start-hours").value, 10);
-                                    let startMinutes = parseInt(document.getElementById("start-minutes").value, 10);
-                                    if (!isNaN(startHours) && !isNaN(startMinutes)) {
-                                        let endHours = startHours + 1;
-                                        if (endHours >= 24) endHours = 0;
-                                        document.getElementById("end-hours").value = endHours.toString().padStart(2, '0');
-                                        document.getElementById("end-minutes").value = startMinutes.toString().padStart(2, '0');
-                                        calculateTimeDifference();
-                                    }
+                        <script>
+                            document.getElementById('start-hours').addEventListener('change', updateEndTime);
+                            document.getElementById('start-minutes').addEventListener('change', updateEndTime);
+                            document.getElementById('end-hours').addEventListener('change', calculateTimeDifference);
+                            document.getElementById('end-minutes').addEventListener('change', calculateTimeDifference);
+                            function updateEndTime() {
+                                let startHours = parseInt(document.getElementById("start-hours").value, 10);
+                                let startMinutes = parseInt(document.getElementById("start-minutes").value, 10);
+                                if (!isNaN(startHours) && !isNaN(startMinutes)) {
+                                    let endHours = startHours + 1;
+                                    if (endHours >= 24) endHours = 0;
+                                    document.getElementById("end-hours").value = endHours.toString().padStart(2, '0');
+                                    document.getElementById("end-minutes").value = startMinutes.toString().padStart(2, '0');
+                                    calculateTimeDifference();
                                 }
-                                function calculateTimeDifference() {
-                                    const startHours = parseInt(document.getElementById("start-hours").value, 10);
-                                    const startMinutes = parseInt(document.getElementById("start-minutes").value, 10);
-                                    const endHours = parseInt(document.getElementById("end-hours").value, 10);
-                                    const endMinutes = parseInt(document.getElementById("end-minutes").value, 10);
-                                    if (!isNaN(startHours) && !isNaN(startMinutes) && !isNaN(endHours) && !isNaN(endMinutes)) {
-                                        let startTime = new Date();
-                                        startTime.setHours(startHours, startMinutes, 0);
-                                        let endTime = new Date();
-                                        endTime.setHours(endHours, endMinutes, 0);
-                                        let durationInMinutes = (endTime - startTime) / (1000 * 60);
-                                        if (durationInMinutes < 0) {
-                                            durationInMinutes += 24 * 60;
-                                        }
-                                        const hours = Math.floor(durationInMinutes / 60);
-                                        const minutes = durationInMinutes % 60;
-                                        document.getElementById("time-difference").value = `${hours} ชั่วโมง ${minutes} นาที`;
-                                    }
-                                } 
-                            </script>
+                            }
+                        </script>
+                    </div>
+                    <!-- Section: Participants & Status -->
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2"
+                                for="max-participants">จำนวนผู้เข้าร่วมสูงสุด</label>
+                            <input id="max-participants" class="shadow border rounded w-full py-2 px-3 text-gray-700"
+                                type="number" required />
                         </div>
-                        <!-- Section: Participants & Status -->
-                        <div class="grid grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label class="block text-gray-700 text-sm font-bold mb-2"
-                                    for="max-participants">จำนวนผู้เข้าร่วมสูงสุด</label>
-                                <input id="max-participants" class="shadow border rounded w-full py-2 px-3 text-gray-700"
-                                    type="number" required />
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 text-sm font-bold mb-2" for="status">สถานะ</label>
-                                <select id="status" class="shadow border rounded w-full py-2 px-3 text-gray-700" required>
-                                    <option value="กำลังจะเริ่ม">กำลังจะเริ่ม</option>
-                                </select>
-                            </div>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="status">สถานะ</label>
+                            <select id="status" class="shadow border rounded w-full py-2 px-3 text-gray-700" required>
+                                <option value="กำลังจะเริ่ม">กำลังจะเริ่ม</option>
+                            </select>
                         </div>
-                        <!-- Section: Time Tokens -->
-                        <div class="grid grid-cols-2 gap-4 mb-4">
-                            <div>
-                                <label class="block text-gray-700 text-sm font-bold mb-2"
-                                    for="time-tokens-required">จำนวนโทเค็นเวลาที่ต้องการ</label>
-                                <input id="time-tokens-required"
-                                    class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text" readonly />
-                            </div>
-                            <div>
-                                <label class="block text-gray-700 text-sm font-bold mb-2"
-                                    for="time-tokens-per-participant">จำนวนโทเค็นเวลาต่อผู้เข้าร่วม</label>
-                                <input id="time-tokens-per-participant"
-                                    class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text" readonly />
-                            </div>
+                    </div>
+                    <!-- Section: Time Tokens -->
+                    <div class="grid grid-cols-2 gap-4 mb-4">
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2"
+                                for="time-tokens-required">จำนวนโทเค็นเวลาที่ต้องการ</label>
+                            <input id="time-tokens-required"
+                                class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text" readonly />
                         </div>
-                        <!-- Buttons -->
-                        <div class="flex justify-center space-x-4">
-                            <button onclick="window.history.back();"
-                                class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"> ย้อนกลับ
-                            </button>
-                            <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                                type="submit"> สร้างกิจกรรม </button>
+                        <div>
+                            <label class="block text-gray-700 text-sm font-bold mb-2"
+                                for="time-tokens-per-participant">จำนวนโทเค็นเวลาต่อผู้เข้าร่วม</label>
+                            <input id="time-tokens-per-participant"
+                                class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text" readonly />
                         </div>
-                    </form>
-                </div>
+                    </div>
+                    <!-- Buttons -->
+                    <div class="flex justify-center space-x-4">
+                        <button onclick="window.history.back();"
+                            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"> ย้อนกลับ
+                        </button>
+                        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                            type="submit"> สร้างกิจกรรม </button>
+                    </div>
+                </form>
             </div>
         </div>
-        <script src="navbar.js"></script>
-    </body>
-    
-    </html>
+    </div>
+    <script src="navbar.js"></script>
+</body>
+
+</html>

@@ -88,9 +88,20 @@
                 <div id="minimum-time-token-field" class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2"
                         for="minimum-time-token">เวลาขั้นต่ำที่จะแลกเปลี่ยนหลังทำกิจกรรมสำเร็จ</label>
-                    <input
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        id="minimum-time-token" type="number" placeholder="เวลาขั้นต่ำ" />
+                    <div class="flex space-x-2">
+                        <div class="flex items-center">
+                            <input
+                                class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="minimum-time-token-hours" type="number" placeholder="ชั่วโมง" />
+                            <span class="ml-2 text-gray-700">ชั่วโมง</span>
+                        </div>
+                        <div class="flex items-center">
+                            <input
+                                class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                id="minimum-time-token-minutes" type="number" placeholder="นาที" />
+                            <span class="ml-2 text-gray-700">นาที</span>
+                        </div>
+                    </div>
                 </div>
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="branch-name">ชื่อสาขา</label>
@@ -163,7 +174,8 @@
         let branchName = '';
         let branches = [];
         let userRole = '';
-        let minimumTimeToken = 0;
+        let minimumTimeTokenHours = 0;
+        let minimumTimeTokenMinutes = 0;
 
         async function fetchCommunityConfig() {
             try {
@@ -176,7 +188,8 @@
                 if (data) {
                     defaultTimeToken = data.default_time_token || defaultTimeToken;
                     defaultExchangeRateId = data.default_exchange_rate_id;
-                    minimumTimeToken = data.minimum_time_token || minimumTimeToken;
+                    minimumTimeTokenHours = data.minimum_time_token_hours || minimumTimeTokenHours;
+                    minimumTimeTokenMinutes = data.minimum_time_token_minutes || minimumTimeTokenMinutes;
                     await fetchExchangeRates();
                     await fetchBranches();
                     renderConfig();
@@ -222,7 +235,8 @@
 
         function renderConfig() {
             document.getElementById('default-time-token').value = defaultTimeToken;
-            document.getElementById('minimum-time-token').value = minimumTimeToken;
+            document.getElementById('minimum-time-token-hours').value = minimumTimeTokenHours;
+            document.getElementById('minimum-time-token-minutes').value = minimumTimeTokenMinutes;
             const exchangeRateSelect = document.getElementById('exchange-rate');
             exchangeRateSelect.innerHTML = '';
             exchangeRates.forEach(rate => {
@@ -295,7 +309,8 @@
             const newExchangeRateDescription = document.getElementById('new-exchange-rate').value;
             const newBranch = document.getElementById('branch-name').value;
             const newBranchName = document.getElementById('new-branch').value;
-            const minimumTimeToken = parseInt(document.getElementById('minimum-time-token').value, 10);
+            const minimumTimeTokenHours = parseInt(document.getElementById('minimum-time-token-hours').value, 10);
+            const minimumTimeTokenMinutes = parseInt(document.getElementById('minimum-time-token-minutes').value, 10);
 
             let defaultExchangeRateId = parseInt(newExchangeRate, 10);
             let branchId = parseInt(newBranch, 10);
@@ -370,7 +385,8 @@
                         default_exchange_rate_id: defaultExchangeRateId,
                         branch_name: newBranchName || null,
                         branch_id: branchId,
-                        minimum_time_token: minimumTimeToken || null
+                        minimum_time_token_hours: minimumTimeTokenHours || 0,
+                        minimum_time_token_minutes: minimumTimeTokenMinutes || 0
                     })
                 });
 
@@ -424,12 +440,12 @@
             fetchCommunityConfig();
         });
 
-        function logout() {
-            localStorage.removeItem('token');
-            window.location.href = 'login.html';
-        }
-    </script>
+                function logout() {
+                    localStorage.removeItem('token');
+                    window.location.href = 'login.html';
+                }
+            </script>
     <script src="navbar.js"></script>
-</body>
-
-</html>
+    </body>
+    
+    </html>

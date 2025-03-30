@@ -30,7 +30,7 @@ const communityConfigRoutes = (pool) => {
 
     // Update community configuration
     router.put('/', async (req, res) => {
-        const { default_time_token, default_exchange_rate_id, branch_name, branch_id, minimum_time_token } = req.body;
+        const { default_time_token, default_exchange_rate_id, branch_name, branch_id, minimum_time_token_hours, minimum_time_token_minutes } = req.body;
 
         // Validate input
         if (typeof default_time_token !== 'number' || default_time_token < 0) {
@@ -49,6 +49,14 @@ const communityConfigRoutes = (pool) => {
             return res.status(400).json({ error: 'Invalid branch_id value' });
         }
 
+        if (typeof minimum_time_token_hours !== 'number' || minimum_time_token_hours < 0) {
+            return res.status(400).json({ error: 'Invalid minimum_time_token_hours value' });
+        }
+
+        if (typeof minimum_time_token_minutes !== 'number' || minimum_time_token_minutes < 0) {
+            return res.status(400).json({ error: 'Invalid minimum_time_token_minutes value' });
+        }
+
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
@@ -63,8 +71,8 @@ const communityConfigRoutes = (pool) => {
 
             // Update community config
             const result = await client.query(
-                'UPDATE community_config SET default_time_token = $1, default_exchange_rate_id = $2, minimum_time_token = $3 RETURNING *',
-                [default_time_token, default_exchange_rate_id, minimum_time_token]
+                'UPDATE community_config SET default_time_token = $1, default_exchange_rate_id = $2, minimum_time_token_hours = $3, minimum_time_token_minutes = $4 RETURNING *',
+                [default_time_token, default_exchange_rate_id, minimum_time_token_hours, minimum_time_token_minutes]
             );
 
             await client.query('COMMIT');
