@@ -9,6 +9,7 @@
     <script>
         let members = [];
         let exchangeRate = null;
+        let minimumTimeToken = null;
 
         let skills = []; // Store all skills
         let categories = []; // Store all categories
@@ -44,7 +45,10 @@
                 }
                 const data = await response.json();
                 exchangeRate = data.default_exchange_rate_description;
+                minimumTimeToken = data.minimum_time_token;
                 console.log('Exchange Rate:', exchangeRate);
+                console.log('Minimum Time Token:', minimumTimeToken);
+                document.getElementById('minimum-time-token').innerText = `ใช้เวลาขั้นต่ำ ${minimumTimeToken} เพื่อแลกเปลี่ยนโทเคนของกิจกรรมที่ร้องขอ`;
             } catch (error) {
                 console.error('Error fetching community config:', error);
                 alert('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
@@ -208,7 +212,10 @@
 
                 const data = await response.json();
                 exchangeRate = data.default_exchange_rate_description;
+                minimumTimeToken = data.minimum_time_token;
                 console.log('Exchange Rate:', exchangeRate);
+                console.log('Minimum Time Token:', minimumTimeToken);
+                document.getElementById('minimum-time-token').innerText = `ใช้เวลาขั้นต่ำ ${minimumTimeToken} เพื่อแลกเปลี่ยนโทเคนของกิจกรรมที่ร้องขอ`;
 
                 // Recalculate tokens after fetching exchange rate
                 calculateTimeTokens();
@@ -477,32 +484,31 @@
 
             // Set the initial values and min attributes
             startDateInput.setAttribute('min', formattedMinStartDate);
-            startDateInput.value = formattedMinStartDate;
             endDateInput.setAttribute('min', formattedMinStartDate);
-            endDateInput.value = formattedMinStartDate;
+                    endDateInput.value = formattedMinStartDate;
 
-            syncDates(formattedMinStartDate);
-        }
+                    syncDates(formattedMinStartDate);
+                }
 
-        function syncDates(selectedDate) {
-            const startDateInput = document.getElementById('start-date');
-            const endDateInput = document.getElementById('end-date');
+                function syncDates(selectedDate) {
+                    const startDateInput = document.getElementById('start-date');
+                    const endDateInput = document.getElementById('end-date');
 
-            startDateInput.value = selectedDate;
-            endDateInput.value = selectedDate;
-        }
+                    startDateInput.value = selectedDate;
+                    endDateInput.value = selectedDate;
+                }
 
-        // Event Listeners to keep start and end dates in sync
-        document.addEventListener('DOMContentLoaded', () => {
-            setStartDateRange();
-            document.getElementById('start-date').addEventListener('input', (event) => {
-                syncDates(event.target.value);
-            });
+                // Event Listeners to keep start and end dates in sync
+                document.addEventListener('DOMContentLoaded', () => {
+                    setStartDateRange();
+                    document.getElementById('start-date').addEventListener('input', (event) => {
+                        syncDates(event.target.value);
+                    });
 
-            document.getElementById('end-date').addEventListener('input', (event) => {
-                syncDates(event.target.value);
-            });
-        });
+                    document.getElementById('end-date').addEventListener('input', (event) => {
+                        syncDates(event.target.value);
+                    });
+                });
 
                 function adjustEndTime(startTime) {
                     if (!startTime) return;
@@ -539,6 +545,7 @@
                 <h1 class="text-4xl font-bold mb-5">สร้างกิจกรรม</h1>
                 <div class="bg-white text-black p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
                     <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">รายละเอียดกิจกรรม</h2>
+                    <p id="minimum-time-token" class="text-red-600 text-center mb-6"></p>
                     <form onsubmit="submitActivity(event)">
     
                         <!-- Section: Requester Information -->
