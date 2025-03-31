@@ -11,15 +11,13 @@
 <body class="bg-gray-100">
     <div class="flex flex-col md:flex-row">
         <!-- Sidebar -->
-        <div class="w-1/6 bg-white h-screen p-5">
+        <div class="w-full md:w-1/6 bg-white h-screen p-5">
             <div class="flex items-center mb-10">
                 <img alt="Logo of Time Bank System, a clock with a handshake in the center"
                     class="w-10 h-10 rounded-full" height="50"
                     src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
                     width="50" />
-                <span class="ml-3 text-xl font-bold text-blue-600">
-                    TIMEBANK
-                </span>
+                <span class="ml-3 text-xl font-bold text-blue-600"> TIMEBANK </span>
             </div>
             <nav>
                 <ul id="navList">
@@ -29,104 +27,56 @@
         </div>
         <!-- Main Content -->
         <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
-            <h1 class="text-4xl font-bold mb-5">
-                แก้ไขกิจกรรม
-            </h1>
+            <h1 class="text-4xl font-bold mb-5"> แก้ไขกิจกรรม </h1>
             <div class="bg-white text-black p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
-                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">
-                    รายละเอียดกิจกรรม
-                </h2>
+                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700"> รายละเอียดกิจกรรม </h2>
                 <form onsubmit="updateActivity(event)">
+                    <!-- Requester Information -->
                     <div class="flex flex-wrap -mx-3 mb-4">
                         <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="title">
-                                ชื่อกิจกรรม
-                            </label>
-                            <input id="title"
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="requester-name">
+                                ชื่อผู้ขอบริการ </label>
+                            <input id="requester-name"
                                 class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 type="text" disabled />
                         </div>
-                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="requester-name">
-                                ชื่อผู้ขอ
-                            </label>
-                            <input id="requester-name"
+                        <div class="w-full md:w-1/2 px-3">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="requester-phone">
+                                เบอร์โทรศัพท์ </label>
+                            <input id="requester-phone"
                                 class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="text" oninput="searchMembers()" disabled />
-                            <div id="search-results-dropdown"
-                                class="bg-white border border-gray-300 mt-1 rounded shadow-lg z-10 hidden dropdown-content">
-                                <!-- Search results will be dynamically inserted here -->
-                            </div>
-                            <input id="requester-id" type="hidden" />
+                                type="text" disabled />
                         </div>
                     </div>
+                    <hr class="my-8 border-gray-200">
+                    <!-- Service Information -->
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="description">
-                            รายละเอียด
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="service-title"> ชื่อบริการ
                         </label>
-                        <textarea id="description"
-                            class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                            disabled></textarea>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="location">
-                            สถานที่
-                        </label>
-                        <input id="location"
+                        <input id="service-title"
                             class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                             type="text" disabled />
                     </div>
-                    <div class="flex flex-wrap -mx-3 mb-4">
-                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="start-date">
-                                วันที่เริ่มต้น
-                            </label>
-                            <input id="start-date"
-                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="date" disabled />
-                        </div>
-                        <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="start-time">
-                                เวลาเริ่มต้น
-                            </label>
-                            <input id="start-time"
-                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="time" disabled />
-                        </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="service-description">
+                            รายละเอียดบริการ </label>
+                        <textarea id="service-description"
+                            class="editable-textarea shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            disabled></textarea>
                     </div>
                     <div class="flex flex-wrap -mx-3 mb-4">
                         <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="end-date">
-                                วันที่สิ้นสุด
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-location"> สถานที่จัด
                             </label>
-                            <input id="end-date"
+                            <input id="service-location"
                                 class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="date" disabled />
+                                type="text" disabled />
                         </div>
                         <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="end-time">
-                                เวลาสิ้นสุด
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-status"> สถานะ
                             </label>
-                            <input id="end-time"
-                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="time" disabled />
-                        </div>
-                    </div>
-                    <div class="flex flex-wrap -mx-3 mb-4">
-                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="max-participants">
-                                จำนวนผู้เข้าร่วมสูงสุด
-                            </label>
-                            <input id="max-participants"
-                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="number" oninput="calculateTimeTokens()" disabled />
-                        </div>
-                        <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="status">
-                                สถานะ
-                            </label>
-                            <select id="status"
-                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            <select id="service-status"
+                                class="editable-select shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 disabled>
                                 <option value="กำลังจะเริ่ม">กำลังจะเริ่ม</option>
                                 <option value="เสร็จสิ้น">เสร็จสิ้น</option>
@@ -134,50 +84,187 @@
                             </select>
                         </div>
                     </div>
+                    <hr class="my-8 border-gray-200">
+                    <!-- Selected Skills Display -->
+                    <div id="selected-skills-container" class="mt-4 bg-white p-4 rounded-lg shadow-sm">
+                        <h3 class="text-lg font-semibold text-blue-700">ทักษะที่ต้องการ:</h3>
+                        <ul id="selected-skills-list" class="mt-2 list-disc list-inside text-gray-700"></ul>
+                    </div>
+                    <hr class="my-8 border-gray-200">
+                    <!-- Date & Time Information -->
                     <div class="flex flex-wrap -mx-3 mb-4">
                         <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="time-tokens-required">
-                                จำนวนโทเค็นเวลาที่ต้องการ
-                            </label>
-                            <input id="time-tokens-required"
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-start-date">
+                                วันที่เริ่มต้น </label>
+                            <input id="service-start-date"
                                 class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="number" readonly />
+                                type="date" disabled />
                         </div>
                         <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="time-tokens-per-participant">
-                                จำนวนโทเค็นเวลาต่อผู้เข้าร่วม
-                            </label>
-                            <input id="time-tokens-per-participant"
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-end-date">
+                                วันที่สิ้นสุด </label>
+                            <input id="service-end-date"
                                 class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="number" readonly />
+                                type="date" disabled />
+                        </div>
+                    </div>
+                    <div class="flex flex-wrap -mx-3 mb-4">
+                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-time-start">
+                                เวลาเริ่มต้น </label>
+                            <input id="service-time-start"
+                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="text" disabled />
+                        </div>
+                        <div class="w-full md:w-1/2 px-3">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-time-end">
+                                เวลาสิ้นสุด </label>
+                            <input id="service-time-end"
+                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="text" disabled />
+                        </div>
+                    </div>
+                    <!-- Time Difference -->
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="time-difference">เวลาต่าง</label>
+                        <input id="time-difference" class="shadow border rounded w-full py-2 px-3 text-gray-700"
+                            type="text" readonly />
+                    </div>
+                    <!-- Participant Count -->
+                    <div class="flex flex-wrap -mx-3 mb-4">
+                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="service-people"> จำนวนคน
+                            </label>
+                            <input id="service-people"
+                                class="editable shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                type="number" disabled />
+                        </div>
+                        <div class="w-full md:w-1/2 px-3">
+                            <label class="block text-gray-700 text-sm font-bold mb-2"> จำนวนผู้เข้าร่วม </label>
+                            <p id="current-participants" class="text-gray-700"></p>
                         </div>
                     </div>
                     <div class="flex items-center justify-center">
                         <button
-                            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
-                            type="button" onclick="window.history.back()">ย้อนกลับ</button>
-                        <button
-                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
-                            type="button" id="edit-button" onclick="enableEditing()">แก้ไข</button>
-                        <button
-                            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
-                            type="submit" id="save-button" style="display: none;">บันทึกการแก้ไข</button>
+                            class="bg-gray-500 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
+                            type="button" onclick="goBack()">ย้อนกลับ</button>
+                        <button id="join-button"
+                            class="bg-green-500 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
+                            type="button" onclick="handleJoinButton(activityId, 0)">เข้าร่วม</button>
                         <button
                             class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
                             type="button"
-                            onclick="window.location.href='activity-details-participant.html?id=' + new URLSearchParams(window.location.search).get('id')">รายชื่อผู้เข้าร่วม</button>
+                            onclick="window.location.href='participant-detail.html?id=' + new URLSearchParams(window.location.search).get('id')">รายชื่อผู้เข้าร่วม</button>
                     </div>
                 </form>
             </div>
         </div>
     </div>
+    <!-- Success & Error Message Modal -->
+    <div id="message-modal"
+        class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden transition-opacity duration-300">
+        <div
+            class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-2xl text-center transform scale-95 transition-transform duration-300">
+            <div class="flex justify-center">
+                <div id="message-icon"
+                    class="w-24 h-24 flex items-center justify-center rounded-full border-4 animate-bounce">
+                    <svg id="message-icon-svg" class="w-16 h-16" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path id="message-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                    </svg>
+                </div>
+            </div>
+            <h2 id="message-title" class="text-4xl font-bold mt-6"></h2>
+            <p id="message-text" class="text-gray-700 text-xl mt-4"></p>
+            <button id="confirm-message-btn"
+                class="mt-8 px-8 py-4 bg-blue-600 text-white text-xl font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ตกลง </button>
+        </div>
+    </div>
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal"
+        class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden transition-opacity duration-300">
+        <div
+            class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-lg text-center transform scale-95 transition-transform duration-300">
+            <h2 id="confirm-title" class="text-3xl font-bold text-yellow-600">ยืนยันการทำรายการ</h2>
+            <p id="confirm-message" class="text-gray-700 text-xl mt-4"></p>
+            <div class="mt-6 flex justify-center gap-4">
+                <button id="confirm-yes-btn"
+                    class="px-6 py-3 bg-green-600 text-white text-lg font-semibold rounded-lg hover:bg-green-700 transition duration-300">
+                    ยืนยัน </button>
+                <button id="confirm-no-btn"
+                    class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300">
+                    ยกเลิก </button>
+            </div>
+        </div>
+    </div>
+    <!-- JavaScript for Messages -->
     <script>
-        let members = [];
-        let exchangeRate = null;
+        function showMessage(message, isError = false) {
+            const modal = document.getElementById('message-modal');
+            const title = document.getElementById('message-title');
+            const text = document.getElementById('message-text');
+            const icon = document.getElementById('message-icon');
+            const iconSvg = document.getElementById('message-icon-svg');
+            const iconPath = document.getElementById('message-icon-path');
+
+            // Reset styles first
+            title.classList.remove('text-red-600', 'text-green-600');
+            icon.classList.remove('bg-red-100', 'border-red-500', 'bg-green-100', 'border-green-500');
+            iconSvg.classList.remove('text-red-500', 'text-green-500');
+
+            text.textContent = message;
+            modal.classList.remove('hidden'); // Show modal
+
+            if (isError) {
+                title.textContent = "เกิดข้อผิดพลาด!";
+                title.classList.add('text-red-600');
+                icon.classList.add('bg-red-100', 'border-red-500');
+                iconSvg.classList.add('text-red-500');
+                iconPath.setAttribute("d", "M6 18L18 6M6 6l12 12"); // X icon
+            } else {
+                title.textContent = "สำเร็จ!";
+                title.classList.add('text-green-600');
+                icon.classList.add('bg-green-100', 'border-green-500');
+                iconSvg.classList.add('text-green-500');
+                iconPath.setAttribute("d", "M5 13l4 4L19 7"); // Checkmark icon
+            }
+
+            // Animate fade-in
+            setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
+
+            // Close on button click
+            document.getElementById('confirm-message-btn').onclick = () => {
+                modal.classList.remove('opacity-100', 'scale-100');
+                setTimeout(() => modal.classList.add('hidden'), 300); // Smooth fade-out
+            };
+        }
+
+        function showConfirmation(message, onConfirm) {
+            const modal = document.getElementById('confirm-modal');
+            const text = document.getElementById('confirm-message');
+            text.textContent = message;
+            modal.classList.remove('hidden');
+
+            document.getElementById('confirm-yes-btn').onclick = () => {
+                modal.classList.add('hidden');
+                onConfirm(); // Execute the function if confirmed
+            };
+
+            document.getElementById('confirm-no-btn').onclick = () => {
+                modal.classList.add('hidden');
+            };
+        }
+    </script>
+    <script>
+        let globalUserId = null;
+        let activityId = null;
+        let minimumTimeTokenHours = null;
+        let minimumTimeTokenMinutes = null;
 
         async function fetchActivityDetails() {
             const urlParams = new URLSearchParams(window.location.search);
-            const activityId = urlParams.get('id');
+            activityId = urlParams.get('id'); // Ensure activityId is set globally
 
             if (!activityId) {
                 alert('ไม่พบรหัสกิจกรรม');
@@ -190,22 +277,41 @@
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
+
+                if (!response.ok) {
+                    throw new Error('Error fetching activity details');
+                }
+
                 const activity = await response.json();
 
+                // Add console logs to check fetched time data
+                console.log("Fetched Start Time:", activity.start_time);
+                console.log("Fetched End Time:", activity.end_time);
+
                 if (activity) {
-                    document.getElementById('title').value = activity.title || '';
-                    document.getElementById('description').value = activity.description || '';
-                    document.getElementById('location').value = activity.location || '';
-                    document.getElementById('start-date').value = activity.start_date ? activity.start_date.split('T')[0] : '';
-                    document.getElementById('start-time').value = activity.start_time ? activity.start_time.substring(0, 5) : '';
-                    document.getElementById('end-date').value = activity.end_date ? activity.end_date.split('T')[0] : '';
-                    document.getElementById('end-time').value = activity.end_time ? activity.end_time.substring(0, 5) : '';
-                    document.getElementById('max-participants').value = activity.max_participants || '';
+                    document.getElementById('service-title').value = activity.title || '';
+                    document.getElementById('service-description').value = activity.description || '';
+                    document.getElementById('service-location').value = activity.location || '';
+                    document.getElementById('service-start-date').value = activity.start_date ? activity.start_date.split('T')[0] : '';
+                    document.getElementById('service-time-start').value = activity.start_time ? activity.start_time.substring(0, 5) : '';
+                    document.getElementById('service-end-date').value = activity.end_date ? activity.end_date.split('T')[0] : '';
+                    document.getElementById('service-time-end').value = activity.end_time ? activity.end_time.substring(0, 5) : '';
+                    document.getElementById('service-people').value = activity.max_participants || '';
                     document.getElementById('requester-name').value = activity.requester_name || '';
-                    document.getElementById('requester-id').value = activity.requester_id || '';
-                    document.getElementById('status').value = activity.status || '';
-                    document.getElementById('time-tokens-required').value = activity.time_tokens_required || '';
-                    document.getElementById('time-tokens-per-participant').value = activity.time_tokens_per_participant || '';
+                    document.getElementById('requester-phone').value = activity.requester_phone || '';
+                    document.getElementById('service-status').value = activity.status || '';
+
+                    // ✅ Handle required skills display
+                    displayRequiredSkills(activity.required_skills);
+
+                    // ✅ Fetch participants and update the join button
+                    await fetchParticipants(activityId, activity.max_participants);
+
+                    // ✅ Update join button based on activity status
+                    updateJoinButton(activity.status);
+
+                    // Calculate and display time difference
+                    calculateTimeDifference();
                 } else {
                     alert('ไม่พบรายละเอียดกิจกรรม');
                 }
@@ -215,269 +321,359 @@
             }
         }
 
-        async function fetchMembers() {
+        function displayRequiredSkills(requiredSkills) {
+            const skillsContainer = document.getElementById('selected-skills-list');
+            skillsContainer.innerHTML = ''; // Clear previous content
+
             try {
-                const response = await fetch('http://localhost:3000/api/tbm/members', {
+                // Ensure requiredSkills is an integer (skill_id) and fetch skill details from API
+                if (!requiredSkills || isNaN(requiredSkills)) {
+                    skillsContainer.innerHTML = '<li class="text-gray-500">ไม่มีทักษะที่ระบุ</li>';
+                    return;
+                }
+
+                // Fetch skill details using the skill_id
+                fetch(`http://localhost:3000/api/tbm/skills/${requiredSkills}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
-                });
+                })
+                    .then(response => response.json())
+                    .then(skill => {
+                                        if (!skill || !skill.name || !skill.category) {
+                                            skillsContainer.innerHTML = '<li class="text-gray-500">ไม่พบข้อมูลทักษะ</li>';
+                                            return;
+                                        }
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                                        // Create list item with proper spacing
+                                        const listItem = document.createElement('li');
+                                        listItem.innerHTML = `
+                            <strong class="text-blue-600 text-lg font-semibold">หมวดหมู่:</strong>
+                            <span class="mr-4">${skill.category}</span>
+                            <strong class="text-green-600 text-lg font-semibold">ทักษะ:</strong>
+                            <span>${skill.name}</span>
+                        `;
+                                        skillsContainer.appendChild(listItem);
+                                    })
+                                    .catch(error => {
+                                        console.error('Error fetching skill details:', error);
+                                        skillsContainer.innerHTML = '<li class="text-red-500">เกิดข้อผิดพลาดในการโหลดทักษะ</li>';
+                                    });
+                            } catch (error) {
+                                console.error('Error parsing required skills:', error);
+                                skillsContainer.innerHTML = '<li class="text-red-500">เกิดข้อผิดพลาดในการโหลดทักษะ</li>';
+                            }
+                        }
 
-                const data = await response.json();
-                members = data.members;
-            } catch (error) {
-                console.error('Error fetching members:', error);
-                alert('เกิดข้อผิดพลาดในการดึงรายชื่อผู้ขอ');
-            }
-        }
+                        async function fetchParticipants(activityId, maxParticipants) {
+                            try {
+                                const response = await fetch(`http://localhost:3000/api/tbm/activities/${activityId}/participants`, {
+                                    headers: {
+                                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                                    }
+                                });
+                                const participants = await response.json();
+                                const participantCount = participants.length;
 
-        async function fetchCommunityConfig() {
-            try {
-                const response = await fetch('http://localhost:3000/api/tbm/community-config', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
+                                // Ensure maxParticipants is retrieved correctly if not provided
+                                if (!maxParticipants) {
+                                    const activityResponse = await fetch(`http://localhost:3000/api/tbm/activities/${activityId}`, {
+                                        headers: {
+                                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                                        }
+                                    });
+                                    const activityData = await activityResponse.json();
+                                    maxParticipants = activityData.max_participants;
+                                }
 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                                // Update the participant count in activity-detail
+                                document.getElementById('current-participants').innerText = `${participantCount} / ${maxParticipants}`;
 
-                const data = await response.json();
-                exchangeRate = data.default_exchange_rate_description;
-                console.log('Exchange Rate:', exchangeRate);
-            } catch (error) {
-                console.error('Error fetching community config:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
-            }
-        }
+                                // Check if the user has joined the activity
+                                const userJoined = participants.some(participant => participant.user_id === globalUserId);
+                                const joinButton = document.getElementById('join-button');
 
-        function searchMembers() {
-            const searchTerm = document.getElementById('requester-name').value.toLowerCase();
-            const resultsDropdown = document.getElementById('search-results-dropdown');
-            resultsDropdown.innerHTML = '';
+                                if (userJoined) {
+                                    joinButton.innerText = 'ยกเลิก';
+                                    joinButton.classList.remove('bg-green-500');
+                                    joinButton.classList.add('bg-red-500');
+                                } else {
+                                    joinButton.innerText = 'เข้าร่วม';
+                                    joinButton.classList.remove('bg-red-500');
+                                    joinButton.classList.add('bg-green-500');
+                                }
+                            } catch (error) {
+                                console.error('Error fetching participants:', error);
+                                alert('เกิดข้อผิดพลาดในการดึงข้อมูลผู้เข้าร่วม');
+                            }
+                        }
 
-            if (searchTerm) {
-                const filteredMembers = members.filter(member =>
-                    member.name.toLowerCase().includes(searchTerm) ||
-                    member.user_id.toString().includes(searchTerm)
-                );
+                        async function fetchMemberProfile() {
+                            try {
+                                const response = await fetch(`http://localhost:3000/api/tbm/auth/profile`, {
+                                    headers: {
+                                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                                    }
+                                });
 
-                filteredMembers.forEach(member => {
-                    const item = document.createElement('div');
-                    item.className = 'py-2 px-4 hover:bg-gray-200 cursor-pointer';
-                    item.innerHTML = `
-                        <div class="flex justify-between items-center">
-                            <div>
-                                <p class="text-gray-700">${member.name}</p>
-                                <p class="text-gray-500 text-sm">ID: ${member.user_id}</p>
-                                <p class="text-gray-500 text-sm">โทเค็นเวลา: ${member.time_credits}</p>
-                            </div>
-                        </div>
-                    `;
-                    item.onclick = () => {
-                        document.getElementById('requester-name').value = member.name;
-                        document.getElementById('requester-id').value = member.user_id;
-                        resultsDropdown.innerHTML = '';
-                    };
-                    resultsDropdown.appendChild(item);
-                });
+                                if (!response.ok) {
+                                    throw new Error('Network response was not ok');
+                                }
 
-                // Show dropdown if there are results
-                resultsDropdown.classList.remove('hidden');
-            } else {
-                // Hide dropdown if input is empty
-                resultsDropdown.classList.add('hidden');
-            }
-        }
+                                const member = await response.json();
+                                globalUserId = member.user_id; // Store user_id globally
+                                console.log('Member:', member);
+                            } catch (error) {
+                                console.error('Error fetching member profile:', error);
+                                alert('เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์สมาชิก');
+                            }
+                        }
 
-        function calculateTimeTokens() {
-            // Get input values
-            const maxParticipants = parseInt(document.getElementById('max-participants').value, 10);
-            const startDate = document.getElementById('start-date').value;
-            const endDate = document.getElementById('end-date').value;
-            const startTime = document.getElementById('start-time').value;
-            const endTime = document.getElementById('end-time').value;
+                        async function handleJoinButton(activityId, index) {
+                            const joinButton = document.getElementById('join-button');
 
-            // Check for invalid inputs and reset output fields if necessary
-            if (
-                isNaN(maxParticipants) ||
-                maxParticipants <= 0 ||
-                !startDate ||
-                !endDate ||
-                !startTime ||
-                !endTime ||
-                !exchangeRate
-            ) {
-                document.getElementById('time-tokens-required').value = '0.00';
-                document.getElementById('time-tokens-per-participant').value = '0.00';
-                return;
-            }
+                            if (!globalUserId) {
+                                showMessage("คุณต้องเข้าสู่ระบบก่อนเข้าร่วมกิจกรรม", false);
+                                return;
+                            }
 
-            // Parse date and time inputs
-            const startDateTime = new Date(`${startDate}T${startTime}`);
-            const endDateTime = new Date(`${endDate}T${endTime}`);
+                            if (!activityId) {
+                                showMessage("ไม่พบรหัสกิจกรรม", false);
+                                return;
+                            }
 
-            // Calculate the duration in hours
-            const durationInHours = Math.max(0, (endDateTime - startDateTime) / (1000 * 60 * 60));
+                            if (joinButton.innerText === 'เข้าร่วม') {
+                                showConfirmation("คุณต้องการเข้าร่วมกิจกรรมนี้หรือไม่?", async () => {
+                                    await joinActivity(activityId, index);
+                                });
+                            } else if (joinButton.innerText === 'ยกเลิก') {
+                                showConfirmation("คุณต้องการยกเลิกการเข้าร่วมกิจกรรมนี้หรือไม่?", async () => {
+                                    await leaveActivity(activityId, index);
+                                });
+                            }
+                        }
 
-            // Variables to hold calculation results
-            let timeTokensRequired = 0;
-            let timeTokensPerParticipant = 0;
+                        async function joinActivity(activityId, index) {
+                            const token = localStorage.getItem('token');
+                            const userId = globalUserId;
 
-            // Calculate based on exchange rate
-            if (exchangeRate === '1 โทเคนเวลา ต่อ 1 ชั่วโมง') {
-                // Rate 1: Tokens depend on the duration
-                timeTokensPerParticipant = durationInHours;
-                timeTokensRequired = maxParticipants * durationInHours;
-            } else if (exchangeRate === '1 โทเคนเวลา ต่อ 1 กิจกรรม') {
-                // Rate 2: Fixed tokens regardless of duration
-                timeTokensPerParticipant = 1;
-                timeTokensRequired = maxParticipants;
-            }
+                            if (!token || !userId) {
+                                showMessage("คุณต้องเข้าสู่ระบบก่อนเข้าร่วมกิจกรรม", true);
+                                return;
+                            }
 
-            // Update the output fields
-            document.getElementById('time-tokens-required').value = timeTokensRequired.toFixed(2);
-            document.getElementById('time-tokens-per-participant').value = timeTokensPerParticipant.toFixed(2);
-        }
+                            try {
+                                const response = await fetch(`http://localhost:3000/api/tbm/activities/${activityId}/participants`, {
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                        'Authorization': `Bearer ${token}`
+                                    },
+                                    body: JSON.stringify({ memberId: userId })
+                                });
 
-        async function updateActivity(event) {
-            event.preventDefault();
+                                const data = await response.json();
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const activityId = urlParams.get('id');
+                                if (response.ok) {
+                                    showMessage("เข้าร่วมกิจกรรมสำเร็จ!", false); // ✅ Success message
+                                    await fetchParticipants(activityId); // Update participants count
 
-            const title = document.getElementById('title').value;
-            const description = document.getElementById('description').value;
-            const location = document.getElementById('location').value;
-            const startDate = document.getElementById('start-date').value;
-            const startTime = document.getElementById('start-time').value;
-            const endDate = document.getElementById('end-date').value;
-            const endTime = document.getElementById('end-time').value;
-            const maxParticipantsInput = document.getElementById('max-participants').value;
-            const maxParticipants = maxParticipantsInput ? parseInt(maxParticipantsInput, 10) : null;
-            const requesterId = document.getElementById('requester-id').value;
-            const status = document.getElementById('status').value;
-            const timeTokensRequiredInput = document.getElementById('time-tokens-required').value;
-            const timeTokensRequired = timeTokensRequiredInput ? parseFloat(timeTokensRequiredInput) : null;
-            const timeTokensPerParticipantInput = document.getElementById('time-tokens-per-participant').value;
-            const timeTokensPerParticipant = timeTokensPerParticipantInput ? parseFloat(timeTokensPerParticipantInput) : null;
+                                    // Update button appearance
+                                    const joinButton = document.getElementById('join-button');
+                                    joinButton.innerText = 'ยกเลิก';
+                                    joinButton.classList.remove('bg-green-500');
+                                    joinButton.classList.add('bg-red-500');
+                                } else {
+                                    showMessage(data.error || "เกิดข้อผิดพลาดในการเข้าร่วมกิจกรรม", true); // ❌ Error message
+                                }
+                            } catch (error) {
+                                console.error('Error joining activity:', error);
+                                showMessage("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง", true); // ❌ Error message
+                            }
+                        }
 
-            // Log values to identify the problematic field
-            console.log({
-                title,
-                description,
-                location,
-                startDate,
-                startTime,
-                endDate,
-                endTime,
-                maxParticipants,
-                requesterId,
-                status,
-                timeTokensRequired,
-                timeTokensPerParticipant
-            });
+                        async function leaveActivity(activityId, index) {
+                            const token = localStorage.getItem('token');
+                            const userId = globalUserId;
 
-            // Validate maxParticipants to ensure it's a positive integer
-            if (maxParticipants !== null && (isNaN(maxParticipants) || maxParticipants <= 0)) {
-                alert('กรุณากรอกจำนวนผู้เข้าร่วมสูงสุดให้ถูกต้อง');
-                return;
-            }
-            if (maxParticipants !== null && !Number.isInteger(maxParticipants)) {
-                alert('กรุณากรอกจำนวนผู้เข้าร่วมสูงสุดเป็นตัวเลข');
-                return;
-            }
+                            if (!token || !userId) {
+                                showMessage("คุณต้องเข้าสู่ระบบก่อนออกจากกิจกรรม", true);
+                                return;
+                            }
 
-            // Validate timeTokensRequired to ensure it's a positive number
-            if (timeTokensRequired !== null && (isNaN(timeTokensRequired) || timeTokensRequired < 0)) {
-                alert('กรุณากรอกจำนวนโทเค็นเวลาที่ต้องการให้ถูกต้อง');
-                return;
-            }
+                            try {
+                                const response = await fetch(`http://localhost:3000/api/tbm/activities/${activityId}/participants/${userId}`, {
+                                    method: 'DELETE',
+                                    headers: {
+                                        'Authorization': `Bearer ${token}`
+                                    }
+                                });
 
-            // Validate timeTokensPerParticipant to ensure it's a positive number
-            if (timeTokensPerParticipant !== null && (isNaN(timeTokensPerParticipant) || timeTokensPerParticipant < 0)) {
-                alert('กรุณากรอกจำนวนโทเค็นเวลาต่อผู้เข้าร่วมให้ถูกต้อง');
-                return;
-            }
+                                if (response.ok) {
+                                    showMessage("ออกจากกิจกรรมสำเร็จ!", false); // ✅ Success message
+                                    await fetchParticipants(activityId); // Update participants count
 
-            const activityData = {
-                title,
-                description,
-                location,
-                start_date: startDate,
-                start_time: startTime,
-                end_date: endDate,
-                end_time: endTime,
-                max_participants: maxParticipants,
-                requester_id: requesterId,
-                status,
-                time_tokens_required: timeTokensRequired,
-                time_tokens_per_participant: timeTokensPerParticipant
-            };
+                                    // Update button appearance
+                                    const joinButton = document.getElementById('join-button');
+                                    joinButton.innerText = 'เข้าร่วม';
+                                    joinButton.classList.remove('bg-red-500');
+                                    joinButton.classList.add('bg-green-500');
+                                } else {
+                                    const data = await response.json();
+                                    showMessage(data.error || "เกิดข้อผิดพลาดในการออกจากกิจกรรม", true); // ❌ Error message
+                                }
+                            } catch (error) {
+                                console.error('Error leaving activity:', error);
+                                showMessage("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง", true); // ❌ Error message
+                            }
+                        }
 
-            try {
-                const response = await fetch(`http://localhost:3000/api/tbm/activities/${activityId}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify(activityData)
-                });
+                        function updateServicePageParticipants(activityId, newCount) {
+                            const servicePage = window.opener;
+                            if (servicePage && servicePage.document) {
+                                const participantsElement = servicePage.document.querySelector(`#participants-${activityId}`);
+                                if (participantsElement) {
+                                    participantsElement.innerText = newCount;
+                                }
+                            }
+                        }
 
-                if (response.ok) {
-                    alert('กิจกรรมถูกแก้ไขเรียบร้อยแล้ว');
-                    window.location.href = 'activity-details.html?id=' + activityId; // Redirect to the activity details page
-                } else {
-                    const errorData = await response.json();
-                    alert(`เกิดข้อผิดพลาด: ${errorData.error}`);
-                }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('เกิดข้อผิดพลาดในการแก้ไขกิจกรรม');
-            }
-        }
+                        function updateJoinButton(status) {
+                            const joinButton = document.getElementById('join-button');
+                            if (status === 'เสร็จสิ้น') {
+                                joinButton.innerText = 'เสร็จสิ้น';
+                                joinButton.classList.remove('bg-green-500', 'bg-red-500');
+                                joinButton.classList.add('bg-green-500');
+                                joinButton.disabled = true;
+                            } else if (status === 'ยกเลิก' || status === 'เกินเวลา') {
+                                joinButton.innerText = 'ไม่สำเร็จ';
+                                joinButton.classList.remove('bg-green-500', 'bg-red-500');
+                                joinButton.classList.add('bg-orange-500');
+                                joinButton.disabled = true;
+                            } else {
+                                joinButton.disabled = false;
+                            }
+                        }
 
-        function enableEditing() {
-            const fields = document.querySelectorAll('.editable');
-            fields.forEach(field => {
-                field.disabled = false;
-            });
+                        async function checkLoginStatus() {
+                            const token = localStorage.getItem('token');
+                            if (token) {
+                                try {
+                                    const response = await fetch('http://localhost:3000/api/tbm/auth/verify', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Authorization': `Bearer ${token}`
+                                        }
+                                    });
 
-            document.getElementById('edit-button').style.display = 'none';
-            document.getElementById('save-button').style.display = 'inline-block';
-        }
+                                    if (response.ok) {
+                                        const data = await response.json();
+                                        updateSidebar(true, data.user_id);
+                                    } else {
+                                        updateSidebar(false);
+                                    }
+                                } catch (error) {
+                                    console.error('Error verifying token:', error);
+                                    updateSidebar(false);
+                                }
+                            } else {
+                                updateSidebar(false);
+                            }
+                        }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchActivityDetails();
-            fetchMembers();
-            fetchCommunityConfig();
+                        async function fetchCommunityConfig() {
+                            try {
+                                const response = await fetch('http://localhost:3000/api/tbm/community-config', {
+                                    headers: {
+                                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                                    }
+                                });
+                                if (!response.ok) {
+                                    throw new Error(`HTTP error! status: ${response.status}`);
+                                }
+                                const data = await response.json();
+                                minimumTimeTokenHours = data.minimum_time_token_hours;
+                                minimumTimeTokenMinutes = data.minimum_time_token_minutes;
+                                console.log('Minimum Time Token:', minimumTimeTokenHours, minimumTimeTokenMinutes);
+                            } catch (error) {
+                                console.error('Error fetching community config:', error);
+                                alert('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
+                            }
+                        }
 
-            // Set current date and time if fields are empty
-            const currentDate = new Date().toISOString().split('T')[0];
-            const currentTime = new Date().toTimeString().split(' ')[0].substring(0, 5);
+                        document.addEventListener('DOMContentLoaded', () => {
+                            fetchMemberProfile().then(fetchActivityDetails);
+                            fetchCommunityConfig();
 
-            if (!document.getElementById('start-date').value) {
-                document.getElementById('start-date').value = currentDate;
-            }
-            if (!document.getElementById('start-time').value) {
-                document.getElementById('start-time').value = currentTime;
-            }
-            if (!document.getElementById('end-date').value) {
-                document.getElementById('end-date').value = currentDate;
-            }
-            if (!document.getElementById('end-time').value) {
-                document.getElementById('end-time').value = currentTime;
-            }
+                            // Set current date and time if fields are empty
+                            const currentDate = new Date().toISOString().split('T')[0];
+                            const currentTime = new Date().toTimeString().split(' ')[0].substring(0, 5);
 
-            checkLoginStatus();
-        });
-    </script>
+                            if (!document.getElementById('service-start-date').value) {
+                                document.getElementById('service-start-date').value = currentDate;
+                            }
+
+                            if (!document.getElementById('service-time-start').value) {
+                                document.getElementById('service-time-start').value = currentTime;
+                            }
+
+                            if (!document.getElementById('service-end-date').value) {
+                                document.getElementById('service-end-date').value = currentDate;
+                            }
+
+                            if (!document.getElementById('service-time-end').value) {
+                                document.getElementById('service-time-end').value = currentTime;
+                            }
+
+                            checkLoginStatus();
+                        });
+
+                        function goBack() {
+                            if (document.referrer) {
+                                window.history.back();
+                            } else {
+                                window.location.href = 'homepage.html'; // Change this to your default fallback page
+                            }
+                        }
+
+                        function calculateTimeDifference() {
+                            const startTime = document.getElementById('service-time-start').value;
+                            const endTime = document.getElementById('service-time-end').value;
+
+                            if (startTime && endTime) {
+                                const [startHours, startMinutes] = startTime.split(':').map(Number);
+                                const [endHours, endMinutes] = endTime.split(':').map(Number);
+
+                                let startDateTime = new Date();
+                                startDateTime.setHours(startHours, startMinutes, 0);
+
+                                let endDateTime = new Date();
+                                endDateTime.setHours(endHours, endMinutes, 0);
+
+                                let durationInMinutes = (endDateTime - startDateTime) / (1000 * 60);
+                                if (durationInMinutes < 0) {
+                                    durationInMinutes += 24 * 60;
+                                }
+
+                                const hours = Math.floor(durationInMinutes / 60);
+                                const minutes = durationInMinutes % 60;
+                                const totalDurationInHours = hours + (minutes / 60);
+
+                                const timeDifferenceElement = document.getElementById('time-difference');
+                                timeDifferenceElement.value = `${hours} ชั่วโมง ${minutes} นาที`;
+
+                                const minimumDurationInHours = minimumTimeTokenHours + (minimumTimeTokenMinutes / 60);
+                                if (totalDurationInHours < minimumDurationInHours) {
+                                    timeDifferenceElement.classList.remove('text-green-600');
+                                    timeDifferenceElement.classList.add('text-red-600');
+                                } else {
+                                    timeDifferenceElement.classList.remove('text-red-600');
+                                    timeDifferenceElement.classList.add('text-green-600');
+                                }
+                            }
+                        }
+                    </script>
     <script src="navbar.js"></script>
 </body>
 

@@ -8,9 +8,14 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
     <script src="navbar.js"></script>
     <script>
+        let globalUserId = null;
+        let activityId = null;
+        let minimumTimeTokenHours = null;
+        let minimumTimeTokenMinutes = null;
+
         async function fetchActivityDetails() {
             const urlParams = new URLSearchParams(window.location.search);
-            const activityId = urlParams.get('id');
+            activityId = urlParams.get('id');
 
             if (!activityId) {
                 alert('ไม่พบรหัสกิจกรรม');
@@ -66,12 +71,119 @@
                     const participantsCount = Array.isArray(participants) ? participants.length : 0;
                     document.getElementById('activity-max-participants').innerText = `${participantsCount}/${activity.max_participants}`;
                     document.getElementById('activity-status').innerText = activity.status;
+
+                    // Handle required skills display
+                    displayRequiredSkills(activity.required_skills);
+
+                    // Calculate and display time difference
+                    calculateTimeDifference();
                 } else {
                     alert('ไม่พบรายละเอียดกิจกรรม');
                 }
             } catch (error) {
                 console.error('Error fetching activity details:', error);
                 alert('เกิดข้อผิดพลาดในการดึงรายละเอียดกิจกรรม');
+            }
+        }
+
+        function displayRequiredSkills(requiredSkills) {
+            const skillsContainer = document.getElementById('selected-skills-list');
+            skillsContainer.innerHTML = ''; // Clear previous content
+
+            try {
+                // Ensure requiredSkills is an integer (skill_id) and fetch skill details from API
+                if (!requiredSkills || isNaN(requiredSkills)) {
+                    skillsContainer.innerHTML = '<li class="text-gray-500">ไม่มีทักษะที่ระบุ</li>';
+                    return;
+                }
+
+                // Fetch skill details using the skill_id
+                fetch(`http://localhost:3000/api/tbm/skills/${requiredSkills}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                })
+                    .then(response => response.json())
+                    .then(skill => {
+                        if (!skill || !skill.name || !skill.category) {
+                            skillsContainer.innerHTML = '<li class="text-gray-500">ไม่พบข้อมูลทักษะ</li>';
+                            return;
+                        }
+
+                        // Create list item with proper spacing
+                        const listItem = document.createElement('li');
+                        listItem.innerHTML = `
+                            <strong class="text-blue-600 text-lg font-semibold">หมวดหมู่:</strong>
+                            <span class="mr-4">${skill.category}</span>
+                            <strong class="text-green-600 text-lg font-semibold">ทักษะ:</strong>
+                            <span>${skill.name}</span>
+                        `;
+                        skillsContainer.appendChild(listItem);
+                    })
+                    .catch(error => {
+                        console.error('Error fetching skill details:', error);
+                        skillsContainer.innerHTML = '<li class="text-red-500">เกิดข้อผิดพลาดในการโหลดทักษะ</li>';
+                    });
+            } catch (error) {
+                console.error('Error parsing required skills:', error);
+                skillsContainer.innerHTML = '<li class="text-red-500">เกิดข้อผิดพลาดในการโหลดทักษะ</li>';
+            }
+        }
+
+        async function fetchCommunityConfig() {
+            try {
+                const response = await fetch('http://localhost:3000/api/tbm/community-config', {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                minimumTimeTokenHours = data.minimum_time_token_hours;
+                minimumTimeTokenMinutes = data.minimum_time_token_minutes;
+                console.log('Minimum Time Token:', minimumTimeTokenHours, minimumTimeTokenMinutes);
+            } catch (error) {
+                console.error('Error fetching community config:', error);
+                alert('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
+            }
+        }
+
+        function calculateTimeDifference() {
+            const startTime = document.getElementById('activity-start-time').innerText;
+            const endTime = document.getElementById('activity-end-time').innerText;
+
+            if (startTime && endTime) {
+                const [startHours, startMinutes] = startTime.split(':').map(Number);
+                const [endHours, endMinutes] = endTime.split(':').map(Number);
+
+                let startDateTime = new Date();
+                startDateTime.setHours(startHours, startMinutes, 0);
+
+                let endDateTime = new Date();
+                endDateTime.setHours(endHours, endMinutes, 0);
+
+                let durationInMinutes = (endDateTime - startDateTime) / (1000 * 60);
+                if (durationInMinutes < 0) {
+                    durationInMinutes += 24 * 60;
+                }
+
+                const hours = Math.floor(durationInMinutes / 60);
+                const minutes = durationInMinutes % 60;
+                const totalDurationInHours = hours + (minutes / 60);
+
+                const timeDifferenceElement = document.getElementById('time-difference');
+                timeDifferenceElement.innerText = `${hours} ชั่วโมง ${minutes} นาที`;
+
+                const minimumDurationInHours = minimumTimeTokenHours + (minimumTimeTokenMinutes / 60);
+                if (totalDurationInHours < minimumDurationInHours) {
+                    timeDifferenceElement.classList.remove('text-green-600');
+                    timeDifferenceElement.classList.add('text-red-600');
+                } else {
+                    timeDifferenceElement.classList.remove('text-red-600');
+                    timeDifferenceElement.classList.add('text-green-600');
+                }
             }
         }
 
@@ -195,6 +307,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchActivityDetails();
+            fetchCommunityConfig();
 
             document.getElementById('participants-button').addEventListener('click', () => {
                 const activityId = new URLSearchParams(window.location.search).get('id');
@@ -230,117 +343,156 @@
             <h1 class="text-4xl font-bold mb-5">
                 อนุมัติกิจกรรม
             </h1>
-            <div class="bg-white text-black p-12 rounded-lg shadow-lg max-w-6xl mx-auto">
-                <h2 class="text-4xl font-bold mb-6 text-center text-blue-700" id="activity-title">
+            <div class="bg-white text-black p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
+                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700" id="activity-title">
                     <!-- Activity Title will be inserted here -->
                 </h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div>
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-lg font-bold mb-2">
-                                รายละเอียด:
+                <form>
+                    <!-- Requester Information -->
+                    <div class="flex flex-wrap -mx-3 mb-4">
+                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">
+                                ชื่อผู้ขอบริการ
                             </label>
-                            <p class="text-gray-700 text-lg" id="activity-description">
-                                <!-- Activity Description will be inserted here -->
-                            </p>
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-lg font-bold mb-2">
-                                สถานที่จัด:
-                            </label>
-                            <p class="text-gray-700 text-lg" id="activity-location">
-                                <!-- Activity Location will be inserted here -->
-                            </p>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-lg font-bold mb-2">
-                                วันที่:
-                            </label>
-                            <p class="text-gray-700 text-lg" id="activity-date">
-                                <!-- Activity Date will be inserted here -->
-                            </p>
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-lg font-bold mb-2">
-                                เวลาเริ่มต้น:
-                            </label>
-                            <p class="text-gray-700 text-lg" id="activity-start-time">
-                                <!-- Activity Start Time will be inserted here -->
-                            </p>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-lg font-bold mb-2">
-                                เวลาสิ้นสุด:
-                            </label>
-                            <p class="text-gray-700 text-lg" id="activity-end-time">
-                                <!-- Activity End Time will be inserted here -->
-                            </p>
-                        </div>
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-lg font-bold mb-2">
-                                จำนวนคน:
-                            </label>
-                            <p class="text-gray-700 text-lg" id="activity-max-participants">
-                                <!-- Activity Max Participants will be inserted here -->
-                            </p>
-                        </div>
-                    </div>
-                    <div>
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-lg font-bold mb-2">
-                                ชื่อผู้ขอบริการ:
-                            </label>
-                            <p class="text-gray-700 text-lg" id="activity-requester-name">
+                            <p id="activity-requester-name" class="text-gray-700 text-lg">
                                 <!-- Activity Requester Name will be inserted here -->
                             </p>
                         </div>
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-lg font-bold mb-2">
-                                สถานะ:
+                    </div>
+                    <hr class="my-8 border-gray-200">
+                    <!-- Service Information -->
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">
+                            ชื่อบริการ
+                        </label>
+                        <p id="activity-title" class="text-gray-700 text-lg">
+                            <!-- Activity Title will be inserted here -->
+                        </p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">
+                            รายละเอียดบริการ
+                        </label>
+                        <p id="activity-description" class="text-gray-700 text-lg">
+                            <!-- Activity Description will be inserted here -->
+                        </p>
+                    </div>
+                    <div class="flex flex-wrap -mx-3 mb-4">
+                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">
+                                สถานที่จัด
                             </label>
-                            <p class="text-gray-700 text-lg" id="activity-status">
+                            <p id="activity-location" class="text-gray-700 text-lg">
+                                <!-- Activity Location will be inserted here -->
+                            </p>
+                        </div>
+                        <div class="w-full md:w-1/2 px-3">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">
+                                สถานะ
+                            </label>
+                            <p id="activity-status" class="text-gray-700 text-lg">
                                 <!-- Activity Status will be inserted here -->
                             </p>
                         </div>
-                        <div class="mb-4">
-                            <label class="block text-gray-700 text-lg font-bold mb-2">
-                                เครดิตเวลาที่ต้องการ:
+                    </div>
+                    <hr class="my-8 border-gray-200">
+                    <!-- Selected Skills Display -->
+                    <div id="selected-skills-container" class="mt-4 bg-white p-4 rounded-lg shadow-sm">
+                        <h3 class="text-lg font-semibold text-blue-700">ทักษะที่ต้องการ:</h3>
+                        <ul id="selected-skills-list" class="mt-2 list-disc list-inside text-gray-700"></ul>
+                    </div>
+                    <hr class="my-8 border-gray-200">
+                    <!-- Date & Time Information -->
+                    <div class="flex flex-wrap -mx-3 mb-4">
+                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">
+                                วันที่เริ่มต้น
                             </label>
-                            <p class="text-gray-700 text-lg" id="activity-time-tokens">
-                                <!-- Activity Time Tokens Required will be inserted here -->
+                            <p id="activity-date" class="text-gray-700 text-lg">
+                                <!-- Activity Date will be inserted here -->
+                            </p>
+                        </div>
+                        <div class="w-full md:w-1/2 px-3">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">
+                                วันที่สิ้นสุด
+                            </label>
+                            <p id="activity-end-date" class="text-gray-700 text-lg">
+                                <!-- Activity End Date will be inserted here -->
                             </p>
                         </div>
                     </div>
-                </div>
-                <div class="flex items-center justify-center mt-6">
-                    <button
-                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-4 px-6 ml-2 rounded focus:outline-none focus:shadow-outline"
-                        onclick="window.history.back()" type="button">
-                        ย้อนกลับ
-                    </button>
-                    <button
-                        class="bg-green-500 hover:bg-green-700 text-white font-bold py-4 px-6 ml-2 rounded focus:outline-none focus:shadow-outline"
-                        onclick="approveActivity()" type="button">
-                        อนุมัติ
-                    </button>
-                    <button
-                        class="bg-red-500 hover:bg-red-700 text-white font-bold py-4 px-6 ml-2 rounded focus:outline-none focus:shadow-outline"
-                        onclick="rejectActivity()" type="button">
-                        ปฏิเสธ
-                    </button>
-                    <button
-                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-6 ml-2 rounded focus:outline-none focus:shadow-outline"
-                        id="participants-button" type="button">
-                        ดูผู้เข้าร่วม
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</body>
-
-</html>
+                    <div class="flex flex-wrap -mx-3 mb-4">
+                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">
+                                เวลาเริ่มต้น
+                            </label>
+                            <p id="activity-start-time" class="text-gray-700 text-lg">
+                                <!-- Activity Start Time will be inserted here -->
+                            </p>
+                        </div>
+                        <div class="w-full md:w-1/2 px-3">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">
+                                เวลาสิ้นสุด
+                            </label>
+                            <p id="activity-end-time" class="text-gray-700 text-lg">
+                                <!-- Activity End Time will be inserted here -->
+                            </p>
+                        </div>
+                    </div>
+                    <!-- Time Difference -->
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2">
+                            เวลาต่าง
+                        </label>
+                        <p id="time-difference" class="text-gray-700 text-lg">
+                            <!-- Time Difference will be inserted here -->
+                        </p>
+                    </div>
+                    <!-- Participant Count -->
+                    <div class="flex flex-wrap -mx-3 mb-4">
+                        <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
+                            <label class="block text-gray-700 text-sm font-bold mb-2">
+                                จำนวนคน
+                            </label>
+                            <p id="activity-max-participants" class="text-gray-700 text-lg">
+                                <!-- Activity Max Participants will be inserted here -->
+                            </p>
+                            </div>
+                            <div class="w-full md:w-1/2 px-3">
+                                <label class="block text-gray-700 text-sm font-bold mb-2">
+                                    เครดิตเวลาที่ต้องการ
+                                </label>
+                                <p id="activity-time-tokens" class="text-gray-700 text-lg">
+                                    <!-- Activity Time Tokens Required will be inserted here -->
+                                </p>
+                            </div>
+                            </div>
+                            </form>
+                            <div class="flex items-center justify-center mt-6">
+                                <button
+                                    class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-4 px-6 ml-2 rounded focus:outline-none focus:shadow-outline"
+                                    onclick="window.history.back()" type="button">
+                                    ย้อนกลับ
+                                </button>
+                                <button
+                                    class="bg-green-500 hover:bg-green-700 text-white font-bold py-4 px-6 ml-2 rounded focus:outline-none focus:shadow-outline"
+                                    onclick="approveActivity()" type="button">
+                                    อนุมัติ
+                                </button>
+                                <button
+                                    class="bg-red-500 hover:bg-red-700 text-white font-bold py-4 px-6 ml-2 rounded focus:outline-none focus:shadow-outline"
+                                    onclick="rejectActivity()" type="button">
+                                    ปฏิเสธ
+                                </button>
+                                <button
+                                    class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-6 ml-2 rounded focus:outline-none focus:shadow-outline"
+                                    id="participants-button" type="button">
+                                    ดูผู้เข้าร่วม
+                                </button>
+                            </div>
+                            </div>
+                            </div>
+                            </div>
+                            </body>
+                            
+                            </html>
