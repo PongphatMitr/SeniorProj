@@ -64,10 +64,10 @@ CREATE TABLE activities (
     max_participants INT NOT NULL CHECK (max_participants > 0),
     requester_id INT NOT NULL,
     requester_phone VARCHAR(20) NOT NULL,
-    status VARCHAR(50) NOT NULL CHECK (status IN ('กำลังจะเริ่ม', 'เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา')),
+    status activity_status NOT NULL,  -- Changed to use enum type
     time_tokens_required INT DEFAULT 0,
     time_tokens_per_participant INT DEFAULT 0,
-    required_skills INT NOT NULL ,
+    required_skills INT NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
     FOREIGN KEY (requester_id) REFERENCES users(user_id) ON DELETE CASCADE
@@ -269,7 +269,8 @@ VALUES
 ('งานนันทนาการ'),
 ('งานส่งเสริมความรู้,ให้คำปรึกษา,คำแนะนำ'),
 ('งานบ้าน/งานครัว'),
-('งานเกษตร');
+('งานเกษตร'),
+('อื่นๆ');
 
 -- Insert initial data into skills
 INSERT INTO skills (name, category_id) 
@@ -281,7 +282,6 @@ VALUES
 ('ซ่อมประปา', 1),
 ('ซ่อมรถ', 1),
 ('เย็บ/ปัก/ถัก/ร้อย', 1),
-('อื่นๆ (ระบุความสามารถเอง)', 1),
 ('ขับรถรับ-ส่ง', 2),
 ('ดูแลเด็ก/ผู้ป่วย/ผู้สูงอายุ/ผู้พิการ', 2),
 ('ช่วยขนย้ายของ', 2),
@@ -291,14 +291,12 @@ VALUES
 ('ช่วยงานเอกสาร/งานพิมพ์', 2),
 ('เป็นเพื่อน รับ-ส่ง', 2),
 ('เป็นเพื่อนรอที่โรงพยาบาล', 2),
-('อื่นๆ (ระบุความสามารถเอง)', 2),
 ('พิธีกร/นำสวดมนต์', 3),
 ('จัดกิจกรรมพัฒนาสมอง', 3),
 ('ออกกำลังกาย/แอโรบิค/โยคะ', 3),
 ('นวดเพื่อสุขภาพ', 3),
 ('เล่นดนตรี/ร้องเพลง/รำวงในงานเทศกาล', 3),
 ('เล่านิทาน/เล่าตำนานท้องถิ่น', 3),
-('อื่นๆ (ระบุความสามารถเอง)', 3),
 ('สอนพิเศษ/สอนการบ้าน', 4),
 ('ความรู้ด้านสิ้งประดิษฐ์', 4),
 ('ความรู้ด้านดนตรี/สอนรำ', 4),
@@ -309,14 +307,12 @@ VALUES
 ('ความรู้ด้านสุขภาพ', 4),
 ('ความรู้ด้านปุ๋ยหมัก', 4),
 ('ความรู้ด้านการหมัก', 4),
-('อื่นๆ (ระบุความสามารถเอง)', 4),
 ('ทำงานบ้าน', 5),
 ('ทำอาหาร', 5),
 ('ทำขนม', 5),
 ('ทำเครื่องดื่ม', 5),
 ('ตกแต่งบ้าน', 5),
 ('ซัก/รีดเสื้อผ้า', 5),
-('อื่นๆ (ระบุความสามารถเอง)', 5),
 ('รดน้ำต้นไม้', 6),
 ('ตัดต้นไม้', 6),
 ('ตัดหญ้า', 6),
@@ -324,7 +320,7 @@ VALUES
 ('ปลูกผักสวนครัว', 6),
 ('ทำสวน', 6),
 ('แต่งสวน', 6),
-('อื่นๆ (ระบุความสามารถเอง)', 6);
+('อื่นๆ (ระบุความสามารถเอง)', 7);
 
 -- Insert initial data into member_skills
 INSERT INTO member_skills (user_id, skill_1, skill_2, skill_3) 
