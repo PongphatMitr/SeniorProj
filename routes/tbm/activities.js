@@ -105,7 +105,6 @@ const activityRoutes = (pool) => {
         }
     });
 
-
     // Get an activity by ID
     router.get('/:id', async (req, res) => {
         const { id } = req.params;
@@ -133,11 +132,6 @@ const activityRoutes = (pool) => {
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
-
-
-
-
-
 
     // Create a new activity
     router.post('/', async (req, res) => {
@@ -176,9 +170,6 @@ const activityRoutes = (pool) => {
             client.release();
         }
     });
-
-
-
 
     // Update an activity
     router.put('/:id', async (req, res) => {
@@ -247,17 +238,14 @@ const activityRoutes = (pool) => {
         try {
             const participants = await pool.query(`
                 SELECT u.user_id, u.name, u.phone,
-                       ARRAY[
-                           (SELECT name FROM skills WHERE skill_id = ms.skill_1),
-                           (SELECT name FROM skills WHERE skill_id = ms.skill_2),
-                           (SELECT name FROM skills WHERE skill_id = ms.skill_3)
-                       ] AS skills
+                       ARRAY(
+                           SELECT name FROM skills WHERE skill_id = ANY(ARRAY[ms.skill_1, ms.skill_2, ms.skill_3])
+                       ) AS skills
                 FROM activity_participants ap
                 JOIN users u ON ap.user_id = u.user_id
                 LEFT JOIN member_skills ms ON u.user_id = ms.user_id
                 WHERE ap.activity_id = $1
             `, [activityId]);
-
 
             res.json(participants.rows);
         } catch (error) {
@@ -266,13 +254,12 @@ const activityRoutes = (pool) => {
         }
     });
 
-
     // Add a participant to an activity
     router.post('/:activityId/participants', async (req, res) => {
         const { activityId } = req.params;
-        const { memberId } = req.body;
+        const { userId } = req.body;
 
-        console.log(`🔹 Checking join eligibility for activity ${activityId} and user ${memberId}`);
+        console.log(`🔹 Checking join eligibility for activity ${activityId} and user ${userId}`);
 
         const client = await pool.connect();
         try {
@@ -280,21 +267,21 @@ const activityRoutes = (pool) => {
 
             // Get activity details
             const activityResult = await client.query(
-                `SELECT required_skills FROM activities WHERE activity_id = $1`,
+                `SELECT required_skills, max_participants FROM activities WHERE activity_id = $1`,
                 [activityId]
             );
             if (activityResult.rows.length === 0) {
                 return res.status(404).json({ error: 'ไม่พบกิจกรรมที่คุณต้องการเข้าร่วม' });
             }
-            const requiredSkillId = activityResult.rows[0].required_skills;
+            const { required_skills: requiredSkillId, max_participants: maxParticipants } = activityResult.rows[0];
 
             // Get user's skills
             const skillResult = await client.query(
                 `SELECT skill_1, skill_2, skill_3 FROM member_skills WHERE user_id = $1`,
-                [memberId]
+                [userId]
             );
             if (skillResult.rows.length === 0) {
-                return res.status(400).json({ error: 'คุณยังไม่ได้ลงทะเบียนทักษะของคุณ' });
+                return res.status(400).json({ error: 'ผู้เข้าร่วมยังไม่ได้ลงทะเบียนทักษะของคุณ' });
             }
 
             const { skill_1, skill_2, skill_3 } = skillResult.rows[0];
@@ -307,7 +294,7 @@ const activityRoutes = (pool) => {
             // Check if the user is already a participant
             const participantCheck = await client.query(
                 `SELECT * FROM activity_participants WHERE activity_id = $1 AND user_id = $2`,
-                [activityId, memberId]
+                [activityId, userId]
             );
             if (participantCheck.rows.length > 0) {
                 return res.status(400).json({ error: 'คุณได้เข้าร่วมกิจกรรมนี้แล้ว' });
@@ -318,14 +305,14 @@ const activityRoutes = (pool) => {
                 `SELECT COUNT(*) FROM activity_participants WHERE activity_id = $1`,
                 [activityId]
             );
-            if (parseInt(participantCount.rows[0].count) >= requiredSkillId.max_participants) {
+            if (parseInt(participantCount.rows[0].count) >= maxParticipants) {
                 return res.status(400).json({ error: 'กิจกรรมนี้เต็มแล้ว ไม่สามารถเข้าร่วมได้' });
             }
 
             // Add participant to the activity
             await client.query(
                 `INSERT INTO activity_participants (activity_id, user_id) VALUES ($1, $2)`,
-                [activityId, memberId]
+                [activityId, userId]
             );
 
             await client.query('COMMIT');
@@ -338,7 +325,6 @@ const activityRoutes = (pool) => {
             client.release();
         }
     });
-
 
     // Approve an activity
     router.post('/:activityId/approve', async (req, res) => {
@@ -397,7 +383,7 @@ const activityRoutes = (pool) => {
 
             // Log the transaction for the requester
             await client.query(
-                'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type) VALUES ($1, $2, $3, $4, $5)',
+                'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type, date, time) VALUES ($1, $2, $3, $4, $5, NOW(), NOW())',
                 [requester.user_id, activityId, `Approved activity: ${activity.title}`, totalTokensRequired, 'spend']
             );
 
@@ -407,7 +393,7 @@ const activityRoutes = (pool) => {
 
                 // Log the transaction for each participant
                 await client.query(
-                    'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type) VALUES ($1, $2, $3, $4, $5)',
+                    'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type, date, time) VALUES ($1, $2, $3, $4, $5, NOW(), NOW())',
                     [participant.user_id, activityId, `Earned time credits for activity: ${activity.title}`, activity.time_tokens_per_participant, 'earn']
                 );
             }
