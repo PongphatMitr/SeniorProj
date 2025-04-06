@@ -269,20 +269,9 @@
             }
             const required_skill = selectedSkills[0].skill_id;
             const activityData = {
-                title,
-                description,
-                location,
-                start_date: startDate,
-                start_time: startTime,
-                end_date: endDate,
-                end_time: endTime,
-                max_participants: maxParticipants,
-                requester_id: requesterId,
-                requester_phone: requesterPhone,
-                status,
-                time_tokens_required: timeTokensRequired,
-                time_tokens_per_participant: timeTokensPerParticipant,
-                required_skills: required_skill
+                title, description, location, start_date: startDate, start_time: startTime, end_date: endDate, end_time: endTime,
+                max_participants: maxParticipants, requester_id: requesterId, requester_phone: requesterPhone, status,
+                time_tokens_required: timeTokensRequired, time_tokens_per_participant: timeTokensPerParticipant, required_skills: required_skill
             };
             try {
                 const response = await fetch('http://localhost:3000/api/tbm/activities', {
@@ -418,6 +407,14 @@
             } else {
                 console.warn("⚠️ Warning: #end-minutes element not found.");
             }
+
+            // Set the date from URL parameter if available
+            const urlParams = new URLSearchParams(window.location.search);
+            const dateParam = urlParams.get('date');
+            if (dateParam) {
+                document.getElementById('start-date').value = dateParam;
+                document.getElementById('end-date').value = dateParam;
+            }
         });
 
         function setStartDateRange() {
@@ -435,20 +432,10 @@
 
         function syncDates(selectedDate) {
             const startDateInput = document.getElementById('start-date');
-            const endDateInput = document.getElementById('end-date');
+                    const endDateInput = document.getElementById('end-date');
                     startDateInput.value = selectedDate;
                     endDateInput.value = selectedDate;
                 }
-
-                document.addEventListener('DOMContentLoaded', () => {
-                    setStartDateRange();
-                    document.getElementById('start-date').addEventListener('input', (event) => {
-                        syncDates(event.target.value);
-                    });
-                    document.getElementById('end-date').addEventListener('input', (event) => {
-                        syncDates(event.target.value);
-                    });
-                });
 
                 function adjustEndTime(startTime) {
                     if (!startTime) return;
@@ -490,16 +477,12 @@
                 }
             </script>
 </head>
-
 <body class="bg-gray-100">
     <div class="flex flex-col md:flex-row">
         <!-- Sidebar -->
         <div class="w-full md:w-1/6 bg-white h-screen p-5">
             <div class="flex items-center mb-10">
-                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
-                    class="w-10 h-10 rounded-full" height="50"
-                    src="https://storage.googleapis.com/a1aa/image/JaxOKaMKHJqGHJDHlmCWQKBMBfv2lD9sfUrO418JFJjqfSRoA.jpg"
-                    width="50">
+                <img alt="Logo of Time Bank System, a clock with a handshake in the center" class="w-10 h-10 rounded-full" height="50" src="https://storage.googleapis.com/a1aa/image/JaxOKaMKHJqGHJDHlmCWQKBMBfv2lD9sfUrO418JFJjqfSRoA.jpg" width="50">
                 <span class="ml-3 text-xl font-bold text-blue-600">TIMEBANK</span>
             </div>
             <nav>
@@ -518,39 +501,29 @@
                     <!-- Section: Requester Information -->
                     <div class="grid grid-cols-2 gap-4 mb-4">
                         <div class="relative">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="requester-name"> ชื่อผู้ขอ
-                            </label>
-                            <input id="requester-name"
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="text" oninput="searchMembers()" placeholder="กรอก เลขบัญชี หรือ ชื่อ" required />
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="requester-name"> ชื่อผู้ขอ </label>
+                            <input id="requester-name" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" oninput="searchMembers()" placeholder="กรอก เลขบัญชี หรือ ชื่อ" required />
                             <input id="requester-id" type="hidden" />
-                            <div id="search-results-dropdown"
-                                class="absolute w-full bg-white border rounded-lg mt-1 hidden z-10"></div>
+                            <div id="search-results-dropdown" class="absolute w-full bg-white border rounded-lg mt-1 hidden z-10"></div>
                         </div>
                         <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="phone"> เบอร์โทรศัพท์
-                            </label>
-                            <input id="phone"
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                type="text" readonly />
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="phone"> เบอร์โทรศัพท์ </label>
+                            <input id="phone" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" type="text" readonly />
                         </div>
                     </div>
                     <hr class="my-8 border-gray-200">
                     <!-- Section: Activity Details -->
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="title">ชื่อกิจกรรม</label>
-                        <input id="title" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text"
-                            placeholder="ระบุชื่อกิจกรรม" required />
+                        <input id="title" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text" placeholder="ระบุชื่อกิจกรรม" required />
                     </div>
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="description">รายละเอียด</label>
-                        <textarea id="description" class="shadow border rounded w-full py-2 px-3 text-gray-700"
-                            placeholder="ระบุรายละเอียดกิจกรรม" required></textarea>
+                        <textarea id="description" class="shadow border rounded w-full py-2 px-3 text-gray-700" placeholder="ระบุรายละเอียดกิจกรรม" required></textarea>
                     </div>
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="location">สถานที่</label>
-                        <input id="location" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text"
-                            placeholder="ระบุสถานที่จัดกิจกรรม" required />
+                        <input id="location" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text" placeholder="ระบุสถานที่จัดกิจกรรม" required />
                     </div>
                     <!-- Section: Skill Selection -->
                     <hr class="my-8 border-gray-200">
@@ -561,18 +534,14 @@
                     <!-- Skill Selection Details -->
                     <div class="bg-gray-100 p-6 rounded-lg shadow-md">
                         <div class="mb-4">
-                            <label for="category-dropdown"
-                                class="block text-gray-700 text-sm font-bold mb-2">เลือกหมวดหมู่:</label>
-                            <select id="category-dropdown" class="shadow border rounded w-full py-2 px-3 text-gray-700"
-                                onchange="updateSkillDropdown()">
+                            <label for="category-dropdown" class="block text-gray-700 text-sm font-bold mb-2">เลือกหมวดหมู่:</label>
+                            <select id="category-dropdown" class="shadow border rounded w-full py-2 px-3 text-gray-700" onchange="updateSkillDropdown()">
                                 <option value="">กรุณาเลือกหมวดหมู่</option>
                             </select>
                         </div>
                         <div class="mb-4">
-                            <label for="skill-dropdown" class="block text-gray-700 text-sm font-bold mb-2">เลือกทักษะ
-                                (สามารถเลือกได้เพียง 1 ทักษะเท่านั้น):</label>
-                            <select id="skill-dropdown" class="shadow border rounded w-full py-2 px-3 text-gray-700"
-                                disabled onchange="addSkill()">
+                            <label for="skill-dropdown" class="block text-gray-700 text-sm font-bold mb-2">เลือกทักษะ (สามารถเลือกได้เพียง 1 ทักษะเท่านั้น):</label>
+                            <select id="skill-dropdown" class="shadow border rounded w-full py-2 px-3 text-gray-700" disabled onchange="addSkill()">
                                 <option value="">กรุณาเลือกทักษะ</option>
                             </select>
                         </div>
@@ -586,84 +555,72 @@
                     <!-- Section: Date -->
                     <div class="grid grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2"
-                                for="start-date">วันที่เริ่มต้น</label>
-                            <input id="start-date" class="shadow border rounded w-full py-2 px-3 text-gray-700"
-                                type="date" required />
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="start-date">วันที่เริ่มต้น</label>
+                            <input id="start-date" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="date" required />
                         </div>
                         <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2"
-                                for="end-date">วันที่สิ้นสุด</label>
-                            <input id="end-date" class="shadow border rounded w-full py-2 px-3 text-gray-700"
-                                type="date" required />
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="end-date">วันที่สิ้นสุด</label>
+                            <input id="end-date" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="date" required />
                         </div>
                     </div>
                     <!-- Section: Time -->
                     <div class="grid grid-cols-2 gap-4">
                         <div class="mb-6">
-                            <label for="start-time"
-                                class="block text-gray-700 text-sm font-bold mb-2">เวลาเริ่มต้น</label>
-                            <div
-                                class="flex items-center bg-white border shadow border rounded w-full py-2 px-3 text-gray-700">
+                            <label for="start-time" class="block text-gray-700 text-sm font-bold mb-2">เวลาเริ่มต้น</label>
+                            <div class="flex items-center bg-white border shadow border rounded w-full py-2 px-3 text-gray-700">
                                 <!-- Hour Selector -->
-                                <select id="start-hours" name="start-hours"
-                                    class="text-gray-700 w-full text-center focus:outline-none">
+                                <select id="start-hours" name="start-hours" class="text-gray-700 w-full text-center focus:outline-none">
                                     <option value="" selected disabled>-- ชั่วโมง --</option>
                                     <script>
                                         for (let i = 0; i < 24; i++) {
                                             document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาฬิกา</option>`);
-                                        } 
+                                        }
                                     </script>
                                 </select>
                                 <!-- Minute Selector -->
-                                <select id="start-minutes" name="start-minutes"
-                                    class="text-gray-700 w-full text-center focus:outline-none">
+                                <select id="start-minutes" name="start-minutes" class="text-gray-700 w-full text-center focus:outline-none">
                                     <option value="00" selected>00 นาที</option>
                                     <script>
                                         for (let i = 0; i < 60; i += 5) {
                                             document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาที</option>`);
-                                        } 
+                                        }
                                     </script>
                                 </select>
                             </div>
                         </div>
                         <div class="mb-6">
                             <label for="end-time" class="block text-gray-700 text-sm font-bold mb-2">เวลาสิ้นสุด</label>
-                            <div
-                                class="flex items-center bg-white border shadow border rounded w-full py-2 px-3 text-gray-700">
+                            <div class="flex items-center bg-white border shadow border rounded w-full py-2 px-3 text-gray-700">
                                 <!-- Hour Selector -->
-                                <select id="end-hours" name="end-hours"
-                                    class="text-gray-700 w-full text-center focus:outline-none">
+                                <select id="end-hours" name="end-hours" class="text-gray-700 w-full text-center focus:outline-none">
                                     <option value="" selected disabled>-- ชั่วโมง --</option>
                                     <script>
                                         for (let i = 0; i < 24; i++) {
                                             document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาฬิกา</option>`);
-                                        } 
+                                        }
                                     </script>
                                 </select>
                                 <!-- Minute Selector -->
-                                <select id="end-minutes" name="end-minutes"
-                                    class="text-gray-700 w-full text-center focus:outline-none">
+                                <select id="end-minutes" name="end-minutes" class="text-gray-700 w-full text-center focus:outline-none">
                                     <option value="00" selected>00 นาที</option>
                                     <script>
                                         for (let i = 0; i < 60; i += 5) {
                                             document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาที</option>`);
-                                        } 
+                                        }
                                     </script>
                                 </select>
                             </div>
                         </div>
                         <div class="mb-6">
-                            <label for="time-difference"
-                                class="block text-gray-700 text-sm font-bold mb-2">เวลาต่าง</label>
-                            <input id="time-difference" class="shadow border rounded w-full py-2 px-3 text-gray-700"
-                                type="text" readonly />
+                            <label for="time-difference" class="block text-gray-700 text-sm font-bold mb-2">เวลาต่าง</label>
+                            <input id="time-difference" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text" readonly />
                         </div>
                         <script>
                             document.getElementById('start-hours').addEventListener('change', updateEndTime);
                             document.getElementById('start-minutes').addEventListener('change', updateEndTime);
                             document.getElementById('end-hours').addEventListener('change', calculateTimeDifference);
                             document.getElementById('end-minutes').addEventListener('change', calculateTimeDifference);
+
                             function updateEndTime() {
                                 let startHours = parseInt(document.getElementById("start-hours").value, 10);
                                 let startMinutes = parseInt(document.getElementById("start-minutes").value, 10);
@@ -680,10 +637,8 @@
                     <!-- Section: Participants & Status -->
                     <div class="grid grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2"
-                                for="max-participants">จำนวนผู้เข้าร่วมสูงสุด</label>
-                            <input id="max-participants" class="shadow border rounded w-full py-2 px-3 text-gray-700"
-                                type="number" required />
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="max-participants">จำนวนผู้เข้าร่วมสูงสุด</label>
+                            <input id="max-participants" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="number" required />
                         </div>
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="status">สถานะ</label>
@@ -695,25 +650,18 @@
                     <!-- Section: Time Tokens -->
                     <div class="grid grid-cols-2 gap-4 mb-4">
                         <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2"
-                                for="time-tokens-required">จำนวนโทเค็นเวลาที่ต้องการ</label>
-                            <input id="time-tokens-required"
-                                class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text" readonly />
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="time-tokens-required">จำนวนโทเค็นเวลาที่ต้องการ</label>
+                            <input id="time-tokens-required" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text" readonly />
                         </div>
                         <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2"
-                                for="time-tokens-per-participant">จำนวนโทเค็นเวลาต่อผู้เข้าร่วม</label>
-                            <input id="time-tokens-per-participant"
-                                class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text" readonly />
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="time-tokens-per-participant">จำนวนโทเค็นเวลาต่อผู้เข้าร่วม</label>
+                            <input id="time-tokens-per-participant" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text" readonly />
                         </div>
                     </div>
                     <!-- Buttons -->
                     <div class="flex justify-center space-x-4">
-                        <button onclick="window.history.back();"
-                            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"> ย้อนกลับ
-                        </button>
-                        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                            type="submit"> สร้างกิจกรรม </button>
+                        <button onclick="window.history.back();" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"> ย้อนกลับ </button>
+                        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" type="submit"> สร้างกิจกรรม </button>
                     </div>
                 </form>
             </div>
@@ -721,5 +669,4 @@
     </div>
     <script src="navbar.js"></script>
 </body>
-
 </html>

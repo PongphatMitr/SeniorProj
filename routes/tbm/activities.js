@@ -98,7 +98,18 @@ const activityRoutes = (pool) => {
 
             const result = await pool.query(query, values);
             const countResult = await pool.query(`SELECT COUNT(*) FROM activities ${whereClause}`, values.slice(0, -2));
-            res.json({ activities: result.rows, total: parseInt(countResult.rows[0].count, 10) });
+
+            // Group activities by date
+            const activitiesByDate = result.rows.reduce((acc, activity) => {
+                const date = activity.start_date.toISOString().split('T')[0];
+                if (!acc[date]) {
+                    acc[date] = [];
+                }
+                acc[date].push(activity);
+                return acc;
+            }, {});
+
+            res.json({ activities: activitiesByDate, total: parseInt(countResult.rows[0].count, 10) });
         } catch (err) {
             console.error('Error fetching activities:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });

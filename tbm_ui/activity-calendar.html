@@ -15,16 +15,14 @@
 
         async function fetchActivities() {
             try {
-                const response = await fetch(`http://localhost:3000/api/tbm/activities/by-date`, {
+                const response = await fetch(`http://localhost:3000/api/tbm/activities`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-
                 const data = await response.json();
                 activities = data.activities; // Store activities grouped by date
                 renderCalendar(currentMonth, currentYear);
@@ -37,18 +35,15 @@
         function renderCalendar(month, year) {
             const calendarBody = document.getElementById('calendar-body');
             calendarBody.innerHTML = '';
-
             const firstDay = new Date(year, month, 1).getDay();
             const daysInMonth = new Date(year, month + 1, 0).getDate();
             let date = 1;
 
             for (let i = 0; i < 6; i++) {
                 const row = document.createElement('tr');
-
                 for (let j = 0; j < 7; j++) {
                     const cell = document.createElement('td');
                     cell.className = 'border p-2 h-28 align-top relative bg-white';
-
                     if (i === 0 && j < firstDay) {
                         cell.innerHTML = '';
                     } else if (date > daysInMonth) {
@@ -68,16 +63,20 @@
                         // **Container for Activity List**
                         const activityList = document.createElement('div');
                         activityList.className = 'activity-list mt-2';
-
                         if (activities[formattedDate]) {
                             activities[formattedDate].forEach(activity => {
                                 let activityClass = "bg-gray-400"; // Default color
                                 switch (activity.status) {
-                                    case 'กำลังจะเริ่ม': activityClass = "bg-blue-500"; break; // Upcoming
-                                    case 'เสร็จสิ้น': activityClass = "bg-green-500"; break; // Completed
-                                    case 'ยกเลิก': activityClass = "bg-red-500"; break; // Canceled
+                                    case 'กำลังจะเริ่ม':
+                                        activityClass = "bg-blue-500";
+                                        break; // Upcoming
+                                    case 'เสร็จสิ้น':
+                                        activityClass = "bg-green-500";
+                                        break; // Completed
+                                    case 'ยกเลิก':
+                                        activityClass = "bg-red-500";
+                                        break; // Canceled
                                 }
-
                                 const activityDiv = document.createElement('div');
                                 activityDiv.className = `activity-item ${activityClass} text-white rounded px-2 py-1 mt-1 text-xs`;
                                 activityDiv.innerHTML = `${activity.title}`;
@@ -86,7 +85,6 @@
                                 activityDiv.addEventListener("click", function () {
                                     window.location.href = `activity-details.html?id=${this.getAttribute("data-id")}`;
                                 });
-
                                 activityList.appendChild(activityDiv);
                             });
                         }
@@ -96,13 +94,10 @@
                         cell.appendChild(activityList);
                         date++;
                     }
-
                     row.appendChild(cell);
                 }
-
                 calendarBody.appendChild(row);
             }
-
             document.getElementById('month-year').textContent = `${year} ${new Intl.DateTimeFormat('th-TH', { month: 'long' }).format(new Date(year, month))}`;
         }
 
@@ -136,7 +131,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             checkLoginStatus();
             fetchActivities();
-
             // Populate the year selection dropdown in AD format
             populateYearSelect();
         });
@@ -144,11 +138,9 @@
         function populateYearSelect() {
             const yearSelect = document.getElementById('year-select');
             yearSelect.innerHTML = ''; // Clear existing options
-
             let currentYear = new Date().getFullYear(); // Get current year in AD format
             let startYear = currentYear - 5; // Show last 5 years
             let endYear = currentYear + 5; // Show next 5 years
-
             for (let year = startYear; year <= endYear; year++) {
                 let option = document.createElement('option');
                 option.value = year;
@@ -158,7 +150,6 @@
                 }
                 yearSelect.appendChild(option);
             }
-
             yearSelect.addEventListener('change', () => {
                 changeYear(parseInt(yearSelect.value));
             });
@@ -175,13 +166,11 @@
                     class="w-10 h-10 rounded-full" height="50"
                     src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
                     width="50" />
-                <span class="ml-3 text-xl font-bold text-blue-600">
-                    TIMEBANK
-                </span>
+                <span class="ml-3 text-xl font-bold text-blue-600"> TIMEBANK </span>
             </div>
             <nav>
                 <ul id="navList">
-                    <!-- Navigation items will be dynamically inserted here -->
+                    <!-- Navigation items will be dynamically inserted here by navbar.js -->
                 </ul>
             </nav>
         </div>
@@ -190,15 +179,10 @@
             <!-- Language Toggle Switch -->
             <div class="absolute top-5 right-5">
                 <div class="toggle-container" id="languageToggle">
-                    <span class="toggle-label active" id="lang-th" data-lang="th">
-                        ภาษาไทย
-                    </span>
-                    <span class="toggle-label" id="lang-en" data-lang="en">
-                        English
-                    </span>
+                    <span class="toggle-label active" id="lang-th" data-lang="th"> ภาษาไทย </span>
+                    <span class="toggle-label" id="lang-en" data-lang="en"> English </span>
                 </div>
             </div>
-
             <h1 class="text-4xl font-bold mb-5">ปฏิทินกิจกรรม</h1>
             <div class="bg-white text-black p-8 rounded-lg shadow-lg">
                 <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">ปฏิทิน</h2>
@@ -264,7 +248,6 @@
                         </tbody>
                     </table>
                 </div>
-
                 <style>
                     td {
                         width: 14.2%;
@@ -359,9 +342,7 @@
                         opacity: 0.8;
                     }
                 </style>
-
                 <script src="selected-language.js"></script>
-
                 <script>
                     document.addEventListener('DOMContentLoaded', () => {
                         const langThai = document.getElementById('lang-th');
@@ -370,7 +351,6 @@
                         const mainHeading = document.querySelector('h1');
                         const subHeading = document.querySelector('h2');
                         const tableHeaders = document.querySelectorAll('th');
-
                         const translations = {
                             thai: {
                                 mainHeading: 'ปฏิทินกิจกรรม',
@@ -385,19 +365,15 @@
                                 days: ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
                             },
                         };
-
                         let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
-
                         const updateContent = (lang) => {
                             const langData = translations[lang];
                             mainHeading.textContent = langData.mainHeading;
                             subHeading.textContent = langData.subHeading;
-
                             // Update table headers
                             tableHeaders.forEach((header, index) => {
                                 header.textContent = langData.days[index];
                             });
-
                             // Update navigation
                             const navItems = navList.querySelectorAll('a');
                             navItems.forEach((link, index) => {
@@ -406,7 +382,6 @@
                                 if (icon) link.appendChild(icon);
                                 link.append(` ${langData.nav[index]}`);
                             });
-
                             // Update language toggle styles
                             if (lang === 'thai') {
                                 langThai.classList.add('active');
@@ -416,19 +391,16 @@
                                 langThai.classList.remove('active');
                             }
                         };
-
                         langThai.addEventListener('click', () => {
                             currentLang = 'thai';
                             localStorage.setItem('selectedLanguage', currentLang);
                             updateContent(currentLang);
                         });
-
                         langEnglish.addEventListener('click', () => {
                             currentLang = 'english';
                             localStorage.setItem('selectedLanguage', currentLang);
                             updateContent(currentLang);
                         });
-
                         // Initialize content on page load
                         updateContent(currentLang);
                     });
