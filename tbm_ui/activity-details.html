@@ -148,13 +148,10 @@
                         <button
                             class="bg-gray-500 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
                             type="button" onclick="goBack()">ย้อนกลับ</button>
-                        <button id="join-button"
-                            class="bg-green-500 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
-                            type="button" onclick="handleJoinButton(activityId, 0)">เข้าร่วม</button>
                         <button
                             class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
                             type="button"
-                            onclick="window.location.href='participant-detail.html?id=' + new URLSearchParams(window.location.search).get('id')">รายชื่อผู้เข้าร่วม</button>
+                            onclick="window.location.href='activity-details-participant.html?id=' + new URLSearchParams(window.location.search).get('id')">รายชื่อผู้เข้าร่วม</button>
                     </div>
                 </form>
             </div>
@@ -340,340 +337,351 @@
                 })
                     .then(response => response.json())
                     .then(skill => {
-                                        if (!skill || !skill.name || !skill.category) {
-                                            skillsContainer.innerHTML = '<li class="text-gray-500">ไม่พบข้อมูลทักษะ</li>';
-                                            return;
-                                        }
+                        if (!skill || !skill.name || !skill.category) {
+                            skillsContainer.innerHTML = '<li class="text-gray-500">ไม่พบข้อมูลทักษะ</li>';
+                            return;
+                        }
 
-                                        // Create list item with proper spacing
-                                        const listItem = document.createElement('li');
-                                        listItem.innerHTML = `
+                        // Create list item with proper spacing
+                        const listItem = document.createElement('li');
+                        listItem.innerHTML = `
                             <strong class="text-blue-600 text-lg font-semibold">หมวดหมู่:</strong>
                             <span class="mr-4">${skill.category}</span>
                             <strong class="text-green-600 text-lg font-semibold">ทักษะ:</strong>
                             <span>${skill.name}</span>
                         `;
-                                        skillsContainer.appendChild(listItem);
-                                    })
-                                    .catch(error => {
-                                        console.error('Error fetching skill details:', error);
+                        skillsContainer.appendChild(listItem);
+                    })
+                                            .catch(error => {
+                                                console.error('Error fetching skill details:', error);
+                                                skillsContainer.innerHTML = '<li class="text-red-500">เกิดข้อผิดพลาดในการโหลดทักษะ</li>';
+                                            });
+                                    } catch (error) {
+                                        console.error('Error parsing required skills:', error);
                                         skillsContainer.innerHTML = '<li class="text-red-500">เกิดข้อผิดพลาดในการโหลดทักษะ</li>';
-                                    });
-                            } catch (error) {
-                                console.error('Error parsing required skills:', error);
-                                skillsContainer.innerHTML = '<li class="text-red-500">เกิดข้อผิดพลาดในการโหลดทักษะ</li>';
-                            }
-                        }
-
-                        async function fetchParticipants(activityId, maxParticipants) {
-                            try {
-                                const response = await fetch(`http://localhost:3000/api/tbm/activities/${activityId}/participants`, {
-                                    headers: {
-                                        'Authorization': `Bearer ${localStorage.getItem('token')}`
                                     }
-                                });
-                                const participants = await response.json();
-                                const participantCount = participants.length;
+                                }
 
-                                // Ensure maxParticipants is retrieved correctly if not provided
-                                if (!maxParticipants) {
-                                    const activityResponse = await fetch(`http://localhost:3000/api/tbm/activities/${activityId}`, {
-                                        headers: {
-                                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                                async function fetchParticipants(activityId, maxParticipants) {
+                                    try {
+                                        const response = await fetch(`http://localhost:3000/api/tbm/activities/${activityId}/participants`, {
+                                            headers: {
+                                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                                            }
+                                        });
+                                        const participants = await response.json();
+                                        const participantCount = participants.length;
+
+                                        // Ensure maxParticipants is retrieved correctly if not provided
+                                        if (!maxParticipants) {
+                                            const activityResponse = await fetch(`http://localhost:3000/api/tbm/activities/${activityId}`, {
+                                                headers: {
+                                                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                                                }
+                                            });
+                                            const activityData = await activityResponse.json();
+                                            maxParticipants = activityData.max_participants;
                                         }
-                                    });
-                                    const activityData = await activityResponse.json();
-                                    maxParticipants = activityData.max_participants;
-                                }
 
-                                // Update the participant count in activity-detail
-                                document.getElementById('current-participants').innerText = `${participantCount} / ${maxParticipants}`;
-
-                                // Check if the user has joined the activity
-                                const userJoined = participants.some(participant => participant.user_id === globalUserId);
-                                const joinButton = document.getElementById('join-button');
-
-                                if (userJoined) {
-                                    joinButton.innerText = 'ยกเลิก';
-                                    joinButton.classList.remove('bg-green-500');
-                                    joinButton.classList.add('bg-red-500');
-                                } else {
-                                    joinButton.innerText = 'เข้าร่วม';
-                                    joinButton.classList.remove('bg-red-500');
-                                    joinButton.classList.add('bg-green-500');
-                                }
-                            } catch (error) {
-                                console.error('Error fetching participants:', error);
-                                alert('เกิดข้อผิดพลาดในการดึงข้อมูลผู้เข้าร่วม');
-                            }
-                        }
-
-                        async function fetchMemberProfile() {
-                            try {
-                                const response = await fetch(`http://localhost:3000/api/tbm/auth/profile`, {
-                                    headers: {
-                                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                                    }
-                                });
-
-                                if (!response.ok) {
-                                    throw new Error('Network response was not ok');
-                                }
-
-                                const member = await response.json();
-                                globalUserId = member.user_id; // Store user_id globally
-                                console.log('Member:', member);
-                            } catch (error) {
-                                console.error('Error fetching member profile:', error);
-                                alert('เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์สมาชิก');
-                            }
-                        }
-
-                        async function handleJoinButton(activityId, index) {
-                            const joinButton = document.getElementById('join-button');
-
-                            if (!globalUserId) {
-                                showMessage("คุณต้องเข้าสู่ระบบก่อนเข้าร่วมกิจกรรม", false);
-                                return;
-                            }
-
-                            if (!activityId) {
-                                showMessage("ไม่พบรหัสกิจกรรม", false);
-                                return;
-                            }
-
-                            if (joinButton.innerText === 'เข้าร่วม') {
-                                showConfirmation("คุณต้องการเข้าร่วมกิจกรรมนี้หรือไม่?", async () => {
-                                    await joinActivity(activityId, index);
-                                });
-                            } else if (joinButton.innerText === 'ยกเลิก') {
-                                showConfirmation("คุณต้องการยกเลิกการเข้าร่วมกิจกรรมนี้หรือไม่?", async () => {
-                                    await leaveActivity(activityId, index);
-                                });
-                            }
-                        }
-
-                        async function joinActivity(activityId, index) {
-                            const token = localStorage.getItem('token');
-                            const userId = globalUserId;
-
-                            if (!token || !userId) {
-                                showMessage("คุณต้องเข้าสู่ระบบก่อนเข้าร่วมกิจกรรม", true);
-                                return;
-                            }
-
-                            try {
-                                const response = await fetch(`http://localhost:3000/api/tbm/activities/${activityId}/participants`, {
-                                    method: 'POST',
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                        'Authorization': `Bearer ${token}`
-                                    },
-                                    body: JSON.stringify({ memberId: userId })
-                                });
-
-                                const data = await response.json();
-
-                                if (response.ok) {
-                                    showMessage("เข้าร่วมกิจกรรมสำเร็จ!", false); // ✅ Success message
-                                    await fetchParticipants(activityId); // Update participants count
-
-                                    // Update button appearance
-                                    const joinButton = document.getElementById('join-button');
-                                    joinButton.innerText = 'ยกเลิก';
-                                    joinButton.classList.remove('bg-green-500');
-                                    joinButton.classList.add('bg-red-500');
-                                } else {
-                                    showMessage(data.error || "เกิดข้อผิดพลาดในการเข้าร่วมกิจกรรม", true); // ❌ Error message
-                                }
-                            } catch (error) {
-                                console.error('Error joining activity:', error);
-                                showMessage("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง", true); // ❌ Error message
-                            }
-                        }
-
-                        async function leaveActivity(activityId, index) {
-                            const token = localStorage.getItem('token');
-                            const userId = globalUserId;
-
-                            if (!token || !userId) {
-                                showMessage("คุณต้องเข้าสู่ระบบก่อนออกจากกิจกรรม", true);
-                                return;
-                            }
-
-                            try {
-                                const response = await fetch(`http://localhost:3000/api/tbm/activities/${activityId}/participants/${userId}`, {
-                                    method: 'DELETE',
-                                    headers: {
-                                        'Authorization': `Bearer ${token}`
-                                    }
-                                });
-
-                                if (response.ok) {
-                                    showMessage("ออกจากกิจกรรมสำเร็จ!", false); // ✅ Success message
-                                    await fetchParticipants(activityId); // Update participants count
-
-                                    // Update button appearance
-                                    const joinButton = document.getElementById('join-button');
-                                    joinButton.innerText = 'เข้าร่วม';
-                                    joinButton.classList.remove('bg-red-500');
-                                    joinButton.classList.add('bg-green-500');
-                                } else {
-                                    const data = await response.json();
-                                    showMessage(data.error || "เกิดข้อผิดพลาดในการออกจากกิจกรรม", true); // ❌ Error message
-                                }
-                            } catch (error) {
-                                console.error('Error leaving activity:', error);
-                                showMessage("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง", true); // ❌ Error message
-                            }
-                        }
-
-                        function updateServicePageParticipants(activityId, newCount) {
-                            const servicePage = window.opener;
-                            if (servicePage && servicePage.document) {
-                                const participantsElement = servicePage.document.querySelector(`#participants-${activityId}`);
-                                if (participantsElement) {
-                                    participantsElement.innerText = newCount;
-                                }
-                            }
-                        }
-
-                        function updateJoinButton(status) {
-                            const joinButton = document.getElementById('join-button');
-                            if (status === 'เสร็จสิ้น') {
-                                joinButton.innerText = 'เสร็จสิ้น';
-                                joinButton.classList.remove('bg-green-500', 'bg-red-500');
-                                joinButton.classList.add('bg-green-500');
-                                joinButton.disabled = true;
-                            } else if (status === 'ยกเลิก' || status === 'เกินเวลา') {
-                                joinButton.innerText = 'ไม่สำเร็จ';
-                                joinButton.classList.remove('bg-green-500', 'bg-red-500');
-                                joinButton.classList.add('bg-orange-500');
-                                joinButton.disabled = true;
-                            } else {
-                                joinButton.disabled = false;
-                            }
-                        }
-
-                        async function checkLoginStatus() {
-                            const token = localStorage.getItem('token');
-                            if (token) {
-                                try {
-                                    const response = await fetch('http://localhost:3000/api/tbm/auth/verify', {
-                                        method: 'POST',
-                                        headers: {
-                                            'Content-Type': 'application/json',
-                                            'Authorization': `Bearer ${token}`
+                                        // Update the participant count in activity-detail
+                                        const currentParticipantsElement = document.getElementById('current-participants');
+                                        if (currentParticipantsElement) {
+                                            currentParticipantsElement.innerText = `${participantCount} / ${maxParticipants}`;
                                         }
-                                    });
 
-                                    if (response.ok) {
+                                        // Check if the user has joined the activity
+                                        const userJoined = participants.some(participant => participant.user_id === globalUserId);
+                                        const joinButton = document.getElementById('join-button');
+
+                                        if (joinButton) {
+                                            if (userJoined) {
+                                                joinButton.innerText = 'ยกเลิก';
+                                                joinButton.classList.remove('bg-green-500');
+                                                joinButton.classList.add('bg-red-500');
+                                            } else {
+                                                joinButton.innerText = 'เข้าร่วม';
+                                                joinButton.classList.remove('bg-red-500');
+                                                joinButton.classList.add('bg-green-500');
+                                            }
+                                        }
+                                    } catch (error) {
+                                        console.error('Error fetching participants:', error);
+                                        alert('เกิดข้อผิดพลาดในการดึงข้อมูลผู้เข้าร่วม');
+                                    }
+                                }
+
+                                async function fetchMemberProfile() {
+                                    try {
+                                        const response = await fetch(`http://localhost:3000/api/tbm/auth/profile`, {
+                                            headers: {
+                                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                                            }
+                                        });
+
+                                        if (!response.ok) {
+                                            throw new Error('Network response was not ok');
+                                        }
+
+                                        const member = await response.json();
+                                        globalUserId = member.user_id; // Store user_id globally
+                                        console.log('Member:', member);
+                                    } catch (error) {
+                                        console.error('Error fetching member profile:', error);
+                                        alert('เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์สมาชิก');
+                                    }
+                                }
+
+                                async function handleJoinButton(activityId, index) {
+                                    const joinButton = document.getElementById('join-button');
+
+                                    if (!globalUserId) {
+                                        showMessage("คุณต้องเข้าสู่ระบบก่อนเข้าร่วมกิจกรรม", false);
+                                        return;
+                                    }
+
+                                    if (!activityId) {
+                                        showMessage("ไม่พบรหัสกิจกรรม", false);
+                                        return;
+                                    }
+
+                                    if (joinButton.innerText === 'เข้าร่วม') {
+                                        showConfirmation("คุณต้องการเข้าร่วมกิจกรรมนี้หรือไม่?", async () => {
+                                            await joinActivity(activityId, index);
+                                        });
+                                    } else if (joinButton.innerText === 'ยกเลิก') {
+                                        showConfirmation("คุณต้องการยกเลิกการเข้าร่วมกิจกรรมนี้หรือไม่?", async () => {
+                                            await leaveActivity(activityId, index);
+                                        });
+                                    }
+                                }
+
+                                async function joinActivity(activityId, index) {
+                                    const token = localStorage.getItem('token');
+                                    const userId = globalUserId;
+
+                                    if (!token || !userId) {
+                                        showMessage("คุณต้องเข้าสู่ระบบก่อนเข้าร่วมกิจกรรม", true);
+                                        return;
+                                    }
+
+                                    try {
+                                        const response = await fetch(`http://localhost:3000/api/tbm/activities/${activityId}/participants`, {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                                'Authorization': `Bearer ${token}`
+                                            },
+                                            body: JSON.stringify({ memberId: userId })
+                                        });
+
                                         const data = await response.json();
-                                        updateSidebar(true, data.user_id);
+
+                                        if (response.ok) {
+                                            showMessage("เข้าร่วมกิจกรรมสำเร็จ!", false); // ✅ Success message
+                                            await fetchParticipants(activityId); // Update participants count
+
+                                            // Update button appearance
+                                            const joinButton = document.getElementById('join-button');
+                                            if (joinButton) {
+                                                joinButton.innerText = 'ยกเลิก';
+                                                joinButton.classList.remove('bg-green-500');
+                                                joinButton.classList.add('bg-red-500');
+                                            }
+                                        } else {
+                                            showMessage(data.error || "เกิดข้อผิดพลาดในการเข้าร่วมกิจกรรม", true); // ❌ Error message
+                                        }
+                                    } catch (error) {
+                                        console.error('Error joining activity:', error);
+                                        showMessage("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง", true); // ❌ Error message
+                                    }
+                                }
+
+                                async function leaveActivity(activityId, index) {
+                                    const token = localStorage.getItem('token');
+                                    const userId = globalUserId;
+
+                                    if (!token || !userId) {
+                                        showMessage("คุณต้องเข้าสู่ระบบก่อนออกจากกิจกรรม", true);
+                                        return;
+                                    }
+
+                                    try {
+                                        const response = await fetch(`http://localhost:3000/api/tbm/activities/${activityId}/participants/${userId}`, {
+                                            method: 'DELETE',
+                                            headers: {
+                                                'Authorization': `Bearer ${token}`
+                                            }
+                                        });
+
+                                        if (response.ok) {
+                                            showMessage("ออกจากกิจกรรมสำเร็จ!", false); // ✅ Success message
+                                            await fetchParticipants(activityId); // Update participants count
+
+                                            // Update button appearance
+                                            const joinButton = document.getElementById('join-button');
+                                            if (joinButton) {
+                                                joinButton.innerText = 'เข้าร่วม';
+                                                joinButton.classList.remove('bg-red-500');
+                                                joinButton.classList.add('bg-green-500');
+                                            }
+                                        } else {
+                                            const data = await response.json();
+                                            showMessage(data.error || "เกิดข้อผิดพลาดในการออกจากกิจกรรม", true); // ❌ Error message
+                                        }
+                                    } catch (error) {
+                                        console.error('Error leaving activity:', error);
+                                        showMessage("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง", true); // ❌ Error message
+                                    }
+                                }
+
+                                function updateServicePageParticipants(activityId, newCount) {
+                                    const servicePage = window.opener;
+                                    if (servicePage && servicePage.document) {
+                                        const participantsElement = servicePage.document.querySelector(`#participants-${activityId}`);
+                                        if (participantsElement) {
+                                            participantsElement.innerText = newCount;
+                                        }
+                                    }
+                                }
+
+                                function updateJoinButton(status) {
+                                    const joinButton = document.getElementById('join-button');
+                                    if (joinButton) {
+                                        if (status === 'เสร็จสิ้น') {
+                                            joinButton.innerText = 'เสร็จสิ้น';
+                                            joinButton.classList.remove('bg-green-500', 'bg-red-500');
+                                            joinButton.classList.add('bg-green-500');
+                                            joinButton.disabled = true;
+                                        } else if (status === 'ยกเลิก' || status === 'เกินเวลา') {
+                                            joinButton.innerText = 'ไม่สำเร็จ';
+                                            joinButton.classList.remove('bg-green-500', 'bg-red-500');
+                                            joinButton.classList.add('bg-orange-500');
+                                            joinButton.disabled = true;
+                                        } else {
+                                            joinButton.disabled = false;
+                                        }
+                                    }
+                                }
+
+                                async function checkLoginStatus() {
+                                    const token = localStorage.getItem('token');
+                                    if (token) {
+                                        try {
+                                            const response = await fetch('http://localhost:3000/api/tbm/auth/verify', {
+                                                method: 'POST',
+                                                headers: {
+                                                    'Content-Type': 'application/json',
+                                                    'Authorization': `Bearer ${token}`
+                                                }
+                                            });
+
+                                            if (response.ok) {
+                                                const data = await response.json();
+                                                updateSidebar(true, data.user_id);
+                                            } else {
+                                                updateSidebar(false);
+                                            }
+                                        } catch (error) {
+                                            console.error('Error verifying token:', error);
+                                            updateSidebar(false);
+                                        }
                                     } else {
                                         updateSidebar(false);
                                     }
-                                } catch (error) {
-                                    console.error('Error verifying token:', error);
-                                    updateSidebar(false);
                                 }
-                            } else {
-                                updateSidebar(false);
-                            }
-                        }
 
-                        async function fetchCommunityConfig() {
-                            try {
-                                const response = await fetch('http://localhost:3000/api/tbm/community-config', {
-                                    headers: {
-                                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                                async function fetchCommunityConfig() {
+                                    try {
+                                        const response = await fetch('http://localhost:3000/api/tbm/community-config', {
+                                            headers: {
+                                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                                            }
+                                        });
+                                        if (!response.ok) {
+                                            throw new Error(`HTTP error! status: ${response.status}`);
+                                        }
+                                        const data = await response.json();
+                                        minimumTimeTokenHours = data.minimum_time_token_hours;
+                                        minimumTimeTokenMinutes = data.minimum_time_token_minutes;
+                                        console.log('Minimum Time Token:', minimumTimeTokenHours, minimumTimeTokenMinutes);
+                                    } catch (error) {
+                                        console.error('Error fetching community config:', error);
+                                        alert('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
                                     }
+                                }
+
+                                document.addEventListener('DOMContentLoaded', () => {
+                                    fetchMemberProfile().then(fetchActivityDetails);
+                                    fetchCommunityConfig();
+
+                                    // Set current date and time if fields are empty
+                                    const currentDate = new Date().toISOString().split('T')[0];
+                                    const currentTime = new Date().toTimeString().split(' ')[0].substring(0, 5);
+
+                                    if (!document.getElementById('service-start-date').value) {
+                                        document.getElementById('service-start-date').value = currentDate;
+                                    }
+
+                                    if (!document.getElementById('service-time-start').value) {
+                                        document.getElementById('service-time-start').value = currentTime;
+                                    }
+
+                                    if (!document.getElementById('service-end-date').value) {
+                                        document.getElementById('service-end-date').value = currentDate;
+                                    }
+
+                                    if (!document.getElementById('service-time-end').value) {
+                                        document.getElementById('service-time-end').value = currentTime;
+                                    }
+
+                                    checkLoginStatus();
                                 });
-                                if (!response.ok) {
-                                    throw new Error(`HTTP error! status: ${response.status}`);
-                                }
-                                const data = await response.json();
-                                minimumTimeTokenHours = data.minimum_time_token_hours;
-                                minimumTimeTokenMinutes = data.minimum_time_token_minutes;
-                                console.log('Minimum Time Token:', minimumTimeTokenHours, minimumTimeTokenMinutes);
-                            } catch (error) {
-                                console.error('Error fetching community config:', error);
-                                alert('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
-                            }
-                        }
 
-                        document.addEventListener('DOMContentLoaded', () => {
-                            fetchMemberProfile().then(fetchActivityDetails);
-                            fetchCommunityConfig();
-
-                            // Set current date and time if fields are empty
-                            const currentDate = new Date().toISOString().split('T')[0];
-                            const currentTime = new Date().toTimeString().split(' ')[0].substring(0, 5);
-
-                            if (!document.getElementById('service-start-date').value) {
-                                document.getElementById('service-start-date').value = currentDate;
-                            }
-
-                            if (!document.getElementById('service-time-start').value) {
-                                document.getElementById('service-time-start').value = currentTime;
-                            }
-
-                            if (!document.getElementById('service-end-date').value) {
-                                document.getElementById('service-end-date').value = currentDate;
-                            }
-
-                            if (!document.getElementById('service-time-end').value) {
-                                document.getElementById('service-time-end').value = currentTime;
-                            }
-
-                            checkLoginStatus();
-                        });
-
-                        function goBack() {
-                            if (document.referrer) {
-                                window.history.back();
-                            } else {
-                                window.location.href = 'homepage.html'; // Change this to your default fallback page
-                            }
-                        }
-
-                        function calculateTimeDifference() {
-                            const startTime = document.getElementById('service-time-start').value;
-                            const endTime = document.getElementById('service-time-end').value;
-
-                            if (startTime && endTime) {
-                                const [startHours, startMinutes] = startTime.split(':').map(Number);
-                                const [endHours, endMinutes] = endTime.split(':').map(Number);
-
-                                let startDateTime = new Date();
-                                startDateTime.setHours(startHours, startMinutes, 0);
-
-                                let endDateTime = new Date();
-                                endDateTime.setHours(endHours, endMinutes, 0);
-
-                                let durationInMinutes = (endDateTime - startDateTime) / (1000 * 60);
-                                if (durationInMinutes < 0) {
-                                    durationInMinutes += 24 * 60;
+                                function goBack() {
+                                    if (document.referrer) {
+                                        window.history.back();
+                                    } else {
+                                        window.location.href = 'homepage.html'; // Change this to your default fallback page
+                                    }
                                 }
 
-                                const hours = Math.floor(durationInMinutes / 60);
-                                const minutes = durationInMinutes % 60;
-                                const totalDurationInHours = hours + (minutes / 60);
+                                function calculateTimeDifference() {
+                                    const startTime = document.getElementById('service-time-start').value;
+                                    const endTime = document.getElementById('service-time-end').value;
 
-                                const timeDifferenceElement = document.getElementById('time-difference');
-                                timeDifferenceElement.value = `${hours} ชั่วโมง ${minutes} นาที`;
+                                    if (startTime && endTime) {
+                                        const [startHours, startMinutes] = startTime.split(':').map(Number);
+                                        const [endHours, endMinutes] = endTime.split(':').map(Number);
 
-                                const minimumDurationInHours = minimumTimeTokenHours + (minimumTimeTokenMinutes / 60);
-                                if (totalDurationInHours < minimumDurationInHours) {
-                                    timeDifferenceElement.classList.remove('text-green-600');
-                                    timeDifferenceElement.classList.add('text-red-600');
-                                } else {
-                                    timeDifferenceElement.classList.remove('text-red-600');
-                                    timeDifferenceElement.classList.add('text-green-600');
+                                        let startDateTime = new Date();
+                                        startDateTime.setHours(startHours, startMinutes, 0);
+
+                                        let endDateTime = new Date();
+                                        endDateTime.setHours(endHours, endMinutes, 0);
+
+                                        let durationInMinutes = (endDateTime - startDateTime) / (1000 * 60);
+                                        if (durationInMinutes < 0) {
+                                            durationInMinutes += 24 * 60;
+                                        }
+
+                                        const hours = Math.floor(durationInMinutes / 60);
+                                        const minutes = durationInMinutes % 60;
+                                        const totalDurationInHours = hours + (minutes / 60);
+
+                                        const timeDifferenceElement = document.getElementById('time-difference');
+                                        timeDifferenceElement.value = `${hours} ชั่วโมง ${minutes} นาที`;
+
+                                        const minimumDurationInHours = minimumTimeTokenHours + (minimumTimeTokenMinutes / 60);
+                                        if (totalDurationInHours < minimumDurationInHours) {
+                                            timeDifferenceElement.classList.remove('text-green-600');
+                                            timeDifferenceElement.classList.add('text-red-600');
+                                        } else {
+                                            timeDifferenceElement.classList.remove('text-red-600');
+                                            timeDifferenceElement.classList.add('text-green-600');
+                                        }
+                                    }
                                 }
-                            }
-                        }
-                    </script>
+                            </script>
     <script src="navbar.js"></script>
 </body>
 

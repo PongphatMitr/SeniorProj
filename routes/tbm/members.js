@@ -129,13 +129,22 @@ const memberRoutes = (pool) => {
 
         try {
             const result = await pool.query(
-                `SELECT u.user_id, u.username, u.name, u.email, array_agg(s.name) as skills
-             FROM users u
-             LEFT JOIN member_skills ms ON u.user_id = ms.user_id
-             LEFT JOIN skills s ON ms.skill_id = s.skill_id
-             WHERE LOWER(u.name) LIKE LOWER($1) OR LOWER(u.username) LIKE LOWER($1) OR CAST(u.user_id AS TEXT) LIKE $1
-             GROUP BY u.user_id, u.username, u.name, u.email
-             LIMIT $2 OFFSET $3`,
+                `SELECT u.user_id, u.username, u.name, u.email, 
+            ARRAY_REMOVE(ARRAY[
+                s1.name, 
+                s2.name, 
+                s3.name
+            ], NULL) AS skills
+     FROM users u
+     LEFT JOIN member_skills ms ON u.user_id = ms.user_id
+     LEFT JOIN skills s1 ON ms.skill_1 = s1.skill_id
+     LEFT JOIN skills s2 ON ms.skill_2 = s2.skill_id
+     LEFT JOIN skills s3 ON ms.skill_3 = s3.skill_id
+     WHERE LOWER(u.name) LIKE LOWER($1) 
+        OR LOWER(u.username) LIKE LOWER($1) 
+        OR CAST(u.user_id AS TEXT) LIKE $1
+     GROUP BY u.user_id, u.username, u.name, u.email, s1.name, s2.name, s3.name
+     LIMIT $2 OFFSET $3`,
                 [`%${term}%`, pageSize, offset]
             );
             const totalResult = await pool.query(

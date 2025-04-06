@@ -102,6 +102,49 @@
             </div>
         </div>
     </div>
+
+    <!-- Success Message Modal -->
+    <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <div class="flex justify-center">
+                <div
+                    class="w-20 h-20 flex items-center justify-center rounded-full bg-green-100 border-4 border-green-500">
+                    <svg class="w-12 h-12 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-green-600 mt-6">เข้าสู่ระบบสำเร็จ!</h2>
+            <p class="text-gray-700 text-lg mt-4">กำลังนำทางไปยังหน้าหลัก...</p>
+            <button id="confirm-btn"
+                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ตกลง
+            </button>
+        </div>
+    </div>
+
+    <!-- Error Message Modal -->
+    <div id="error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <div class="flex justify-center">
+                <div class="w-20 h-20 flex items-center justify-center rounded-full bg-red-100 border-4 border-red-500">
+                    <svg class="w-12 h-12 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-red-600 mt-6">เกิดข้อผิดพลาด!</h2>
+            <p class="text-gray-700 text-lg mt-4" id="error-message">ไม่สามารถเพิ่มผู้เข้าร่วมได้</p>
+            <button id="error-confirm-btn"
+                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ตกลง
+            </button>
+        </div>
+    </div>
+
     <script>
         let participants = [];
 
@@ -228,14 +271,15 @@
                 });
 
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
                 }
 
                 alert('ผู้เข้าร่วมถูกเพิ่มเรียบร้อยแล้ว');
                 fetchParticipants(); // Refresh the participant list
             } catch (error) {
                 console.error('Error adding participant:', error);
-                alert('เกิดข้อผิดพลาดในการเพิ่มผู้เข้าร่วม');
+                showErrorModal(error.message);
             }
         }
 
@@ -265,9 +309,47 @@
             }
         }
 
+        async function checkLoginStatus() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const response = await fetch('http://localhost:3000/api/tbm/auth/verify', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        updateSidebar(true, data.user_id);
+                    } else {
+                        updateSidebar(false);
+                    }
+                } catch (error) {
+                    console.error('Error verifying token:', error);
+                    updateSidebar(false);
+                }
+            } else {
+                updateSidebar(false);
+            }
+        }
+
+        function showErrorModal(message) {
+            const errorModal = document.getElementById('error-modal');
+            const errorMessage = document.getElementById('error-message');
+            errorMessage.textContent = message;
+            errorModal.classList.remove('hidden');
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             fetchParticipants();
             checkLoginStatus();
+
+            document.getElementById('error-confirm-btn').addEventListener('click', () => {
+                document.getElementById('error-modal').classList.add('hidden');
+            });
         });
     </script>
     <script src="navbar.js"></script>
