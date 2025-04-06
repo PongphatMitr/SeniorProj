@@ -390,20 +390,7 @@
             }
         }
         
-            
-        function searchActivities() {
-            const searchTerm = document.getElementById('search-input').value.toLowerCase();
-            const filteredActivities = activities.filter(activity => {
-                return (
-                    (activity.activity_id && activity.activity_id.toString().includes(searchTerm)) ||
-                    (activity.title && activity.title.toLowerCase().includes(searchTerm)) ||
-                    (activity.description && activity.description.toLowerCase().includes(searchTerm)) ||
-                    (activity.location && activity.location.toLowerCase().includes(searchTerm)) ||
-                    (activity.requester_id && activity.requester_id.toString().includes(searchTerm))
-                );
-            });
-            renderTable(filteredActivities);
-        }
+        let allActivities = [];
 
         async function fetchActivityHistory(role = '') {
             const userId = localStorage.getItem('user_id');
@@ -424,7 +411,8 @@
                 }
         
                 const data = await response.json();
-                renderActivityHistory(data.activities);
+                allActivities = data.activities;
+                renderActivityHistory(allActivities);
             } catch (error) {
                 console.error('Error fetching activity history:', error);
                 alert('Error fetching activity history. Please try again.');
@@ -485,123 +473,320 @@
                 historyTbody.appendChild(row);
             });
         }
-        
-        
-        
 
         function filterActivityHistory(role) {
             fetchActivityHistory(role);
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        function searchActivities() {
+            const searchTerm = document.getElementById('search-input').value.toLowerCase();
+            const filteredActivities = allActivities.filter(activity => {
+                return (
+                    (activity.activity_id && activity.activity_id.toString().includes(searchTerm)) ||
+                    (activity.title && activity.title.toLowerCase().includes(searchTerm)) ||
+                    (activity.description && activity.description.toLowerCase().includes(searchTerm)) ||
+                    (activity.location && activity.location.toLowerCase().includes(searchTerm)) ||
+                    (activity.requester_id && activity.requester_id.toString().includes(searchTerm))
+                );
+            });
+            renderActivityHistory(filteredActivities);
+        }
+
+        async function fetchSkillsAndCategories() {
+            try {
+                const response = await fetch('http://localhost:3000/api/user/skills', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                });
+                const data = await response.json();
+                skills = data;
+                categories = [...new Set(skills.map(skill => skill.category))];
+                populateCategoryDropdown();
+            } catch (err) {
+                console.error('Error loading skills:', err);
+            }
+        }
+
+        function populateCategoryDropdown() {
+            const dropdown = document.getElementById('category-dropdown');
+            dropdown.innerHTML = '<option value="">กรุณาเลือกหมวดหมู่</option>';
+            categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.textContent = cat;
+                dropdown.appendChild(opt);
+            });
+            document.getElementById('skill-dropdown').disabled = true;
+        }
+
+        function updateSkillDropdown() {
+            const category = document.getElementById('category-dropdown').value;
+            const skillDropdown = document.getElementById('skill-dropdown');
+            skillDropdown.innerHTML = '<option value="">กรุณาเลือกทักษะ</option>';
+            if (!category) {
+                skillDropdown.disabled = true;
+                return;
+            }
+            const filteredSkills = skills.filter(skill => skill.category === category);
+            filteredSkills.forEach(skill => {
+                const opt = document.createElement('option');
+                opt.value = skill.skill_id;
+                opt.textContent = skill.name;
+                skillDropdown.appendChild(opt);
+            });
+            skillDropdown.disabled = false;
+        }
+
+        function clearFilters() {
+            document.getElementById('search-input').value = '';
+            document.getElementById('filter-start-date').value = '';
+            document.getElementById('filter-end-date').value = '';
+            document.getElementById('start-hours').value = '';
+            document.getElementById('start-minutes').value = '00';
+            document.getElementById('end-hours').value = '';
+            document.getElementById('end-minutes').value = '00';
+            document.getElementById('category-dropdown').value = '';
+            const skillDropdown = document.getElementById('skill-dropdown');
+            skillDropdown.innerHTML = '<option value="">กรุณาเลือกทักษะ</option>';
+            skillDropdown.disabled = true;
+            document.getElementById('filter-available-slots').checked = false;
+            searchActivities();
+        }
+
+        function toggleAdvancedFilter() {
+            document.getElementById('advanced-filter').classList.toggle('hidden');
+        }
+
+        function searchActivities() {
+            const keyword = document.getElementById('search-input').value.toLowerCase();
+            const startDate = document.getElementById('filter-start-date').value;
+            const endDate = document.getElementById('filter-end-date').value;
+            const startHours = document.getElementById('start-hours').value;
+            const startMinutes = document.getElementById('start-minutes').value;
+            const endHours = document.getElementById('end-hours').value;
+            const endMinutes = document.getElementById('end-minutes').value;
+            const skill = document.getElementById('skill-dropdown').value;
+            const availableOnly = document.getElementById('filter-available-slots').checked;
+        
+            const startTime = startHours && startMinutes ? `${startHours}:${startMinutes}` : null;
+            const endTime = endHours && endMinutes ? `${endHours}:${endMinutes}` : null;
+        
+            const filtered = allActivities.filter(a => {
+                const matchText = a.title.toLowerCase().includes(keyword) || (a.description || '').toLowerCase().includes(keyword);
+                const matchStartDate = startDate ? new Date(a.start_date) >= new Date(startDate) : true;
+                const matchEndDate = endDate ? new Date(a.end_date) <= new Date(endDate) : true;
+                const matchStartTime = startTime ? a.start_time >= startTime : true;
+                const matchEndTime = endTime ? a.end_time <= endTime : true;
+                const matchSkill = skill ? a.required_skill_id == skill : true;
+                const matchAvailable = availableOnly ? a.current_participants < a.max_participants : true;
+        
+                return matchText && matchStartDate && matchEndDate && matchStartTime && matchEndTime && matchSkill && matchAvailable;
+            });
+        
+            renderActivityHistory(filtered);
+        }
+
+        function populateTimeDropdowns() {
+            const hourOptions = [...Array(24).keys()].map(i => `<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')}</option>`).join('');
+            const minuteOptions = [...Array(12).keys()].map(i => `<option value="${(i * 5).toString().padStart(2, '0')}">${(i * 5).toString().padStart(2, '0')}</option>`).join('');
+
+            document.getElementById('start-hours').innerHTML = '<option value="" selected disabled>-- ชั่วโมง --</option>' + hourOptions;
+            document.getElementById('end-hours').innerHTML = '<option value="" selected disabled>-- ชั่วโมง --</option>' + hourOptions;
+            document.getElementById('start-minutes').innerHTML = minuteOptions;
+            document.getElementById('end-minutes').innerHTML = minuteOptions;
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
             checkLoginStatus();
-            fetchActivityHistory(); // Fetch activity history when the page loads
+            fetchSkillsAndCategories();
+            populateTimeDropdowns();
         });
     </script>
 </head>
 
-    <body class="bg-gray-100">
-        <div class="flex flex-col md:flex-row">
-            <!-- Sidebar -->
-            <div class="w-full md:w-1/6 bg-white h-screen p-5">
-                <div class="flex items-center mb-10">
-                    <img alt="Logo of Time Bank System, a clock with a handshake in the center"
-                        class="w-10 h-10 rounded-full" height="50"
-                        src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
-                        width="50" />
-                    <span class="ml-3 text-xl font-bold text-blue-600">
-                        TIMEBANK
-                    </span>
+<body class="bg-gray-100">
+    <div class="flex flex-col md:flex-row">
+        <!-- Sidebar -->
+        <div class="w-full md:w-1/6 bg-white h-screen p-5">
+            <div class="flex items-center mb-10">
+                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
+                    class="w-10 h-10 rounded-full" height="50"
+                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
+                    width="50" />
+                <span class="ml-3 text-xl font-bold text-blue-600">
+                    TIMEBANK
+                </span>
+            </div>
+            <nav>
+                <ul id="navList">
+                    <!-- Navigation items will be dynamically inserted here -->
+                </ul>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
+            <!-- Header with back button (left), centered title, and history button (right) -->
+            <div class="relative mb-10 z-10 h-[50px]">
+
+                <!-- 🕊️ Back Button (Left) -->
+                <div class="absolute left-0 top-0">
+                    <button onclick="window.history.back()"
+                        class="group inline-flex items-center gap-2 px-5 py-2.5 bg-white text-gray-900 font-medium rounded-full border border-gray-300 shadow-sm hover:bg-gray-100 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-300">
+                        <i class="fas fa-arrow-left text-sm wiggle-icon"></i>
+                        <span class="text-sm">ย้อนกลับ</span>
+                    </button>
                 </div>
-                <nav>
-                    <ul id="navList">
-                        <!-- Navigation items will be dynamically inserted here -->
-                    </ul>
-                </nav>
+
+                <!-- Title (Centered) -->
+                <div class="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 text-center">
+                    <span class="text-4xl md:text-4xl font-bold text-white">ประวัติกิจกรรม</span>
+                </div>
+
+                <!-- 📜 History Button (Right) -->
+                <div class="absolute right-0 top-0">
+                    <button onclick="window.location.href='actOngoing.html'"
+                        class="group inline-flex items-center gap-2 px-5 py-2.5 bg-white text-gray-900 font-medium rounded-full border border-gray-300 shadow-sm hover:bg-gray-100 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-300">
+                        <i class="fas fa-clock text-sm wiggle-icon"></i>
+                        <span class="text-sm">กิจกรรมที่ดำเนินอยู่</span>
+                    </button>
+                </div>
             </div>
-
-            <!-- Main Content -->
-            <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
-
-            <!-- 🧠 Refined Header with Gentle Hover Animation -->
-            <div class="flex items-center justify-between mb-10 relative z-10">
-
-                <!-- 🕊️ Back Button -->
-                <button onclick="window.history.back()"
-                    class="group inline-flex items-center gap-2 px-5 py-2.5 bg-white text-gray-900 font-medium rounded-full border border-gray-300 shadow-sm hover:bg-gray-100 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-300">
-
-                    <!-- Arrow Icon that gently wiggles on hover -->
-                    <i class="fas fa-arrow-left text-sm wiggle-icon"></i>
-
-                    <!-- Label -->
-                    <span class="text-sm">
-                        ย้อนกลับ
-                    </span>
-                </button>
-
-                <div class="w-[160px]"></div>
-            </div>
-
 
 
             <style>
                 @keyframes gentle-wiggle {
-                0%, 100% { transform: translateX(0); }
-                25% { transform: translateX(-3px); }
-                50% { transform: translateX(3px); }
-                75% { transform: translateX(-2px); }
+                    0%, 100% { transform: translateX(0); }
+                    25% { transform: translateX(-3px); }
+                    50% { transform: translateX(3px); }
+                    75% { transform: translateX(-2px); }
                 }
                 
                 /* Only animate on hover */
                 .group:hover .wiggle-icon {
-                animation: gentle-wiggle 2.5s ease-in-out infinite;
+                    animation: gentle-wiggle 2.5s ease-in-out infinite;
                 }
             </style>
 
-                <div class="bg-white text-black p-8 rounded-lg shadow-lg mt-10">
-                    <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">ประวัติกิจกรรม</h2>
-                    <div class="mb-4 flex items-center justify-center">
-                        <button onclick="filterActivityHistory('')" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full mx-2 shadow-lg transition duration-300 ease-in-out transform hover:scale-105">กิจกรรมทั้งหมด</button>
-                        <button onclick="filterActivityHistory('requester')" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full mx-2 shadow-lg transition duration-300 ease-in-out transform hover:scale-105">ผู้สร้างกิจกรรม</button>
-                        <button onclick="filterActivityHistory('provider')" class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-full mx-2 shadow-lg transition duration-300 ease-in-out transform hover:scale-105">ผู้เข้าร่วมกิจกรรม</button>
-                    </div>
-                    <div class="overflow-x-auto">
-                        <div class="table-responsive-sm">
-                            <table role="table" aria-busy="false" aria-colcount="7" class="table b-table b-table-stacked-md w-full">
-                                <thead role="rowgroup" class="bg-gray-100">
-                                    <tr role="row">
-                                        <th role="columnheader" scope="col" aria-colindex="1" class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                            กิจกรรม
-                                        </th>
-                                        <th role="columnheader" scope="col" aria-colindex="2" class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                            วันที่สร้างกิจกรรม
-                                        </th>
-                                        <th role="columnheader" scope="col" aria-colindex="3" class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                            วันที่เริ่มกิจกรรม
-                                        </th>
-                                        <th role="columnheader" scope="col" aria-colindex="4" class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                            สถานะ
-                                        </th>
-                                        <th role="columnheader" scope="col" aria-colindex="5" class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                            จำนวนผู้เข้าร่วม
-                                        </th>
-                                        <th role="columnheader" scope="col" aria-colindex="6" class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                            บทบาท
-                                        </th>
-                                        <th role="columnheader" scope="col" aria-colindex="7" class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                            การจัดการ
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody id="history-tbody" role="rowgroup">
-                                    <!-- Activity history will be dynamically inserted here -->
-                                </tbody>
-                            </table>
+            <div class="flex items-center justify-between border-b pb-2 mb-5"></div>
+            <div class="bg-white text-black p-8 rounded-lg shadow-lg mt-10">
+
+                <!-- 📦 Search and Filters Component (with full JS functions) -->
+                <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 mb-6 items-start">
+                    <!-- Search Input -->
+                    <div class="flex-grow min-w-0">
+                        <div class="relative">
+                            <input id="search-input"
+                                type="text"
+                                placeholder="ค้นหากิจกรรม..."
+                                class="w-full bg-white border border-gray-300 text-gray-800 placeholder-gray-400 rounded-xl px-5 py-3 focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-200 shadow-sm text-base"
+                                oninput="searchActivities()" />
+                            <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
                         </div>
+                    </div>
+
+                    <!-- ตัวกรองเพิ่มเติม Button -->
+                    <div class="relative">
+                        <button onclick="toggleAdvancedFilter()"
+                            class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2.5 rounded-xl shadow transition duration-200">
+                            <i class="fas fa-sliders-h"></i>
+                            ตัวกรองเพิ่มเติม
+                        </button>
+
+                        <!-- Dropdown box -->
+                        <div id="advanced-filter"
+                            class="absolute right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl w-80 p-4 z-50 hidden">
+                            <div class="space-y-4">
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-1">วันที่เริ่ม</label>
+                                    <input id="filter-start-date" type="date" class="w-full px-3 py-2 border rounded" />
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-1">วันที่สิ้นสุด</label>
+                                    <input id="filter-end-date" type="date" class="w-full px-3 py-2 border rounded" />
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-1">เวลาเริ่มต้น</label>
+                                        <div class="flex">
+                                            <select id="start-hours" class="w-1/2 border rounded-l px-2 py-1"></select>
+                                            <select id="start-minutes" class="w-1/2 border rounded-r px-2 py-1"></select>
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label class="block text-sm font-semibold text-gray-700 mb-1">เวลาสิ้นสุด</label>
+                                        <div class="flex">
+                                            <select id="end-hours" class="w-1/2 border rounded-l px-2 py-1"></select>
+                                            <select id="end-minutes" class="w-1/2 border rounded-r px-2 py-1"></select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-1">หมวดหมู่</label>
+                                    <select id="category-dropdown" class="w-full border px-3 py-2 rounded" onchange="updateSkillDropdown()">
+                                        <option value="">กรุณาเลือกหมวดหมู่</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-semibold text-gray-700 mb-1">ทักษะ</label>
+                                    <select id="skill-dropdown" class="w-full border px-3 py-2 rounded" disabled>
+                                        <option value="">กรุณาเลือกทักษะ</option>
+                                    </select>
+                                </div>
+                                <div class="flex items-center">
+                                    <input id="filter-available-slots" type="checkbox" class="mr-2">
+                                    <label class="text-sm font-semibold text-gray-700">เฉพาะกิจกรรมที่มีที่ว่าง</label>
+                                </div>
+                                <div class="flex justify-end gap-2">
+                                    <button onclick="searchActivities()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">🔍 ค้นหา</button>
+                                    <button onclick="clearFilters()" class="bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded-lg">❌ ล้างตัวกรอง</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-4 flex items-center justify-center">
+                    <button onclick="filterActivityHistory('')" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full mx-2 shadow-lg transition duration-300 ease-in-out transform hover:scale-105">กิจกรรมทั้งหมด</button>
+                    <button onclick="filterActivityHistory('requester')" class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full mx-2 shadow-lg transition duration-300 ease-in-out transform hover:scale-105">ผู้สร้างกิจกรรม</button>
+                    <button onclick="filterActivityHistory('provider')" class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-full mx-2 shadow-lg transition duration-300 ease-in-out transform hover:scale-105">ผู้เข้าร่วมกิจกรรม</button>
+                </div>
+                <div class="overflow-x-auto">
+                    <div class="table-responsive-sm">
+                        <table role="table" aria-busy="false" aria-colcount="7" class="table b-table b-table-stacked-md w-full">
+                            <thead role="rowgroup" class="bg-gray-100">
+                                <tr role="row">
+                                    <th role="columnheader" scope="col" aria-colindex="1" class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                        กิจกรรม
+                                    </th>
+                                    <th role="columnheader" scope="col" aria-colindex="2" class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                        วันที่สร้างกิจกรรม
+                                    </th>
+                                    <th role="columnheader" scope="col" aria-colindex="3" class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                        วันที่เริ่มกิจกรรม
+                                    </th>
+                                    <th role="columnheader" scope="col" aria-colindex="4" class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                        สถานะ
+                                    </th>
+                                    <th role="columnheader" scope="col" aria-colindex="5" class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                        จำนวนผู้เข้าร่วม
+                                    </th>
+                                    <th role="columnheader" scope="col" aria-colindex="6" class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                        บทบาท
+                                    </th>
+                                    <th role="columnheader" scope="col" aria-colindex="7" class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                        การจัดการ
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody id="history-tbody" role="rowgroup">
+                                <!-- Activity history will be dynamically inserted here -->
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
         </div>
-    </body>
-
-</html>
+    </div>
+</
