@@ -63,6 +63,28 @@
             </div>
         </div>
     </div>
+
+    <!-- Error Message Modal -->
+    <div id="error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <div class="flex justify-center">
+                <div class="w-20 h-20 flex items-center justify-center rounded-full bg-red-100 border-4 border-red-500">
+                    <svg class="w-12 h-12 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-red-600 mt-6">เกิดข้อผิดพลาด!</h2>
+            <p class="text-gray-700 text-lg mt-4" id="error-message">ไม่สามารถเข้าสู่ระบบได้</p>
+            <button id="error-confirm-btn"
+                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ตกลง
+            </button>
+        </div>
+    </div>
+
     <script>
         document.getElementById('loginForm').addEventListener('submit', async function (event) {
             event.preventDefault();
@@ -90,10 +112,11 @@
                 if (!response.ok) {
                     // Handle specific error cases
                     if (response.status === 401) {
-                        alert('Invalid username or password');
+                        document.getElementById('error-message').textContent = 'Invalid username or password';
                     } else {
-                        alert(data.error || 'Login failed');
+                        document.getElementById('error-message').textContent = data.error || 'Login failed';
                     }
+                    document.getElementById('error-modal').classList.remove('hidden');
                     return;
                 }
 
@@ -103,14 +126,15 @@
 
                 // Redirect based on role
                 if (data.user.role === 'User' || data.user.role === 'Member') {
-                    window.location.href = '../user_ui/balance.html';
+                    window.location.href = 'report.html';
                 } else {
                     window.location.href = 'report.html';
                 }
 
             } catch (error) {
                 console.error('Login Error:', error);
-                alert('Connection error. Please try again.');
+                document.getElementById('error-message').textContent = 'Connection error. Please try again.';
+                document.getElementById('error-modal').classList.remove('hidden');
             }
         });
 
@@ -130,7 +154,7 @@
                         const data = await response.json();
                         // Redirect based on role
                         if (data.user.role === 'User' || data.user.role === 'Member') {
-                            window.location.href = '../user_ui/balance.html';
+                            window.location.href = 'report.html';
                         } else {
                             window.location.href = 'report.html';
                         }
@@ -278,6 +302,12 @@
             font-weight: bold;
         }
     </style>
+
+    <script>
+        document.getElementById('error-confirm-btn').addEventListener('click', function () {
+            document.getElementById('error-modal').classList.add('hidden');
+        });
+    </script>
 
     <script src="selected-language.js"></script>
     <script src="navbar.js"></script>

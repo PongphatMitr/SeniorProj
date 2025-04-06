@@ -99,7 +99,7 @@
             </div>
             <nav>
                 <ul id="navList">
-                    <!-- Navigation items will be populated by navbar.js -->
+                    <!-- Navigation items will be dynamically inserted here -->
                 </ul>
             </nav>
         </div>
@@ -168,6 +168,42 @@
             </div>
         </div>
     </div>
+
+    <!-- Success Message Modal -->
+    <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <div class="flex justify-center">
+                <div
+                    class="w-20 h-20 flex items-center justify-center rounded-full bg-green-100 border-4 border-green-500">
+                    <svg class="w-12 h-12 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-green-600 mt-6">เข้าสู่ระบบสำเร็จ!</h2>
+            <p class="text-gray-700 text-lg mt-4" id="success-message">ยินดีต้อนรับสู่ระบบ Time Bank</p>
+            <button id="success-confirm-btn"
+                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ตกลง
+            </button>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const successModal = document.getElementById('success-modal');
+            const successConfirmBtn = document.getElementById('success-confirm-btn');
+
+            // Show success modal on page load
+            successModal.classList.remove('hidden');
+
+            successConfirmBtn.addEventListener('click', () => {
+                successModal.classList.add('hidden');
+            });
+        });
+    </script>
+
     <script src="navbar.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', checkLoginStatus);
