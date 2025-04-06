@@ -466,33 +466,78 @@ const activityRoutes = (pool) => {
         }
     });
 
+    // Get historical activities for a user
     router.get('/history/:userId', async (req, res) => {
         const { userId } = req.params;
-        const { role } = req.query;
-    
+        const { role, title, start_date, end_date, start_time, end_time, required_skill, available_only } = req.query;
+
         if (isNaN(userId)) {
             return res.status(400).json({ error: 'Invalid user ID' });
         }
-    
+
         let whereClause = `
             (a.requester_id = $1 OR ap.user_id = $1)
             AND a.status != 'กำลังจะเริ่ม'
         `;
-    
+        const values = [userId];
+        let idx = 2;
+
         if (role === 'requester') {
             whereClause = `a.requester_id = $1 AND a.status != 'กำลังจะเริ่ม'`;
         } else if (role === 'provider') {
             whereClause = `ap.user_id = $1 AND a.status != 'กำลังจะเริ่ม'`;
         }
-    
+
+        if (title) {
+            whereClause += ` AND LOWER(a.title) LIKE LOWER($${idx++})`;
+            values.push(`%${title}%`);
+        }
+
+        if (start_date) {
+            whereClause += ` AND a.start_date >= $${idx++}`;
+            values.push(start_date);
+        }
+
+        if (end_date) {
+            whereClause += ` AND a.end_date <= $${idx++}`;
+            values.push(end_date);
+        }
+
+        if (start_time) {
+            whereClause += ` AND a.start_time >= $${idx++}`;
+            values.push(start_time);
+        }
+
+        if (end_time) {
+            whereClause += ` AND a.end_time <= $${idx++}`;
+            values.push(end_time);
+        }
+
+        if (required_skill) {
+            whereClause += ` AND a.required_skills = $${idx++}`;
+            values.push(required_skill);
+        }
+
+        if (available_only === 'true') {
+            whereClause += ` AND (SELECT COUNT(*) FROM activity_participants ap2 WHERE ap2.activity_id = a.activity_id) < a.max_participants`;
+        }
+
         try {
-            const result = await pool.query(`
-                SELECT DISTINCT a.*, 
-                    u.name AS requester_name, 
-                    s.name AS required_skill_name,
+            const query = `
+                SELECT a.activity_id, 
+                    a.title, 
+                    a.status, 
+                    a.created_at, 
+                    a.start_date, 
+                    a.end_date, 
+                    a.start_time, 
+                    a.end_time,
+                    a.max_participants,
+                    a.required_skills AS required_skill_id,
+                    s.name AS required_skill_name, 
                     (
                         SELECT COUNT(*) 
-                        FROM activity_participants ap2 
+                        FROM activity_participants ap2
                         WHERE ap2.activity_id = a.activity_id
                     ) AS current_participants,
                     CASE 
@@ -500,16 +545,18 @@ const activityRoutes = (pool) => {
                         ELSE 'provider'
                     END AS role
                 FROM activities a
-                LEFT JOIN users u ON a.requester_id = u.user_id
-                LEFT JOIN skills s ON a.required_skills = s.skill_id
-                LEFT JOIN activity_participants ap ON a.activity_id = ap.activity_id
+                LEFT JOIN activity_participants ap 
+                    ON a.activity_id = ap.activity_id AND ap.user_id = $1
+                LEFT JOIN skills s 
+                    ON a.required_skills = s.skill_id
                 WHERE ${whereClause}
                 ORDER BY a.start_date DESC, a.start_time DESC
-            `, [userId]);
-    
+            `;
+
+            const result = await pool.query(query, values);
             res.json({ activities: result.rows });
         } catch (err) {
-            console.error('Error fetching user activity history:', err.message);
+            console.error('Error fetching historical activities:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
@@ -524,11 +571,20 @@ const activityRoutes = (pool) => {
 
         try {
             const query = `
-                SELECT a.activity_id, a.title, a.status, a.created_at, a.start_date, a.end_date, 
+                SELECT a.activity_id, 
+                    a.title, 
+                    a.status, 
+                    a.created_at, 
+                    a.start_date, 
+                    a.end_date, 
+                    a.start_time, 
+                    a.end_time,
                     a.max_participants,
+                    a.required_skills AS required_skill_id,
                     s.name AS required_skill_name, 
                     (
-                        SELECT COUNT(*) FROM activity_participants ap2
+                        SELECT COUNT(*) 
+                        FROM activity_participants ap2
                         WHERE ap2.activity_id = a.activity_id
                     ) AS current_participants,
                     CASE 
@@ -536,12 +592,13 @@ const activityRoutes = (pool) => {
                         ELSE 'provider'
                     END AS role
                 FROM activities a
-                LEFT JOIN activity_participants ap ON a.activity_id = ap.activity_id AND ap.user_id = $1
-                LEFT JOIN skills s ON a.required_skills = s.skill_id
+                LEFT JOIN activity_participants ap 
+                    ON a.activity_id = ap.activity_id AND ap.user_id = $1
+                LEFT JOIN skills s 
+                    ON a.required_skills = s.skill_id
                 WHERE (a.requester_id = $1 OR ap.user_id = $1) 
                 AND a.status = 'กำลังจะเริ่ม'
                 ORDER BY a.start_date DESC, a.start_time DESC
-
             `;
 
             const result = await pool.query(query, [userId]);
@@ -551,7 +608,6 @@ const activityRoutes = (pool) => {
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
-
     return router;
 };
 
