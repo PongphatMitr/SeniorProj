@@ -103,69 +103,82 @@
         function renderTable(data) {
             const tbody = document.getElementById('activity-tbody');
             tbody.innerHTML = '';
-            data.forEach((activity, index) => {
-                const userJoined = activity.participants && activity.participants.some(participant => participant.user_id === globalUserId);
-                let joinButtonText = 'เข้าร่วม';
-                let joinButtonClass = 'bg-blue-500';
-                let joinButtonDisabled = false;
         
-                if (activity.status === 'เสร็จสิ้น') {
-                    joinButtonText = 'เสร็จสิ้น';
-                    joinButtonClass = 'bg-green-500';
-                    joinButtonDisabled = true;
-                } else if (activity.status === 'ยกเลิก' || activity.status === 'เกินเวลา') {
-                    joinButtonText = 'ไม่สำเร็จ';
-                    joinButtonClass = 'bg-gray-500';
-                    joinButtonDisabled = true;
-                } else if (userJoined) {
-                    joinButtonText = 'ยกเลิก';
-                    joinButtonClass = 'bg-red-500';
-                } else if (activity.requester_id === globalUserId) {
-                    joinButtonText = 'เจ้าของกิจกรรม';
-                    joinButtonClass = 'bg-orange-500';
-                    joinButtonDisabled = true;
+            const now = new Date();
+        
+            data.forEach((activity, index) => {
+                const userJoined = activity.participants && activity.participants.some(p => p.user_id === globalUserId);
+                const matchesUserSkill = memberSkills.includes(activity.required_skills);
+        
+                const activityEnd = new Date(activity.end_date);
+                const [endHour, endMin] = activity.end_time.split(':').map(Number);
+                activityEnd.setHours(endHour, endMin, 0, 0);
+        
+                let joinButtonContent = '';
+                let showButton = false;
+        
+                if (activity.requester_id === globalUserId) {
+                    // Owner of activity
+                    joinButtonContent = `<span class="bg-orange-500 text-white font-bold py-1 px-2 rounded">เจ้าของกิจกรรม</span>`;
+                } else if (activity.status === 'เสร็จสิ้น') {
+                    joinButtonContent = `<span class="bg-green-500 text-white font-bold py-1 px-2 rounded">สำเร็จ</span>`;
+                } else if (activity.status === 'ยกเลิก' || activity.status === 'เกินเวลา' || activityEnd < now) {
+                    joinButtonContent = `<span class="bg-gray-500 text-white font-bold py-1 px-2 rounded">ไม่สำเร็จ</span>`;
+                } else if (!matchesUserSkill && activity.status === 'กำลังจะเริ่ม') {
+                    joinButtonContent = `<span class="text-sm text-gray-400 italic">ไม่ตรงทักษะ</span>`;
+                } else {
+                    showButton = true;
                 }
         
-                // เช็คว่าเป็นกิจกรรมของผู้ใช้เองหรือไม่
-                const activityDetailsPage = (activity.requester_id === globalUserId)
-                    ? "myactivity-details.html"
-                    : "activity-details.html";
+                if (showButton) {
+                    let joinButtonText = 'เข้าร่วม';
+                    let joinButtonClass = 'bg-blue-500';
+                    let joinButtonDisabled = false;
+        
+                    if (userJoined) {
+                        joinButtonText = 'ยกเลิก';
+                        joinButtonClass = 'bg-red-500';
+                    }
+        
+                    joinButtonContent = `
+                        <button onclick="handleJoinButton(${activity.activity_id}, ${index})"
+                            class="${joinButtonClass} text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline join-button"
+                            ${joinButtonDisabled ? 'disabled' : ''}>
+                            ${joinButtonText}
+                        </button>
+                    `;
+                }
+        
+                    const activityDetailsPage = (activity.requester_id === globalUserId)
+                        ? "myactivity-details.html"
+                        : "activity-details.html";
         
                 const row = document.createElement('tr');
                 row.id = `row-${index + 1}`;
                 row.className = 'hover:bg-gray-100';
                 row.innerHTML = `
-                    <td aria-colindex="1" data-label="กิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${activity.title}
-                    </td>
-                    <td aria-colindex="2" data-label="วันที่สร้างกิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${formatDate(activity.created_at)}
-                    </td>
-                    <td aria-colindex="3" data-label="วันที่เริ่มกิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${formatDate(activity.start_date)}
-                    </td>
-                    <td aria-colindex="4" data-label="สถานะ" role="cell" class="py-2 px-4 border-b border-gray-200">
+                    <td class="py-2 px-4 border-b border-gray-200">${activity.title}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">${formatDate(activity.created_at)}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">${formatDate(activity.start_date)}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">
                         <span class="py-1 px-2 rounded ${activity.status === 'กำลังจะเริ่ม' ? 'bg-blue-500' : activity.status === 'เสร็จสิ้น' ? 'bg-green-500' : activity.status === 'เกินเวลา' ? 'bg-orange-500' : 'bg-red-500'} text-white">${activity.status}</span>
                     </td>
-                    <td aria-colindex="5" data-label="จำนวนผู้เข้าร่วม" role="cell" class="py-2 px-4 border-b border-gray-200">
+                    <td class="py-2 px-4 border-b border-gray-200">
                         <span id="participants-${index}">${activity.current_participants}</span> / ${activity.max_participants}
                     </td>
-                    <td aria-colindex="6" data-label="การจัดการ" role="cell" class="py-2 px-4 border-b border-gray-200">
+                    <td class="py-2 px-4 border-b border-gray-200">
                         <a href="${activityDetailsPage}?id=${activity.activity_id}" 
                            class="bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">
                             รายละเอียด
                         </a>
                     </td>
-                    <td aria-colindex="7" data-label="เข้าร่วม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        <button onclick="handleJoinButton(${activity.activity_id}, ${index})" 
-                                class="${joinButtonClass} text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline join-button" 
-                                ${joinButtonDisabled ? 'disabled' : ''}>
-                            ${joinButtonText}
-                        </button>
+                    <td class="py-2 px-4 border-b border-gray-200">
+                        ${joinButtonContent}
                     </td>
                 `;
                 tbody.appendChild(row);
             });
+        
             if (data.length === 0) {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -176,6 +189,9 @@
                 tbody.appendChild(row);
             }
         }
+        
+        
+        
 
         function formatDate(dateString) {
             const date = new Date(dateString);
@@ -451,9 +467,9 @@
         async function handleJoinButton(activityId, index) {
             const joinButton = document.querySelector(`#row-${index + 1} .join-button`);
 
-            if (joinButton.innerText === 'เข้าร่วม') {
+            if (joinButton.innerText === 'เข้าร่วมกิจกรรม') {
                 await joinActivity(activityId, index);
-            } else if (joinButton.innerText === 'ยกเลิก') {
+            } else if (joinButton.innerText === 'ยกเลิกการเข้าร่วมกิจกรรม') {
                 await leaveActivity(activityId, index);
             }
         }
@@ -560,11 +576,37 @@
                 alert('เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์สมาชิก');
             }
         }
+        
+        let memberSkills = [];
 
-        document.addEventListener('DOMContentLoaded', () => {
-            checkLoginStatus();
-            fetchMemberProfile();
+        async function fetchMemberSkills() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/members/${globalUserId}/skills`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+    
+                if (response.ok) {
+                    const data = await response.json();
+                    memberSkills = data.skills.map(skill => skill.skill_id).filter(id => id !== null);
+                    console.log("✅ Member Skills:", memberSkills);
+                } else {
+                    console.error("Error fetching member skills.");
+                }
+            } catch (err) {
+                console.error("Error fetching member skills:", err);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await checkLoginStatus(); // Load token and verify
+            await fetchMemberProfile(); // Set globalUserId
+            await fetchMemberSkills(); // Now we know globalUserId
+            await fetchSkillsAndCategories(); // For filters
+            await fetchActivities(); // Activities to render
         });
+        
 
         function showMessage(message, isError = false) {
             const modal = document.getElementById('message-modal');
@@ -633,7 +675,7 @@
     </script>
 </head>
 
-<body class="bg-gray-100">
+<body class="bg-blue-700">
     <div class="flex flex-col md:flex-row">
         <!-- Sidebar -->
         <div class="w-full md:w-1/6 bg-white h-screen p-5">
@@ -654,13 +696,13 @@
         </div>
 
         <!-- Main Content -->
-        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
+        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10 overflow-visible">
 
         <!-- 🧠 Refined Header with Gentle Hover Animation -->
         <div class="flex items-center justify-between mb-10 relative z-10">
 
             <!-- 🕊️ Back Button -->
-            <button onclick="window.history.back()"
+            <button onclick="window.location.href='HomePage.html'"
                 class="group inline-flex items-center gap-2 px-5 py-2.5 bg-white text-gray-900 font-medium rounded-full border border-gray-300 shadow-sm hover:bg-gray-100 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-300">
 
                 <!-- Arrow Icon that gently wiggles on hover -->
@@ -750,11 +792,12 @@
                             <i class="fas fa-sliders-h"></i>
                             ตัวกรองเพิ่มเติม
                         </button>
-
+                        <div class="relative">
                         <!-- Dropdown box -->
                         <div id="advanced-filter"
-                            class="absolute right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl w-80 p-4 z-50 hidden">
-                            <div class="space-y-4">
+                        class="absolute right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl w-[700px] p-4 z-50 hidden overflow-y-auto max-h-[500px]">
+                                  
+                        <div class="space-y-4">
                                 <div>
                                     <label class="block text-sm font-semibold text-gray-700 mb-1">สถานะกิจกรรม</label>
                                     <select id="filter-status"
@@ -826,14 +869,14 @@
                                     </div>
                                 </div>
                                 <div class="mb-4">
-                                    <label for="category-dropdown" class="block text-gray-700 text-sm font-bold mb-2">เลือกหมวดหมู่:</label>
+                                    <label for="category-dropdown" class="block text-gray-700 text-sm font-bold mb-2">เลือกหมวดหมู่: (กรุณาเลือกหมวดหมู่ก่อนเลือกทักษะ)</label>
                                     <select id="category-dropdown" class="shadow border rounded w-full py-2 px-3 text-gray-700" onchange="updateSkillDropdown()">
                                         <option value="">กรุณาเลือกหมวดหมู่</option>
                                     </select>
                                 </div>
                                 
                                 <div class="mb-4">
-                                    <label for="skill-dropdown" class="block text-gray-700 text-sm font-bold mb-2">เลือกทักษะ (สามารถเลือกได้เพียง 1 ทักษะเท่านั้น):</label>
+                                    <label for="skill-dropdown" class="block text-gray-700 text-sm font-bold mb-2">เลือกทักษะ:</label>
                                     <select id="skill-dropdown" class="shadow border rounded w-full py-2 px-3 text-gray-700" disabled>
                                         <option value="">กรุณาเลือกทักษะ</option>
                                     </select>
@@ -844,11 +887,11 @@
                                     <label for="filter-available-slots" class="text-sm font-semibold text-gray-700">แสดงเฉพาะกิจกรรมที่มีที่ว่าง</label>
                                 </div>
                                 <div class="flex justify-end">
-                                    <button onclick="searchActivities()"
+                                    <button onclick="searchActivities(); closeAdvancedFilter()"
                                         class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition duration-200">
                                         🔍 ค้นหา
                                     </button>
-                                    <button onclick="clearFilters()"
+                                    <button onclick="clearFilters(); closeAdvancedFilter()"
                                         class="mt-2 ml-2 bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded-lg font-medium transition duration-200">
                                         ❌ ล้างตัวกรอง
                                     </button>
@@ -856,7 +899,7 @@
                             </div>
                         </div>
                     </div>
-
+                </div>
                     <!-- สร้างกิจกรรม Button -->
                     <a href="create-service.html"
                         class="flex-1 flex items-center justify-center gap-2 bg-green-500 hover:bg-green-700 text-white font-medium px-4 py-2.5 rounded-xl shadow transition duration-200 w-full">
@@ -952,7 +995,33 @@
         function toggleAdvancedFilter() {
             const filterBox = document.getElementById('advanced-filter');
             filterBox.classList.toggle('hidden');
+        
+            // Add event listener for click outside when opening
+            if (!filterBox.classList.contains('hidden')) {
+                document.addEventListener('click', handleClickOutsideFilter);
+            } else {
+                document.removeEventListener('click', handleClickOutsideFilter);
+            }
         }
+
+        function closeAdvancedFilter() {
+            const filterBox = document.getElementById('advanced-filter');
+            if (!filterBox.classList.contains('hidden')) {
+                filterBox.classList.add('hidden');
+                document.removeEventListener('click', handleClickOutsideFilter);
+            }
+        }
+
+        function handleClickOutsideFilter(event) {
+            const filterBox = document.getElementById('advanced-filter');
+            const button = document.querySelector('button[onclick="toggleAdvancedFilter()"]');
+        
+            // If the click target is not inside the filter or the toggle button
+            if (!filterBox.contains(event.target) && !button.contains(event.target)) {
+                closeAdvancedFilter();
+            }
+        }
+
 
         let skills = [];       // All skills from backend
         let categories = [];   // Unique category names
@@ -1021,14 +1090,6 @@
             skillDropdown.disabled = false;
         }
         
-    
-        // Call this when the page loads
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchSkillsAndCategories(); // Fetch skills and categories
-            checkLoginStatus(); // Check login status and fetch activities if logged in
-            fetchMemberProfile(); // Fetch member profile
-        });
-
         function clearFilters() {
             document.getElementById('search-input').value = '';
             document.getElementById('filter-status').value = '';

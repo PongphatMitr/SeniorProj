@@ -553,7 +553,33 @@
         }
 
         function toggleAdvancedFilter() {
-            document.getElementById('advanced-filter').classList.toggle('hidden');
+            const filterBox = document.getElementById('advanced-filter');
+            filterBox.classList.toggle('hidden');
+        
+            // Add event listener for click outside when opening
+            if (!filterBox.classList.contains('hidden')) {
+                document.addEventListener('click', handleClickOutsideFilter);
+            } else {
+                document.removeEventListener('click', handleClickOutsideFilter);
+            }
+        }
+
+        function closeAdvancedFilter() {
+            const filterBox = document.getElementById('advanced-filter');
+            if (!filterBox.classList.contains('hidden')) {
+                filterBox.classList.add('hidden');
+                document.removeEventListener('click', handleClickOutsideFilter);
+            }
+        }
+
+        function handleClickOutsideFilter(event) {
+            const filterBox = document.getElementById('advanced-filter');
+            const button = document.querySelector('button[onclick="toggleAdvancedFilter()"]');
+        
+            // If the click target is not inside the filter or the toggle button
+            if (!filterBox.contains(event.target) && !button.contains(event.target)) {
+                closeAdvancedFilter();
+            }
         }
 
         function searchActivities() {
@@ -630,7 +656,7 @@
 
                 <!-- 🕊️ Back Button (Left) -->
                 <div class="absolute left-0 top-0">
-                    <button onclick="window.history.back()"
+                    <button onclick="window.location.href='service.html'"
                         class="group inline-flex items-center gap-2 px-5 py-2.5 bg-white text-gray-900 font-medium rounded-full border border-gray-300 shadow-sm hover:bg-gray-100 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-300">
                         <i class="fas fa-arrow-left text-sm wiggle-icon"></i>
                         <span class="text-sm">ย้อนกลับ</span>
@@ -694,58 +720,102 @@
                             ตัวกรองเพิ่มเติม
                         </button>
 
-                        <!-- Dropdown box -->
-                        <div id="advanced-filter"
-                            class="absolute right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl w-80 p-4 z-50 hidden">
-                            <div class="space-y-4">
-                                <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-1">วันที่เริ่ม</label>
-                                    <input id="filter-start-date" type="date" class="w-full px-3 py-2 border rounded" />
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-1">วันที่สิ้นสุด</label>
-                                    <input id="filter-end-date" type="date" class="w-full px-3 py-2 border rounded" />
-                                </div>
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-1">เวลาเริ่มต้น</label>
-                                        <div class="flex">
-                                            <select id="start-hours" class="w-1/2 border rounded-l px-2 py-1"></select>
-                                            <select id="start-minutes" class="w-1/2 border rounded-r px-2 py-1"></select>
-                                        </div>
+                    <!-- Dropdown box -->
+                    <div id="advanced-filter"
+                    class="absolute right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl w-[700px] p-4 z-50 hidden overflow-y-auto max-h-[600px]">
+                            
+                    <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">วันที่เริ่ม</label>
+                                <input id="filter-start-date" type="date"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:outline-none" />
+                            </div>
+                            <div>
+                                <label class="block text-sm font-semibold text-gray-700 mb-1">วันที่สิ้นสุด</label>
+                                <input id="filter-end-date" type="date"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:outline-none" />
+                            </div>
+                            <!-- Section: Time -->
+                            <div class="grid grid-cols-2 gap-4">
+                                <div class="mb-6">
+                                    <label for="start-time" class="block text-gray-700 text-sm font-bold mb-2">เวลาเริ่มต้น</label>
+                                    <div class="flex items-center bg-white border shadow border rounded w-full py-2 px-3 text-gray-700">
+                                        <!-- Hour Selector -->
+                                        <select id="start-hours" name="start-hours" class="text-gray-700 w-full text-center focus:outline-none">
+                                            <option value="" selected disabled>-- ชั่วโมง --</option>
+                                            <script>
+                                                for (let i = 0; i < 24; i++) {
+                                                    document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาฬิกา</option>`);
+                                                }
+                                            </script>
+                                        </select>
+                                        <!-- Minute Selector -->
+                                        <select id="start-minutes" name="start-minutes" class="text-gray-700 w-full text-center focus:outline-none">
+                                            <option value="00" selected>00 นาที</option>
+                                            <script>
+                                                for (let i = 0; i < 60; i += 5) {
+                                                    document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาที</option>`);
+                                                }
+                                            </script>
+                                        </select>
                                     </div>
-                                    <div>
-                                        <label class="block text-sm font-semibold text-gray-700 mb-1">เวลาสิ้นสุด</label>
-                                        <div class="flex">
-                                            <select id="end-hours" class="w-1/2 border rounded-l px-2 py-1"></select>
-                                            <select id="end-minutes" class="w-1/2 border rounded-r px-2 py-1"></select>
-                                        </div>
+                                </div>
+                                <div class="mb-6">
+                                    <label for="end-time" class="block text-gray-700 text-sm font-bold mb-2">เวลาสิ้นสุด</label>
+                                    <div class="flex items-center bg-white border shadow border rounded w-full py-2 px-3 text-gray-700">
+                                        <!-- Hour Selector -->
+                                        <select id="end-hours" name="end-hours" class="text-gray-700 w-full text-center focus:outline-none">
+                                            <option value="" selected disabled>-- ชั่วโมง --</option>
+                                            <script>
+                                                for (let i = 0; i < 24; i++) {
+                                                    document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาฬิกา</option>`);
+                                                }
+                                            </script>
+                                        </select>
+                                        <!-- Minute Selector -->
+                                        <select id="end-minutes" name="end-minutes" class="text-gray-700 w-full text-center focus:outline-none">
+                                            <option value="00" selected>00 นาที</option>
+                                            <script>
+                                                for (let i = 0; i < 60; i += 5) {
+                                                    document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาที</option>`);
+                                                }
+                                            </script>
+                                        </select>
                                     </div>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-1">หมวดหมู่</label>
-                                    <select id="category-dropdown" class="w-full border px-3 py-2 rounded" onchange="updateSkillDropdown()">
-                                        <option value="">กรุณาเลือกหมวดหมู่</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-1">ทักษะ</label>
-                                    <select id="skill-dropdown" class="w-full border px-3 py-2 rounded" disabled>
-                                        <option value="">กรุณาเลือกทักษะ</option>
-                                    </select>
-                                </div>
-                                <div class="flex items-center">
-                                    <input id="filter-available-slots" type="checkbox" class="mr-2">
-                                    <label class="text-sm font-semibold text-gray-700">เฉพาะกิจกรรมที่มีที่ว่าง</label>
-                                </div>
-                                <div class="flex justify-end gap-2">
-                                    <button onclick="searchActivities()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">🔍 ค้นหา</button>
-                                    <button onclick="clearFilters()" class="bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded-lg">❌ ล้างตัวกรอง</button>
-                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="category-dropdown" class="block text-gray-700 text-sm font-bold mb-2">เลือกหมวดหมู่: (กรุณาเลือกหมวดหมู่ก่อนเลือกทักษะ)</label>
+                                <select id="category-dropdown" class="shadow border rounded w-full py-2 px-3 text-gray-700" onchange="updateSkillDropdown()">
+                                    <option value="">กรุณาเลือกหมวดหมู่</option>
+                                </select>
+                            </div>
+                            
+                            <div class="mb-4">
+                                <label for="skill-dropdown" class="block text-gray-700 text-sm font-bold mb-2">เลือกทักษะ:</label>
+                                <select id="skill-dropdown" class="shadow border rounded w-full py-2 px-3 text-gray-700" disabled>
+                                    <option value="">กรุณาเลือกทักษะ</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center">
+                                <input id="filter-available-slots" type="checkbox"
+                                    class="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
+                                <label for="filter-available-slots" class="text-sm font-semibold text-gray-700">แสดงเฉพาะกิจกรรมที่มีที่ว่าง</label>
+                            </div>
+                            <div class="flex justify-end">
+                                <button onclick="searchActivities(); closeAdvancedFilter()"
+                                    class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition duration-200">
+                                    🔍 ค้นหา
+                                </button>
+                                <button onclick="clearFilters(); closeAdvancedFilter()"
+                                    class="mt-2 ml-2 bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded-lg font-medium transition duration-200">
+                                    ❌ ล้างตัวกรอง
+                                </button>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
                 <div class="mb-4 flex items-center justify-center">
                     <button onclick="filterActivityHistory('')" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full mx-2 shadow-lg transition duration-300 ease-in-out transform hover:scale-105">กิจกรรมทั้งหมด</button>
@@ -789,4 +859,3 @@
             </div>
         </div>
     </div>
-</

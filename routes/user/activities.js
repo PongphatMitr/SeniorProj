@@ -269,53 +269,51 @@ const activityRoutes = (pool) => {
     router.post('/:activityId/participants', async (req, res) => {
         const { activityId } = req.params;
         const { memberId } = req.body;
-
-        console.log(`🔹 Checking join eligibility for activity ${activityId} and user ${memberId}`);
-
+    
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
-
-            // Get activity details
-            const activityResult = await client.query(
-                `SELECT required_skills, max_participants FROM activities WHERE activity_id = $1`,
+    
+            // Fetch activity
+            const activityRes = await client.query(
+                `SELECT requester_id, required_skills, max_participants FROM activities WHERE activity_id = $1 LIMIT 1`,
                 [activityId]
             );
-            if (activityResult.rows.length === 0) {
+            if (activityRes.rows.length === 0) {
                 return res.status(404).json({ error: 'ไม่พบกิจกรรมที่คุณต้องการเข้าร่วม' });
             }
-            const { required_skills, max_participants } = activityResult.rows[0];
-
-            console.log(`🔹 Activity required skills: ${required_skills}, max participants: ${max_participants}`);
-
-            // Get user's skills
-            const skillResult = await client.query(
+            const { requester_id, required_skills, max_participants } = activityRes.rows[0];
+    
+            // Prevent joining own activity
+            if (requester_id === Number(memberId)) {
+                return res.status(403).json({ error: 'คุณไม่สามารถเข้าร่วมกิจกรรมของตัวเองได้' });
+            }
+    
+            // Fetch user skills
+            const skillRes = await client.query(
                 `SELECT skill_1, skill_2, skill_3 FROM member_skills WHERE user_id = $1`,
                 [memberId]
             );
-            if (skillResult.rows.length === 0) {
+            if (skillRes.rows.length === 0) {
                 return res.status(400).json({ error: 'คุณยังไม่ได้ลงทะเบียนทักษะของคุณ' });
             }
-
-            const { skill_1, skill_2, skill_3 } = skillResult.rows[0];
-
-            console.log(`🔹 User skills: ${skill_1}, ${skill_2}, ${skill_3}`);
-
-            // Check if the user has the required skill
-            if (![skill_1, skill_2, skill_3].includes(required_skills)) {
+    
+            const userSkills = [skillRes.rows[0].skill_1, skillRes.rows[0].skill_2, skillRes.rows[0].skill_3].filter(Boolean);
+    
+            if (!userSkills.includes(required_skills)) {
                 return res.status(403).json({ error: 'คุณไม่มีทักษะที่เหมาะสมสำหรับกิจกรรมนี้' });
             }
-
-            // Check if the user is already a participant
+    
+            // Already joined?
             const participantCheck = await client.query(
-                `SELECT * FROM activity_participants WHERE activity_id = $1 AND user_id = $2`,
+                `SELECT 1 FROM activity_participants WHERE activity_id = $1 AND user_id = $2`,
                 [activityId, memberId]
             );
             if (participantCheck.rows.length > 0) {
                 return res.status(400).json({ error: 'คุณได้เข้าร่วมกิจกรรมนี้แล้ว' });
             }
-
-            // Check if the activity is full
+    
+            // Full?
             const participantCount = await client.query(
                 `SELECT COUNT(*) FROM activity_participants WHERE activity_id = $1`,
                 [activityId]
@@ -323,13 +321,13 @@ const activityRoutes = (pool) => {
             if (parseInt(participantCount.rows[0].count) >= max_participants) {
                 return res.status(400).json({ error: 'กิจกรรมนี้เต็มแล้ว ไม่สามารถเข้าร่วมได้' });
             }
-
-            // Add participant to the activity
+    
+            // Join
             await client.query(
                 `INSERT INTO activity_participants (activity_id, user_id) VALUES ($1, $2)`,
                 [activityId, memberId]
             );
-
+    
             await client.query('COMMIT');
             res.status(201).json({ message: 'เข้าร่วมกิจกรรมสำเร็จ!' });
         } catch (err) {
@@ -340,6 +338,7 @@ const activityRoutes = (pool) => {
             client.release();
         }
     });
+    
     
 
     // Approve an activity
@@ -608,6 +607,135 @@ const activityRoutes = (pool) => {
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
+
+    // Add this route to check and update overtime status for activities
+    router.put('/check-overtime', async (req, res) => {
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            // Select activities that are still marked as "กำลังจะเริ่ม" but already passed their end date + end time
+            const activitiesRes = await client.query(`
+                SELECT activity_id, end_date, end_time
+                FROM activities
+                WHERE status = 'กำลังจะเริ่ม'
+            `);
+
+            const now = new Date();
+
+            for (const activity of activitiesRes.rows) {
+                const endDateTime = new Date(activity.end_date);
+                const [hours, minutes] = activity.end_time.split(':');
+                endDateTime.setHours(parseInt(hours), parseInt(minutes));
+
+                if (endDateTime < now) {
+                    await client.query(
+                        `UPDATE activities SET status = 'เกินเวลา' WHERE activity_id = $1`,
+                        [activity.activity_id]
+                    );
+                }
+            }
+
+            await client.query('COMMIT');
+            res.json({ message: 'Updated overtime statuses if any were due.' });
+        } catch (err) {
+            await client.query('ROLLBACK');
+            console.error('Error checking overtime:', err.message);
+            res.status(500).json({ error: 'Failed to update overtime statuses' });
+        } finally {
+            client.release();
+        }
+    });
+
+    // Route: confirm activity completion (member submits confirmation)
+    router.post('/:activityId/confirm-completion', async (req, res) => {
+        const { activityId } = req.params;
+
+        try {
+            // Record current time and update confirmation_pending
+            const result = await pool.query(
+                `UPDATE activities SET confirmation_pending = true, confirmation_deadline = NOW() + INTERVAL '1 day' 
+                WHERE activity_id = $1 AND status = 'เกินเวลา'
+                RETURNING *`,
+                [activityId]
+            );
+
+            if (result.rowCount === 0) {
+                return res.status(400).json({ error: 'Only activities marked as "เกินเวลา" can be confirmed.' });
+            }
+
+            res.json({ message: 'Confirmation submitted. Awaiting manager approval.', activity: result.rows[0] });
+        } catch (err) {
+            console.error('Error confirming completion:', err.message);
+            res.status(500).json({ error: 'Failed to confirm activity completion' });
+        }
+    });
+
+    // Route: manager approves confirmed activity
+    router.post('/:activityId/manager-approve', async (req, res) => {
+        const { activityId } = req.params;
+
+        const client = await pool.connect();
+        try {
+            await client.query('BEGIN');
+
+            // Check if confirmation is still within allowed time
+            const activityRes = await client.query(
+                `SELECT * FROM activities WHERE activity_id = $1`,
+                [activityId]
+            );
+
+            if (activityRes.rowCount === 0) {
+                throw new Error('Activity not found');
+            }
+
+            const activity = activityRes.rows[0];
+
+            if (!activity.confirmation_pending || new Date() > new Date(activity.confirmation_deadline)) {
+                return res.status(400).json({ error: 'Confirmation deadline has passed or not pending approval.' });
+            }
+
+            await client.query(
+                `UPDATE activities SET status = 'เสร็จสิ้น', confirmation_pending = false, confirmation_deadline = NULL
+                WHERE activity_id = $1`,
+                [activityId]
+            );
+
+            await client.query('COMMIT');
+            res.json({ message: 'Activity approved by manager and marked as สำเร็จ.' });
+        } catch (err) {
+            await client.query('ROLLBACK');
+            console.error('Error in manager approval:', err.message);
+            res.status(500).json({ error: 'Failed to approve activity' });
+        } finally {
+            client.release();
+        }
+    });
+
+    router.post('/:activityId/confirm-completion', async (req, res) => {
+        const { activityId } = req.params;
+    
+        try {
+            const result = await pool.query(
+                `UPDATE activities 
+                 SET status = 'รอการอนุมัติ', confirmation_pending = true, confirmation_deadline = NOW() + INTERVAL '1 day'
+                 WHERE activity_id = $1 AND status = 'เกินเวลา'
+                 RETURNING *`,
+                [activityId]
+            );
+    
+            if (result.rowCount === 0) {
+                return res.status(400).json({ error: 'Only activities marked as "เกินเวลา" can be confirmed.' });
+            }
+    
+            res.json({ message: 'Confirmation submitted. Awaiting manager approval.', activity: result.rows[0] });
+        } catch (err) {
+            console.error('Error confirming completion:', err.message);
+            res.status(500).json({ error: 'Failed to confirm activity completion' });
+        }
+    });
+    
+
     return router;
 };
 

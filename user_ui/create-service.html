@@ -301,7 +301,7 @@
                 }
         
                 alert('สร้างกิจกรรมสำเร็จ!');
-                window.location.href = 'myactivity.html';
+                window.location.href = 'actOngoing.html';
             } catch (error) {
                 console.error('Error:', error);
                 alert('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
@@ -878,7 +878,7 @@
                         <div class="grid grid-cols-2 gap-4 mb-4">
                             <div>
                                 <label class="block text-gray-700 text-sm font-bold mb-2" for="max-participants">จำนวนผู้เข้าร่วมสูงสุด</label>
-                                <input id="max-participants" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="number" required />
+                                <input id="max-participants" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="number" min="0" required />
                             </div>
                             <div>
                                 <label class="block text-gray-700 text-sm font-bold mb-2" for="status">สถานะ</label>

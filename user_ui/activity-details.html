@@ -138,11 +138,11 @@
                 const joinButton = document.getElementById('join-button');
 
                 if (userJoined) {
-                    joinButton.innerText = 'ยกเลิก';
+                    joinButton.innerText = 'ยกเลิกการเข้าร่วมกิจกรรม';
                     joinButton.classList.remove('bg-green-500');
                     joinButton.classList.add('bg-red-500');
                 } else {
-                    joinButton.innerText = 'เข้าร่วม';
+                    joinButton.innerText = 'เข้าร่วมกิจกรรม';
                     joinButton.classList.remove('bg-red-500');
                     joinButton.classList.add('bg-green-500');
                 }
@@ -185,11 +185,11 @@
                 return;
             }
         
-            if (joinButton.innerText === 'เข้าร่วม') {
+            if (joinButton.innerText === 'เข้าร่วมกิจกรรม') {
                 showConfirmation("คุณต้องการเข้าร่วมกิจกรรมนี้หรือไม่?", async () => {
                     await joinActivity(activityId, index);
                 });
-            } else if (joinButton.innerText === 'ยกเลิก') {
+            } else if (joinButton.innerText === 'ยกเลิกการเข้าร่วมกิจกรรม') {
                 showConfirmation("คุณต้องการยกเลิกการเข้าร่วมกิจกรรมนี้หรือไม่?", async () => {
                     await leaveActivity(activityId, index);
                 });
@@ -224,7 +224,7 @@
         
                     // Update button appearance
                     const joinButton = document.getElementById('join-button');
-                    joinButton.innerText = 'ยกเลิก';
+                    joinButton.innerText = 'ยกเลิกการเข้าร่วมกิจกรรม';
                     joinButton.classList.remove('bg-green-500');
                     joinButton.classList.add('bg-red-500');
         
@@ -259,7 +259,7 @@
         
                     // Update button appearance
                     const joinButton = document.getElementById('join-button');
-                    joinButton.innerText = 'เข้าร่วม';
+                    joinButton.innerText = 'เข้าร่วมกิจกรรม';
                     joinButton.classList.remove('bg-red-500');
                     joinButton.classList.add('bg-green-500');
         
@@ -523,9 +523,33 @@
         
         <!-- Main Content -->
         <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
-            <h1 class="text-4xl font-bold mb-5">
-                แก้ไขกิจกรรม
-            </h1>
+            <!-- Header with back button (left), centered title, and history button (right) -->
+            <div class="relative mb-10 z-10 h-[50px]">
+
+                <!-- 🕊️ Back Button (Left) -->
+                <div class="absolute left-0 top-0">
+                    <button onclick="window.location.href='service.html'"
+                        class="group inline-flex items-center gap-2 px-5 py-2.5 bg-white text-gray-900 font-medium rounded-full border border-gray-300 shadow-sm hover:bg-gray-100 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-300">
+                        <i class="fas fa-arrow-left text-sm wiggle-icon"></i>
+                        <span class="text-sm">ย้อนกลับ</span>
+                    </button>
+                </div>
+            </div>
+
+
+            <style>
+                @keyframes gentle-wiggle {
+                    0%, 100% { transform: translateX(0); }
+                    25% { transform: translateX(-3px); }
+                    50% { transform: translateX(3px); }
+                    75% { transform: translateX(-2px); }
+                }
+                
+                /* Only animate on hover */
+                .group:hover .wiggle-icon {
+                    animation: gentle-wiggle 2.5s ease-in-out infinite;
+                }
+            </style>
             <div class="bg-white text-black p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
                 <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">
                     รายละเอียดกิจกรรม
@@ -588,6 +612,7 @@
                                 disabled>
                                 <option value="กำลังจะเริ่ม">กำลังจะเริ่ม</option>
                                 <option value="เสร็จสิ้น">เสร็จสิ้น</option>
+                                <option value="เกินเวลา">เกินเวลา</option>
                                 <option value="ยกเลิก">ยกเลิก</option>
                             </select>
                         </div>
@@ -665,7 +690,7 @@
                             type="button" onclick="goBack()">ย้อนกลับ</button>
                         <button id="join-button"
                             class="bg-green-500 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
-                            type="button" onclick="handleJoinButton(activityId, 0)">เข้าร่วม</button>
+                            type="button" onclick="handleJoinButton(activityId, 0)">เข้าร่วมกิจกรรม</button>
                         <button
                             class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 ml-2 rounded focus:outline-none focus:shadow-outline"
                             type="button"
