@@ -149,9 +149,9 @@
                     `;
                 }
         
-                    const activityDetailsPage = (activity.requester_id === globalUserId)
-                        ? "myactivity-details.html"
-                        : "activity-details.html";
+                const activityDetailsPage = (activity.requester_id === globalUserId)
+                    ? "myactivity-details.html"
+                    : "activity-details.html";
         
                 const row = document.createElement('tr');
                 row.id = `row-${index + 1}`;
@@ -466,10 +466,10 @@
 
         async function handleJoinButton(activityId, index) {
             const joinButton = document.querySelector(`#row-${index + 1} .join-button`);
-
-            if (joinButton.innerText === 'เข้าร่วมกิจกรรม') {
+        
+            if (joinButton.innerText === 'เข้าร่วม') {
                 await joinActivity(activityId, index);
-            } else if (joinButton.innerText === 'ยกเลิกการเข้าร่วมกิจกรรม') {
+            } else if (joinButton.innerText === 'ยกเลิก') {
                 await leaveActivity(activityId, index);
             }
         }
@@ -600,12 +600,14 @@
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
-            await checkLoginStatus(); // Load token and verify
-            await fetchMemberProfile(); // Set globalUserId
-            await fetchMemberSkills(); // Now we know globalUserId
-            await fetchSkillsAndCategories(); // For filters
-            await fetchActivities(); // Activities to render
+            await checkLoginStatus(); // this only updates sidebar
+        
+            await fetchMemberProfile();        // ✅ sets globalUserId
+            await fetchMemberSkills();         // ✅ sets memberSkills
+            await fetchSkillsAndCategories();  // ✅ sets skill options
+            await fetchActivities();           // ✅ only after member info is ready
         });
+        
         
 
         function showMessage(message, isError = false) {
@@ -695,32 +697,28 @@
             </nav>
         </div>
 
-        <!-- Main Content -->
-        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10 overflow-visible">
+            <!-- Main Content -->
+            <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
+                <div class="relative mb-10 z-10 h-[50px]">
 
-        <!-- 🧠 Refined Header with Gentle Hover Animation -->
-        <div class="flex items-center justify-between mb-10 relative z-10">
-
-            <!-- 🕊️ Back Button -->
-            <button onclick="window.location.href='HomePage.html'"
-                class="group inline-flex items-center gap-2 px-5 py-2.5 bg-white text-gray-900 font-medium rounded-full border border-gray-300 shadow-sm hover:bg-gray-100 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-300">
-
-                <!-- Arrow Icon that gently wiggles on hover -->
-                <i class="fas fa-arrow-left text-sm wiggle-icon"></i>
-
-                <!-- Label -->
-                <span class="text-sm">
-                    ย้อนกลับ
-                </span>
-            </button>
-
-            <!-- Title -->
-            <a class="text-4xl md:text-4xl font-bold text-white text-center absolute left-1/2 transform -translate-x-1/2">
-                กิจกรรมทั้งหมดของชุมชน
-            </a>
-
-            <div class="w-[160px]"></div>
-        </div>
+                    <!-- 🕊️ Back Button (ซ้ายสุด) -->
+                    <div class="absolute left-0 top-0">
+                        <button onclick="window.location.href='HomePage.html'"
+                            class="group inline-flex items-center gap-2 px-5 py-2.5 bg-white text-gray-900 font-medium rounded-full border border-gray-300 shadow-sm hover:bg-gray-100 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-300">
+                            <i class="fas fa-arrow-left text-sm wiggle-icon"></i>
+                            <span class="text-sm">ย้อนกลับ</span>
+                        </button>
+                    </div>
+                
+                    <!-- 🏷️ Title (ตรงกลางพอดี) -->
+                    <div class="text-center">
+                        <a class="text-4xl md:text-4xl font-bold text-white">
+                            กิจกรรมทั้งหมดของชุมชน
+                        </a>
+                    </div>
+            
+                
+                </div>
 
 
 
@@ -741,27 +739,39 @@
 
             <div class="flex items-center justify-between border-b pb-2 mb-5">
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 max-w-2xl mx-auto">
-                <!-- Ongoing Activities -->
-                <a href="actOngoing.html"
-                    class="flex items-center justify-start gap-4 bg-white hover:bg-blue-50 border border-blue-200 text-blue-700 hover:text-blue-900 font-medium px-6 py-4 rounded-2xl shadow-md transition duration-200">
-                    <div class="bg-blue-100 text-blue-600 rounded-full p-3">
-                        <i class="fas fa-clock text-xl"></i>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 max-w-6xl mx-auto">
+                <!-- All Community Activities -->
+                <a href="service.html"
+                    class="flex items-center justify-start gap-4 bg-white hover:bg-purple-50 border border-purple-200 text-purple-700 hover:text-purple-900 font-medium px-6 py-4 rounded-xl shadow-md transition duration-200">
+                    <div class="bg-purple-100 text-purple-600 rounded-full p-5">
+                        <i class="fas fa-people-arrows text-lg"></i>
                     </div>
                     <div class="text-left">
-                        <h2 class="text-lg font-semibold">กิจกรรมที่ดำเนินอยู่</h2>
+                        <h2 class="text-base text font-semibold">กิจกรรมทั้งหมดของชุมชน</h2>
+                        <p class="text-sm text-purple-500">ดูรายการกิจกรรมที่เปิดให้เข้าร่วม</p>
+                    </div>
+                </a>
+            
+                <!-- Ongoing Activities -->
+                <a href="actOngoing.html"
+                    class="flex items-center justify-start gap-4 bg-white hover:bg-blue-50 border border-blue-200 text-blue-700 hover:text-blue-900 font-medium px-6 py-4 rounded-xl shadow-md transition duration-200">
+                    <div class="bg-blue-100 text-blue-600 rounded-full p-3">
+                        <i class="fas fa-clock text-lg"></i>
+                    </div>
+                    <div class="text-left">
+                        <h2 class="text-base font-semibold">กิจกรรมที่ดำเนินอยู่</h2>
                         <p class="text-sm text-blue-500">ดูรายการกิจกรรมที่กำลังดำเนินการ</p>
                     </div>
                 </a>
             
                 <!-- Activity History -->
                 <a href="actHistory.html"
-                    class="flex items-center justify-start gap-4 bg-white hover:bg-green-50 border border-green-200 text-green-700 hover:text-green-900 font-medium px-6 py-4 rounded-2xl shadow-md transition duration-200">
+                    class="flex items-center justify-start gap-4 bg-white hover:bg-green-50 border border-green-200 text-green-700 hover:text-green-900 font-medium px-6 py-4 rounded-xl shadow-md transition duration-200">
                     <div class="bg-green-100 text-green-600 rounded-full p-3">
-                        <i class="fas fa-history text-xl"></i>
+                        <i class="fas fa-history text-lg"></i>
                     </div>
                     <div class="text-left">
-                        <h2 class="text-lg font-semibold">ประวัติกิจกรรม</h2>
+                        <h2 class="text-base font-semibold">ประวัติกิจกรรม</h2>
                         <p class="text-sm text-green-500">ดูบันทึกกิจกรรมในอดีตทั้งหมด</p>
                     </div>
                 </a>
@@ -907,8 +917,9 @@
                     </a>
                 </div>
 
-                <div class="overflow-x-auto">
-                    <div class="table-responsive-sm">
+                <div class="overflow-x-auto w-full">
+                    <div class="min-w-[1000px]">
+                        <table role="table" >
                         <table role="table" aria-busy="false" aria-colcount="7"
                             class="table b-table b-table-stacked-md w-full">
                             <thead role="rowgroup" class="bg-gray-100">

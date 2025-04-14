@@ -22,7 +22,15 @@ DROP TYPE IF EXISTS transaction_type CASCADE;
 
 -- Create enum types
 CREATE TYPE user_status AS ENUM ('active', 'inactive', 'suspended', 'pending_approval', 'offline');
-CREATE TYPE activity_status AS ENUM ('กำลังจะเริ่ม', 'เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา');
+-- Create the activity_status enum type
+CREATE TYPE activity_status AS ENUM (
+    'รอการอนุมัติ',
+    'กำลังจะเริ่ม',
+    'เสร็จสิ้น',
+    'ยกเลิก',
+    'เกินเวลา'
+);
+
 CREATE TYPE transaction_type AS ENUM ('earn', 'spend');
 
 -- Create the branches table
