@@ -80,6 +80,13 @@
             checkLoginStatus();
             fetchReportData();
             showVolume('daily'); // Default to daily volume
+
+            // Check if redirected from login
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('login') === 'success') {
+                const successModal = document.getElementById('success-modal');
+                successModal.classList.remove('hidden');
+            }
         });
     </script>
 </head>
@@ -194,9 +201,6 @@
         document.addEventListener('DOMContentLoaded', () => {
             const successModal = document.getElementById('success-modal');
             const successConfirmBtn = document.getElementById('success-confirm-btn');
-
-            // Show success modal on page load
-            successModal.classList.remove('hidden');
 
             successConfirmBtn.addEventListener('click', () => {
                 successModal.classList.add('hidden');

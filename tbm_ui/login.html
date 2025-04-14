@@ -126,9 +126,9 @@
 
                 // Redirect based on role
                 if (data.user.role === 'User' || data.user.role === 'Member') {
-                    window.location.href = 'report.html';
+                    window.location.href = 'report.html?login=success';
                 } else {
-                    window.location.href = 'report.html';
+                    window.location.href = 'report.html?login=success';
                 }
 
             } catch (error) {

@@ -16,19 +16,16 @@
         async function fetchActivityDetails() {
             const urlParams = new URLSearchParams(window.location.search);
             activityId = urlParams.get('id');
-
             if (!activityId) {
                 alert('ไม่พบรหัสกิจกรรม');
                 return;
             }
-
             try {
                 const response = await fetch(`http://localhost:3000/api/tbm/activities/${activityId}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-
                 if (!response.ok) {
                     const errorText = await response.text();
                     console.error(`HTTP error! status: ${response.status}, response: ${errorText}`);
@@ -41,9 +38,7 @@
                     }
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-
                 const activity = await response.json();
-
                 if (activity) {
                     document.getElementById('activity-title').innerText = activity.title;
                     document.getElementById('activity-description').innerText = activity.description;
@@ -61,13 +56,11 @@
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
                         }
                     });
-
                     if (!participantsResponse.ok) {
                         const errorText = await participantsResponse.text();
                         console.error(`HTTP error! status: ${participantsResponse.status}, response: ${errorText}`);
                         throw new Error(`HTTP error! status: ${participantsResponse.status}`);
                     }
-
                     const participants = await participantsResponse.json();
                     const participantsCount = Array.isArray(participants) ? participants.length : 0;
                     document.getElementById('activity-max-participants').innerText = `${participantsCount}/${activity.max_participants}`;
@@ -90,14 +83,12 @@
         function displayRequiredSkills(requiredSkills) {
             const skillsContainer = document.getElementById('selected-skills-list');
             skillsContainer.innerHTML = ''; // Clear previous content
-
             try {
                 // Ensure requiredSkills is an integer (skill_id) and fetch skill details from API
                 if (!requiredSkills || isNaN(requiredSkills)) {
                     skillsContainer.innerHTML = '<li class="text-gray-500">ไม่มีทักษะที่ระบุ</li>';
                     return;
                 }
-
                 // Fetch skill details using the skill_id
                 fetch(`http://localhost:3000/api/tbm/skills/${requiredSkills}`, {
                     headers: {
@@ -110,15 +101,14 @@
                             skillsContainer.innerHTML = '<li class="text-gray-500">ไม่พบข้อมูลทักษะ</li>';
                             return;
                         }
-
                         // Create list item with proper spacing
                         const listItem = document.createElement('li');
                         listItem.innerHTML = `
-                            <strong class="text-blue-600 text-lg font-semibold">หมวดหมู่:</strong>
-                            <span class="mr-4">${skill.category}</span>
-                            <strong class="text-green-600 text-lg font-semibold">ทักษะ:</strong>
-                            <span>${skill.name}</span>
-                        `;
+                        <strong class="text-blue-600 text-lg font-semibold">หมวดหมู่:</strong>
+                        <span class="mr-4">${skill.category}</span>
+                        <strong class="text-green-600 text-lg font-semibold">ทักษะ:</strong>
+                        <span>${skill.name}</span>
+                    `;
                         skillsContainer.appendChild(listItem);
                     })
                     .catch(error => {
@@ -154,30 +144,27 @@
         function calculateTimeDifference() {
             const startTime = document.getElementById('activity-start-time').innerText;
             const endTime = document.getElementById('activity-end-time').innerText;
-
             if (startTime && endTime) {
                 const [startHours, startMinutes] = startTime.split(':').map(Number);
                 const [endHours, endMinutes] = endTime.split(':').map(Number);
-
                 let startDateTime = new Date();
                 startDateTime.setHours(startHours, startMinutes, 0);
-
                 let endDateTime = new Date();
                 endDateTime.setHours(endHours, endMinutes, 0);
-
                 let durationInMinutes = (endDateTime - startDateTime) / (1000 * 60);
                 if (durationInMinutes < 0) {
                     durationInMinutes += 24 * 60;
                 }
-
                 const hours = Math.floor(durationInMinutes / 60);
                 const minutes = durationInMinutes % 60;
                 const totalDurationInHours = hours + (minutes / 60);
-
                 const timeDifferenceElement = document.getElementById('time-difference');
                 timeDifferenceElement.innerText = `${hours} ชั่วโมง ${minutes} นาที`;
 
                 const minimumDurationInHours = minimumTimeTokenHours + (minimumTimeTokenMinutes / 60);
+                const minimumTimeElement = document.getElementById('minimum-time');
+                minimumTimeElement.innerText = `(ขั้นต่ำ: ${minimumTimeTokenHours} ชั่วโมง ${minimumTimeTokenMinutes} นาที)`;
+
                 if (totalDurationInHours < minimumDurationInHours) {
                     timeDifferenceElement.classList.remove('text-green-600');
                     timeDifferenceElement.classList.add('text-red-600');
@@ -191,7 +178,6 @@
         async function approveActivity() {
             const urlParams = new URLSearchParams(window.location.search);
             const activityId = urlParams.get('id');
-
             try {
                 // Approve the activity
                 const approveResponse = await fetch(`http://localhost:3000/api/tbm/activities/${activityId}/approve`, {
@@ -200,7 +186,6 @@
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-
                 if (!approveResponse.ok) {
                     const errorText = await approveResponse.text();
                     throw new Error(`Approval failed: ${errorText}`);
@@ -212,11 +197,9 @@
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-
                 if (!activityResponse.ok) {
                     throw new Error(`Failed to fetch activity details`);
                 }
-
                 const activity = await activityResponse.json();
                 const requesterId = activity.requester_id;
                 const timeTokensPerParticipant = activity.time_tokens_per_participant;
@@ -227,7 +210,6 @@
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-
                 const participants = await participantsResponse.json();
                 const participantsCount = Array.isArray(participants) ? participants.length : 0;
 
@@ -272,7 +254,6 @@
                     },
                     body: JSON.stringify(transactionData)
                 });
-
                 if (!response.ok) {
                     const errorText = await response.text();
                     throw new Error(`Transaction logging failed: ${errorText}`);
@@ -286,7 +267,6 @@
         async function rejectActivity() {
             const urlParams = new URLSearchParams(window.location.search);
             const activityId = urlParams.get('id');
-
             try {
                 const response = await fetch(`http://localhost:3000/api/tbm/activities/${activityId}/reject`, {
                     method: 'POST',
@@ -294,12 +274,10 @@
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-
                 if (!response.ok) {
                     const errorText = await response.text();
                     throw new Error(`Rejection failed: ${errorText}`);
                 }
-
                 alert('กิจกรรมถูกปฏิเสธเรียบร้อยแล้ว');
                 window.location.href = 'activity.html';
             } catch (error) {
@@ -311,12 +289,10 @@
         document.addEventListener('DOMContentLoaded', () => {
             fetchActivityDetails();
             fetchCommunityConfig();
-
             document.getElementById('participants-button').addEventListener('click', () => {
                 const activityId = new URLSearchParams(window.location.search).get('id');
                 window.location.href = `activity-participant.html?id=${activityId}`;
             });
-
             checkLoginStatus();
         });
     </script>
@@ -331,9 +307,7 @@
                     class="w-10 h-10 rounded-full" height="50"
                     src="https://storage.googleapis.com/a1aa/image/oBMdgIeswhxa0NfvdZNkszEqgndNvvF2g6QQ0pba5ZQ.jpg"
                     width="50" />
-                <span class="ml-3 text-xl font-bold text-blue-600">
-                    TIMEBANK
-                </span>
+                <span class="ml-3 text-xl font-bold text-blue-600"> TIMEBANK </span>
             </div>
             <nav>
                 <ul id="navList">
@@ -343,9 +317,7 @@
         </div>
         <!-- Main Content -->
         <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
-            <h1 class="text-4xl font-bold mb-5">
-                อนุมัติกิจกรรม
-            </h1>
+            <h1 class="text-4xl font-bold mb-5"> อนุมัติกิจกรรม </h1>
             <div class="bg-white text-black p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
                 <h2 class="text-3xl font-bold mb-6 text-center text-blue-700" id="activity-title">
                     <!-- Activity Title will be inserted here -->
@@ -354,9 +326,7 @@
                     <!-- Requester Information -->
                     <div class="flex flex-wrap -mx-3 mb-4">
                         <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">
-                                ชื่อผู้ขอบริการ
-                            </label>
+                            <label class="block text-gray-700 text-sm font-bold mb-2"> ชื่อผู้ขอบริการ </label>
                             <p id="activity-requester-name" class="text-gray-700 text-lg">
                                 <!-- Activity Requester Name will be inserted here -->
                             </p>
@@ -365,34 +335,26 @@
                     <hr class="my-8 border-gray-200">
                     <!-- Service Information -->
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">
-                            ชื่อบริการ
-                        </label>
+                        <label class="block text-gray-700 text-sm font-bold mb-2"> ชื่อบริการ </label>
                         <p id="activity-title" class="text-gray-700 text-lg">
                             <!-- Activity Title will be inserted here -->
                         </p>
                     </div>
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">
-                            รายละเอียดบริการ
-                        </label>
+                        <label class="block text-gray-700 text-sm font-bold mb-2"> รายละเอียดบริการ </label>
                         <p id="activity-description" class="text-gray-700 text-lg">
                             <!-- Activity Description will be inserted here -->
                         </p>
                     </div>
                     <div class="flex flex-wrap -mx-3 mb-4">
                         <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">
-                                สถานที่จัด
-                            </label>
+                            <label class="block text-gray-700 text-sm font-bold mb-2"> สถานที่จัด </label>
                             <p id="activity-location" class="text-gray-700 text-lg">
                                 <!-- Activity Location will be inserted here -->
                             </p>
                         </div>
                         <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">
-                                สถานะ
-                            </label>
+                            <label class="block text-gray-700 text-sm font-bold mb-2"> สถานะ </label>
                             <p id="activity-status" class="text-gray-700 text-lg">
                                 <!-- Activity Status will be inserted here -->
                             </p>
@@ -408,17 +370,13 @@
                     <!-- Date & Time Information -->
                     <div class="flex flex-wrap -mx-3 mb-4">
                         <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">
-                                วันที่เริ่มต้น
-                            </label>
+                            <label class="block text-gray-700 text-sm font-bold mb-2"> วันที่เริ่มต้น </label>
                             <p id="activity-date" class="text-gray-700 text-lg">
                                 <!-- Activity Date will be inserted here -->
                             </p>
                         </div>
                         <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">
-                                วันที่สิ้นสุด
-                            </label>
+                            <label class="block text-gray-700 text-sm font-bold mb-2"> วันที่สิ้นสุด </label>
                             <p id="activity-end-date" class="text-gray-700 text-lg">
                                 <!-- Activity End Date will be inserted here -->
                             </p>
@@ -426,17 +384,13 @@
                     </div>
                     <div class="flex flex-wrap -mx-3 mb-4">
                         <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">
-                                เวลาเริ่มต้น
-                            </label>
+                            <label class="block text-gray-700 text-sm font-bold mb-2"> เวลาเริ่มต้น </label>
                             <p id="activity-start-time" class="text-gray-700 text-lg">
                                 <!-- Activity Start Time will be inserted here -->
                             </p>
                         </div>
                         <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">
-                                เวลาสิ้นสุด
-                            </label>
+                            <label class="block text-gray-700 text-sm font-bold mb-2"> เวลาสิ้นสุด </label>
                             <p id="activity-end-time" class="text-gray-700 text-lg">
                                 <!-- Activity End Time will be inserted here -->
                             </p>
@@ -444,27 +398,24 @@
                     </div>
                     <!-- Time Difference -->
                     <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2">
-                            เวลาต่าง
-                        </label>
-                        <p id="time-difference" class="text-gray-700 text-lg">
+                        <label class="block text-gray-700 text-sm font-bold mb-2"> เวลาต่าง </label>
+                        <p id="time-difference" class="text-gray-700 text-lg inline">
                             <!-- Time Difference will be inserted here -->
+                        </p>
+                        <p id="minimum-time" class="text-gray-700 text-lg inline">
+                            <!-- Minimum Time will be inserted here -->
                         </p>
                     </div>
                     <!-- Participant Count -->
                     <div class="flex flex-wrap -mx-3 mb-4">
                         <div class="w-full md:w-1/2 px-3 mb-4 md:mb-0">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">
-                                จำนวนคน
-                            </label>
+                            <label class="block text-gray-700 text-sm font-bold mb-2"> จำนวนคน </label>
                             <p id="activity-max-participants" class="text-gray-700 text-lg">
                                 <!-- Activity Max Participants will be inserted here -->
                             </p>
                         </div>
                         <div class="w-full md:w-1/2 px-3">
-                            <label class="block text-gray-700 text-sm font-bold mb-2">
-                                เครดิตเวลาที่ต้องการ
-                            </label>
+                            <label class="block text-gray-700 text-sm font-bold mb-2"> เครดิตเวลาที่ต้องการ </label>
                             <p id="activity-time-tokens" class="text-gray-700 text-lg">
                                 <!-- Activity Time Tokens Required will be inserted here -->
                             </p>
@@ -474,24 +425,16 @@
                 <div class="flex items-center justify-center mt-6">
                     <button
                         class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-4 px-6 ml-2 rounded focus:outline-none focus:shadow-outline"
-                        onclick="window.history.back()" type="button">
-                        ย้อนกลับ
-                    </button>
+                        onclick="window.history.back()" type="button"> ย้อนกลับ </button>
                     <button
                         class="bg-green-500 hover:bg-green-700 text-white font-bold py-4 px-6 ml-2 rounded focus:outline-none focus:shadow-outline"
-                        onclick="approveActivity()" type="button">
-                        อนุมัติ
-                    </button>
+                        onclick="approveActivity()" type="button"> อนุมัติ </button>
                     <button
                         class="bg-red-500 hover:bg-red-700 text-white font-bold py-4 px-6 ml-2 rounded focus:outline-none focus:shadow-outline"
-                        onclick="rejectActivity()" type="button">
-                        ปฏิเสธ
-                    </button>
+                        onclick="rejectActivity()" type="button"> ปฏิเสธ </button>
                     <button
                         class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-4 px-6 ml-2 rounded focus:outline-none focus:shadow-outline"
-                        id="participants-button" type="button">
-                        ดูผู้เข้าร่วม
-                    </button>
+                        id="participants-button" type="button"> ดูผู้เข้าร่วม </button>
                 </div>
             </div>
         </div>

@@ -1,0 +1,150 @@
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>
+        Add Announcement - Time Bank
+    </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+</head>
+
+<body class="bg-gray-100">
+    <div class="flex">
+        <!-- Sidebar -->
+        <div class="w-1/6 bg-white h-screen p-5">
+            <div class="flex items-center mb-10">
+                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
+                    class="w-10 h-10 rounded-full" height="50"
+                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
+                    width="50" />
+                <span class="ml-3 text-xl font-bold text-blue-600">
+                    TIMEBANK
+                </span>
+            </div>
+            <nav>
+                <ul id="navList">
+                    <!-- Navigation items will be dynamically inserted here -->
+                </ul>
+            </nav>
+        </div>
+        <!-- Main Content -->
+        <div class="w-5/6 bg-blue-700 text-white p-10">
+            <!-- Language Toggle Switch -->
+            <div class="absolute top-5 right-5">
+                <div class="toggle-container" id="languageToggle">
+                    <span class="toggle-label active" id="lang-th" data-lang="th">
+                        ภาษาไทย
+                    </span>
+                    <span class="toggle-label" id="lang-en" data-lang="en">
+                        English
+                    </span>
+                </div>
+            </div>
+
+            <h1 class="text-4xl font-bold mb-5">
+                Add Announcement
+            </h1>
+            <form id="announcementForm" class="bg-white p-5 rounded-lg text-black">
+                <div class="mb-4">
+                    <label for="announcementDate" class="block text-gray-700">Date</label>
+                    <input type="date" id="announcementDate" class="w-full p-2 border border-gray-300 rounded" required>
+                </div>
+                <div class="mb-4">
+                    <label for="announcementTitle" class="block text-gray-700">Title</label>
+                    <input type="text" id="announcementTitle" class="w-full p-2 border border-gray-300 rounded"
+                        required>
+                </div>
+                <div class="mb-4">
+                    <label for="announcementDescription" class="block text-gray-700">Description</label>
+                    <textarea id="announcementDescription" class="w-full p-2 border border-gray-300 rounded"
+                        required></textarea>
+                </div>
+                <div class="mb-4">
+                    <label for="announcementImage" class="block text-gray-700">Image</label>
+                    <input type="file" id="announcementImage" class="w-full p-2 border border-gray-300 rounded"
+                        accept="image/*" required>
+                </div>
+                <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded">Add Announcement</button>
+            </form>
+            <div class="mt-10">
+                <a href="homepage.html" class="bg-blue-600 text-white px-4 py-2 rounded">Back to Home</a>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Toggle container */
+        .toggle-container {
+            display: flex;
+            background-color: #E5E7EB;
+            border-radius: 20px;
+            padding: 6px;
+            align-items: center;
+            justify-content: space-between;
+            width: 180px;
+        }
+
+        /* Labels */
+        .toggle-label {
+            flex: 1;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: gray;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 9999px;
+            padding: 5px;
+        }
+
+        .toggle-label.active {
+            background-color: white;
+            color: #1D4ED8;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Disabled Label */
+        .toggle-label.disabled {
+            pointer-events: none;
+            background-color: white;
+            color: #6B7280;
+            font-weight: bold;
+        }
+    </style>
+
+    <script src="navbar.js"></script>
+    <script src="selected-language.js"></script>
+    <script>
+        document.getElementById('announcementForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData();
+            formData.append('date', document.getElementById('announcementDate').value);
+            formData.append('title', document.getElementById('announcementTitle').value);
+            formData.append('description', document.getElementById('announcementDescription').value);
+            formData.append('image', document.getElementById('announcementImage').files[0]);
+
+            try {
+                const response = await fetch('/tbm/announcements', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (response.ok) {
+                    alert('Announcement added successfully');
+                    window.location.href = 'homepage.html';
+                } else {
+                    alert('Failed to add announcement');
+                }
+            } catch (error) {
+                console.error('Error adding announcement:', error);
+                alert('An error occurred while adding the announcement');
+            }
+        });
+    </script>
+</body>
+
+</html>
