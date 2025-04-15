@@ -249,13 +249,13 @@ const activityRoutes = (pool) => {
                            (SELECT name FROM skills WHERE skill_id = ms.skill_1),
                            (SELECT name FROM skills WHERE skill_id = ms.skill_2),
                            (SELECT name FROM skills WHERE skill_id = ms.skill_3)
-                       ] AS skills
+                       ] AS skills,
+                       ap.attended
                 FROM activity_participants ap
                 JOIN users u ON ap.user_id = u.user_id
                 LEFT JOIN member_skills ms ON u.user_id = ms.user_id
                 WHERE ap.activity_id = $1
             `, [activityId]);
-            
     
             res.json(participants.rows);
         } catch (error) {
@@ -263,6 +263,7 @@ const activityRoutes = (pool) => {
             res.status(500).json({ error: 'Failed to fetch participants' });
         }
     });
+    
     
 
     // Add a participant to an activity
@@ -647,91 +648,80 @@ const activityRoutes = (pool) => {
         }
     });
 
-    // Route: confirm activity completion (member submits confirmation)
+    // Route: requester confirms completion (without checking for 'เกินเวลา')
     router.post('/:activityId/confirm-completion', async (req, res) => {
         const { activityId } = req.params;
-
+        const { attendedUserIds } = req.body;
+    
+        if (!Array.isArray(attendedUserIds) || attendedUserIds.length === 0) {
+            return res.status(400).json({ error: 'ต้องเลือกผู้เข้าร่วมอย่างน้อย 1 คน' });
+        }
+    
         try {
-            // Record current time and update confirmation_pending
-            const result = await pool.query(
-                `UPDATE activities SET confirmation_pending = true, confirmation_deadline = NOW() + INTERVAL '1 day' 
-                WHERE activity_id = $1 AND status = 'เกินเวลา'
-                RETURNING *`,
-                [activityId]
-            );
-
-            if (result.rowCount === 0) {
-                return res.status(400).json({ error: 'Only activities marked as "เกินเวลา" can be confirmed.' });
+            // Update activity to pending approval
+            await pool.query(`
+                UPDATE activities 
+                SET status = 'รอการอนุมัติ', updated_at = NOW() 
+                WHERE activity_id = $1
+            `, [activityId]);
+    
+            // Mark attended participants (store permanently)
+            for (let userId of attendedUserIds) {
+                await pool.query(`
+                    UPDATE activity_participants
+                    SET attended = true, updated_at = NOW()
+                    WHERE activity_id = $1 AND user_id = $2
+                `, [activityId, userId]);
             }
-
-            res.json({ message: 'Confirmation submitted. Awaiting manager approval.', activity: result.rows[0] });
+    
+            res.status(200).json({ message: 'Activity marked completed. Awaiting approval.' });
         } catch (err) {
-            console.error('Error confirming completion:', err.message);
-            res.status(500).json({ error: 'Failed to confirm activity completion' });
+            console.error(err);
+            res.status(500).json({ error: 'Internal server error' });
         }
     });
+    
 
     // Route: manager approves confirmed activity
     router.post('/:activityId/manager-approve', async (req, res) => {
         const { activityId } = req.params;
-
+    
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
-
-            // Check if confirmation is still within allowed time
+    
             const activityRes = await client.query(
                 `SELECT * FROM activities WHERE activity_id = $1`,
                 [activityId]
             );
-
+    
             if (activityRes.rowCount === 0) {
                 throw new Error('Activity not found');
             }
-
+    
             const activity = activityRes.rows[0];
-
+    
             if (!activity.confirmation_pending || new Date() > new Date(activity.confirmation_deadline)) {
-                return res.status(400).json({ error: 'Confirmation deadline has passed or not pending approval.' });
+                return res.status(400).json({ error: 'Confirmation deadline has passed or activity is not pending approval.' });
             }
-
+    
             await client.query(
-                `UPDATE activities SET status = 'เสร็จสิ้น', confirmation_pending = false, confirmation_deadline = NULL
-                WHERE activity_id = $1`,
+                `UPDATE activities 
+                 SET status = 'เสร็จสิ้น',
+                     confirmation_pending = false,
+                     confirmation_deadline = NULL
+                 WHERE activity_id = $1`,
                 [activityId]
             );
-
+    
             await client.query('COMMIT');
-            res.json({ message: 'Activity approved by manager and marked as สำเร็จ.' });
+            res.json({ message: 'Activity approved by manager and marked as เสร็จสิ้น.' });
         } catch (err) {
             await client.query('ROLLBACK');
             console.error('Error in manager approval:', err.message);
             res.status(500).json({ error: 'Failed to approve activity' });
         } finally {
             client.release();
-        }
-    });
-
-    router.post('/:activityId/confirm-completion', async (req, res) => {
-        const { activityId } = req.params;
-    
-        try {
-            const result = await pool.query(
-                `UPDATE activities 
-                 SET status = 'รอการอนุมัติ', confirmation_pending = true, confirmation_deadline = NOW() + INTERVAL '1 day'
-                 WHERE activity_id = $1 AND status = 'เกินเวลา'
-                 RETURNING *`,
-                [activityId]
-            );
-    
-            if (result.rowCount === 0) {
-                return res.status(400).json({ error: 'Only activities marked as "เกินเวลา" can be confirmed.' });
-            }
-    
-            res.json({ message: 'Confirmation submitted. Awaiting manager approval.', activity: result.rows[0] });
-        } catch (err) {
-            console.error('Error confirming completion:', err.message);
-            res.status(500).json({ error: 'Failed to confirm activity completion' });
         }
     });
     

@@ -47,19 +47,151 @@
             data.forEach((participant) => {
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-gray-100';
+        
+                const checkboxHtml = participant.attended
+                    ? `<input type="checkbox" class="participant-checkbox" data-user-id="${participant.user_id}" checked disabled>`
+                    : `<input type="checkbox" class="participant-checkbox" data-user-id="${participant.user_id}">`;
+        
                 row.innerHTML = `
                     <td class="py-4 px-6 border-b border-gray-200">${participant.name}</td>
                     <td class="py-4 px-6 border-b border-gray-200">${participant.phone}</td>
                     <td class="py-4 px-6 border-b border-gray-200">${participant.skills.join(', ')}</td>
+                    <td class="py-4 px-6 border-b border-gray-200 text-center">
+                        ${checkboxHtml}
+                    </td>
                 `;
                 tbody.appendChild(row);
             });
         }
 
+        async function confirmCompletion() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const activityId = urlParams.get('id');
+            const checkedCheckboxes = document.querySelectorAll('.participant-checkbox:checked');
+        
+            if (checkedCheckboxes.length === 0) {
+                alert('กรุณาเลือกอย่างน้อย 1 ผู้เข้าร่วมที่มาร่วมกิจกรรม');
+                return;
+            }
+        
+            const attendedUserIds = Array.from(checkedCheckboxes).map(cb => parseInt(cb.dataset.userId));
+        
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}/confirm-completion`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify({ attendedUserIds })  // 🟢 Pass attendance list
+                });
+        
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.error || 'Unknown error');
+                }
+        
+                alert('ยืนยันกิจกรรมสำเร็จ รอการอนุมัติจาก TimeBank Manager');
+                document.getElementById('confirm-completion-btn').classList.add('hidden');
+            } catch (error) {
+                console.error('Error confirming completion:', error);
+                alert('เกิดข้อผิดพลาด: ' + error.message);
+            }
+        }
+
+        function disableConfirmedCheckboxes(attendedUserIds) {
+            document.querySelectorAll('.participant-checkbox').forEach(checkbox => {
+                const userId = parseInt(checkbox.dataset.userId);
+                if (attendedUserIds.includes(userId)) {
+                    checkbox.checked = true;
+                }
+                checkbox.disabled = true;
+            });
+        }
+        
+        async function checkConfirmedAttendanceStatus() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const activityId = urlParams.get('id');
+        
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+        
+                if (!response.ok) throw new Error("Failed to fetch activity data");
+        
+                const activity = await response.json();
+        
+                if (activity.status === 'รอการอนุมัติ' || activity.status === 'เสร็จสิ้น') {
+                    const participantResponse = await fetch(`http://localhost:3000/api/user/activities/${activityId}/participants`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+        
+                    const participants = await participantResponse.json();
+                    const attendedIds = participants.filter(p => p.attended).map(p => p.user_id);
+        
+                    disableConfirmedCheckboxes(attendedIds);
+                    document.getElementById('confirm-completion-btn').classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Error checking attendance status:', error);
+            }
+        }
+        
         document.addEventListener('DOMContentLoaded', () => {
-            fetchParticipants();
-            checkLoginStatus();
+            checkConfirmedAttendanceStatus(); // ✅ Add this to run when page loads
         });
+        
+        
+
+        async function checkIfRequester() {
+            const token = localStorage.getItem('token');
+            const urlParams = new URLSearchParams(window.location.search);
+            const activityId = urlParams.get('id');
+        
+            if (!token || !activityId) {
+                document.getElementById('confirm-completion-btn').classList.add('hidden');
+                return;
+            }
+        
+            try {
+                // Get user profile
+                const userResponse = await fetch('http://localhost:3000/api/user/auth/profile', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+        
+                if (!userResponse.ok) throw new Error("Failed to fetch user");
+        
+                const userData = await userResponse.json();
+                const userId = userData.user_id;
+        
+                // Get activity info
+                const activityResponse = await fetch(`http://localhost:3000/api/user/activities/${activityId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+        
+                if (!activityResponse.ok) throw new Error("Failed to fetch activity");
+        
+                const activityData = await activityResponse.json();
+        
+                if (activityData.requester_id !== userId) {
+                    document.getElementById('confirm-completion-btn').classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Error checking requester role:', error);
+                document.getElementById('confirm-completion-btn').classList.add('hidden');
+            }
+        }
+        
+        
 
         async function checkLoginStatus() {
             const token = localStorage.getItem('token');
@@ -225,13 +357,20 @@
                 `;
             }
         }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchParticipants();
+            checkLoginStatus();
+            checkIfRequester(); // 🟢 Add this line
+        });
+        
     </script>
 </head>
 
 <body class="bg-gray-100">
-    <div class="flex flex-col md:flex-row">
+    <div class="flex flex-col md:flex-row min-h-screen">
         <!-- Sidebar -->
-        <div class="w-full md:w-1/6 bg-white h-screen p-5">
+        <div class="w-full md:w-1/5 bg-white p-5 shadow-lg">
             <div class="flex items-center mb-10">
                 <img alt="Logo of Time Bank System, a clock with a handshake in the center"
                     class="w-10 h-10 rounded-full" height="50"
@@ -249,31 +388,19 @@
         </div>
         <!-- Main Content -->
         <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
-            <h1 class="text-4xl font-bold mb-5">
-                รายชื่อผู้เข้าร่วม
-            </h1>
-            <div class="bg-white text-black p-12 rounded-lg shadow-lg max-w-6xl mx-auto">
+            <div class="bg-white p-8 rounded-lg shadow-lg">
+                <h1 class="text-4xl font-bold mb-5 text-center text-blue-700">
+                    รายชื่อผู้เข้าร่วม
+                </h1>
                 <div class="overflow-x-auto mt-4">
                     <div class="table-responsive-sm">
-                        <table aria-busy="false" aria-colcount="3" class="table b-table b-table-stacked-md w-full"
-                            role="table">
+                        <table aria-busy="false" aria-colcount="4" class="table b-table b-table-stacked-md w-full" role="table">
                             <thead class="bg-gray-100" role="rowgroup">
                                 <tr role="row">
-                                    <th aria-colindex="1"
-                                        class="py-4 px-6 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        ชื่อ
-                                    </th>
-                                    <th aria-colindex="2"
-                                        class="py-4 px-6 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        เบอร์โทร
-                                    </th>
-                                    <th aria-colindex="3"
-                                        class="py-4 px-6 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        ทักษะ
-                                    </th>
+                                    <th aria-colindex="1" class="py-4 px-6 text-left text-sm font-semibold text-gray-600" role="columnheader" scope="col">ชื่อ</th>
+                                    <th aria-colindex="2" class="py-4 px-6 text-left text-sm font-semibold text-gray-600" role="columnheader" scope="col">เบอร์โทร</th>
+                                    <th aria-colindex="3" class="py-4 px-6 text-left text-sm font-semibold text-gray-600" role="columnheader" scope="col">ทักษะ</th>
+                                    <th aria-colindex="4" class="py-4 px-6 text-left text-sm font-semibold text-gray-600" role="columnheader" scope="col">เข้าร่วม</th>
                                 </tr>
                             </thead>
                             <tbody id="participants-tbody" role="rowgroup">
@@ -282,12 +409,14 @@
                         </table>
                     </div>
                 </div>
-                <div class="flex items-center justify-center mt-6">
-                    <button
-                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-4 px-6 ml-2 rounded focus:outline-none focus:shadow-outline"
-                        onclick="window.history.back()" type="button">
-                        ย้อนกลับ
+                <div class="flex items-center justify-center mt-6 space-x-4">
+                    <!-- Button: Requester confirms activity completion -->
+                    <button id="confirm-completion-btn"
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        onclick="confirmCompletion()" type="button">
+                        ยืนยันการเสร็จสิ้น
                     </button>
+                    <button class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" onclick="window.history.back()" type="button">ย้อนกลับ</button>
                 </div>
             </div>
         </div>

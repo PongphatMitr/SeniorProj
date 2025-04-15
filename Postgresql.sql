@@ -1,6 +1,8 @@
 -- Drop existing tables if they exist
+DROP TABLE IF EXISTS announcements CASCADE;
 DROP TABLE IF EXISTS users CASCADE;
 DROP TABLE IF EXISTS activities CASCADE;
+-- ... the res
 DROP TABLE IF EXISTS categories CASCADE;
 DROP TABLE IF EXISTS skills CASCADE;
 DROP TABLE IF EXISTS member_skills CASCADE;
@@ -73,14 +75,17 @@ CREATE TABLE activities (
     max_participants INT NOT NULL CHECK (max_participants > 0),
     requester_id INT NOT NULL,
     requester_phone VARCHAR(20) NOT NULL,
-    status activity_status NOT NULL,  -- Changed to use enum type
+    status activity_status NOT NULL,
     time_tokens_required INT DEFAULT 0,
     time_tokens_per_participant INT DEFAULT 0,
     required_skills INT NOT NULL,
+    confirmation_pending BOOLEAN DEFAULT false,         -- ✅ NEW
+    confirmation_deadline TIMESTAMP,                    -- ✅ NEW
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
     FOREIGN KEY (requester_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
+
 
 -- Create the categories table
 CREATE TABLE categories (
@@ -381,3 +386,6 @@ VALUES
 INSERT INTO transactions (user_id, activity_id, date, time, time_credits, transaction_type, details, requester_id, participant_id, created_at, updated_at) 
 VALUES 
 (1, 1, '2023-01-01', '09:00:00', 1, 'earn', 'Participated in activity: กิจกรรมทำความสะอาดชุมชน', 1, 1, '2025-01-29 15:46:29.868674', '2025-01-29 15:46:29.868674');
+
+ALTER TABLE activity_participants
+ADD COLUMN attended BOOLEAN DEFAULT false;
