@@ -88,24 +88,26 @@
 
         function updateActivityStatus() {
             const now = new Date();
+            const today = new Date();
+            today.setHours(0, 0, 0, 0); // Midnight of today
         
             activities.forEach(activity => {
                 if (activity.status === 'กำลังจะเริ่ม') {
                     const endDate = new Date(activity.end_date);
-                    const [hour, minute, second] = activity.end_time.split(':').map(Number);
-                    endDate.setHours(hour, minute, second || 0, 0);
+                    endDate.setDate(endDate.getDate() + 1); // end_date + 1 day
+                    endDate.setHours(0, 0, 0, 0); // Move to 00:00:00
         
-                    // Add 1 day grace and move to next midnight (00:00:00)
-                    const graceDeadline = new Date(endDate);
-                    graceDeadline.setDate(graceDeadline.getDate() + 1);
-                    graceDeadline.setHours(0, 0, 0, 0);
-        
-                    if (now >= graceDeadline) {
+                    // Matches: (end_date + INTERVAL '1 day') >= CURRENT_DATE
+                    if (endDate >= today) {
+                        console.log(`✅ Activity "${activity.title}" is still within grace period.`);
+                    } else {
                         activity.status = 'เกินเวลา';
+                        console.log(`⚠️ Activity "${activity.title}" is now overdue!`);
                     }
                 }
             });
         }
+        
         
 
         function renderTable(data) {

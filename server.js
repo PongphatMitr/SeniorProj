@@ -19,7 +19,7 @@ cron.schedule('* * * * *', async () => {
             SET status = 'เกินเวลา',
                 updated_at = NOW()
             WHERE status = 'กำลังจะเริ่ม'
-            AND (end_date + INTERVAL '1 day') < CURRENT_DATE
+            AND (end_date + INTERVAL '1 day') >= CURRENT_DATE
         `);
 
         await client.query('COMMIT');
