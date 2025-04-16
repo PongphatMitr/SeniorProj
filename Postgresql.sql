@@ -85,7 +85,6 @@ CREATE TABLE activities (
     time_tokens_per_participant INT DEFAULT 0,
     required_skills INT NOT NULL,
     confirmation_pending BOOLEAN DEFAULT false, -- ✅ NEW
-    confirmation_deadline TIMESTAMP, -- ✅ NEW
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
     FOREIGN KEY (requester_id) REFERENCES users(user_id) ON DELETE CASCADE
@@ -268,8 +267,8 @@ INSERT INTO users (username, password, email, role, name, phone, address, branch
 
 -- Insert initial data into activities (with required_skills)
 INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, requester_phone, status, time_tokens_required, time_tokens_per_participant, required_skills) VALUES 
-('กิจกรรมทำความสะอาดชุมชน', 'ทำความสะอาดชุมชน', 'Community Center', '2023-01-01', '09:00', '2023-01-01', '12:00', 20, 1, '1234567890', 'กำลังจะเริ่ม', 20, 1, 4),
-('กิจกรรมสอนคอมพิวเตอร์', 'สอนคอมพิวเตอร์ให้กับชุมชน', 'Community Center', '2023-01-15', '10:00', '2023-01-15', '13:00', 15, 1, '0987654321', 'กำลังจะเริ่ม', 15, 1, 5),
+('กิจกรรมทำความสะอาดชุมชน', 'ทำความสะอาดชุมชน', 'Community Center', '2023-01-01', '09:00', '2023-01-01', '12:00', 20, 1, '1234567890', 'เกินเวลา', 20, 1, 4),
+('กิจกรรมสอนคอมพิวเตอร์', 'สอนคอมพิวเตอร์ให้กับชุมชน', 'Community Center', '2023-01-15', '10:00', '2023-01-15', '13:00', 15, 1, '0987654321', 'เกินเวลา', 15, 1, 5),
 ('กิจกรรมทำอาหาร', 'ทำอาหารร่วมกัน', 'Community Kitchen', '2023-01-30', '11:00', '2023-01-30', '14:00', 10, 1, '0987654321', 'เสร็จสิ้น', 10, 1, 6),
 ('กิจกรรมทำสวน', 'ทำสวนร่วมกัน', 'Community Garden', '2023-02-05', '08:00', '2023-02-05', '11:00', 25, 1, '0987654321', 'เสร็จสิ้น', 25, 1, 7);
 
@@ -361,3 +360,122 @@ INSERT INTO transactions (user_id, activity_id, date, time, time_credits, transa
 
 -- Add attended column to activity_participants table
 ALTER TABLE activity_participants ADD COLUMN attended BOOLEAN DEFAULT false;
+
+INSERT INTO activities (
+    title,
+    description,
+    location,
+    start_date,
+    start_time,
+    end_date,
+    end_time,
+    max_participants,
+    requester_id,
+    requester_phone,
+    status,
+    time_tokens_required,
+    time_tokens_per_participant,
+    required_skills
+) VALUES (
+	    'กิจกรรมเช็คคอนเฟิมรายชื่อตอนเสร็จสิ้น',
+    'เริ่มเมื่อ 1 ชั่วโมงก่อนเวลานี้ และจะจบอีกชั่วโมงถัดมา',
+    'Test Location',
+    CURRENT_DATE,  -- or CURRENT_DATE - INTERVAL '1 day' if you want it backdated
+    to_char(NOW() - INTERVAL '1 hour', 'HH24:MI')::time,
+    CURRENT_DATE,
+    to_char(NOW(), 'HH24:MI')::time,  -- end time = now (1 hour after start)
+    10,
+    2,
+    '0123456789',
+    'กำลังจะเริ่ม',
+    5,
+    1,
+    1
+);
+
+INSERT INTO activities (
+    title,
+    description,
+    location,
+    start_date,
+    start_time,
+    end_date,
+    end_time,
+    max_participants,
+    requester_id,
+    requester_phone,
+    status,
+    time_tokens_required,
+    time_tokens_per_participant,
+    required_skills
+) VALUES (
+    'กิจกรรมเช็คคอนเฟิมรายชื่อตอนยังไม่เสร็จ	',
+    'เริ่มเมื่อ 1 นาทีที่แล้ว และสิ้นสุดอีก 1 ชั่วโมงถัดมา',
+    'Test Location',
+    CURRENT_DATE,
+    to_char(NOW() - INTERVAL '1 minute', 'HH24:MI')::time,
+    CURRENT_DATE,
+    to_char(NOW() + INTERVAL '59 minute', 'HH24:MI')::time,  -- 1 hour after start
+    10,
+    2,
+    '0123456789',
+    'กำลังจะเริ่ม',
+    5,
+    1,
+    1
+);
+
+INSERT INTO activities (
+    title,
+    description,
+    location,
+    start_date,
+    start_time,
+    end_date,
+    end_time,
+    max_participants,
+    requester_id,
+    requester_phone,
+    status,
+    time_tokens_required,
+    time_tokens_per_participant,
+    required_skills
+) VALUES (
+    'กิจกรรมเมื่อวานใกล้จะเกินเวลา',
+    'จะกลายเป็นเกินเวลาอีก 1 นาที หลังจากวันสิ้นสุด + เวลา + 1 นาที',
+    'Test Location',
+    CURRENT_DATE - INTERVAL '1 day',
+    to_char(NOW() - INTERVAL '2 hour', 'HH24:MI')::time,       -- started 2 hrs ago yesterday
+    CURRENT_DATE - INTERVAL '1 day',
+    to_char(NOW() + INTERVAL '1 minute', 'HH24:MI')::time,     -- ends in 1 min from now (yesterday)
+    10,
+    2,
+    '0123456789',
+    'กำลังจะเริ่ม',
+    5,
+    1,
+    1
+);
+
+
+INSERT INTO activity_participants (
+    activity_id,
+    user_id
+) VALUES (
+    5,
+    3
+);
+INSERT INTO activity_participants (
+    activity_id,
+    user_id
+) VALUES (
+    6,
+    2
+);
+INSERT INTO activity_participants (
+    activity_id,
+    user_id
+) VALUES (
+    7,
+    2
+);
