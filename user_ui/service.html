@@ -88,17 +88,25 @@
 
         function updateActivityStatus() {
             const now = new Date();
+        
             activities.forEach(activity => {
                 if (activity.status === 'กำลังจะเริ่ม') {
-                    const activityEndDate = new Date(activity.end_date);
-                    const activityEndTime = activity.end_time.split(':');
-                    activityEndDate.setHours(activityEndTime[0], activityEndTime[1], activityEndTime[2]);
-                    if (activityEndDate < now) {
+                    const endDate = new Date(activity.end_date);
+                    const [hour, minute, second] = activity.end_time.split(':').map(Number);
+                    endDate.setHours(hour, minute, second || 0, 0);
+        
+                    // Add 1 day grace and move to next midnight (00:00:00)
+                    const graceDeadline = new Date(endDate);
+                    graceDeadline.setDate(graceDeadline.getDate() + 1);
+                    graceDeadline.setHours(0, 0, 0, 0);
+        
+                    if (now >= graceDeadline) {
                         activity.status = 'เกินเวลา';
                     }
                 }
             });
         }
+        
 
         function renderTable(data) {
             const tbody = document.getElementById('activity-tbody');
@@ -110,19 +118,24 @@
                 const userJoined = activity.participants && activity.participants.some(p => p.user_id === globalUserId);
                 const matchesUserSkill = memberSkills.includes(activity.required_skills);
         
+                const activityStart = new Date(activity.start_date);
+                const [startHour, startMin] = activity.start_time.split(':').map(Number);
+                activityStart.setHours(startHour, startMin, 0, 0);
+        
                 const activityEnd = new Date(activity.end_date);
                 const [endHour, endMin] = activity.end_time.split(':').map(Number);
                 activityEnd.setHours(endHour, endMin, 0, 0);
+        
+                const activityAlreadyStarted = now >= activityStart;
         
                 let joinButtonContent = '';
                 let showButton = false;
         
                 if (activity.requester_id === globalUserId) {
-                    // Owner of activity
                     joinButtonContent = `<span class="bg-orange-500 text-white font-bold py-1 px-2 rounded">เจ้าของกิจกรรม</span>`;
                 } else if (activity.status === 'เสร็จสิ้น') {
                     joinButtonContent = `<span class="bg-green-500 text-white font-bold py-1 px-2 rounded">สำเร็จ</span>`;
-                } else if (activity.status === 'ยกเลิก' || activity.status === 'เกินเวลา' || activityEnd < now) {
+                } else if (activity.status === 'ยกเลิก' || activity.status === 'เกินเวลา') {
                     joinButtonContent = `<span class="bg-gray-500 text-white font-bold py-1 px-2 rounded">ไม่สำเร็จ</span>`;
                 } else if (!matchesUserSkill && activity.status === 'กำลังจะเริ่ม') {
                     joinButtonContent = `<span class="text-sm text-gray-400 italic">ไม่ตรงทักษะ</span>`;
@@ -133,17 +146,33 @@
                 if (showButton) {
                     let joinButtonText = 'เข้าร่วม';
                     let joinButtonClass = 'bg-blue-500';
-                    let joinButtonDisabled = false;
+                    let disabledAttr = '';
+                    let tooltip = '';
         
-                    if (userJoined) {
-                        joinButtonText = 'ยกเลิก';
-                        joinButtonClass = 'bg-red-500';
+                    if (activity.status === 'รอการอนุมัติ') {
+                        joinButtonText = '⛔ ปิดรับแล้ว';
+                        joinButtonClass = 'bg-cyan-600';
+                        disabledAttr = 'disabled';
+                    } else if (activityAlreadyStarted) {
+                        if (userJoined) {
+                            joinButtonText = '🚫 ไม่สามารถยกเลิกได้';
+                        } else {
+                            joinButtonText = '⛔ ปิดรับสมัครแล้ว'; 
+                        }
+                        joinButtonClass = 'bg-gray-500';
+                        disabledAttr = 'disabled';
+                    }
+                     else {
+                        if (userJoined) {
+                            joinButtonText = 'ยกเลิก';
+                            joinButtonClass = 'bg-red-500';
+                        }
                     }
         
                     joinButtonContent = `
                         <button onclick="handleJoinButton(${activity.activity_id}, ${index})"
                             class="${joinButtonClass} text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline join-button"
-                            ${joinButtonDisabled ? 'disabled' : ''}>
+                            ${disabledAttr}>
                             ${joinButtonText}
                         </button>
                     `;

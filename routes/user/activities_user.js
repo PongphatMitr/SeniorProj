@@ -608,45 +608,40 @@ const activityRoutes = (pool) => {
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
-
-    // Add this route to check and update overtime status for activities
-    router.put('/check-overtime', async (req, res) => {
+    
+    router.post('/check-overtime', async (req, res) => {
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
-
-            // Select activities that are still marked as "กำลังจะเริ่ม" but already passed their end date + end time
-            const activitiesRes = await client.query(`
-                SELECT activity_id, end_date, end_time
-                FROM activities
+    
+            await client.query(`
+                UPDATE activities
+                SET status = 'เกินเวลา',
+                    updated_at = NOW()
                 WHERE status = 'กำลังจะเริ่ม'
+                AND (
+                    make_timestamp(
+                        EXTRACT(YEAR FROM end_date)::int,
+                        EXTRACT(MONTH FROM end_date)::int,
+                        EXTRACT(DAY FROM end_date)::int,
+                        EXTRACT(HOUR FROM end_time)::int,
+                        EXTRACT(MINUTE FROM end_time)::int,
+                        EXTRACT(SECOND FROM end_time)::int
+                    ) + INTERVAL '1 minute'
+                ) < NOW()
             `);
-
-            const now = new Date();
-
-            for (const activity of activitiesRes.rows) {
-                const endDateTime = new Date(activity.end_date);
-                const [hours, minutes] = activity.end_time.split(':');
-                endDateTime.setHours(parseInt(hours), parseInt(minutes));
-
-                if (endDateTime < now) {
-                    await client.query(
-                        `UPDATE activities SET status = 'เกินเวลา' WHERE activity_id = $1`,
-                        [activity.activity_id]
-                    );
-                }
-            }
-
+    
             await client.query('COMMIT');
-            res.json({ message: 'Updated overtime statuses if any were due.' });
+            res.json({ message: '⏰ Overtime activities updated to เกินเวลา successfully.' });
         } catch (err) {
             await client.query('ROLLBACK');
-            console.error('Error checking overtime:', err.message);
-            res.status(500).json({ error: 'Failed to update overtime statuses' });
+            console.error('❌ Error in overtime POST:', err.message);
+            res.status(500).json({ error: 'Failed to check/update overtime status.' });
         } finally {
             client.release();
         }
     });
+    
 
     // Route: requester confirms completion (without checking for 'เกินเวลา')
     router.post('/:activityId/confirm-completion', async (req, res) => {

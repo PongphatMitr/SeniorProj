@@ -55,7 +55,7 @@
                     await fetchParticipants(activityId, activity.max_participants);
         
                     // ✅ Update join button based on activity status
-                    updateJoinButton(activity.status);
+                    updateJoinButton(activity.status, activity.start_date, activity.start_time);
                 } else {
                     alert('ไม่พบรายละเอียดกิจกรรม');
                 }
@@ -285,22 +285,64 @@
             }
         }
 
-        function updateJoinButton(status) {
+        function updateJoinButton(status, startDate, startTime) {
             const joinButton = document.getElementById('join-button');
+            const now = new Date();
+            const startDateTime = new Date(`${startDate}T${startTime}:00`);
+            const activityAlreadyStarted = now >= startDateTime;
+        
             if (status === 'เสร็จสิ้น') {
                 joinButton.innerText = 'เสร็จสิ้น';
-                joinButton.classList.remove('bg-green-500', 'bg-red-500');
+                joinButton.classList.remove('bg-red-500', 'bg-green-500');
                 joinButton.classList.add('bg-green-500');
                 joinButton.disabled = true;
-            } else if (status === 'ยกเลิก' || status === 'เกินเวลา') {
+                return;
+            }
+        
+            if (status === 'ยกเลิก' || status === 'เกินเวลา') {
                 joinButton.innerText = 'ไม่สำเร็จ';
                 joinButton.classList.remove('bg-green-500', 'bg-red-500');
                 joinButton.classList.add('bg-orange-500');
                 joinButton.disabled = true;
-            } else {
-                joinButton.disabled = false;
+                return;
             }
+        
+            // Fetch participants to check if user joined
+            fetch(`http://localhost:3000/api/user/activities/${activityId}/participants`, {
+                headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+            })
+            .then(res => res.json())
+            .then(participants => {
+                const userJoined = participants.some(p => p.user_id === globalUserId);
+        
+                if (activityAlreadyStarted || status === 'รอการอนุมัติ') {
+                    if (userJoined) {
+                        joinButton.innerText = '🚫 ไม่สามารถยกเลิกได้';
+                    } else {
+                        joinButton.innerText = '⛔ ปิดรับสมัครแล้ว';
+                    }
+                    joinButton.classList.remove('bg-green-500', 'bg-red-500');
+                    joinButton.classList.add('bg-gray-500');
+                    joinButton.disabled = true;
+                    return;
+                }
+        
+                // Default join/cancel button logic
+                if (userJoined) {
+                    joinButton.innerText = 'ยกเลิกการเข้าร่วมกิจกรรม';
+                    joinButton.classList.remove('bg-green-500');
+                    joinButton.classList.add('bg-red-500');
+                } else {
+                    joinButton.innerText = 'เข้าร่วมกิจกรรม';
+                    joinButton.classList.remove('bg-red-500');
+                    joinButton.classList.add('bg-green-500');
+                }
+                joinButton.disabled = false;
+            });
         }
+        
+        
+        
 
         async function checkLoginStatus() {
             const token = localStorage.getItem('token');
