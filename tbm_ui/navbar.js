@@ -1,3 +1,4 @@
+
 function updateSidebar(isLoggedIn) {
     const navList = document.getElementById('navList');
     const translations = {
@@ -7,8 +8,21 @@ function updateSidebar(isLoggedIn) {
     const currentLang = localStorage.getItem('selectedLanguage') || 'thai';
     const navItems = translations[currentLang];
 
+    const sidebarHeader = `
+    <div class="flex items-center mb-10">
+            <img alt="Logo of Time Bank System, a clock with a handshake in the center"
+                class="w-10 h-10 rounded-full" height="50"
+                src="../images/timebank.png"
+                width="50" />
+            <span class="ml-3 text-xl font-bold text-blue-600">
+                TIMEBANK
+            </span>
+        </div >
+    `;
+
     if (isLoggedIn) {
         navList.innerHTML = `
+            ${sidebarHeader}
             <li class="mb-5 flex items-center justify-between">
                 <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="profile.html">
                     <i class="fas fa-user mr-3"></i> ${navItems[0]}
@@ -62,9 +76,10 @@ function updateSidebar(isLoggedIn) {
                     <i class="fas fa-comment-dots mr-3"></i> ${navItems[9]}
                 </a>
             </li>
-        `;
+`;
     } else {
         navList.innerHTML = `
+            ${sidebarHeader}
             <li class="mb-5">
                 <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="login.html">
                     <i class="fas fa-sign-in-alt mr-3"></i> ${currentLang === 'thai' ? 'เข้าสู่ระบบ' : 'Login'}
@@ -75,7 +90,7 @@ function updateSidebar(isLoggedIn) {
                     <i class="fas fa-home mr-3"></i> ${navItems[1]}
                 </a>
             </li>
-        `;
+`;
     }
 }
 
@@ -89,7 +104,7 @@ async function checkLoginStatus() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token} `
                 }
             });
             if (response.ok) {
@@ -150,7 +165,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Inject Logout Modal
     const logoutModalHTML = `
-    <div id="logout-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+    < div id = "logout-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50" >
         <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
             <div class="flex justify-center">
                 <div class="w-20 h-20 flex items-center justify-center rounded-full bg-yellow-100 border-4 border-yellow-500">
@@ -174,11 +189,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 </button>
             </div>
         </div>
-    </div>`;
+    </div > `;
 
     // Inject Error Modal
     const errorModalHTML = `
-    <div id="error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+    < div id = "error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50" >
         <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
             <div class="flex justify-center">
                 <div class="w-20 h-20 flex items-center justify-center rounded-full bg-red-100 border-4 border-red-500">
@@ -196,7 +211,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 ตกลง
             </button>
         </div>
-    </div>`;
+    </div > `;
 
     // Append modals to body
     if (body) {
