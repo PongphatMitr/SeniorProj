@@ -133,7 +133,9 @@
                 let joinButtonContent = '';
                 let showButton = false;
         
-                if (activity.requester_id === globalUserId) {
+                if (activity.status === 'ยกเลิก' || activity.status === 'เกินเวลา') {
+                    joinButtonContent = `<span class="bg-gray-500 text-white font-bold py-1 px-2 rounded">ไม่สำเร็จ</span>`;
+                } else if (activity.requester_id === globalUserId) {
                     joinButtonContent = `<span class="bg-orange-500 text-white font-bold py-1 px-2 rounded">เจ้าของกิจกรรม</span>`;
                 } else if (activity.status === 'เสร็จสิ้น') {
                     joinButtonContent = `<span class="bg-green-500 text-white font-bold py-1 px-2 rounded">สำเร็จ</span>`;

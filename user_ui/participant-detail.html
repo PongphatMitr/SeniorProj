@@ -123,28 +123,37 @@
                 if (!response.ok) throw new Error("Failed to fetch activity data");
         
                 const activity = await response.json();
+                const confirmButton = document.getElementById('confirm-completion-btn');
         
-                if (activity.status === 'รอการอนุมัติ' || activity.status === 'เสร็จสิ้น') {
-                    const participantResponse = await fetch(`http://localhost:3000/api/user/activities/${activityId}/participants`, {
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        }
-                    });
+                const status = activity.status;
+                const now = new Date();
+                const endDateTime = new Date(`${activity.end_date}T${activity.end_time}:00`);
         
-                    const participants = await participantResponse.json();
-                    const attendedIds = participants.filter(p => p.attended).map(p => p.user_id);
+                // Always hide the button for these final states
+                if (status === 'รอการอนุมัติ' || status === 'เสร็จสิ้น' || status === 'เกินเวลา') {
+                    confirmButton.classList.add('hidden');
+                    return;
+                }
         
-                    disableConfirmedCheckboxes(attendedIds);
-                    document.getElementById('confirm-completion-btn').classList.add('hidden');
+                // Show button only if activity is past end datetime and not yet 'เกินเวลา'
+                if (now >= endDateTime) {
+                    confirmButton.classList.remove('hidden');
+                } else {
+                    confirmButton.classList.add('hidden');
                 }
             } catch (error) {
                 console.error('Error checking attendance status:', error);
             }
         }
         
+        
         document.addEventListener('DOMContentLoaded', () => {
-            checkConfirmedAttendanceStatus(); // ✅ Add this to run when page loads
+            fetchParticipants();
+            checkLoginStatus();
+            checkIfRequester();
+            checkConfirmedAttendanceStatus(); // ✅ make sure this is here
         });
+        
         
         
 

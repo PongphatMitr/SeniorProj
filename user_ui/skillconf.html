@@ -493,7 +493,7 @@
 <body class="bg-blue-500">
     <div class="flex flex-col md:flex-row">
         <!-- Sidebar -->
-        <div class="w-1/6 bg-white h-screen p-5">
+        <div class="w-1/6 bg-white p-5 h-auto max-h overflow-auto">
             <div class="flex items-center mb-10">
                 <img alt="Logo of Time Bank System, a clock with a handshake in the center"
                     class="w-10 h-10 rounded-full" height="50"
@@ -572,7 +572,19 @@
             </nav>
         </div>
         <!-- Main Content -->
-        <div class="w-5/6 bg-blue-700 text-white p-10">
+        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10 pt-[50px] flex flex-col justify-center items-center">
+            <!-- Menu List -->
+            <div class="w-full max-w-3xl mb-10">
+                <nav class="flex justify-around">
+                    <a href="profile.html" class="text-white hover:text-gray-300 font-bold">
+                        <i class="fas fa-user mr-2"></i> โปรไฟล์
+                    </a>
+                    <a href="skillconf.html" class="text-white hover:text-gray-300 font-bold">
+                        <i class="fas fa-cogs mr-2"></i> ทักษะความสามารถ
+                    </a>
+                </nav>
+            </div>
+        <div class="w-5/6 bg-blue-700 text-white">
             <h1 class="text-4xl font-bold mb-5">ความสามารถ</h1>
             <div class="flex flex-col gap-8">
                 <!-- ทักษะที่ 1 -->
