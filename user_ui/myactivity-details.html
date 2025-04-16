@@ -44,16 +44,25 @@
                     document.getElementById('service-status').value = activity.status || '';
         
                     const cancelButton = document.getElementById('cancel-activity-button');
-        
-                    // ✅ If the activity is already canceled, disable or hide the cancel button
+
+                    // Combine start_date and start_time into a single datetime string
+                    const activityStartDateTime = new Date(`${activity.start_date}T${activity.start_time}`); 
+                    const now = new Date();
+                    
+                    // Disable cancel button if status is already "ยกเลิก"
                     if (activity.status === 'ยกเลิก') {
                         cancelButton.disabled = true;
                         cancelButton.innerText = 'กิจกรรมถูกยกเลิกแล้ว';
                         cancelButton.classList.add('bg-gray-500');
-        
-                        // ✅ Optionally, hide the button completely
-                        // cancelButton.style.display = 'none';
+                    
+                    // Disable cancel button if activity already started
+                    } else if (now >= activityStartDateTime) {
+                        cancelButton.disabled = true;
+                        cancelButton.innerText = 'ไม่สามารถยกเลิกได้';
+                        cancelButton.classList.remove('bg-red-600', 'hover:bg-red-700');
+                        cancelButton.classList.add('bg-gray-500');
                     }
+                    
         
                     // ✅ Handle required skills
                     displayRequiredSkills(activity.required_skills);
