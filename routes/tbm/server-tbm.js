@@ -10,7 +10,8 @@ const transactionRoutes = require('./transactions');
 const reportRoutes = require('./reportRoutes');
 const branchRoutes = require('./branches');
 const feedbackRoutes = require('./feedback');
-const announcementRoutes = require('./announcements'); // Add this line
+const announcementRoutes = require('./announcements');
+const projectRoutes = require('./projects'); // Add this line
 
 const router = express.Router();
 
@@ -26,7 +27,8 @@ module.exports = (pool) => {
     router.use('/report', reportRoutes(pool));
     router.use('/branches', branchRoutes(pool));
     router.use('/feedback', feedbackRoutes(pool));
-    router.use('/announcements', announcementRoutes(pool)); // Add this line
+    router.use('/announcements', announcementRoutes(pool));
+    router.use('/projects', projectRoutes(pool)); // Add this line
 
     return router;
 };

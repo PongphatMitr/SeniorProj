@@ -1,0 +1,249 @@
+<html lang="th">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>
+        Announcement Detail - Time Bank
+    </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+</head>
+
+<body class="bg-gray-100">
+    <div class="flex">
+        <!-- Sidebar -->
+        <div class="w-full md:w-1/6 bg-white h-screen p-5">
+            <div class="flex items-center mb-10">
+                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
+                    class="w-10 h-10 rounded-full" height="50"
+                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
+                    width="50" />
+                <span class="ml-3 text-xl font-bold text-blue-600">
+                    TIMEBANK
+                </span>
+            </div>
+            <nav>
+                <ul id="navList">
+                    <li class="mb-4">
+                        <a class="text-gray-700 hover:text-blue-600" href="#">
+                            Home
+                        </a>
+                    </li>
+                    <li class="mb-4">
+                        <a class="text-gray-700 hover:text-blue-600" href="#">
+                            Announcements
+                        </a>
+                    </li>
+                    <li class="mb-4">
+                        <a class="text-gray-700 hover:text-blue-600" href="#">
+                            Profile
+                        </a>
+                    </li>
+                    <li class="mb-4">
+                        <a class="text-gray-700 hover:text-blue-600" href="#">
+                            Settings
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+        <!-- Main Content -->
+        <div class="w-5/6 bg-blue-700 text-white p-10 relative">
+            <!-- Language Toggle Switch -->
+            <div class="absolute top-5 right-5 flex items-center space-x-4">
+                <button id="modifyButton"
+                    class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition duration-300">
+                    Modify
+                </button>
+                <div class="toggle-container" id="languageToggle">
+                    <span class="toggle-label active" data-lang="th" id="lang-th">
+                        ภาษาไทย
+                    </span>
+                    <span class="toggle-label" data-lang="en" id="lang-en">
+                        English
+                    </span>
+                </div>
+            </div>
+            <h1 class="text-4xl font-bold mb-5" id="announcementTitle">
+                Announcement Title
+            </h1>
+            <div class="bg-white text-black p-6 rounded-lg shadow-md flex">
+                <img alt="Announcement image placeholder" class="h-60 w-1/3 object-cover mb-5 rounded" height="400"
+                    id="announcementImage"
+                    src="https://oaidalleapiprodscus.blob.core.windows.net/private/org-LmQ09WWGIGwOeeA4ArnRw0x5/user-uJPET5fjNenSso8wCETWVNOp/img-vyCW2WMdIBrMnOVoyg1FUl8v.png?st=2025-04-16T11%3A12%3A12Z&amp;se=2025-04-16T13%3A12%3A12Z&amp;sp=r&amp;sv=2024-08-04&amp;sr=b&amp;rscd=inline&amp;rsct=image/png&amp;skoid=cc612491-d948-4d2e-9821-2683df3719f5&amp;sktid=a48cca56-e6da-484e-a814-9c849652bcb3&amp;skt=2025-04-16T05%3A30%3A42Z&amp;ske=2025-04-17T05%3A30%3A42Z&amp;sks=b&amp;skv=2024-08-04&amp;sig=BkiqcE5vWBnmqnEr91bY3Nuk/l06QA2bkeUxJysaKto%3D"
+                    width="600" />
+                <div class="ml-6 w-2/3">
+                    <h2 class="text-xl font-bold mb-2" id="announcementTitleDetail">
+                        อาสาเพื่อนรับฟังเยี่ยมเยียนยาย เพื่อผู้สูงอายุในชุมชนยามไร้ วันที่ 16 พ.ย. 2567 ที่ ชุมชนภูมิใจ
+                    </h2>
+                    <p class="text-gray-600 mb-2" id="announcementProject">
+                        โครงการพลเมืองอาสามูลนิธิอาสาสมัครเพื่อสังคม
+                    </p>
+                    <p class="mb-2" id="announcementDate">
+                        <i class="fas fa-calendar-alt"></i>
+                    </p>
+                    <p class="mb-2">
+                        <i class="fas fa-building"></i>
+                        ชุมชน :
+                        <span id="announcementBranch">
+                            โคกสลุง
+                        </span>
+                    </p>
+                </div>
+            </div>
+            <div class="bg-white text-black p-6 rounded-lg shadow-md mt-4">
+                <p id="announcementDescription"></p>
+            </div>
+        </div>
+    </div>
+    <style>
+        /* Toggle container */
+        .toggle-container {
+            display: flex;
+            background-color: #E5E7EB;
+            border-radius: 20px;
+            padding: 6px;
+            align-items: center;
+            justify-content: space-between;
+            width: 180px;
+        }
+
+        /* Labels */
+        .toggle-label {
+            flex: 1;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: gray;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 9999px;
+            padding: 5px;
+        }
+
+        .toggle-label.active {
+            background-color: white;
+            color: #1D4ED8;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Disabled Label */
+        .toggle-label.disabled {
+            pointer-events: none;
+            background-color: white;
+            color: #6B7280;
+            font-weight: bold;
+        }
+    </style>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 announcement-detail.js loaded and DOM ready!');
+            const langThai = document.getElementById('lang-th');
+            const langEnglish = document.getElementById('lang-en');
+            const translations = {
+                thai: {
+                    title: 'หัวข้อประกาศ',
+                    date: 'วันที่ประกาศ',
+                    description: 'รายละเอียดประกาศ',
+                },
+                english: {
+                    title: 'Announcement Title',
+                    date: 'Announcement Date',
+                    description: 'Announcement Description',
+                }
+            };
+            const announcementTitle = document.getElementById('announcementTitle');
+            const announcementDescription = document.getElementById('announcementDescription');
+            const announcementImage = document.getElementById('announcementImage');
+            const announcementTitleDetail = document.getElementById('announcementTitleDetail');
+            const announcementProject = document.getElementById('announcementProject');
+            const announcementDate = document.getElementById('announcementDate');
+            const announcementBranch = document.getElementById('announcementBranch');
+            let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
+            function updateContent(lang) {
+                const langData = translations[lang];
+                if (announcementTitle) announcementTitle.textContent = langData.title;
+                if (announcementDescription) announcementDescription.textContent = langData.description;
+                // Toggle active state
+                if (lang === 'thai') {
+                    langThai?.classList.add('active');
+                    langEnglish?.classList.remove('active');
+                } else {
+                    langEnglish?.classList.add('active');
+                    langThai?.classList.remove('active');
+                }
+                localStorage.setItem('selectedLanguage', lang);
+            }
+            langThai.addEventListener('click', () => {
+                currentLang = 'thai';
+                updateContent(currentLang);
+            });
+            langEnglish.addEventListener('click', () => {
+                currentLang = 'english';
+                updateContent(currentLang);
+            });
+            // Initialize content
+            updateContent(currentLang);
+            function arrayBufferToBase64(buffer) {
+                if (!buffer || !buffer.length) return '';
+                const binary = buffer.map((b) => String.fromCharCode(b)).join('');
+                return window.btoa(binary);
+            }
+            // Fetch and render announcement details
+            function fetchAnnouncementDetails() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const announcementId = urlParams.get('id');
+                if (!announcementId) {
+                    console.error('❌ No announcement ID found in URL');
+                    return;
+                }
+                console.log(`🔄 Fetching details for announcement ID: ${announcementId}`);
+                fetch(`http://localhost:3000/api/tbm/announcements/${announcementId}`)
+                    .then(res => {
+                        console.log('📡 API Response:', res);
+                        if (!res.ok) throw new Error(`❌ Failed to fetch. Status: ${res.status}`);
+                        return res.json();
+                    })
+                    .then(data => {
+                        console.log('📦 Data:', data);
+                        announcementTitle.textContent = data.title;
+                        announcementDescription.textContent = data.description;
+                        announcementTitleDetail.textContent = data.title;
+                        announcementProject.textContent = data.project_name;
+                        announcementBranch.textContent = data.branch_name;
+                        announcementDate.innerHTML = `<i class="fas fa-calendar-alt"></i> ${new Date(data.date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+                        let imageUrl = 'https://placehold.co/600x400?text=No+Image';
+                        if (data.image?.data && Array.isArray(data.image.data)) {
+                            try {
+                                imageUrl = `data:image/jpeg;base64,${arrayBufferToBase64(data.image.data)}`;
+                                console.log(`🖼️ Converted image for announcement ID: ${announcementId}`);
+                            } catch (e) {
+                                console.warn(`⚠️ Image conversion failed for announcement ID: ${announcementId}`, e);
+                            }
+                        }
+                        announcementImage.src = imageUrl;
+                    })
+                    .catch(err => {
+                        console.error('🚨 Error fetching announcement details:', err);
+                    });
+            }
+            fetchAnnouncementDetails();
+
+            // Redirect to modify page
+            document.getElementById('modifyButton').addEventListener('click', () => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const announcementId = urlParams.get('id');
+                if (announcementId) {
+                    window.location.href = `announcement-modify.html?id=${announcementId}`;
+                } else {
+                    console.error('❌ No announcement ID found in URL');
+                }
+            });
+        });
+    </script>
+    <script src="navbar.js"></script>
+</body>
+
+</html>
