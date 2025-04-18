@@ -463,6 +463,7 @@ const memberRoutes = (pool) => {
         }
     });
 
+    // Get user role
     router.get('/user-role', async (req, res) => {
         try {
             const userId = req.user.id; // Assuming you have user information in req.user

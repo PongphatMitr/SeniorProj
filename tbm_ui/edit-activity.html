@@ -102,11 +102,9 @@
 <body class="bg-gray-100">
     <div class="flex flex-col md:flex-row">
         <!-- Sidebar -->
-        <div class="w-1/6 bg-white h-screen p-5">
-            <nav>
-                <ul id="navList">
-                    <!-- Navigation items will be dynamically inserted here -->
-                </ul>
+        <div class="w-full md:w-1/6 bg-white h-screen p-5 sticky top-0 flex flex-col">
+            <nav class="flex-grow">
+                <ul id="navList" class="space-y-4"></ul>
             </nav>
         </div>
         <!-- Main Content -->

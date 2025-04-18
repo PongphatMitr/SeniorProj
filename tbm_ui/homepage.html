@@ -11,11 +11,9 @@
 <body class="bg-gray-100">
     <div class="flex">
         <!-- Sidebar -->
-        <div class="w-1/6 bg-white h-screen p-5">
-            <nav>
-                <ul id="navList">
-                    <!-- Navigation items will be dynamically inserted here -->
-                </ul>
+        <div class="w-full md:w-1/6 bg-white h-screen p-5 sticky top-0 flex flex-col">
+            <nav class="flex-grow">
+                <ul id="navList" class="space-y-4"></ul>
             </nav>
         </div>
         <!-- Main Content -->
@@ -35,7 +33,7 @@
             </p>
             <div class="flex items-center mb-5">
                 <h2 class="text-3xl font-bold mr-4">ข่าวสารประชาสัมพันธ์</h2>
-                <a class="bg-white text-blue-600 px-4 py-2 rounded" href="announcement.html">Add Announcement</a>
+                <a class="bg-white text-blue-600 px-4 py-2 rounded" href="announcement.html">เพิ่ม</a>
             </div>
             <div class="grid grid-cols-2 gap-5" id="newsContainer">
                 <!-- News items will be dynamically inserted here -->
@@ -46,16 +44,16 @@
     <!-- Delete Confirmation Modal -->
     <div id="delete-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
         <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
-            <h2 class="text-3xl font-bold text-red-600 mt-6">Confirm Deletion</h2>
-            <p class="text-gray-700 text-lg mt-4">Are you sure you want to delete this announcement?</p>
+            <h2 class="text-3xl font-bold text-red-600 mt-6">ยืนยันการลบประกาศ</h2>
+            <p class="text-gray-700 text-lg mt-4">ต้องการลบประกาศหรือไม่?</p>
             <div class="mt-6 flex justify-center">
                 <button id="confirm-delete-btn"
                     class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300 mr-4">
-                    Yes, Delete
+                    ยืนยัน
                 </button>
                 <button id="cancel-delete-btn"
                     class="px-6 py-3 bg-gray-600 text-white text-lg font-semibold rounded-lg hover:bg-gray-700 transition duration-300">
-                    Cancel
+                    ยกเลิก
                 </button>
             </div>
         </div>

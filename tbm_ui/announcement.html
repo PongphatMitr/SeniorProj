@@ -13,11 +13,9 @@
 <body class="bg-gray-100">
     <div class="flex flex-col md:flex-row">
         <!-- Sidebar -->
-        <div class="w-1/6 bg-white h-screen p-5">
-            <nav>
-                <ul id="navList">
-                    <!-- Navigation items will be dynamically inserted here -->
-                </ul>
+        <div class="w-full md:w-1/6 bg-white h-screen p-5 sticky top-0 flex flex-col">
+            <nav class="flex-grow">
+                <ul id="navList" class="space-y-4"></ul>
             </nav>
         </div>
         <!-- Main Content -->
@@ -34,88 +32,88 @@
                 </div>
             </div>
             <h1 class="text-4xl font-bold mb-5">
-                Add Announcement
+                เพิ่มประกาศข่าวสาร
             </h1>
             <form class="bg-white p-5 rounded-lg text-black" id="announcementForm">
                 <div class="mb-4">
                     <label class="block text-gray-700" for="announcementDate">
-                        Date
+                        วันที่ประกาศ
                     </label>
                     <input class="w-full p-2 border border-gray-300 rounded" id="announcementDate" required=""
                         type="date" />
                 </div>
                 <div class="mb-4">
                     <label class="block text-gray-700" for="announcementTitle">
-                        Title
+                        ชื่อหัวข้อ
                     </label>
                     <input class="w-full p-2 border border-gray-300 rounded" id="announcementTitle" required=""
                         type="text" />
                 </div>
                 <div class="mb-4">
                     <label class="block text-gray-700" for="announcementDescription">
-                        Description
+                        รายละเอียด
                     </label>
                     <textarea class="w-full p-2 border border-gray-300 rounded" id="announcementDescription"
                         required=""></textarea>
                 </div>
                 <div class="mb-4">
                     <label class="block text-gray-700" for="announcementImage">
-                        Image
+                        รูปภาพประกอบ
                     </label>
                     <input accept="image/*" class="w-full p-2 border border-gray-300 rounded" id="announcementImage"
                         required="" type="file" />
                 </div>
                 <div class="mb-4">
                     <label class="block text-gray-700" for="announcementBranch">
-                        Branch
+                        สาขา/ชุมชน
                     </label>
                     <div class="flex">
                         <select class="w-full p-2 border border-gray-300 rounded" id="announcementBranch" required="">
                         </select>
                         <button class="ml-2 bg-blue-600 text-white px-4 py-2 rounded" id="addBranchButton"
                             type="button">
-                            Add
+                            เพิ่ม
                         </button>
                     </div>
                 </div>
                 <div class="mb-4 hidden" id="newBranchContainer">
                     <label class="block text-gray-700" for="newBranchName">
-                        New Branch Name
+                        ชื่อสาขาใหม่
                     </label>
                     <input class="w-full p-2 border border-gray-300 rounded" id="newBranchName" type="text" />
                     <button class="mt-2 bg-blue-600 text-white px-4 py-2 rounded" id="saveBranchButton" type="button">
-                        Save
+                        บันทึก
                     </button>
                 </div>
                 <div class="mb-4">
                     <label class="block text-gray-700" for="announcementProject">
-                        Project
+                        โครงการ
                     </label>
                     <div class="flex">
                         <select class="w-full p-2 border border-gray-300 rounded" id="announcementProject" required="">
                         </select>
                         <button class="ml-2 bg-blue-600 text-white px-4 py-2 rounded" id="addProjectButton"
                             type="button">
-                            Add
+                            เพิ่ม
                         </button>
                     </div>
                 </div>
                 <div class="mb-4 hidden" id="newProjectContainer">
                     <label class="block text-gray-700" for="newProjectName">
-                        New Project Name
+                        ชื่อโครงการใหม่
                     </label>
                     <input class="w-full p-2 border border-gray-300 rounded" id="newProjectName" type="text" />
                     <button class="mt-2 bg-blue-600 text-white px-4 py-2 rounded" id="saveProjectButton" type="button">
-                        Save
+                        บันทึก
                     </button>
                 </div>
                 <button class="bg-blue-600 text-white px-4 py-2 rounded" type="submit">
-                    Add Announcement
+                    เพิ่มประกาศ
                 </button>
             </form>
             <div class="mt-10">
                 <a class="bg-blue-600 text-white px-4 py-2 rounded" href="homepage.html">
-                    Back to Home
+                    กลับ
                 </a>
             </div>
         </div>
@@ -133,11 +131,11 @@
                     </svg>
                 </div>
             </div>
-            <h2 class="text-3xl font-bold text-green-600 mt-6">Success!</h2>
-            <p class="text-gray-700 text-lg mt-4" id="success-message">Branch/Project created successfully.</p>
+            <h2 class="text-3xl font-bold text-green-600 mt-6">สร้างสำเร็จ!</h2>
+            <p class="text-gray-700 text-lg mt-4" id="success-message">สร้างชุมชน/สาขาใหม่สำเร็จ</p>
             <button id="success-confirm-btn"
                 class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
-                OK
+                ยืนยัน
             </button>
         </div>
     </div>
@@ -155,11 +153,11 @@
                     </svg>
                 </div>
             </div>
-            <h2 class="text-3xl font-bold text-green-600 mt-6">Success!</h2>
-            <p class="text-gray-700 text-lg mt-4" id="announcement-success-message">Announcement added successfully.</p>
+            <h2 class="text-3xl font-bold text-green-600 mt-6">เพิ่มสำเร็จ!</h2>
+            <p class="text-gray-700 text-lg mt-4" id="announcement-success-message">เพิ่มประกาศสำเร็จ</p>
             <button id="announcement-success-confirm-btn"
                 class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
-                OK
+                ยืนยัน
             </button>
         </div>
     </div>
