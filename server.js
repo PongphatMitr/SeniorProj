@@ -18,8 +18,8 @@ cron.schedule('* * * * *', async () => {
             UPDATE activities
             SET status = 'เกินเวลา',
                 updated_at = NOW()
-            WHERE status = 'กำลังจะเริ่ม'
-            AND (end_date + INTERVAL '1 day') <= CURRENT_DATE
+            WHERE status = 'รอผู้ขอยืนยันผล'
+              AND (end_date::timestamp + end_time + INTERVAL '1 day') < NOW()
         `);
 
         await client.query('COMMIT');

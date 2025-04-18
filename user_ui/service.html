@@ -50,17 +50,27 @@
                     }
                 });
                 console.log('Response status:', response.status);
+        
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    console.error('Error response data:', errorData);
+                    alert('Error fetching activities. Please try again.');
+                    return;
+                }
+        
                 const data = await response.json();
                 console.log('Response data:', data);
-                if (response.ok) {
-                    activities = data.activities;
-                    updateActivityStatus();
-                    await fetchParticipants();
-                    renderTable(activities);
-                } else {
-                    console.error('Error:', data);
+        
+                if (!data.activities || !Array.isArray(data.activities)) {
+                    console.error('Invalid activities data:', data);
                     alert('Error fetching activities. Please try again.');
+                    return;
                 }
+        
+                activities = data.activities;
+                updateActivityStatus();
+                await fetchParticipants();
+                renderTable(activities);
             } catch (error) {
                 console.error('Error fetching activities:', error);
                 alert('Error fetching activities. Please try again.');
@@ -88,27 +98,52 @@
 
         function updateActivityStatus() {
             const now = new Date();
-            const today = new Date();
-            today.setHours(0, 0, 0, 0); // Midnight of today
         
             activities.forEach(activity => {
-                if (activity.status === 'กำลังจะเริ่ม') {
-                    const endDate = new Date(activity.end_date);
-                    endDate.setDate(endDate.getDate() + 1); // end_date + 1 day
-                    endDate.setHours(0, 0, 0, 0); // Move to 00:00:00
+                const start = new Date(activity.start_date + 'T' + activity.start_time);
+                const end = new Date(activity.end_date + 'T' + activity.end_time);
         
-                    // Matches: (end_date + INTERVAL '1 day') >= CURRENT_DATE
-                    if (endDate >= today) {
-                        console.log(`✅ Activity "${activity.title}" is still within grace period.`);
-                    } else {
-                        activity.status = 'เกินเวลา';
-                        console.log(`⚠️ Activity "${activity.title}" is now overdue!`);
+                if (now < start) {
+                    activity.status = 'กำลังจะเริ่ม';
+                } else if (now >= start && now <= end) {
+                    activity.status = 'กำลังทำกิจกรรม';
+                } else if (now > end) {
+                    if (activity.status === 'กำลังทำกิจกรรม' || activity.status === 'กำลังจะเริ่ม') {
+                        activity.status = 'รอผู้ขอยืนยันผล';
                     }
+                    // Other statuses remain unchanged
                 }
             });
         }
         
+        async function updateActivityStatusesInDB(pool) {
+            const now = new Date();
         
+            try {
+                // 1. Update activities that should be 'กำลังทำกิจกรรม' (started but not ended)
+                await pool.query(`
+                    UPDATE activities
+                    SET status = 'กำลังทำกิจกรรม',
+                        updated_at = NOW()
+                    WHERE (status = 'กำลังจะเริ่ม' OR status = 'กำลังทำกิจกรรม')
+                      AND (start_date + start_time) <= $1
+                      AND (end_date + end_time) >= $1
+                `, [now.toISOString()]);
+        
+                // 2. Update activities that have passed end time to 'รอผู้ขอยืนยันผล'
+                await pool.query(`
+                    UPDATE activities
+                    SET status = 'รอผู้ขอยืนยันผล',
+                        updated_at = NOW()
+                    WHERE (status = 'กำลังทำกิจกรรม' OR status = 'กำลังจะเริ่ม')
+                      AND (end_date + end_time) < $1
+                `, [now.toISOString()]);
+        
+            } catch (err) {
+                console.error('Error updating activity statuses:', err);
+                throw err;
+            }
+        }
 
         function renderTable(data) {
             const tbody = document.getElementById('activity-tbody');
@@ -129,20 +164,30 @@
                 activityEnd.setHours(endHour, endMin, 0, 0);
         
                 const activityAlreadyStarted = now >= activityStart;
+                const activityEnded = now > activityEnd;
         
                 let joinButtonContent = '';
                 let showButton = false;
         
-                if (activity.status === 'ยกเลิก' || activity.status === 'เกินเวลา') {
+                if (['ยกเลิก', 'เกินเวลา', 'เสร็จสิ้น', 'ผู้เข้าร่วมไม่ครบ'].includes(activity.status)) {
                     joinButtonContent = `<span class="bg-gray-500 text-white font-bold py-1 px-2 rounded">ไม่สำเร็จ</span>`;
+                } else if (activity.status === 'รอผู้ขอยืนยันผล') {
+                    joinButtonContent = `<span class="bg-yellow-500 text-white font-bold py-1 px-2 rounded">รอการยืนยันผล</span>`;
+                } else if (activity.status === 'รอการอนุมัติ') {
+                    joinButtonContent = `<span class="bg-indigo-500 text-white font-bold py-1 px-2 rounded">ปิดรับสมัคร</span>`;
                 } else if (activity.requester_id === globalUserId) {
                     joinButtonContent = `<span class="bg-orange-500 text-white font-bold py-1 px-2 rounded">เจ้าของกิจกรรม</span>`;
-                } else if (activity.status === 'เสร็จสิ้น') {
-                    joinButtonContent = `<span class="bg-green-500 text-white font-bold py-1 px-2 rounded">สำเร็จ</span>`;
-                } else if (activity.status === 'ยกเลิก' || activity.status === 'เกินเวลา') {
-                    joinButtonContent = `<span class="bg-gray-500 text-white font-bold py-1 px-2 rounded">ไม่สำเร็จ</span>`;
                 } else if (!matchesUserSkill && activity.status === 'กำลังจะเริ่ม') {
                     joinButtonContent = `<span class="text-sm text-gray-400 italic">ไม่ตรงทักษะ</span>`;
+                } else if (activity.status === 'กำลังทำกิจกรรม') {
+                    // Usually joining is disabled once activity started
+                    if (userJoined) {
+                        joinButtonContent = `<span class="bg-cyan-600 text-white font-bold py-1 px-2 rounded">🚫 ไม่สามารถยกเลิกได้</span>`;
+                    } else {
+                        joinButtonContent = `<span class="bg-cyan-600 text-white font-bold py-1 px-2 rounded">⛔ ปิดรับสมัครแล้ว</span>`;
+                    }
+                } else if (activity.status === 'กำลังจะเริ่ม') {
+                    showButton = true;
                 } else {
                     showButton = true;
                 }
@@ -151,26 +196,22 @@
                     let joinButtonText = 'เข้าร่วม';
                     let joinButtonClass = 'bg-blue-500';
                     let disabledAttr = '';
-                    let tooltip = '';
         
                     if (activity.status === 'รอการอนุมัติ') {
                         joinButtonText = '⛔ ปิดรับแล้ว';
                         joinButtonClass = 'bg-cyan-600';
                         disabledAttr = 'disabled';
-                    } else if (activityAlreadyStarted) {
-                        if (userJoined) {
-                            joinButtonText = '🚫 ไม่สามารถยกเลิกได้';
-                        } else {
-                            joinButtonText = '⛔ ปิดรับสมัครแล้ว'; 
-                        }
+                    } else if (activityAlreadyStarted && !userJoined) {
+                        joinButtonText = '⛔ ปิดรับสมัครแล้ว';
                         joinButtonClass = 'bg-cyan-600';
                         disabledAttr = 'disabled';
-                    }
-                     else {
-                        if (userJoined) {
-                            joinButtonText = 'ยกเลิก';
-                            joinButtonClass = 'bg-red-500';
-                        }
+                    } else if (activityAlreadyStarted && userJoined) {
+                        joinButtonText = '🚫 ไม่สามารถยกเลิกได้';
+                        joinButtonClass = 'bg-cyan-600';
+                        disabledAttr = 'disabled';
+                    } else if (userJoined) {
+                        joinButtonText = 'ยกเลิก';
+                        joinButtonClass = 'bg-red-500';
                     }
         
                     joinButtonContent = `
@@ -186,6 +227,16 @@
                     ? "myactivity-details.html"
                     : "activity-details.html";
         
+                const statusColor =
+                    activity.status === 'กำลังจะเริ่ม' ? 'bg-blue-500' :
+                    activity.status === 'กำลังทำกิจกรรม' ? 'bg-yellow-500' :
+                    activity.status === 'รอผู้ขอยืนยันผล' ? 'bg-pink-500' :
+                    activity.status === 'รอการอนุมัติ' ? 'bg-indigo-500' :
+                    activity.status === 'เสร็จสิ้น' ? 'bg-green-500' :
+                    activity.status === 'เกินเวลา' ? 'bg-orange-500' :
+                    activity.status === 'ผู้เข้าร่วมไม่ครบ' ? 'bg-red-600' :
+                    'bg-gray-500';
+        
                 const row = document.createElement('tr');
                 row.id = `row-${index + 1}`;
                 row.className = 'hover:bg-gray-100';
@@ -194,7 +245,7 @@
                     <td class="py-2 px-4 border-b border-gray-200">${formatDate(activity.created_at)}</td>
                     <td class="py-2 px-4 border-b border-gray-200">${formatDate(activity.start_date)}</td>
                     <td class="py-2 px-4 border-b border-gray-200">
-                        <span class="py-1 px-2 rounded ${activity.status === 'กำลังจะเริ่ม' ? 'bg-blue-500' : activity.status === 'เสร็จสิ้น' ? 'bg-green-500' : activity.status === 'เกินเวลา' ? 'bg-orange-500' : 'bg-red-500'} text-white">${activity.status}</span>
+                        <span class="py-1 px-2 rounded ${statusColor} text-white">${activity.status}</span>
                     </td>
                     <td class="py-2 px-4 border-b border-gray-200">
                         <span id="participants-${index}">${activity.current_participants}</span> / ${activity.max_participants}
@@ -222,8 +273,6 @@
                 tbody.appendChild(row);
             }
         }
-        
-        
         
 
         function formatDate(dateString) {
@@ -850,6 +899,9 @@
                                         <option value="เสร็จสิ้น">เสร็จสิ้น</option>
                                         <option value="ยกเลิก">ยกเลิก</option>
                                         <option value="เกินเวลา">เกินเวลา</option>
+                                        <option value="กำลังทำกิจกรรม">กำลังทำกิจกรรม</option>
+                                        <option value="รอผู้ขอยืนยันผล">รอผู้ขอยืนยันผล</option>
+
                                     </select>
                                 </div>
                                 <div>

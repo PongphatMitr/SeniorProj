@@ -27,7 +27,7 @@ CREATE TYPE user_status AS ENUM ('active', 'inactive', 'suspended', 'pending_app
 
 -- Create the activity_status enum type
 CREATE TYPE activity_status AS ENUM (
-    'รอการอนุมัติ', 'กำลังจะเริ่ม', 'เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา', 'ผู้เข้าร่วมไม่ครบ'
+    'กำลังทำกิจกรรม', 'รอผู้ขอยืนยันผล','รอการอนุมัติ', 'กำลังจะเริ่ม', 'เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา', 'ผู้เข้าร่วมไม่ครบ'
 );
 
 CREATE TYPE transaction_type AS ENUM ('earn', 'spend');
@@ -479,3 +479,33 @@ INSERT INTO activity_participants (
     7,
     2
 );
+
+
+UPDATE activities
+SET status = CASE
+    WHEN status IN ('กำลังจะเริ่ม', 'กำลังทำกิจกรรม')
+         AND (start_date::timestamp + start_time) <= NOW()
+         AND (end_date::timestamp + end_time) >= NOW()
+        THEN 'กำลังทำกิจกรรม'
+    WHEN status IN ('กำลังทำกิจกรรม', 'กำลังจะเริ่ม')
+         AND (end_date::timestamp + end_time) < NOW()
+         AND (end_date::timestamp + end_time + INTERVAL '1 day') >= NOW()
+        THEN 'รอผู้ขอยืนยันผล'
+    WHEN status = 'รอผู้ขอยืนยันผล'
+         AND (end_date::timestamp + end_time + INTERVAL '1 day') < NOW()
+        THEN 'เกินเวลา'
+    ELSE status
+END,
+updated_at = NOW()
+WHERE
+    (status IN ('กำลังจะเริ่ม', 'กำลังทำกิจกรรม')
+     AND (start_date::timestamp + start_time) <= NOW()
+     AND (end_date::timestamp + end_time) >= NOW())
+    OR
+    (status IN ('กำลังทำกิจกรรม', 'กำลังจะเริ่ม')
+     AND (end_date::timestamp + end_time) < NOW()
+     AND (end_date::timestamp + end_time + INTERVAL '1 day') >= NOW())
+    OR
+    (status = 'รอผู้ขอยืนยันผล'
+     AND (end_date::timestamp + end_time + INTERVAL '1 day') < NOW());
+	 

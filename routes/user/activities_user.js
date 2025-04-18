@@ -610,7 +610,6 @@ const activityRoutes = (pool) => {
     });
     
 
-    // Route: requester confirms completion (without checking for 'เกินเวลา')
     router.post('/:activityId/confirm-completion', async (req, res) => {
         const { activityId } = req.params;
         const { attendedUserIds } = req.body;
@@ -619,30 +618,42 @@ const activityRoutes = (pool) => {
             return res.status(400).json({ error: 'ต้องเลือกผู้เข้าร่วมอย่างน้อย 1 คน' });
         }
     
+        const client = await pool.connect();
         try {
-            // Update activity to pending approval
-            await pool.query(`
+            await client.query('BEGIN');
+    
+            // Update activity status to 'รอการอนุมัติ' only if current status is 'รอผู้ขอยืนยันผล'
+            const updateResult = await client.query(`
                 UPDATE activities 
                 SET status = 'รอการอนุมัติ', updated_at = NOW() 
-                WHERE activity_id = $1
+                WHERE activity_id = $1 AND status = 'รอผู้ขอยืนยันผล'
+                RETURNING *
             `, [activityId]);
     
-            // Mark attended participants (store permanently)
+            if (updateResult.rowCount === 0) {
+                await client.query('ROLLBACK');
+                return res.status(400).json({ error: 'ไม่สามารถยืนยันผลได้ เนื่องจากสถานะกิจกรรมไม่ถูกต้อง' });
+            }
+    
+            // Mark attended participants
             for (let userId of attendedUserIds) {
-                await pool.query(`
+                await client.query(`
                     UPDATE activity_participants
                     SET attended = true, updated_at = NOW()
                     WHERE activity_id = $1 AND user_id = $2
                 `, [activityId, userId]);
             }
     
-            res.status(200).json({ message: 'Activity marked completed. Awaiting approval.' });
+            await client.query('COMMIT');
+            res.status(200).json({ message: 'กิจกรรมถูกยืนยันผลเรียบร้อยแล้ว และรอการอนุมัติ' });
         } catch (err) {
-            console.error(err);
-            res.status(500).json({ error: 'Internal server error' });
+            await client.query('ROLLBACK');
+            console.error('Error confirming completion:', err);
+            res.status(500).json({ error: 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง' });
+        } finally {
+            client.release();
         }
     });
-    
 
     // Route: manager approves confirmed activity
     router.post('/:activityId/manager-approve', async (req, res) => {
@@ -687,6 +698,7 @@ const activityRoutes = (pool) => {
         }
     });
     
+
 
     return router;
 };
