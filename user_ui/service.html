@@ -50,23 +50,23 @@
                     }
                 });
                 console.log('Response status:', response.status);
-        
+
                 if (!response.ok) {
                     const errorData = await response.json().catch(() => ({}));
                     console.error('Error response data:', errorData);
                     alert('Error fetching activities. Please try again.');
                     return;
                 }
-        
+
                 const data = await response.json();
                 console.log('Response data:', data);
-        
+
                 if (!data.activities || !Array.isArray(data.activities)) {
                     console.error('Invalid activities data:', data);
                     alert('Error fetching activities. Please try again.');
                     return;
                 }
-        
+
                 activities = data.activities;
                 updateActivityStatus();
                 await fetchParticipants();
@@ -98,11 +98,11 @@
 
         function updateActivityStatus() {
             const now = new Date();
-        
+
             activities.forEach(activity => {
                 const start = new Date(activity.start_date + 'T' + activity.start_time);
                 const end = new Date(activity.end_date + 'T' + activity.end_time);
-        
+
                 if (now < start) {
                     activity.status = 'กำลังจะเริ่ม';
                 } else if (now >= start && now <= end) {
@@ -115,60 +115,31 @@
                 }
             });
         }
-        
-        async function updateActivityStatusesInDB(pool) {
-            const now = new Date();
-        
-            try {
-                // 1. Update activities that should be 'กำลังทำกิจกรรม' (started but not ended)
-                await pool.query(`
-                    UPDATE activities
-                    SET status = 'กำลังทำกิจกรรม',
-                        updated_at = NOW()
-                    WHERE (status = 'กำลังจะเริ่ม' OR status = 'กำลังทำกิจกรรม')
-                      AND (start_date + start_time) <= $1
-                      AND (end_date + end_time) >= $1
-                `, [now.toISOString()]);
-        
-                // 2. Update activities that have passed end time to 'รอผู้ขอยืนยันผล'
-                await pool.query(`
-                    UPDATE activities
-                    SET status = 'รอผู้ขอยืนยันผล',
-                        updated_at = NOW()
-                    WHERE (status = 'กำลังทำกิจกรรม' OR status = 'กำลังจะเริ่ม')
-                      AND (end_date + end_time) < $1
-                `, [now.toISOString()]);
-        
-            } catch (err) {
-                console.error('Error updating activity statuses:', err);
-                throw err;
-            }
-        }
 
         function renderTable(data) {
             const tbody = document.getElementById('activity-tbody');
             tbody.innerHTML = '';
-        
+
             const now = new Date();
-        
+
             data.forEach((activity, index) => {
                 const userJoined = activity.participants && activity.participants.some(p => p.user_id === globalUserId);
                 const matchesUserSkill = memberSkills.includes(activity.required_skills);
-        
+
                 const activityStart = new Date(activity.start_date);
                 const [startHour, startMin] = activity.start_time.split(':').map(Number);
                 activityStart.setHours(startHour, startMin, 0, 0);
-        
+
                 const activityEnd = new Date(activity.end_date);
                 const [endHour, endMin] = activity.end_time.split(':').map(Number);
                 activityEnd.setHours(endHour, endMin, 0, 0);
-        
+
                 const activityAlreadyStarted = now >= activityStart;
                 const activityEnded = now > activityEnd;
-        
+
                 let joinButtonContent = '';
                 let showButton = false;
-        
+
                 if (['ยกเลิก', 'เกินเวลา', 'เสร็จสิ้น', 'ผู้เข้าร่วมไม่ครบ'].includes(activity.status)) {
                     joinButtonContent = `<span class="bg-gray-500 text-white font-bold py-1 px-2 rounded">ไม่สำเร็จ</span>`;
                 } else if (activity.status === 'รอผู้ขอยืนยันผล') {
@@ -180,7 +151,6 @@
                 } else if (!matchesUserSkill && activity.status === 'กำลังจะเริ่ม') {
                     joinButtonContent = `<span class="text-sm text-gray-400 italic">ไม่ตรงทักษะ</span>`;
                 } else if (activity.status === 'กำลังทำกิจกรรม') {
-                    // Usually joining is disabled once activity started
                     if (userJoined) {
                         joinButtonContent = `<span class="bg-cyan-600 text-white font-bold py-1 px-2 rounded">🚫 ไม่สามารถยกเลิกได้</span>`;
                     } else {
@@ -191,12 +161,12 @@
                 } else {
                     showButton = true;
                 }
-        
+
                 if (showButton) {
                     let joinButtonText = 'เข้าร่วม';
                     let joinButtonClass = 'bg-blue-500';
                     let disabledAttr = '';
-        
+
                     if (activity.status === 'รอการอนุมัติ') {
                         joinButtonText = '⛔ ปิดรับแล้ว';
                         joinButtonClass = 'bg-cyan-600';
@@ -213,7 +183,7 @@
                         joinButtonText = 'ยกเลิก';
                         joinButtonClass = 'bg-red-500';
                     }
-        
+
                     joinButtonContent = `
                         <button onclick="handleJoinButton(${activity.activity_id}, ${index})"
                             class="${joinButtonClass} text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline join-button"
@@ -222,21 +192,21 @@
                         </button>
                     `;
                 }
-        
+
                 const activityDetailsPage = (activity.requester_id === globalUserId)
                     ? "myactivity-details.html"
                     : "activity-details.html";
-        
+
                 const statusColor =
                     activity.status === 'กำลังจะเริ่ม' ? 'bg-blue-500' :
-                    activity.status === 'กำลังทำกิจกรรม' ? 'bg-yellow-500' :
-                    activity.status === 'รอผู้ขอยืนยันผล' ? 'bg-pink-500' :
-                    activity.status === 'รอการอนุมัติ' ? 'bg-indigo-500' :
-                    activity.status === 'เสร็จสิ้น' ? 'bg-green-500' :
-                    activity.status === 'เกินเวลา' ? 'bg-orange-500' :
-                    activity.status === 'ผู้เข้าร่วมไม่ครบ' ? 'bg-red-600' :
-                    'bg-gray-500';
-        
+                        activity.status === 'กำลังทำกิจกรรม' ? 'bg-yellow-500' :
+                            activity.status === 'รอผู้ขอยืนยันผล' ? 'bg-pink-500' :
+                                activity.status === 'รอการอนุมัติ' ? 'bg-indigo-500' :
+                                    activity.status === 'เสร็จสิ้น' ? 'bg-green-500' :
+                                        activity.status === 'เกินเวลา' ? 'bg-orange-500' :
+                                            activity.status === 'ผู้เข้าร่วมไม่ครบ' ? 'bg-red-600' :
+                                                'bg-gray-500';
+
                 const row = document.createElement('tr');
                 row.id = `row-${index + 1}`;
                 row.className = 'hover:bg-gray-100';
@@ -262,7 +232,7 @@
                 `;
                 tbody.appendChild(row);
             });
-        
+
             if (data.length === 0) {
                 const row = document.createElement('tr');
                 row.innerHTML = `
@@ -273,7 +243,7 @@
                 tbody.appendChild(row);
             }
         }
-        
+
 
         function formatDate(dateString) {
             const date = new Date(dateString);
@@ -297,165 +267,6 @@
             renderTable(sortedActivities);
         }
 
-        async function updateSidebar(isLoggedIn) {
-            const navList = document.getElementById('navList');
-
-            if (isLoggedIn) {
-                try {
-                    // Fetch user details to get the memberId
-                    const response = await fetch('http://localhost:3000/api/user/auth/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        }
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch user details');
-                    }
-
-                    const member = await response.json(); // Adjust based on your backend response
-                    const memberId = member.userId || member.user_id; // Use the correct field for memberId from the response
-
-                    navList.innerHTML = `
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                                href="log-out.html">
-                                <i class="fas fa-user mr-3"></i>
-                                โปรไฟล์
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="homepage.html">
-                                <i class="fas fa-home mr-3"></i>
-                                หน้าหลัก
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="service.html">
-                                <i class="fas fa-clipboard-list mr-3"></i>
-                                กิจกรรมชุมชน
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="profile.html">
-                                <i class="fas fa-user-edit mr-3"></i>
-                                แก้ไขประวัติ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="skillconf.html">
-                                <i class="fas fa-tools mr-3"></i>
-                                แก้ไขทักษะ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="balance.html">
-                                <i class="fas fa-wallet mr-3"></i>
-                                ยอดคงเหลือ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="history.html">
-                                <i class="fas fa-history mr-3"></i>
-                                ประวัติการเข้าร่วมกิจกรรม
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="transfer.html">
-                                <i class="fas fa-exchange-alt mr-3"></i>
-                                แลกเปลี่ยนเวลา
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="contact.html">
-                                <i class="fas fa-phone mr-3"></i>
-                                ติดต่อเรา
-                            </a>
-                        </li>
-                    `;
-                } catch (error) {
-                    console.error('Error fetching user details:', error);
-                    alert('เกิดข้อผิดพลาดขณะโหลดข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
-                }
-            } else {
-                navList.innerHTML = `
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="log-in.html">
-                            <i class="fas fa-sign-in-alt mr-3"></i>
-                            เข้าสู่ระบบ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="service.html">
-                            <i class="fas fa-clipboard-list mr-3"></i>
-                            กิจกรรมชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="profile.html">
-                            <i class="fas fa-user-edit mr-3"></i>
-                            แก้ไขประวัติ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="skillconf.html">
-                            <i class="fas fa-tools mr-3"></i>
-                            แก้ไขทักษะ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="balance.html">
-                            <i class="fas fa-wallet mr-3"></i>
-                            ยอดคงเหลือ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="history.html">
-                            <i class="fas fa-history mr-3"></i>
-                            ประวัติการเข้าร่วมกิจกรรม
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="transfer.html">
-                            <i class="fas fa-exchange-alt mr-3"></i>
-                            แลกเปลี่ยนเวลา
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="contact.html">
-                            <i class="fas fa-phone mr-3"></i>
-                            ติดต่อเรา
-                        </a>
-                    </li>
-                `;
-            }
-        }
-
         async function checkLoginStatus() {
             const token = localStorage.getItem('token');
             if (token) {
@@ -468,11 +279,13 @@
                         }
                     });
                     if (response.ok) {
-                        updateSidebar(true);
-                        fetchActivities(); // Fetch activities only if the user is logged in
+                        // Removed inline updateSidebar call here
+                        await fetchMemberProfile();        // ✅ sets globalUserId
+                        await fetchMemberSkills();         // ✅ sets memberSkills
+                        await fetchSkillsAndCategories();  // ✅ sets skill options
+                        await fetchActivities();           // ✅ only after member info is ready
                     } else {
                         localStorage.removeItem('token');
-                        updateSidebar(false);
                         const goToLogin = confirm('Session expired. Do you want to go to the login page?');
                         if (goToLogin) {
                             window.location.href = 'log-in.html';
@@ -481,14 +294,12 @@
                 } catch (error) {
                     console.error('Error:', error);
                     localStorage.removeItem('token');
-                    updateSidebar(false);
                     const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
                     if (goToLogin) {
                         window.location.href = 'log-in.html';
                     }
                 }
             } else {
-                updateSidebar(false);
                 const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
                 if (goToLogin) {
                     window.location.href = 'log-in.html';
@@ -507,29 +318,29 @@
             const endMinutes = document.getElementById('end-minutes')?.value;
             const skill = document.getElementById('skill-dropdown')?.value || '';
             const availableSlots = document.getElementById('filter-available-slots')?.checked || false;
-        
+
             const startTimeFilter = (startHours && startMinutes) ? `${startHours}:${startMinutes}` : null;
             const endTimeFilter = (endHours && endMinutes) ? `${endHours}:${endMinutes}` : null;
-        
+
             const filteredActivities = activities.filter(activity => {
                 const matchesText =
                     (activity.title && activity.title.toLowerCase().includes(baseSearch)) ||
                     (activity.description && activity.description.toLowerCase().includes(baseSearch)) ||
                     (activity.requester_id && activity.requester_id.toString().includes(baseSearch));
-        
+
                 const matchesStatus = status ? activity.status === status : true;
                 const matchesStartDate = startDate ? new Date(activity.start_date) >= new Date(startDate) : true;
                 const matchesEndDate = endDate ? new Date(activity.end_date) <= new Date(endDate) : true;
                 const matchesStartTime = startTimeFilter ? activity.start_time >= startTimeFilter : true;
                 const matchesEndTime = endTimeFilter ? activity.end_time <= endTimeFilter : true;
-        
+
                 // ✅ Skill match based on skill_id from dropdown
                 const matchesSkill = skill ? activity.required_skills === Number(skill) : true;
-        
+
                 const matchesAvailableSlots = availableSlots
                     ? activity.current_participants < activity.max_participants
                     : true;
-        
+
                 return (
                     matchesText &&
                     matchesStatus &&
@@ -541,14 +352,14 @@
                     matchesAvailableSlots
                 );
             });
-        
+
             renderTable(filteredActivities);
         }
-        
+
 
         async function handleJoinButton(activityId, index) {
             const joinButton = document.querySelector(`#row-${index + 1} .join-button`);
-        
+
             if (joinButton.innerText === 'เข้าร่วม') {
                 await joinActivity(activityId, index);
             } else if (joinButton.innerText === 'ยกเลิก') {
@@ -658,7 +469,7 @@
                 alert('เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์สมาชิก');
             }
         }
-        
+
         let memberSkills = [];
 
         async function fetchMemberSkills() {
@@ -668,7 +479,7 @@
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-    
+
                 if (response.ok) {
                     const data = await response.json();
                     memberSkills = data.skills.map(skill => skill.skill_id).filter(id => id !== null);
@@ -682,15 +493,14 @@
         }
 
         document.addEventListener('DOMContentLoaded', async () => {
-            await checkLoginStatus(); // this only updates sidebar
-        
-            await fetchMemberProfile();        // ✅ sets globalUserId
-            await fetchMemberSkills();         // ✅ sets memberSkills
-            await fetchSkillsAndCategories();  // ✅ sets skill options
-            await fetchActivities();           // ✅ only after member info is ready
+            await checkLoginStatus(); // this only checks login and fetches data
+
+            // Removed inline updateSidebar call here
+
+            // Sidebar is now managed externally via sidebar.js
         });
-        
-        
+
+
 
         function showMessage(message, isError = false) {
             const modal = document.getElementById('message-modal');
@@ -751,9 +561,14 @@
             document.getElementById('start-minutes').value = '00';
             document.getElementById('end-hours').value = '';
             document.getElementById('end-minutes').value = '00';
-            document.getElementById('filter-category').value = '';
-            document.getElementById('filter-skill').innerHTML = '<option value="">-- เลือกทักษะ --</option>';
+            document.getElementById('category-dropdown').value = '';
+
+            const skillDropdown = document.getElementById('skill-dropdown');
+            skillDropdown.innerHTML = '<option value="">กรุณาเลือกทักษะ</option>';
+            skillDropdown.disabled = true;
+
             document.getElementById('filter-available-slots').checked = false;
+
             searchActivities();
         }
     </script>
@@ -762,62 +577,64 @@
 <body class="bg-blue-700">
     <div class="flex flex-col md:flex-row">
         <!-- Sidebar -->
-        <div class="w-full md:w-1/6 bg-white h-screen p-5">
-            <div class="flex items-center mb-10">
-                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
-                    class="w-10 h-10 rounded-full" height="50"
-                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
-                    width="50" />
-                <span class="ml-3 text-xl font-bold text-blue-600">
-                    TIMEBANK
-                </span>
-            </div>
-            <nav>
-                <ul id="navList">
-                    <!-- Navigation items will be dynamically inserted here -->
-                </ul>
+        <div class="w-full md:w-1/6 bg-white h-screen p-5 sticky top-0 flex flex-col">
+            <nav class="flex-grow">
+                <ul id="navList" class="space-y-4"></ul>
             </nav>
         </div>
 
-            <!-- Main Content -->
-            <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
-                <div class="relative mb-10 z-10 h-[50px]">
+        <!-- Main Content -->
+        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
+            <div class="relative mb-10 z-10 h-[50px]">
 
-                    <!-- 🕊️ Back Button (ซ้ายสุด) -->
-                    <div class="absolute left-0 top-0">
-                        <button onclick="window.location.href='HomePage.html'"
-                            class="group inline-flex items-center gap-2 px-5 py-2.5 bg-white text-gray-900 font-medium rounded-full border border-gray-300 shadow-sm hover:bg-gray-100 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-300">
-                            <i class="fas fa-arrow-left text-sm wiggle-icon"></i>
-                            <span class="text-sm">ย้อนกลับ</span>
-                        </button>
-                    </div>
-                
-                    <!-- 🏷️ Title (ตรงกลางพอดี) -->
-                    <div class="text-center">
-                        <a class="text-4xl md:text-4xl font-bold text-white">
-                            กิจกรรมทั้งหมดของชุมชน
-                        </a>
-                    </div>
-            
-                
+                <!-- 🕊️ Back Button (ซ้ายสุด) -->
+                <div class="absolute left-0 top-0">
+                    <button onclick="window.location.href='HomePage.html'"
+                        class="group inline-flex items-center gap-2 px-5 py-2.5 bg-white text-gray-900 font-medium rounded-full border border-gray-300 shadow-sm hover:bg-gray-100 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-300">
+                        <i class="fas fa-arrow-left text-sm wiggle-icon"></i>
+                        <span class="text-sm">ย้อนกลับ</span>
+                    </button>
+                </div>
+
+                <!-- 🏷️ Title (ตรงกลางพอดี) -->
+                <div class="text-center">
+                    <a class="text-4xl md:text-4xl font-bold text-white">
+                        กิจกรรมทั้งหมดของชุมชน
+                    </a>
                 </div>
 
 
+            </div>
 
-        <style>
-            @keyframes gentle-wiggle {
-            0%, 100% { transform: translateX(0); }
-            25% { transform: translateX(-3px); }
-            50% { transform: translateX(3px); }
-            75% { transform: translateX(-2px); }
-            }
-            
-            /* Only animate on hover */
-            .group:hover .wiggle-icon {
-            animation: gentle-wiggle 2.5s ease-in-out infinite;
-            }
+
+
+            <style>
+                @keyframes gentle-wiggle {
+
+                    0%,
+                    100% {
+                        transform: translateX(0);
+                    }
+
+                    25% {
+                        transform: translateX(-3px);
+                    }
+
+                    50% {
+                        transform: translateX(3px);
+                    }
+
+                    75% {
+                        transform: translateX(-2px);
+                    }
+                }
+
+                /* Only animate on hover */
+                .group:hover .wiggle-icon {
+                    animation: gentle-wiggle 2.5s ease-in-out infinite;
+                }
             </style>
-    
+
 
             <div class="flex items-center justify-between border-b pb-2 mb-5">
             </div>
@@ -833,7 +650,7 @@
                         <p class="text-sm text-purple-500">ดูรายการกิจกรรมที่เปิดให้เข้าร่วม</p>
                     </div>
                 </a>
-            
+
                 <!-- Ongoing Activities -->
                 <a href="actOngoing.html"
                     class="flex items-center justify-start gap-4 bg-white hover:bg-blue-50 border border-blue-200 text-blue-700 hover:text-blue-900 font-medium px-6 py-4 rounded-xl shadow-md transition duration-200">
@@ -845,7 +662,7 @@
                         <p class="text-sm text-blue-500">ดูรายการกิจกรรมที่กำลังดำเนินการ</p>
                     </div>
                 </a>
-            
+
                 <!-- Activity History -->
                 <a href="actHistory.html"
                     class="flex items-center justify-start gap-4 bg-white hover:bg-green-50 border border-green-200 text-green-700 hover:text-green-900 font-medium px-6 py-4 rounded-xl shadow-md transition duration-200">
@@ -858,7 +675,7 @@
                     </div>
                 </a>
             </div>
-            
+
             <div class="bg-white text-black p-8 rounded-lg shadow-lg">
                 <!-- 🌟 Search Bar & Filters -->
                 <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_auto] gap-4 mb-6 items-start">
@@ -866,9 +683,7 @@
                     <!-- Search Input -->
                     <div class="flex-grow min-w-0">
                         <div class="relative">
-                            <input id="search-input"
-                                type="text"
-                                placeholder="ค้นหากิจกรรม..."
+                            <input id="search-input" type="text" placeholder="ค้นหากิจกรรม..."
                                 class="w-full bg-white border border-gray-300 text-gray-800 placeholder-gray-400 rounded-xl px-5 py-3 focus:ring-2 focus:ring-blue-500 focus:outline-none transition duration-200 shadow-sm text-base"
                                 oninput="searchActivities()" />
                             <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none">
@@ -885,116 +700,134 @@
                             ตัวกรองเพิ่มเติม
                         </button>
                         <div class="relative">
-                        <!-- Dropdown box -->
-                        <div id="advanced-filter"
-                        class="absolute right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl w-[700px] p-4 z-50 hidden overflow-y-auto max-h-[500px]">
-                                  
-                        <div class="space-y-4">
-                                <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-1">สถานะกิจกรรม</label>
-                                    <select id="filter-status"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:outline-none">
-                                        <option value="">-- เลือกสถานะ --</option>
-                                        <option value="กำลังจะเริ่ม">กำลังจะเริ่ม</option>
-                                        <option value="เสร็จสิ้น">เสร็จสิ้น</option>
-                                        <option value="ยกเลิก">ยกเลิก</option>
-                                        <option value="เกินเวลา">เกินเวลา</option>
-                                        <option value="กำลังทำกิจกรรม">กำลังทำกิจกรรม</option>
-                                        <option value="รอผู้ขอยืนยันผล">รอผู้ขอยืนยันผล</option>
+                            <!-- Dropdown box -->
+                            <div id="advanced-filter"
+                                class="absolute right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl w-[700px] p-4 z-50 hidden overflow-y-auto max-h-[500px]">
 
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-1">วันที่เริ่ม</label>
-                                    <input id="filter-start-date" type="date"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:outline-none" />
-                                </div>
-                                <div>
-                                    <label class="block text-sm font-semibold text-gray-700 mb-1">วันที่สิ้นสุด</label>
-                                    <input id="filter-end-date" type="date"
-                                        class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:outline-none" />
-                                </div>
-                                <!-- Section: Time -->
-                                <div class="grid grid-cols-2 gap-4">
-                                    <div class="mb-6">
-                                        <label for="start-time" class="block text-gray-700 text-sm font-bold mb-2">เวลาเริ่มต้น</label>
-                                        <div class="flex items-center bg-white border shadow border rounded w-full py-2 px-3 text-gray-700">
-                                            <!-- Hour Selector -->
-                                            <select id="start-hours" name="start-hours" class="text-gray-700 w-full text-center focus:outline-none">
-                                                <option value="" selected disabled>-- ชั่วโมง --</option>
-                                                <script>
-                                                    for (let i = 0; i < 24; i++) {
-                                                        document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาฬิกา</option>`);
-                                                    }
-                                                </script>
-                                            </select>
-                                            <!-- Minute Selector -->
-                                            <select id="start-minutes" name="start-minutes" class="text-gray-700 w-full text-center focus:outline-none">
-                                                <option value="00" selected>00 นาที</option>
-                                                <script>
-                                                    for (let i = 0; i < 60; i += 5) {
-                                                        document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาที</option>`);
-                                                    }
-                                                </script>
-                                            </select>
+                                <div class="space-y-4">
+                                    <div>
+                                        <label
+                                            class="block text-sm font-semibold text-gray-700 mb-1">สถานะกิจกรรม</label>
+                                        <select id="filter-status"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:outline-none">
+                                            <option value="">-- เลือกสถานะ --</option>
+                                            <option value="กำลังจะเริ่ม">กำลังจะเริ่ม</option>
+                                            <option value="เสร็จสิ้น">เสร็จสิ้น</option>
+                                            <option value="ยกเลิก">ยกเลิก</option>
+                                            <option value="เกินเวลา">เกินเวลา</option>
+                                            <option value="กำลังทำกิจกรรม">กำลังทำกิจกรรม</option>
+                                            <option value="รอผู้ขอยืนยันผล">รอผู้ขอยืนยันผล</option>
+
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label
+                                            class="block text-sm font-semibold text-gray-700 mb-1">วันที่เริ่ม</label>
+                                        <input id="filter-start-date" type="date"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:outline-none" />
+                                    </div>
+                                    <div>
+                                        <label
+                                            class="block text-sm font-semibold text-gray-700 mb-1">วันที่สิ้นสุด</label>
+                                        <input id="filter-end-date" type="date"
+                                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:outline-none" />
+                                    </div>
+                                    <!-- Section: Time -->
+                                    <div class="grid grid-cols-2 gap-4">
+                                        <div class="mb-6">
+                                            <label for="start-time"
+                                                class="block text-gray-700 text-sm font-bold mb-2">เวลาเริ่มต้น</label>
+                                            <div
+                                                class="flex items-center bg-white border shadow border rounded w-full py-2 px-3 text-gray-700">
+                                                <!-- Hour Selector -->
+                                                <select id="start-hours" name="start-hours"
+                                                    class="text-gray-700 w-full text-center focus:outline-none">
+                                                    <option value="" selected disabled>-- ชั่วโมง --</option>
+                                                    <script>
+                                                        for (let i = 0; i < 24; i++) {
+                                                            document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาฬิกา</option>`);
+                                                        }
+                                                    </script>
+                                                </select>
+                                                <!-- Minute Selector -->
+                                                <select id="start-minutes" name="start-minutes"
+                                                    class="text-gray-700 w-full text-center focus:outline-none">
+                                                    <option value="00" selected>00 นาที</option>
+                                                    <script>
+                                                        for (let i = 0; i < 60; i += 5) {
+                                                            document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาที</option>`);
+                                                        }
+                                                    </script>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="mb-6">
+                                            <label for="end-time"
+                                                class="block text-gray-700 text-sm font-bold mb-2">เวลาสิ้นสุด</label>
+                                            <div
+                                                class="flex items-center bg-white border shadow border rounded w-full py-2 px-3 text-gray-700">
+                                                <!-- Hour Selector -->
+                                                <select id="end-hours" name="end-hours"
+                                                    class="text-gray-700 w-full text-center focus:outline-none">
+                                                    <option value="" selected disabled>-- ชั่วโมง --</option>
+                                                    <script>
+                                                        for (let i = 0; i < 24; i++) {
+                                                            document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาฬิกา</option>`);
+                                                        }
+                                                    </script>
+                                                </select>
+                                                <!-- Minute Selector -->
+                                                <select id="end-minutes" name="end-minutes"
+                                                    class="text-gray-700 w-full text-center focus:outline-none">
+                                                    <option value="00" selected>00 นาที</option>
+                                                    <script>
+                                                        for (let i = 0; i < 60; i += 5) {
+                                                            document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาที</option>`);
+                                                        }
+                                                    </script>
+                                                </select>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="mb-6">
-                                        <label for="end-time" class="block text-gray-700 text-sm font-bold mb-2">เวลาสิ้นสุด</label>
-                                        <div class="flex items-center bg-white border shadow border rounded w-full py-2 px-3 text-gray-700">
-                                            <!-- Hour Selector -->
-                                            <select id="end-hours" name="end-hours" class="text-gray-700 w-full text-center focus:outline-none">
-                                                <option value="" selected disabled>-- ชั่วโมง --</option>
-                                                <script>
-                                                    for (let i = 0; i < 24; i++) {
-                                                        document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาฬิกา</option>`);
-                                                    }
-                                                </script>
-                                            </select>
-                                            <!-- Minute Selector -->
-                                            <select id="end-minutes" name="end-minutes" class="text-gray-700 w-full text-center focus:outline-none">
-                                                <option value="00" selected>00 นาที</option>
-                                                <script>
-                                                    for (let i = 0; i < 60; i += 5) {
-                                                        document.write(`<option value="${i.toString().padStart(2, '0')}">${i.toString().padStart(2, '0')} นาที</option>`);
-                                                    }
-                                                </script>
-                                            </select>
-                                        </div>
+                                    <div class="mb-4">
+                                        <label for="category-dropdown"
+                                            class="block text-gray-700 text-sm font-bold mb-2">เลือกหมวดหมู่:
+                                            (กรุณาเลือกหมวดหมู่ก่อนเลือกทักษะ)</label>
+                                        <select id="category-dropdown"
+                                            class="shadow border rounded w-full py-2 px-3 text-gray-700"
+                                            onchange="updateSkillDropdown()">
+                                            <option value="">กรุณาเลือกหมวดหมู่</option>
+                                        </select>
                                     </div>
-                                </div>
-                                <div class="mb-4">
-                                    <label for="category-dropdown" class="block text-gray-700 text-sm font-bold mb-2">เลือกหมวดหมู่: (กรุณาเลือกหมวดหมู่ก่อนเลือกทักษะ)</label>
-                                    <select id="category-dropdown" class="shadow border rounded w-full py-2 px-3 text-gray-700" onchange="updateSkillDropdown()">
-                                        <option value="">กรุณาเลือกหมวดหมู่</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="mb-4">
-                                    <label for="skill-dropdown" class="block text-gray-700 text-sm font-bold mb-2">เลือกทักษะ:</label>
-                                    <select id="skill-dropdown" class="shadow border rounded w-full py-2 px-3 text-gray-700" disabled>
-                                        <option value="">กรุณาเลือกทักษะ</option>
-                                    </select>
-                                </div>
-                                <div class="flex items-center">
-                                    <input id="filter-available-slots" type="checkbox"
-                                        class="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
-                                    <label for="filter-available-slots" class="text-sm font-semibold text-gray-700">แสดงเฉพาะกิจกรรมที่มีที่ว่าง</label>
-                                </div>
-                                <div class="flex justify-end">
-                                    <button onclick="searchActivities(); closeAdvancedFilter()"
-                                        class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition duration-200">
-                                        🔍 ค้นหา
-                                    </button>
-                                    <button onclick="clearFilters(); closeAdvancedFilter()"
-                                        class="mt-2 ml-2 bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded-lg font-medium transition duration-200">
-                                        ❌ ล้างตัวกรอง
-                                    </button>
+
+                                    <div class="mb-4">
+                                        <label for="skill-dropdown"
+                                            class="block text-gray-700 text-sm font-bold mb-2">เลือกทักษะ:</label>
+                                        <select id="skill-dropdown"
+                                            class="shadow border rounded w-full py-2 px-3 text-gray-700" disabled>
+                                            <option value="">กรุณาเลือกทักษะ</option>
+                                        </select>
+                                    </div>
+                                    <div class="flex items-center">
+                                        <input id="filter-available-slots" type="checkbox"
+                                            class="mr-2 h-4 w-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500" />
+                                        <label for="filter-available-slots"
+                                            class="text-sm font-semibold text-gray-700">แสดงเฉพาะกิจกรรมที่มีที่ว่าง</label>
+                                    </div>
+                                    <div class="flex justify-end">
+                                        <button onclick="searchActivities(); closeAdvancedFilter()"
+                                            class="mt-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition duration-200">
+                                            🔍 ค้นหา
+                                        </button>
+                                        <button onclick="clearFilters(); closeAdvancedFilter()"
+                                            class="mt-2 ml-2 bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded-lg font-medium transition duration-200">
+                                            ❌ ล้างตัวกรอง
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
                     <!-- สร้างกิจกรรม Button -->
                     <a href="create-service.html"
                         class="flex-1 flex items-center justify-center gap-2 bg-green-500 hover:bg-green-700 text-white font-medium px-4 py-2.5 rounded-xl shadow transition duration-200 w-full">
@@ -1004,49 +837,49 @@
 
                 <div class="overflow-x-auto w-full">
                     <div class="min-w-[1000px]">
-                        <table role="table" >
-                        <table role="table" aria-busy="false" aria-colcount="7"
-                            class="table b-table b-table-stacked-md w-full">
-                            <thead role="rowgroup" class="bg-gray-100">
-                                <tr role="row">
-                                    <th role="columnheader" scope="col" aria-colindex="1"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
-                                        onclick="sortTable('title', 'string')">
-                                        กิจกรรม <i class="fas fa-sort"></i>
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="2"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
-                                        onclick="sortTable('created_at', 'date')">
-                                        วันที่สร้างกิจกรรม <i class="fas fa-sort"></i>
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="3"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
-                                        onclick="sortTable('start_date', 'date')">
-                                        วันที่เริ่มกิจกรรม <i class="fas fa-sort"></i>
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="4"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
-                                        onclick="sortTable('status', 'string')">
-                                        สถานะ <i class="fas fa-sort"></i>
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="5"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                        จำนวนผู้เข้าร่วม
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="6"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                        การจัดการ
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="7"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                        เข้าร่วม
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody id="activity-tbody" role="rowgroup">
-                                <!-- Activities will be dynamically inserted here -->
-                            </tbody>
-                        </table>
+                        <table role="table">
+                            <table role="table" aria-busy="false" aria-colcount="7"
+                                class="table b-table b-table-stacked-md w-full">
+                                <thead role="rowgroup" class="bg-gray-100">
+                                    <tr role="row">
+                                        <th role="columnheader" scope="col" aria-colindex="1"
+                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
+                                            onclick="sortTable('title', 'string')">
+                                            กิจกรรม <i class="fas fa-sort"></i>
+                                        </th>
+                                        <th role="columnheader" scope="col" aria-colindex="2"
+                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
+                                            onclick="sortTable('created_at', 'date')">
+                                            วันที่สร้างกิจกรรม <i class="fas fa-sort"></i>
+                                        </th>
+                                        <th role="columnheader" scope="col" aria-colindex="3"
+                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
+                                            onclick="sortTable('start_date', 'date')">
+                                            วันที่เริ่มกิจกรรม <i class="fas fa-sort"></i>
+                                        </th>
+                                        <th role="columnheader" scope="col" aria-colindex="4"
+                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
+                                            onclick="sortTable('status', 'string')">
+                                            สถานะ <i class="fas fa-sort"></i>
+                                        </th>
+                                        <th role="columnheader" scope="col" aria-colindex="5"
+                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                            จำนวนผู้เข้าร่วม
+                                        </th>
+                                        <th role="columnheader" scope="col" aria-colindex="6"
+                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                            การจัดการ
+                                        </th>
+                                        <th role="columnheader" scope="col" aria-colindex="7"
+                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
+                                            เข้าร่วม
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody id="activity-tbody" role="rowgroup">
+                                    <!-- Activities will be dynamically inserted here -->
+                                </tbody>
+                            </table>
                     </div>
                 </div>
             </div>
@@ -1054,33 +887,42 @@
     </div>
 
     <!-- Success & Error Message Modal -->
-    <div id="message-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden transition-opacity duration-300">
-        <div class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-2xl text-center transform scale-95 transition-transform duration-300">
+    <div id="message-modal"
+        class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden transition-opacity duration-300">
+        <div
+            class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-2xl text-center transform scale-95 transition-transform duration-300">
             <div class="flex justify-center">
-                <div id="message-icon" class="w-24 h-24 flex items-center justify-center rounded-full border-4 animate-bounce">
-                    <svg id="message-icon-svg" class="w-16 h-16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <div id="message-icon"
+                    class="w-24 h-24 flex items-center justify-center rounded-full border-4 animate-bounce">
+                    <svg id="message-icon-svg" class="w-16 h-16" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
                         <path id="message-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
                     </svg>
                 </div>
             </div>
             <h2 id="message-title" class="text-4xl font-bold mt-6"></h2>
             <p id="message-text" class="text-gray-700 text-xl mt-4"></p>
-            <button id="confirm-message-btn" class="mt-8 px-8 py-4 bg-blue-600 text-white text-xl font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+            <button id="confirm-message-btn"
+                class="mt-8 px-8 py-4 bg-blue-600 text-white text-xl font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
                 ตกลง
             </button>
         </div>
     </div>
 
     <!-- Confirmation Modal -->
-    <div id="confirm-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden transition-opacity duration-300">
-        <div class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-lg text-center transform scale-95 transition-transform duration-300">
+    <div id="confirm-modal"
+        class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden transition-opacity duration-300">
+        <div
+            class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-lg text-center transform scale-95 transition-transform duration-300">
             <h2 id="confirm-title" class="text-3xl font-bold text-yellow-600">ยืนยันการทำรายการ</h2>
             <p id="confirm-message" class="text-gray-700 text-xl mt-4"></p>
             <div class="mt-6 flex justify-center gap-4">
-                <button id="confirm-yes-btn" class="px-6 py-3 bg-green-600 text-white text-lg font-semibold rounded-lg hover:bg-green-700 transition duration-300">
+                <button id="confirm-yes-btn"
+                    class="px-6 py-3 bg-green-600 text-white text-lg font-semibold rounded-lg hover:bg-green-700 transition duration-300">
                     ยืนยัน
                 </button>
-                <button id="confirm-no-btn" class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300">
+                <button id="confirm-no-btn"
+                    class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300">
                     ยกเลิก
                 </button>
             </div>
@@ -1091,7 +933,7 @@
         function toggleAdvancedFilter() {
             const filterBox = document.getElementById('advanced-filter');
             filterBox.classList.toggle('hidden');
-        
+
             // Add event listener for click outside when opening
             if (!filterBox.classList.contains('hidden')) {
                 document.addEventListener('click', handleClickOutsideFilter);
@@ -1111,7 +953,7 @@
         function handleClickOutsideFilter(event) {
             const filterBox = document.getElementById('advanced-filter');
             const button = document.querySelector('button[onclick="toggleAdvancedFilter()"]');
-        
+
             // If the click target is not inside the filter or the toggle button
             if (!filterBox.contains(event.target) && !button.contains(event.target)) {
                 closeAdvancedFilter();
@@ -1122,7 +964,7 @@
         let skills = [];       // All skills from backend
         let categories = [];   // Unique category names
         let selectedSkills = []; // Only needed if allowing multiple skills
-    
+
         // Fetch skills and extract unique categories
         async function fetchSkillsAndCategories() {
             try {
@@ -1131,9 +973,9 @@
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-        
+
                 const data = await response.json();
-        
+
                 if (Array.isArray(data)) {
                     skills = data;
                     categories = [...new Set(skills.map(skill => skill.category))];
@@ -1147,45 +989,45 @@
                 alert('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะ');
             }
         }
-    
+
         // Populate category dropdown
         function populateCategoryDropdown() {
             const categoryDropdown = document.getElementById('category-dropdown');
             categoryDropdown.innerHTML = '<option value="">กรุณาเลือกหมวดหมู่</option>';
-        
+
             categories.forEach(category => {
                 const option = document.createElement('option');
                 option.value = category;
                 option.textContent = category;
                 categoryDropdown.appendChild(option);
             });
-        
+
             document.getElementById('skill-dropdown').disabled = true;
         }
-    
+
         // Populate skill dropdown based on selected category
         function updateSkillDropdown() {
             const selectedCategory = document.getElementById('category-dropdown').value;
             const skillDropdown = document.getElementById('skill-dropdown');
             skillDropdown.innerHTML = '<option value="">กรุณาเลือกทักษะ</option>';
-        
+
             if (!selectedCategory) {
                 skillDropdown.disabled = true;
                 return;
             }
-        
+
             const filteredSkills = skills.filter(skill => skill.category === selectedCategory);
-        
+
             filteredSkills.forEach(skill => {
                 const option = document.createElement('option');
                 option.value = skill.skill_id;
                 option.textContent = skill.name;
                 skillDropdown.appendChild(option);
             });
-        
+
             skillDropdown.disabled = false;
         }
-        
+
         function clearFilters() {
             document.getElementById('search-input').value = '';
             document.getElementById('filter-status').value = '';
@@ -1196,18 +1038,18 @@
             document.getElementById('end-hours').value = '';
             document.getElementById('end-minutes').value = '00';
             document.getElementById('category-dropdown').value = '';
-        
+
             const skillDropdown = document.getElementById('skill-dropdown');
             skillDropdown.innerHTML = '<option value="">กรุณาเลือกทักษะ</option>';
             skillDropdown.disabled = true;
-        
+
             document.getElementById('filter-available-slots').checked = false;
-        
+
             searchActivities();
         }
-        
-    </script>
 
+    </script>
+    <script src="navbar.js"></script>
 </body>
 
 </html>

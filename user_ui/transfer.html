@@ -1,15 +1,16 @@
 <html lang="en">
- <head>
-  <meta charset="utf-8"/>
-  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>
-   โปรไฟล์สมาชิก - Time Bank
-  </title>
-  <script src="https://cdn.tailwindcss.com">
-  </script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
-  <script>
-   let globalUserId = null;
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>
+        โปรไฟล์สมาชิก - Time Bank
+    </title>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <script>
+        let globalUserId = null;
         let members = [];
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -34,7 +35,7 @@
                 balanceElement.innerText = `${data.time_credits} ชั่วโมง`;
 
                 balanceElement.style.color = data.time_credits > 0 ? "#32CD32" :
-                                             data.time_credits < 0 ? "red" : "gray";
+                    data.time_credits < 0 ? "red" : "gray";
 
             } catch (error) {
                 console.error('Error fetching member profile:', error);
@@ -54,10 +55,10 @@
                     });
 
                     if (response.ok) {
-                        updateSidebar(true);
+                        // Sidebar update handled externally via sidebar.js
                     } else {
                         localStorage.removeItem('token');
-                        updateSidebar(false);
+                        // Sidebar update handled externally
                         const goToLogin = confirm('Session expired. Do you want to go to the login page?');
                         if (goToLogin) {
                             window.location.href = 'log-in.html';
@@ -66,176 +67,18 @@
                 } catch (error) {
                     console.error('Error:', error);
                     localStorage.removeItem('token');
-                    updateSidebar(false);
+                    // Sidebar update handled externally
                     const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
                     if (goToLogin) {
                         window.location.href = 'log-in.html';
                     }
                 }
             } else {
-                updateSidebar(false);
+                // Sidebar update handled externally
                 const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
                 if (goToLogin) {
                     window.location.href = 'log-in.html';
                 }
-            }
-        }
-
-        async function updateSidebar(isLoggedIn) {
-            const navList = document.getElementById('navList');
-
-            if (isLoggedIn) {
-                try {
-                    const response = await fetch('http://localhost:3000/api/user/auth/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        }
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch user details');
-                    }
-
-                    const member = await response.json();
-                    const memberId = member.userId || member.user_id;
-
-                    navList.innerHTML = `
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                                href="log-out.html">
-                                <i class="fas fa-user mr-3"></i>
-                                โปรไฟล์
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="homepage.html">
-                                <i class="fas fa-home mr-3"></i>
-                                หน้าหลัก
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="service.html">
-                                <i class="fas fa-clipboard-list mr-3"></i>
-                                กิจกรรมชุมชน
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="profile.html">
-                                <i class="fas fa-user-edit mr-3"></i>
-                                แก้ไขประวัติ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="skillconf.html">
-                                <i class="fas fa-tools mr-3"></i>
-                                แก้ไขทักษะ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="balance.html">
-                                <i class="fas fa-wallet mr-3"></i>
-                                ยอดคงเหลือ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="history.html">
-                                <i class="fas fa-history mr-3"></i>
-                                ประวัติการเข้าร่วมกิจกรรม
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="transfer.html">
-                                <i class="fas fa-exchange-alt mr-3"></i>
-                                แลกเปลี่ยนเวลา
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="contact.html">
-                                <i class="fas fa-phone mr-3"></i>
-                                ติดต่อเรา
-                            </a>
-                        </li>
-                    `;
-                } catch (error) {
-                    console.error('Error fetching user details:', error);
-                    alert('เกิดข้อผิดพลาดขณะโหลดข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
-                }
-            } else {
-                navList.innerHTML = `
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="log-in.html">
-                            <i class="fas fa-sign-in-alt mr-3"></i>
-                            เข้าสู่ระบบ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="service.html">
-                            <i class="fas fa-clipboard-list mr-3"></i>
-                            กิจกรรมชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="profile.html">
-                            <i class="fas fa-user-edit mr-3"></i>
-                            แก้ไขประวัติ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="skillconf.html">
-                            <i class="fas fa-tools mr-3"></i>
-                            แก้ไขทักษะ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="balance.html">
-                            <i class="fas fa-wallet mr-3"></i>
-                            ยอดคงเหลือ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="history.html">
-                            <i class="fas fa-history mr-3"></i>
-                            ประวัติการเข้าร่วมกิจกรรม
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="transfer.html">
-                            <i class="fas fa-exchange-alt mr-3"></i>
-                            แลกเปลี่ยนเวลา
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="contact.html">
-                            <i class="fas fa-phone mr-3"></i>
-                            ติดต่อเรา
-                        </a>
-                    </li>
-                `;
             }
         }
 
@@ -244,23 +87,23 @@
                 const response = await fetch('http://localhost:3000/api/user/auth/profile', {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
-        
+
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-        
+
                 const data = await response.json();
-                
+
                 // Update sender display
                 document.getElementById('senderName').innerText = data.name || 'ไม่ระบุชื่อ';
                 document.getElementById('senderUserId').innerText = `ID: ${data.user_id || '-'}`;
-        
+
             } catch (error) {
                 console.error('Error fetching user details:', error);
                 alert('เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้');
             }
         }
-        
+
 
         async function fetchMembers() {
             try {
@@ -286,13 +129,13 @@
             const searchTerm = document.getElementById('recipient').value.toLowerCase();
             const resultsDropdown = document.getElementById('search-results-dropdown');
             resultsDropdown.innerHTML = '';
-        
+
             if (searchTerm) {
-                const filteredMembers = members.filter(member => 
-                    member.user_id !== globalUserId && 
+                const filteredMembers = members.filter(member =>
+                    member.user_id !== globalUserId &&
                     (member.name.toLowerCase().includes(searchTerm) || member.user_id.toString().includes(searchTerm))
                 );
-        
+
                 filteredMembers.forEach(member => {
                     const item = document.createElement('div');
                     item.className = 'py-2 px-4 hover:bg-gray-200 cursor-pointer';
@@ -307,38 +150,38 @@
                     item.onclick = () => {
                         document.getElementById('recipient').value = member.name;
                         document.getElementById('recipient-id').value = member.user_id;
-        
+
                         // Update the recipient display
                         document.getElementById('recipientName').innerText = member.name;
                         document.getElementById('recipientUserId').innerText = `ID: ${member.user_id}`;
                         document.getElementById('recipientDisplay').classList.remove('hidden'); // Show recipient display
-        
+
                         resultsDropdown.innerHTML = ''; // Hide the dropdown
                     };
                     resultsDropdown.appendChild(item);
                 });
-        
+
                 resultsDropdown.classList.remove('hidden');
             } else {
                 resultsDropdown.classList.add('hidden');
             }
         }
-        
+
 
 
         async function handleTransfer(event) {
             event.preventDefault();
-        
+
             const recipientId = document.getElementById('recipient-id').value;
             const amount = document.getElementById('amount').value;
-        
+
             if (!recipientId || !amount || amount <= 0) {
                 alert('กรุณากรอกข้อมูลให้ครบถ้วนและจำนวนต้องมากกว่า 0');
                 return;
             }
-        
+
             const confirmTransfer = confirm(`คุณต้องการโอน ${amount} เครดิตเวลาให้กับผู้ใช้ ID: ${recipientId} ใช่หรือไม่?`);
-        
+
             if (confirmTransfer) {
                 try {
                     const response = await fetch('http://localhost:3000/api/user/transactions/transfer', {
@@ -349,14 +192,14 @@
                         },
                         body: JSON.stringify({ recipientId, amount })
                     });
-        
+
                     const data = await response.json();
                     if (!response.ok) throw new Error(data.error || 'Transaction failed');
-        
+
                     alert('✅ การโอนสำเร็จ!');
                     fetchMemberProfile(); // Refresh balance
                     resetTransferForm();  // Reset form
-        
+
                 } catch (error) {
                     console.error('❌ Transfer error:', error);
                     alert(`เกิดข้อผิดพลาด: ${error.message}`);
@@ -368,14 +211,14 @@
             document.getElementById('recipient').value = ''; // Clear recipient input
             document.getElementById('recipient-id').value = ''; // Clear recipient ID
             document.getElementById('amount').value = ''; // Clear amount input
-        
+
             // Reset recipient display
             document.getElementById('recipientName').innerText = 'ชื่อผู้รับ';
             document.getElementById('recipientUserId').innerText = 'ID: -';
             document.getElementById('recipientDisplay').classList.add('hidden'); // Hide recipient display
         }
-        
-        
+
+
 
         function clearRecipient() {
             document.getElementById('recipient').value = ''; // Clear input field
@@ -384,121 +227,117 @@
             document.getElementById('recipientUserId').innerText = 'ID: -'; // Reset display ID
             document.getElementById('recipientDisplay').classList.add('hidden'); // Hide display
         }
-        
-  </script>
- </head>
-    <body class="bg-gray-100">
-        <!-- Main Content -->
-        <div class="flex">
-            <!-- Sidebar -->
-            <div class="w-1/6 bg-white h-screen p-5">
-                <div class="flex items-center mb-10">
-                <img alt="Logo of Time Bank System, a clock with a handshake in the center" class="w-10 h-10 rounded-full" height="50" src="https://placehold.co/50x50" width="50"/>
-                <span class="ml-3 text-xl font-bold text-blue-600">
-                TIMEBANK
-                </span>
-            </div>
-            <nav>
-                <ul id="navList">
-                <!-- Navigation items will be dynamically inserted here -->
-                </ul>
+    </script>
+</head>
+
+<body class="bg-gray-100">
+    <!-- Main Content -->
+    <div class="flex">
+        <!-- Sidebar -->
+        <div class="w-full md:w-1/6 bg-white h-screen p-5 sticky top-0 flex flex-col">
+            <nav class="flex-grow">
+                <ul id="navList" class="space-y-4"></ul>
             </nav>
         </div>
-
-   <!-- Main Content -->
-   <div class="w-5/6 bg-blue-700 text-white p-10 rounded-lg shadow-lg">
-        <h1 class="text-3xl font-bold text-center mb-5">
-        แลกเปลี่ยนเวลา
-        </h1>
-    <!-- User Balance Section -->
-    <div class="bg-white text-gray-800 p-6 rounded-lg shadow-md mb-5">
-        <h2 class="text-xl font-bold mb-2">
-        ยอดคงเหลือ
-        </h2>
-        <div class="flex items-center">
-            <i class="fas fa-wallet text-3xl text-blue-600 mr-4">
-            </i>
-            <span class="text-2xl font-bold" id="userBalance">
-            000 เครดิต
-            </span>
-        </div>
-    </div>
-    
-    <!-- Transfer Form -->
-    <form class="bg-white text-gray-800 p-6 rounded-lg shadow-md" id="transferForm" onsubmit="handleTransfer(event)">
-     <!-- Sender -->
-     <div class="mb-4">
-      <label class="block font-bold text-gray-700 mb-2">
-       จาก
-      </label>
-      <!-- Sender Display -->
-    <div class="bg-gray-100 p-4 rounded-lg flex items-center shadow-md">
-        <i class="fas fa-user-circle text-3xl text-blue-600 mr-4"></i>
-        <div>
-            <p class="font-bold text-gray-700" id="senderName">ชื่อของคุณ</p>
-            <p class="text-gray-500 text-sm" id="senderUserId">ID: -</p>
-        </div>
-    </div>
-
-     </div>
-
-    <!-- Recipient Input -->
-    <div class="mb-4 relative">
-        <label class="block font-bold text-gray-700 mb-2">ถึง</label>
-        <input class="w-full p-3 rounded-lg border focus:ring focus:ring-blue-300" 
-            id="recipient" 
-            name="recipient" 
-            oninput="searchMembers()" 
-            placeholder="กรอก เลขบัญชี หรือ ชื่อ" 
-            required />
-        <input id="recipient-id" name="recipient-id" type="hidden"/>
-        <div class="absolute w-full bg-white border rounded-lg mt-1 hidden" id="search-results-dropdown"></div>
-    </div>
-
-    <!-- Recipient Display  OPTION 1-->
-    <div class="bg-gray-100 p-4 rounded-lg flex items-center shadow-md hidden" id="recipientDisplay">
-        <i class="fas fa-user-circle text-3xl text-blue-600 mr-4"></i>
-        <div class="flex-1">
-            <p class="font-bold text-gray-700" id="recipientName">ชื่อผู้รับ</p>
-            <p class="text-gray-500 text-sm" id="recipientUserId">ID: -</p>
-        </div>
-        <button onclick="clearRecipient()" class="ml-4 text-red-500 hover:text-red-700 font-bold text-sm">
-            ❌ Clear
-        </button>
-    </div>
-
-
-    <!-- Recipient Display OPTION 2--> 
-    <!-- <div class="bg-gray-100 p-4 rounded-lg flex items-center shadow-md hidden relative" id="recipientDisplay">
+        <!-- Main Content -->
+        <div class="w-5/6 bg-blue-700 text-white p-10 rounded-lg shadow-lg">
+            <h1 class="text-3xl font-bold text-center mb-5">
+                แลกเปลี่ยนเวลา
+            </h1>
+            <!-- User Balance Section -->
+            <div class="bg-white text-gray-800 p-6 rounded-lg shadow-md mb-5">
+                <h2 class="text-xl font-bold mb-2">
+                    ยอดคงเหลือ
+                </h2>
+                <div class="flex items-center">
+                    <i class="fas fa-wallet text-3xl text-blue-600 mr-4">
+                    </i>
+                    <span class="text-2xl font-bold" id="userBalance">
+                        000 เครดิต
+                    </span>
+                </div>
+            </div>
+            <!-- Transfer Form -->
+            <form class="bg-white text-gray-800 p-6 rounded-lg shadow-md" id="transferForm"
+                onsubmit="handleTransfer(event)">
+                <!-- Sender -->
+                <div class="mb-4">
+                    <label class="block font-bold text-gray-700 mb-2">
+                        จาก
+                    </label>
+                    <!-- Sender Display -->
+                    <div class="bg-gray-100 p-4 rounded-lg flex items-center shadow-md">
+                        <i class="fas fa-user-circle text-3xl text-blue-600 mr-4">
+                        </i>
+                        <div>
+                            <p class="font-bold text-gray-700" id="senderName">
+                                ชื่อของคุณ
+                            </p>
+                            <p class="text-gray-500 text-sm" id="senderUserId">
+                                ID: -
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Recipient Input -->
+                <div class="mb-4 relative">
+                    <label class="block font-bold text-gray-700 mb-2">
+                        ถึง
+                    </label>
+                    <input class="w-full p-3 rounded-lg border focus:ring focus:ring-blue-300" id="recipient"
+                        name="recipient" oninput="searchMembers()" placeholder="กรอก เลขบัญชี หรือ ชื่อ" required="" />
+                    <input id="recipient-id" name="recipient-id" type="hidden" />
+                    <div class="absolute w-full bg-white border rounded-lg mt-1 hidden" id="search-results-dropdown">
+                    </div>
+                </div>
+                <!-- Recipient Display  OPTION 1-->
+                <div class="bg-gray-100 p-4 rounded-lg flex items-center shadow-md hidden" id="recipientDisplay">
+                    <i class="fas fa-user-circle text-3xl text-blue-600 mr-4">
+                    </i>
+                    <div class="flex-1">
+                        <p class="font-bold text-gray-700" id="recipientName">
+                            ชื่อผู้รับ
+                        </p>
+                        <p class="text-gray-500 text-sm" id="recipientUserId">
+                            ID: -
+                        </p>
+                    </div>
+                    <button class="ml-4 text-red-500 hover:text-red-700 font-bold text-sm" onclick="clearRecipient()">
+                        ❌ Clear
+                    </button>
+                </div>
+                <!-- Recipient Display OPTION 2-->
+                <!-- <div class="bg-gray-100 p-4 rounded-lg flex items-center shadow-md hidden relative" id="recipientDisplay">
         <i class="fas fa-user-circle text-3xl text-blue-600 mr-4"></i>
         <div class="flex-1">
             <p class="font-bold text-gray-700" id="recipientName">ชื่อผู้รับ</p>
             <p class="text-gray-500 text-sm" id="recipientUserId">ID: -</p>
         </div> -->
-        <!-- Clear Button -->
-        <!-- <button onclick="clearRecipient()" 
+                <!-- Clear Button -->
+                <!-- <button onclick="clearRecipient()" 
             class="absolute top-2 right-2 text-gray-500 hover:text-red-600 transition duration-200">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
             </svg>
         </button>
     </div> -->
+                <!-- Amount -->
+                <div class="mb-4">
+                    <label class="block font-bold text-gray-700 mb-2 mt-8">
+                        จำนวนเครดิตเวลา
+                    </label>
+                    <input class="w-full p-3 rounded-lg border focus:ring focus:ring-blue-300" id="amount" min="0"
+                        name="amount" placeholder="กรอกจำนวน" required="" type="number" />
+                </div>
+                <!-- Transfer Button -->
+                <button class="w-full bg-blue-600 hover:bg-blue-800 text-white font-bold py-3 px-4 rounded-lg">
+                    ยืนยันการโอน
+                </button>
+            </form>
+        </div>
+    </div>
+    <script src="navbar.js">
+    </script>
+</body>
 
-
-
-     <!-- Amount -->
-     <div class="mb-4">
-      <label class="block font-bold text-gray-700 mb-2 mt-8">
-       จำนวนเครดิตเวลา
-      </label>
-      <input class="w-full p-3 rounded-lg border focus:ring focus:ring-blue-300" id="amount" min="0" name="amount" placeholder="กรอกจำนวน" required="" type="number"/>
-     </div>
-     <!-- Transfer Button -->
-     <button class="w-full bg-blue-600 hover:bg-blue-800 text-white font-bold py-3 px-4 rounded-lg">
-      ยืนยันการโอน
-     </button>
-    </form>
-   </div>
-  </div>
- </body>
 </html>

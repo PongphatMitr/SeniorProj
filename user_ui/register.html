@@ -11,82 +11,9 @@
 <body class="bg-gray-100">
     <div class="flex h-screen">
         <!-- Sidebar -->
-        <div class="w-1/6 bg-white h-screen p-5">
-            <div class="flex items-center mb-10">
-                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
-                    class="w-10 h-10 rounded-full" height="50"
-                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
-                    width="50" />
-                <span class="ml-3 text-xl font-bold text-blue-600">
-                    TIMEBANK
-                </span>
-            </div>
-            <nav>
-                <ul>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="log-in.html">
-                            <i class="fas fa-sign-in-alt mr-3"></i>
-                            เข้าสู่ระบบ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="service.html">
-                            <i class="fas fa-clipboard-list mr-3"></i>
-                            กิจกรรมชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="profile.html">
-                            <i class="fas fa-user-edit mr-3"></i>
-                            แก้ไขประวัติ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="skillconf.html">
-                            <i class="fas fa-tools mr-3"></i>
-                            แก้ไขทักษะ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="balance.html">
-                            <i class="fas fa-wallet mr-3"></i>
-                            ยอดคงเหลือ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="history.html">
-                            <i class="fas fa-history mr-3"></i>
-                            ประวัติการเข้าร่วมกิจกรรม
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="transfer.html">
-                            <i class="fas fa-exchange-alt mr-3"></i>
-                            แลกเปลี่ยนเวลา
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="contact.html">
-                            <i class="fas fa-phone mr-3"></i>
-                            ติดต่อเรา
-                        </a>
-                    </li>
-                </ul>
+        <div class="w-full md:w-1/6 bg-white h-screen p-5 sticky top-0 flex flex-col">
+            <nav class="flex-grow">
+                <ul id="navList" class="space-y-4"></ul>
             </nav>
         </div>
         <!-- Main Content -->
@@ -103,7 +30,8 @@
                                 id="username" placeholder="ชื่อผู้ใช้" type="text" />
                         </div>
                         <div class="w-1/2">
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="email">Email <span class="text-red-500">*เลือกกรอกได้</span></label>
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="email">Email <span
+                                    class="text-red-500">*เลือกกรอกได้</span></label>
                             <input
                                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 id="email" placeholder="อีเมล" type="email" />
@@ -163,31 +91,31 @@
                             href="log-in.html">เข้าสู่ระบบ</a></p>
                 </div>
             </div>
-        <!-- Success Message Modal -->
-        <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-            <div class="bg-white p-6 rounded shadow-lg text-center">
-                <h2 class="text-2xl font-bold text-green-500 mb-4">สำเร็จ!</h2>
-                <p id="success-message" class="text-gray-700"></p>
-                <button onclick="closeMessage('success-modal')"
-                    class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">
-                    ตกลง
-                </button>
+            <!-- Success Message Modal -->
+            <div id="success-modal"
+                class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                <div class="bg-white p-6 rounded shadow-lg text-center">
+                    <h2 class="text-2xl font-bold text-green-500 mb-4">สำเร็จ!</h2>
+                    <p id="success-message" class="text-gray-700"></p>
+                    <button onclick="closeMessage('success-modal')"
+                        class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">
+                        ตกลง
+                    </button>
+                </div>
             </div>
-        </div>
-        
-        <!-- Failure Message Modal -->
-        <div id="failure-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-            <div class="bg-white p-6 rounded shadow-lg text-center">
-                <h2 class="text-2xl font-bold text-red-500 mb-4">ล้มเหลว!</h2>
-                <p id="failure-message" class="text-gray-700"></p>
-                <button onclick="closeMessage('failure-modal')"
-                    class="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700">
-                    ลองใหม่
-                </button>
+
+            <!-- Failure Message Modal -->
+            <div id="failure-modal"
+                class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                <div class="bg-white p-6 rounded shadow-lg text-center">
+                    <h2 class="text-2xl font-bold text-red-500 mb-4">ล้มเหลว!</h2>
+                    <p id="failure-message" class="text-gray-700"></p>
+                    <button onclick="closeMessage('failure-modal')"
+                        class="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700">
+                        ลองใหม่
+                    </button>
+                </div>
             </div>
-        </div>
-
-
         </div>
     </div>
 
@@ -213,6 +141,7 @@
                         item.onclick = () => {
                             document.getElementById('branch').value = branch.branch_name;
                             resultsDropdown.innerHTML = '';
+                            resultsDropdown.classList.add('hidden');
                         };
                         resultsDropdown.appendChild(item);
                     });
@@ -226,29 +155,29 @@
         }
 
         document.getElementById('registerForm').addEventListener('submit', async function (event) {
-                event.preventDefault();
+            event.preventDefault();
 
-                const formData = {
-                    username: document.getElementById('username').value.trim(),
-                    email: document.getElementById('email').value.trim(),
-                    password: document.getElementById('password').value.trim(),
-                    confirmPassword: document.getElementById('confirmPassword').value.trim(),
-                    name: document.getElementById('name').value.trim(),
-                    phone: document.getElementById('phone').value.trim(),
-                    address: document.getElementById('address').value.trim(),
-                    branch: document.getElementById('branch').value.trim(),
-                    role: 'User' // Default role
-                };
+            const formData = {
+                username: document.getElementById('username').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                password: document.getElementById('password').value.trim(),
+                confirmPassword: document.getElementById('confirmPassword').value.trim(),
+                name: document.getElementById('name').value.trim(),
+                phone: document.getElementById('phone').value.trim(),
+                address: document.getElementById('address').value.trim(),
+                branch: document.getElementById('branch').value.trim(),
+                role: 'User' // Default role
+            };
 
-                // Client-side validation
-                const errors = [];
+            // Client-side validation
+            const errors = [];
 
-                // Validate name: must contain at least two words (first name and surname)
-                if (!formData.name || formData.name.split(/\s+/).length < 2) {
-                    errors.push('กรุณากรอกชื่อและนามสกุลให้ครบถ้วน โดยต้องมีเว้นวรรคระหว่างชื่อและนามสกุล');
-                }
+            // Validate name: must contain at least two words (first name and surname)
+            if (!formData.name || formData.name.split(/\s+/).length < 2) {
+                errors.push('กรุณากรอกชื่อและนามสกุลให้ครบถ้วน โดยต้องมีเว้นวรรคระหว่างชื่อและนามสกุล');
+            }
 
-                // Validate address: must contain "ลพบุรี"
+            // Validate address: must contain "ลพบุรี"
             const addressRegex = /ลพบุรี/;
             if (!addressRegex.test(formData.address)) {
                 errors.push('กรุณากรอกที่อยู่โดยต้องมีคำว่า "ลพบุรี" อยู่ในที่อยู่');
@@ -259,67 +188,65 @@
                 errors.push('อีเมลไม่ถูกต้อง กรุณากรอกอีเมลให้ถูกต้องหรือเว้นว่างไว้');
             }
 
-                // Validate phone: must be exactly 10 digits and start with 0
-                if (!/^0[0-9]{9}$/.test(formData.phone)) {
-                    errors.push('หมายเลขโทรศัพท์ไม่ถูกต้อง ต้องมี 10 หลักและขึ้นต้นด้วยเลข 0');
+            // Validate phone: must be exactly 10 digits and start with 0
+            if (!/^0[0-9]{9}$/.test(formData.phone)) {
+                errors.push('หมายเลขโทรศัพท์ไม่ถูกต้อง ต้องมี 10 หลักและขึ้นต้นด้วยเลข 0');
+            }
+
+            // Password validations
+            if (formData.password !== formData.confirmPassword) {
+                errors.push('รหัสผ่านไม่ตรงกัน');
+            }
+            if (formData.password.length < 8) {
+                errors.push('รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร');
+            }
+
+            // Display errors if any
+            if (errors.length > 0) {
+                showFailureMessage(errors.join('\n'));
+                return;
+            }
+
+            // Submit data if validation passes
+            try {
+                const response = await fetch('http://localhost:3000/api/user/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(formData)
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || 'การลงทะเบียนล้มเหลว กรุณาลองใหม่');
                 }
 
-                // Password validations
-                if (formData.password !== formData.confirmPassword) {
-                    errors.push('รหัสผ่านไม่ตรงกัน');
-                }
-                if (formData.password.length < 8) {
-                    errors.push('รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร');
-                }
-
-                // Display errors if any
-                if (errors.length > 0) {
-                    showFailureMessage(errors.join('\n'));
-                    return;
-                }
-
-                // Submit data if validation passes
-                try {
-                    const response = await fetch('http://localhost:3000/api/user/auth/register', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(formData)
-                    });
-
-                    const data = await response.json();
-
-                    if (!response.ok) {
-                        throw new Error(data.error || 'การลงทะเบียนล้มเหลว กรุณาลองใหม่');
-                    }
-
-                    showSuccessMessage('ลงทะเบียนสำเร็จ! กรุณาเข้าสู่ระบบ');
-                    setTimeout(() => window.location.href = 'log-in.html', 2000); // Redirect after success message
-                } catch (error) {
-                    console.error('Registration Error:', error);
-                    showFailureMessage(error.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
-                }
-            });
+                showSuccessMessage('ลงทะเบียนสำเร็จ! กรุณาเข้าสู่ระบบ');
+                setTimeout(() => window.location.href = 'log-in.html', 2000); // Redirect after success message
+            } catch (error) {
+                console.error('Registration Error:', error);
+                showFailureMessage(error.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+            }
+        });
 
 
         function showSuccessMessage(message) {
-                document.getElementById('success-message').textContent = message;
-                document.getElementById('success-modal').classList.remove('hidden');
-            }
+            document.getElementById('success-message').textContent = message;
+            document.getElementById('success-modal').classList.remove('hidden');
+        }
 
-            function showFailureMessage(message) {
-                document.getElementById('failure-message').textContent = message;
-                document.getElementById('failure-modal').classList.remove('hidden');
-            }
+        function showFailureMessage(message) {
+            document.getElementById('failure-message').textContent = message;
+            document.getElementById('failure-modal').classList.remove('hidden');
+        }
 
-            function closeMessage(modalId) {
-                document.getElementById(modalId).classList.add('hidden');
-            }
-
-
+        function closeMessage(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
     </script>
-    
+    <script src="navbar.js"></script>
 </body>
 
 </html>

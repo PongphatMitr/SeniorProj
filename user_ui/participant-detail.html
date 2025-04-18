@@ -1,10 +1,12 @@
 <html>
+
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>รายชื่อผู้เข้าร่วม - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css"></link>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    </link>
     <script>
         let participants = [];
 
@@ -47,11 +49,11 @@
             data.forEach((participant) => {
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-gray-100';
-        
+
                 const checkboxHtml = participant.attended
                     ? `<input type="checkbox" class="participant-checkbox" data-user-id="${participant.user_id}" checked disabled>`
                     : `<input type="checkbox" class="participant-checkbox" data-user-id="${participant.user_id}">`;
-        
+
                 row.innerHTML = `
                     <td class="py-4 px-6 border-b border-gray-200">${participant.name}</td>
                     <td class="py-4 px-6 border-b border-gray-200">${participant.phone}</td>
@@ -68,14 +70,14 @@
             const urlParams = new URLSearchParams(window.location.search);
             const activityId = urlParams.get('id');
             const checkedCheckboxes = document.querySelectorAll('.participant-checkbox:checked');
-        
+
             if (checkedCheckboxes.length === 0) {
                 alert('กรุณาเลือกอย่างน้อย 1 ผู้เข้าร่วมที่มาร่วมกิจกรรม');
                 return;
             }
-        
+
             const attendedUserIds = Array.from(checkedCheckboxes).map(cb => parseInt(cb.dataset.userId));
-        
+
             try {
                 const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}/confirm-completion`, {
                     method: 'POST',
@@ -85,12 +87,12 @@
                     },
                     body: JSON.stringify({ attendedUserIds })  // 🟢 Pass attendance list
                 });
-        
+
                 if (!response.ok) {
                     const errorData = await response.json();
                     throw new Error(errorData.error || 'Unknown error');
                 }
-        
+
                 alert('ยืนยันกิจกรรมสำเร็จ รอการอนุมัติจาก TimeBank Manager');
                 document.getElementById('confirm-completion-btn').classList.add('hidden');
             } catch (error) {
@@ -108,33 +110,33 @@
                 checkbox.disabled = true;
             });
         }
-        
+
         async function checkConfirmedAttendanceStatus() {
             const urlParams = new URLSearchParams(window.location.search);
             const activityId = urlParams.get('id');
-        
+
             try {
                 const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-        
+
                 if (!response.ok) throw new Error("Failed to fetch activity data");
-        
+
                 const activity = await response.json();
                 const confirmButton = document.getElementById('confirm-completion-btn');
-        
+
                 const status = activity.status;
                 const now = new Date();
                 const endDateTime = new Date(`${activity.end_date}T${activity.end_time}:00`);
-        
+
                 // Always hide the button for these final states
                 if (status === 'รอการอนุมัติ' || status === 'เสร็จสิ้น' || status === 'เกินเวลา') {
                     confirmButton.classList.add('hidden');
                     return;
                 }
-        
+
                 // Show button only if activity is past end datetime and not yet 'เกินเวลา'
                 if (now >= endDateTime) {
                     confirmButton.classList.remove('hidden');
@@ -145,28 +147,28 @@
                 console.error('Error checking attendance status:', error);
             }
         }
-        
-        
+
+
         document.addEventListener('DOMContentLoaded', () => {
             fetchParticipants();
             checkLoginStatus();
             checkIfRequester();
             checkConfirmedAttendanceStatus(); // ✅ make sure this is here
         });
-        
-        
-        
+
+
+
 
         async function checkIfRequester() {
             const token = localStorage.getItem('token');
             const urlParams = new URLSearchParams(window.location.search);
             const activityId = urlParams.get('id');
-        
+
             if (!token || !activityId) {
                 document.getElementById('confirm-completion-btn').classList.add('hidden');
                 return;
             }
-        
+
             try {
                 // Get user profile
                 const userResponse = await fetch('http://localhost:3000/api/user/auth/profile', {
@@ -174,23 +176,23 @@
                         'Authorization': `Bearer ${token}`
                     }
                 });
-        
+
                 if (!userResponse.ok) throw new Error("Failed to fetch user");
-        
+
                 const userData = await userResponse.json();
                 const userId = userData.user_id;
-        
+
                 // Get activity info
                 const activityResponse = await fetch(`http://localhost:3000/api/user/activities/${activityId}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
                 });
-        
+
                 if (!activityResponse.ok) throw new Error("Failed to fetch activity");
-        
+
                 const activityData = await activityResponse.json();
-        
+
                 if (activityData.requester_id !== userId) {
                     document.getElementById('confirm-completion-btn').classList.add('hidden');
                 }
@@ -199,8 +201,8 @@
                 document.getElementById('confirm-completion-btn').classList.add('hidden');
             }
         }
-        
-        
+
+
 
         async function checkLoginStatus() {
             const token = localStorage.getItem('token');
@@ -229,170 +231,16 @@
             }
         }
 
-        async function updateSidebar(isLoggedIn, userId = null) {
-            const navList = document.getElementById('navList');
-
-            if (isLoggedIn) {
-                navList.innerHTML = `
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="profile.html?memberId=${userId}">
-                            <i class="fas fa-user mr-3"></i>
-                            โปรไฟล์
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="service.html">
-                            <i class="fas fa-clipboard-list mr-3"></i>
-                            กิจกรรมชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="profile.html?memberId=${userId}">
-                            <i class="fas fa-user-edit mr-3"></i>
-                            แก้ไขประวัติ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="skillconf.html">
-                            <i class="fas fa-tools mr-3"></i>
-                            แก้ไขทักษะ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="balance.html">
-                            <i class="fas fa-wallet mr-3"></i>
-                            ยอดคงเหลือ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="history.html">
-                            <i class="fas fa-history mr-3"></i>
-                            ประวัติการเข้าร่วมกิจกรรม
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="transfer.html">
-                            <i class="fas fa-exchange-alt mr-3"></i>
-                            แลกเปลี่ยนเวลา
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="contact.html">
-                            <i class="fas fa-phone mr-3"></i>
-                            ติดต่อเรา
-                        </a>
-                    </li>
-                `;
-            } else {
-                navList.innerHTML = `
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="log-in.html">
-                            <i class="fas fa-sign-in-alt mr-3"></i>
-                            เข้าสู่ระบบ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="service.html">
-                            <i class="fas fa-clipboard-list mr-3"></i>
-                            กิจกรรมชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="profile.html">
-                            <i class="fas fa-user-edit mr-3"></i>
-                            แก้ไขประวัติ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="skillconf.html">
-                            <i class="fas fa-tools mr-3"></i>
-                            แก้ไขทักษะ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="balance.html">
-                            <i class="fas fa-wallet mr-3"></i>
-                            ยอดคงเหลือ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="history.html">
-                            <i class="fas fa-history mr-3"></i>
-                            ประวัติการเข้าร่วมกิจกรรม
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="transfer.html">
-                            <i class="fas fa-exchange-alt mr-3"></i>
-                            แลกเปลี่ยนเวลา
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="contact.html">
-                            <i class="fas fa-phone mr-3"></i>
-                            ติดต่อเรา
-                        </a>
-                    </li>
-                `;
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchParticipants();
-            checkLoginStatus();
-            checkIfRequester(); // 🟢 Add this line
-        });
-        
     </script>
+    <script src="navbar.js"></script>
 </head>
 
 <body class="bg-gray-100">
     <div class="flex flex-col md:flex-row min-h-screen">
         <!-- Sidebar -->
-        <div class="w-full md:w-1/5 bg-white p-5 shadow-lg">
-            <div class="flex items-center mb-10">
-                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
-                    class="w-10 h-10 rounded-full" height="50"
-                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
-                    width="50" />
-                <span class="ml-3 text-xl font-bold text-blue-600">
-                    TIMEBANK
-                </span>
-            </div>
-            <nav>
-                <ul id="navList">
-                    <!-- Navigation items will be dynamically inserted here -->
-                </ul>
+        <div class="w-full md:w-1/6 bg-white h-screen p-5 sticky top-0 flex flex-col">
+            <nav class="flex-grow">
+                <ul id="navList" class="space-y-4"></ul>
             </nav>
         </div>
         <!-- Main Content -->
@@ -403,13 +251,22 @@
                 </h1>
                 <div class="overflow-x-auto mt-4">
                     <div class="table-responsive-sm">
-                        <table aria-busy="false" aria-colcount="4" class="table b-table b-table-stacked-md w-full" role="table">
+                        <table aria-busy="false" aria-colcount="4" class="table b-table b-table-stacked-md w-full"
+                            role="table">
                             <thead class="bg-gray-100" role="rowgroup">
                                 <tr role="row">
-                                    <th aria-colindex="1" class="py-4 px-6 text-left text-sm font-semibold text-gray-600" role="columnheader" scope="col">ชื่อ</th>
-                                    <th aria-colindex="2" class="py-4 px-6 text-left text-sm font-semibold text-gray-600" role="columnheader" scope="col">เบอร์โทร</th>
-                                    <th aria-colindex="3" class="py-4 px-6 text-left text-sm font-semibold text-gray-600" role="columnheader" scope="col">ทักษะ</th>
-                                    <th aria-colindex="4" class="py-4 px-6 text-left text-sm font-semibold text-gray-600" role="columnheader" scope="col">เข้าร่วม</th>
+                                    <th aria-colindex="1"
+                                        class="py-4 px-6 text-left text-sm font-semibold text-gray-600"
+                                        role="columnheader" scope="col">ชื่อ</th>
+                                    <th aria-colindex="2"
+                                        class="py-4 px-6 text-left text-sm font-semibold text-gray-600"
+                                        role="columnheader" scope="col">เบอร์โทร</th>
+                                    <th aria-colindex="3"
+                                        class="py-4 px-6 text-left text-sm font-semibold text-gray-600"
+                                        role="columnheader" scope="col">ทักษะ</th>
+                                    <th aria-colindex="4"
+                                        class="py-4 px-6 text-left text-sm font-semibold text-gray-600"
+                                        role="columnheader" scope="col">เข้าร่วม</th>
                                 </tr>
                             </thead>
                             <tbody id="participants-tbody" role="rowgroup">
@@ -425,10 +282,13 @@
                         onclick="confirmCompletion()" type="button">
                         ยืนยันการเสร็จสิ้น
                     </button>
-                    <button class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" onclick="window.history.back()" type="button">ย้อนกลับ</button>
+                    <button
+                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        onclick="window.history.back()" type="button">ย้อนกลับ</button>
                 </div>
             </div>
         </div>
     </div>
 </body>
+
 </html>

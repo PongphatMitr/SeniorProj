@@ -1,71 +1,24 @@
 <html lang="en">
+
 <head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>ยอดคงเหลือ - Time Bank</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+    <script src="navbar.js"></script>
 </head>
+
 <body class="bg-gray-100 font-roboto">
     <div class="flex flex-col md:flex-row">
         <!-- Sidebar -->
-        <div class="w-full md:w-1/6 bg-white h-screen p-5">
-            <div class="flex items-center mb-10">
-                <img alt="Logo of Time Bank System, a clock with a handshake in the center" class="w-10 h-10 rounded-full" height="50" src="https://storage.googleapis.com/a1aa/image/FHQXiwMpl_ZukfFnt74obGJ-koW2I_W2mN7ChLRSMlo.jpg" width="50"/>
-                <span class="ml-3 text-xl font-bold text-blue-600">TIMEBANK</span>
-            </div>
-            <nav>
-                <ul id="navList">
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="log-out.html">
-                            <i class="fas fa-user mr-3"></i>โปรไฟล์
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>หน้าหลัก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="service.html">
-                            <i class="fas fa-clipboard-list mr-3"></i>กิจกรรมชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="profile.html">
-                            <i class="fas fa-user-edit mr-3"></i>แก้ไขประวัติ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="skillconf.html">
-                            <i class="fas fa-tools mr-3"></i>แก้ไขทักษะ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="balance.html">
-                            <i class="fas fa-wallet mr-3"></i>ยอดคงเหลือ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="history.html">
-                            <i class="fas fa-history mr-3"></i>ประวัติการเข้าร่วมกิจกรรม
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="transfer.html">
-                            <i class="fas fa-exchange-alt mr-3"></i>แลกเปลี่ยนเวลา
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="contact.html">
-                            <i class="fas fa-phone mr-3"></i>ติดต่อเรา
-                        </a>
-                    </li>
-                </ul>
+        <div class="w-full md:w-1/6 bg-white h-screen p-5 sticky top-0 flex flex-col">
+            <nav class="flex-grow">
+                <ul id="navList" class="space-y-4"></ul>
             </nav>
         </div>
         <!-- Main Content -->
@@ -81,7 +34,8 @@
                     </div>
                     <div class="flex items-center">
                         <i class="fas fa-id-badge text-3xl text-blue-600 mr-4"></i>
-                        <span class="text-2xl font-bold text-blue-600" id="userId" style="font-family: 'Roboto Mono', monospace;">เลขที่บัญชี: 000</span>
+                        <span class="text-2xl font-bold text-blue-600" id="userId"
+                            style="font-family: 'Roboto Mono', monospace;">เลขที่บัญชี: 000</span>
                     </div>
                 </div>
             </div>
@@ -138,7 +92,7 @@
                 userIdElement.innerText = `เลขที่บัญชี: ${data.user_id}`;
 
                 balanceElement.style.color = data.time_credits > 0 ? "#32CD32" :
-                                            data.time_credits < 0 ? "red" : "gray";
+                    data.time_credits < 0 ? "red" : "gray";
 
             } catch (error) {
                 console.error('Error fetching member profile:', error);
@@ -170,33 +124,33 @@
 
         async function fetchTransactionLog() {
             try {
-                const response = await fetch('http://localhost:3000/api/user/transactions/log', { 
+                const response = await fetch('http://localhost:3000/api/user/transactions/log', {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
-        
+
                 if (!response.ok) throw new Error(`Error fetching transaction log: ${response.status}`);
-        
+
                 const data = await response.json();
                 const transactionLogElement = document.getElementById('transactionLog');
-        
+
                 if (!data.transactions || data.transactions.length === 0) {
                     transactionLogElement.innerHTML = '<tr><td colspan="5" class="text-center py-4">ไม่มีประวัติธุรกรรม</td></tr>';
                     return;
                 }
-        
+
                 transactionLogElement.innerHTML = '';
-        
+
                 data.transactions.forEach(transaction => {
                     const isSender = transaction.transaction_type === 'โอนออก';
                     const amount = isSender ? -transaction.time_credit : transaction.time_credit;
                     const amountText = amount > 0 ? `+ ${amount} ชั่วโมง` : `- ${Math.abs(amount)} ชั่วโมง`;
                     const amountColor = amount > 0 ? 'text-green-500' : 'text-red-500';
                     const otherPartyName = members[transaction.other_party_id] || 'ไม่ทราบชื่อ';
-        
+
                     const transactionDate = new Date(transaction.date);
                     const date = transactionDate.toLocaleDateString();
                     const time = transactionDate.toLocaleTimeString();
-        
+
                     const row = document.createElement('tr');
                     row.innerHTML = `
                         <td class="py-2 px-4 border-b">${otherPartyName}</td>
@@ -207,11 +161,12 @@
                     `;
                     transactionLogElement.appendChild(row);
                 });
-        
+
             } catch (error) {
                 console.error('Error fetching transaction log:', error);
             }
         }
     </script>
 </body>
+
 </html>

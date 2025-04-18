@@ -61,13 +61,13 @@
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-        
+
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
-        
+
                 const data = await response.json();
-        
+
                 if (data.skills && Array.isArray(data.skills)) {
                     // Convert API response into expected structure
                     memberSkills = data.skills.map(skill => ({
@@ -75,7 +75,7 @@
                         name: skill.name || 'N/A',
                         category: skill.category || 'N/A'
                     }));
-        
+
                     renderSkills();
                     populateCategoryDropdowns();
                 } else {
@@ -87,18 +87,18 @@
                 alert('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะของสมาชิก');
             }
         }
-        
+
 
         function renderSkills() {
             const skillContainer1 = document.getElementById('skill-display-1');
             const skillContainer2 = document.getElementById('skill-display-2');
             const skillContainer3 = document.getElementById('skill-display-3');
-        
+
             if (!skillContainer1 || !skillContainer2 || !skillContainer3) {
                 console.error("Error: 'skills-display' elements not found.");
                 return;
             }
-        
+
             skillContainer1.innerHTML = `
             <div>
                 <h3 class="text-xl font-semibold text-gray-700">หมวดหมู่: 
@@ -112,7 +112,7 @@
                 </div>
             </div>
         `;
-        
+
             skillContainer2.innerHTML = `
                 <div>
                     <h3 class="text-xl font-semibold text-gray-700">หมวดหมู่: 
@@ -126,7 +126,7 @@
                     </div>
                 </div>
             `;
-            
+
             skillContainer3.innerHTML = `
                 <div>
                     <h3 class="text-xl font-semibold text-gray-700">หมวดหมู่: 
@@ -140,24 +140,24 @@
                     </div>
                 </div>
             `;
-        
+
         }
-        
-        
+
+
 
         function populateSkillDropdown(index) {
             const dropdown = document.getElementById(`skill-dropdown-${index}`);
             dropdown.innerHTML = ''; // Clear existing options
-        
+
             // Add the "ไม่ลงทะเบียนทักษะ" option
             const defaultOption = document.createElement('option');
             defaultOption.value = "";
             defaultOption.textContent = "ไม่ลงทะเบียนทักษะ";
             dropdown.appendChild(defaultOption);
-        
+
             // Get all selected skill IDs (excluding current slot)
             const selectedSkillIds = memberSkills.map((skill, i) => i + 1 !== index ? skill.skill_id : null).filter(id => id);
-        
+
             skills.forEach(skill => {
                 if (!selectedSkillIds.includes(skill.skill_id) || memberSkills[index - 1]?.skill_id === skill.skill_id) {
                     const option = document.createElement('option');
@@ -166,52 +166,52 @@
                     dropdown.appendChild(option);
                 }
             });
-        
+
             // Set current selection
             dropdown.value = memberSkills[index - 1]?.skill_id || '';
         }
-        
-        
+
+
 
         function filterSkillsByCategory(event) {
             const selectedCategory = event.target.value;
             const skillDropdownId = event.target.id.replace('category-dropdown', 'skill-dropdown');
             const skillDropdown = document.getElementById(skillDropdownId);
-        
+
             // Clear previous options
             skillDropdown.innerHTML = '<option value="">กรุณาเลือกทักษะ</option>';
-        
+
             if (!selectedCategory || selectedCategory === "all") {
                 return; // Don't populate skills if no category is selected
             }
-        
+
             // Get currently registered skill IDs
             const registeredSkillIds = memberSkills.map(skill => skill.skill_id).filter(id => id !== null && id !== undefined);
-        
+
             // Filter skills based on the selected category and remove already registered skills
             const filteredSkills = skills.filter(skill => skill.category === selectedCategory && !registeredSkillIds.includes(skill.skill_id));
-        
+
             filteredSkills.forEach(skill => {
                 const option = document.createElement('option');
                 option.value = skill.skill_id;
                 option.textContent = skill.name;
                 skillDropdown.appendChild(option);
             });
-        
+
             // Ensure users must select a category before choosing a skill
             skillDropdown.disabled = filteredSkills.length === 0;
         }
-        
-        
+
+
         function populateCategoryDropdowns() {
             if (!skills || skills.length === 0) {
                 console.error("No skills data available to populate categories.");
                 return;
             }
-        
+
             const categories = [...new Set(skills.map(skill => skill.category))];
             const categoryDropdowns = document.querySelectorAll('[id^="category-dropdown"]');
-        
+
             categoryDropdowns.forEach(dropdown => {
                 dropdown.innerHTML = '<option value="">กรุณาเลือกหมวดหมู่</option>'; // Default option
                 categories.forEach(category => {
@@ -221,47 +221,47 @@
                     dropdown.appendChild(option);
                 });
             });
-        
+
             // Ensure skill dropdowns are empty and disabled initially
             document.querySelectorAll('[id^="skill-dropdown"]').forEach(dropdown => {
                 dropdown.innerHTML = '<option value="">กรุณาเลือกหมวดหมู่ก่อน</option>';
                 dropdown.disabled = true;
             });
         }
-        
+
         async function searchSkills(event, index) {
             const searchTerm = event.target.value.toLowerCase();
             const suggestionsContainer = document.getElementById(`suggestions-${index}`);
-            
+
             // Clear previous suggestions
             suggestionsContainer.innerHTML = '';
             suggestionsContainer.classList.add('hidden');
-        
+
             if (!searchTerm.trim()) {
                 return; // Do nothing if search term is empty
             }
-        
+
             try {
                 const response = await fetch(`http://localhost:3000/api/user/skills/search?term=${encodeURIComponent(searchTerm)}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-        
+
                 const data = await response.json();
-        
+
                 if (!Array.isArray(data)) {
                     console.error('Expected an array but got:', data);
                     showErrorMessage('เกิดข้อผิดพลาดในการค้นหาทักษะ');
                     return;
                 }
-        
+
                 // Get already registered skills to prevent duplicates
                 const registeredSkillIds = memberSkills.map(skill => skill.skill_id).filter(id => id !== null);
-        
+
                 // Filter out already selected skills
                 const filteredSkills = data.filter(skill => !registeredSkillIds.includes(skill.skill_id));
-        
+
                 // Populate suggestions container with search results
                 filteredSkills.forEach(skill => {
                     const suggestionItem = document.createElement('div');
@@ -270,190 +270,33 @@
                     suggestionItem.onclick = () => selectSkill(skill, index);
                     suggestionsContainer.appendChild(suggestionItem);
                 });
-        
+
                 // Show suggestions container if skills are found
                 if (filteredSkills.length > 0) {
                     suggestionsContainer.classList.remove('hidden');
                 }
-        
+
             } catch (error) {
                 console.error('Error searching skills:', error);
                 showErrorMessage('เกิดข้อผิดพลาดในการค้นหาทักษะ');
             }
         }
-        
+
         function selectSkill(skill, index) {
             const skillDropdown = document.getElementById(`skill-dropdown-${index}`);
             const categoryDropdown = document.getElementById(`category-dropdown-${index}`);
             const suggestionsContainer = document.getElementById(`suggestions-${index}`);
-        
+
             // Set the selected skill and category
             skillDropdown.innerHTML = `<option value="${skill.skill_id}">${skill.name}</option>`;
-            categoryDropdown.innerHTML = `<option value="${skill.category_id}">${skill.category}</option>`;
-        
+            categoryDropdown.innerHTML = `<option value="${skill.category}">${skill.category}</option>`;
+
             // Hide suggestions container
             suggestionsContainer.classList.add('hidden');
         }
-        
 
-        async function updateSidebar(isLoggedIn) {
-            const navList = document.getElementById('navList');
 
-            if (isLoggedIn) {
-                try {
-                    // Fetch user details to get the memberId
-                    const response = await fetch('http://localhost:3000/api/user/auth/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        }
-                    });
-
-                    if (!response.ok) {
-                        throw new Error('Failed to fetch user details');
-                    }
-
-                    const member = await response.json(); // Adjust based on your backend response
-                    const memberId = member.userId || member.user_id; // Use the correct field for memberId from the response
-
-                    navList.innerHTML = `
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                                href="log-out.html">
-                                <i class="fas fa-user mr-3"></i>
-                                โปรไฟล์
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="homepage.html">
-                                <i class="fas fa-home mr-3"></i>
-                                หน้าหลัก
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="service.html">
-                                <i class="fas fa-clipboard-list mr-3"></i>
-                                กิจกรรมชุมชน
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="profile.html?memberId=${memberId}">
-                                <i class="fas fa-user-edit mr-3"></i>
-                                แก้ไขประวัติ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="skillconf.html">
-                                <i class="fas fa-tools mr-3"></i>
-                                แก้ไขทักษะ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="balance.html">
-                                <i class="fas fa-wallet mr-3"></i>
-                                ยอดคงเหลือ
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="history.html">
-                                <i class="fas fa-history mr-3"></i>
-                                ประวัติการเข้าร่วมกิจกรรม
-                            </a>
-                        </li>
-                        <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="transfer.html">
-                            <i class="fas fa-exchange-alt mr-3"></i>
-                            แลกเปลี่ยนเวลา
-                        </a>
-                        </li>
-                        <li class="mb-5">
-                            <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                                href="contact.html">
-                                <i class="fas fa-phone mr-3"></i>
-                                ติดต่อเรา
-                            </a>
-                        </li>
-                    `;
-                } catch (error) {
-                    console.error('Error fetching user details:', error);
-                    alert('เกิดข้อผิดพลาดขณะโหลดข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
-                }
-            } else {
-                navList.innerHTML = `
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="log-in.html">
-                            <i class="fas fa-sign-in-alt mr-3"></i>
-                            เข้าสู่ระบบ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="service.html">
-                            <i class="fas fa-clipboard-list mr-3"></i>
-                            กิจกรรมชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="profile.html">
-                            <i class="fas fa-user-edit mr-3"></i>
-                            แก้ไขประวัติ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="skillconf.html">
-                            <i class="fas fa-tools mr-3"></i>
-                            แก้ไขทักษะ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="balance.html">
-                            <i class="fas fa-wallet mr-3"></i>
-                            ยอดคงเหลือ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="history.html">
-                            <i class="fas fa-history mr-3"></i>
-                            ประวัติการเข้าร่วมกิจกรรม
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="transfer.html">
-                            <i class="fas fa-exchange-alt mr-3"></i>
-                            แลกเปลี่ยนเวลา
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" 
-                            href="contact.html">
-                            <i class="fas fa-phone mr-3"></i>
-                            ติดต่อเรา
-                        </a>
-                    </li>
-                `;
-            }
-        }
+        // Removed inline updateSidebar function
 
         async function checkLoginStatus() {
             const token = localStorage.getItem('token');
@@ -468,19 +311,19 @@
                     });
 
                     if (response.ok) {
-                        updateSidebar(true);
+                        // Sidebar update is handled externally via sidebar.js
                         fetchMemberId();
                     } else {
                         localStorage.removeItem('token');
-                        updateSidebar(false);
+                        // Sidebar update handled externally
                     }
                 } catch (error) {
                     console.error('Error:', error);
                     localStorage.removeItem('token');
-                    updateSidebar(false);
+                    // Sidebar update handled externally
                 }
             } else {
-                updateSidebar(false);
+                // Sidebar update handled externally
             }
         }
 
@@ -493,82 +336,9 @@
 <body class="bg-gray-100">
     <div class="flex flex-col md:flex-row">
         <!-- Sidebar -->
-        <div class="w-full md:w-1/6 bg-white h-screen p-5">
-            <div class="flex items-center mb-10">
-                <img alt="Logo of Time Bank System, a clock with a handshake in the center"
-                    class="w-10 h-10 rounded-full" height="50"
-                    src="https://storage.googleapis.com/a1aa/image/SZMN19J8Me29cSo27wLCtM47woeM4nodx6ecM18dg0snSk9nA.jpg"
-                    width="50" />
-                <span class="ml-3 text-xl font-bold text-blue-600">
-                    TIMEBANK
-                </span>
-            </div>
-            <nav>
-                <ul id="navList">
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="log-out.html">
-                            <i class="fas fa-user mr-3"></i>
-                            โปรไฟล์
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="homepage.html">
-                            <i class="fas fa-home mr-3"></i>
-                            หน้าหลัก
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="service.html">
-                            <i class="fas fa-clipboard-list mr-3"></i>
-                            กิจกรรมชุมชน
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="profile.html">
-                            <i class="fas fa-user-edit mr-3"></i>
-                            แก้ไขประวัติ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="skillconf.html">
-                            <i class="fas fa-tools mr-3"></i>
-                            แก้ไขทักษะ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="balance.html">
-                            <i class="fas fa-wallet mr-3"></i>
-                            ยอดคงเหลือ
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="history.html">
-                            <i class="fas fa-history mr-3"></i>
-                            ประวัติการเข้าร่วมกิจกรรม
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="transfer.html">
-                            <i class="fas fa-exchange-alt mr-3"></i>
-                            แลกเปลี่ยนเวลา
-                        </a>
-                    </li>
-                    <li class="mb-5">
-                        <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300"
-                            href="contact.html">
-                            <i class="fas fa-phone mr-3"></i>
-                            ติดต่อเรา
-                        </a>
-                    </li>
-                </ul>
+        <div class="w-full md:w-1/6 bg-white h-screen p-5 sticky top-0 flex flex-col">
+            <nav class="flex-grow">
+                <ul id="navList" class="space-y-4"></ul>
             </nav>
         </div>
         <!-- Main Content -->
@@ -584,313 +354,206 @@
                     </a>
                 </nav>
             </div>
-        <div class="w-5/6 bg-blue-700 text-white">
-            <h1 class="text-4xl font-bold mb-5">ความสามารถ</h1>
-            <div class="flex flex-col gap-8">
-                <!-- ทักษะที่ 1 -->
-                <div class="bg-white text-black p-8 rounded-lg shadow-lg">
-                    <div id="skill-container-1" class="flex justify-between items-center mb-4">
-                        <h3 class="text-2xl font-semibold text-gray-800" style="font-family: 'Sarabun', sans-serif;">ทักษะที่ 1</h3>
-                    </div>
-                    <div id="skill-display-1"></div>
-                    <div id="edit-container-1" class="hidden">
-                        <div class="mb-4 flex items-center relative">
-                            <input
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="search-bar-1" oninput="searchSkills(event, 1)" placeholder="ค้นหาทักษะหรือหมวดหมู่" type="text" />
-                            <div id="suggestions-1" class="absolute top-full left-0 w-full bg-white border border-gray-300 rounded shadow-lg z-10 hidden max-h-48 overflow-y-auto"></div>
+            <div class="w-5/6 bg-blue-700 text-white">
+                <h1 class="text-4xl font-bold mb-5">ความสามารถ</h1>
+                <div class="flex flex-col gap-8">
+                    <!-- ทักษะที่ 1 -->
+                    <div class="bg-white text-black p-8 rounded-lg shadow-lg">
+                        <div id="skill-container-1" class="flex justify-between items-center mb-4">
+                            <h3 class="text-2xl font-semibold text-gray-800"
+                                style="font-family: 'Sarabun', sans-serif;">ทักษะที่ 1</h3>
                         </div>
-                        <div class="mb-4">
-                            <label for="category-dropdown-1" class="block text-gray-700 text-sm font-bold mb-2">เลือกหมวดหมู่:</label>
-                            <select id="category-dropdown-1" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" onchange="filterSkillsByCategory(event)">
-                                <option value="all">เลือกหมวดหมู่</option>
-                            </select>
-                        </div>
-                        <div class="mb-4">
-                            <label for="skill-dropdown-1" class="block text-gray-700 text-sm font-bold mb-2">เลือกทักษะ:</label>
-                            <select id="skill-dropdown-1" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                            </select>
-                        </div>
-                        <div class="flex items-center mt-2">
-                            <!-- Centered Save & Cancel Buttons -->
-                            <div class="flex gap-5 justify-center flex-grow">
-                                <button class="bg-green-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-green-600 hover:scale-105" onclick="saveSkill(1)">บันทึก</button>
-                                <button class="bg-gray-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-gray-600 hover:scale-105" onclick="cancelEdit(1)">ยกเลิก</button>
+                        <div id="skill-display-1"></div>
+                        <div id="edit-container-1" class="hidden">
+                            <div class="mb-4 flex items-center relative">
+                                <input
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    id="search-bar-1" oninput="searchSkills(event, 1)"
+                                    placeholder="ค้นหาทักษะหรือหมวดหมู่" type="text" />
+                                <div id="suggestions-1"
+                                    class="absolute top-full left-0 w-full bg-white border border-gray-300 rounded shadow-lg z-10 hidden max-h-48 overflow-y-auto">
+                                </div>
                             </div>
-                        
-                            <!-- Slightly Right-Aligned Clear Button -->
-                            <button class="bg-red-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-red-600 hover:scale-105" onclick="clearSkill(1)">ล้างข้อมูล</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ทักษะที่ 2 -->
-                <div class="bg-white text-black p-8 rounded-lg shadow-lg">
-                    <div id="skill-container-2" class="flex justify-between items-center mb-4">
-                        <h3 class="text-2xl font-semibold text-gray-800" style="font-family: 'Sarabun', sans-serif;">ทักษะที่ 2</h3>
-                    </div>
-                    <div id="skill-display-2"></div>
-                    <div id="edit-container-2" class="hidden">
-                        <div class="mb-4 flex items-center relative">
-                            <input
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="search-bar-2" oninput="searchSkills(event, 2)" placeholder="ค้นหาทักษะหรือหมวดหมู่" type="text" />
-                            <div id="suggestions-2" class="absolute top-full left-0 w-full bg-white border border-gray-300 rounded shadow-lg z-10 hidden max-h-48 overflow-y-auto"></div>
-                        </div>                        
-                        <div class="mb-4">
-                            <label for="category-dropdown-2" class="block text-gray-700 text-sm font-bold mb-2">เลือกหมวดหมู่:</label>
-                            <select id="category-dropdown-2" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" onchange="filterSkillsByCategory(event)">
-                                <option value="all">เลือกหมวดหมู่</option>
-                            </select>
-                        </div>
-                        <div class="mb-4">
-                            <label for="skill-dropdown-2" class="block text-gray-700 text-sm font-bold mb-2">เลือกทักษะ:</label>
-                            <select id="skill-dropdown-2" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                            </select>
-                        </div>
-                        <div class="flex items-center mt-2">
-                            <!-- Centered Save & Cancel Buttons -->
-                            <div class="flex gap-5 justify-center flex-grow">
-                                <button class="bg-green-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-green-600 hover:scale-105" onclick="saveSkill(2)">บันทึก</button>
-                                <button class="bg-gray-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-gray-600 hover:scale-105" onclick="cancelEdit(2)">ยกเลิก</button>
+                            <div class="mb-4">
+                                <label for="category-dropdown-1"
+                                    class="block text-gray-700 text-sm font-bold mb-2">เลือกหมวดหมู่:</label>
+                                <select id="category-dropdown-1"
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    onchange="filterSkillsByCategory(event)">
+                                    <option value="all">เลือกหมวดหมู่</option>
+                                </select>
                             </div>
-                        
-                            <!-- Slightly Right-Aligned Clear Button -->
-                            <button class="bg-red-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-red-600 hover:scale-105" onclick="clearSkill(2)">ล้างข้อมูล</button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- ทักษะที่ 3 -->
-                <div class="bg-white text-black p-8 rounded-lg shadow-lg">
-                    <div id="skill-container-3" class="flex justify-between items-center mb-4">
-                        <h3 class="text-2xl font-semibold text-gray-800" style="font-family: 'Sarabun', sans-serif;">ทักษะที่ 3</h3>
-                    </div>
-                    <div id="skill-display-3"></div>
-                    <div id="edit-container-3" class="hidden">
-                        <div class="mb-4 flex items-center relative">
-                            <input
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="search-bar-3" oninput="searchSkills(event, 3)" placeholder="ค้นหาทักษะหรือหมวดหมู่" type="text" />
-                            <div id="suggestions-3" class="absolute top-full left-0 w-full bg-white border border-gray-300 rounded shadow-lg z-10 hidden max-h-48 overflow-y-auto"></div>
-                        </div>                        
-                        <div class="mb-4">
-                            <label for="category-dropdown-3" class="block text-gray-700 text-sm font-bold mb-2">เลือกหมวดหมู่:</label>
-                            <select id="category-dropdown-3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" onchange="filterSkillsByCategory(event)">
-                                <option value="all">เลือกหมวดหมู่</option>
-                            </select>
-                        </div>
-                        <div class="mb-4">
-                            <label for="skill-dropdown-3" class="block text-gray-700 text-sm font-bold mb-2">เลือกทักษะ:</label>
-                            <select id="skill-dropdown-3" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
-                            </select>
-                        </div>
-                        <div class="flex items-center mt-2">
-                            <!-- Centered Save & Cancel Buttons -->
-                            <div class="flex gap-5 justify-center flex-grow">
-                                <button class="bg-green-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-green-600 hover:scale-105" onclick="saveSkill(3)">บันทึก</button>
-                                <button class="bg-gray-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-gray-600 hover:scale-105" onclick="cancelEdit(3)">ยกเลิก</button>
+                            <div class="mb-4">
+                                <label for="skill-dropdown-1"
+                                    class="block text-gray-700 text-sm font-bold mb-2">เลือกทักษะ:</label>
+                                <select id="skill-dropdown-1"
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                </select>
                             </div>
-                        
-                            <!-- Slightly Right-Aligned Clear Button -->
-                            <button class="bg-red-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-red-600 hover:scale-105" onclick="clearSkill(3)">ล้างข้อมูล</button>
+                            <div class="flex items-center mt-2">
+                                <!-- Centered Save & Cancel Buttons -->
+                                <div class="flex gap-5 justify-center flex-grow">
+                                    <button
+                                        class="bg-green-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-green-600 hover:scale-105"
+                                        onclick="saveSkill(1)">บันทึก</button>
+                                    <button
+                                        class="bg-gray-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-gray-600 hover:scale-105"
+                                        onclick="cancelEdit(1)">ยกเลิก</button>
+                                </div>
+
+                                <!-- Slightly Right-Aligned Clear Button -->
+                                <button
+                                    class="bg-red-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-red-600 hover:scale-105"
+                                    onclick="clearSkill(1)">ล้างข้อมูล</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ทักษะที่ 2 -->
+                    <div class="bg-white text-black p-8 rounded-lg shadow-lg">
+                        <div id="skill-container-2" class="flex justify-between items-center mb-4">
+                            <h3 class="text-2xl font-semibold text-gray-800"
+                                style="font-family: 'Sarabun', sans-serif;">ทักษะที่ 2</h3>
+                        </div>
+                        <div id="skill-display-2"></div>
+                        <div id="edit-container-2" class="hidden">
+                            <div class="mb-4 flex items-center relative">
+                                <input
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    id="search-bar-2" oninput="searchSkills(event, 2)"
+                                    placeholder="ค้นหาทักษะหรือหมวดหมู่" type="text" />
+                                <div id="suggestions-2"
+                                    class="absolute top-full left-0 w-full bg-white border border-gray-300 rounded shadow-lg z-10 hidden max-h-48 overflow-y-auto">
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="category-dropdown-2"
+                                    class="block text-gray-700 text-sm font-bold mb-2">เลือกหมวดหมู่:</label>
+                                <select id="category-dropdown-2"
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    onchange="filterSkillsByCategory(event)">
+                                    <option value="all">เลือกหมวดหมู่</option>
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label for="skill-dropdown-2"
+                                    class="block text-gray-700 text-sm font-bold mb-2">เลือกทักษะ:</label>
+                                <select id="skill-dropdown-2"
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                </select>
+                            </div>
+                            <div class="flex items-center mt-2">
+                                <!-- Centered Save & Cancel Buttons -->
+                                <div class="flex gap-5 justify-center flex-grow">
+                                    <button
+                                        class="bg-green-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-green-600 hover:scale-105"
+                                        onclick="saveSkill(2)">บันทึก</button>
+                                    <button
+                                        class="bg-gray-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-gray-600 hover:scale-105"
+                                        onclick="cancelEdit(2)">ยกเลิก</button>
+                                </div>
+
+                                <!-- Slightly Right-Aligned Clear Button -->
+                                <button
+                                    class="bg-red-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-red-600 hover:scale-105"
+                                    onclick="clearSkill(2)">ล้างข้อมูล</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ทักษะที่ 3 -->
+                    <div class="bg-white text-black p-8 rounded-lg shadow-lg">
+                        <div id="skill-container-3" class="flex justify-between items-center mb-4">
+                            <h3 class="text-2xl font-semibold text-gray-800"
+                                style="font-family: 'Sarabun', sans-serif;">ทักษะที่ 3</h3>
+                        </div>
+                        <div id="skill-display-3"></div>
+                        <div id="edit-container-3" class="hidden">
+                            <div class="mb-4 flex items-center relative">
+                                <input
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    id="search-bar-3" oninput="searchSkills(event, 3)"
+                                    placeholder="ค้นหาทักษะหรือหมวดหมู่" type="text" />
+                                <div id="suggestions-3"
+                                    class="absolute top-full left-0 w-full bg-white border border-gray-300 rounded shadow-lg z-10 hidden max-h-48 overflow-y-auto">
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="category-dropdown-3"
+                                    class="block text-gray-700 text-sm font-bold mb-2">เลือกหมวดหมู่:</label>
+                                <select id="category-dropdown-3"
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    onchange="filterSkillsByCategory(event)">
+                                    <option value="all">เลือกหมวดหมู่</option>
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label for="skill-dropdown-3"
+                                    class="block text-gray-700 text-sm font-bold mb-2">เลือกทักษะ:</label>
+                                <select id="skill-dropdown-3"
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                                </select>
+                            </div>
+                            <div class="flex items-center mt-2">
+                                <!-- Centered Save & Cancel Buttons -->
+                                <div class="flex gap-5 justify-center flex-grow">
+                                    <button
+                                        class="bg-green-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-green-600 hover:scale-105"
+                                        onclick="saveSkill(3)">บันทึก</button>
+                                    <button
+                                        class="bg-gray-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-gray-600 hover:scale-105"
+                                        onclick="cancelEdit(3)">ยกเลิก</button>
+                                </div>
+
+                                <!-- Slightly Right-Aligned Clear Button -->
+                                <button
+                                    class="bg-red-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-red-600 hover:scale-105"
+                                    onclick="clearSkill(3)">ล้างข้อมูล</button>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Confirmation Modal -->
-            <div id="confirm-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-                <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-xl text-center">
-                    <h2 class="text-3xl font-bold text-gray-900">ยืนยันการกระทำ</h2>
-                    <p id="confirm-message" class="text-gray-700 text-lg mt-4"></p>
-                    <div class="flex justify-center mt-6 space-x-4">
-                        <button id="confirm-btn" class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition">ตกลง</button>
-                        <button id="cancel-btn" class="bg-gray-400 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-500 transition">ยกเลิก</button>
+
+                <!-- Confirmation Modal -->
+                <div id="confirm-modal"
+                    class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                    <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-xl text-center">
+                        <h2 class="text-3xl font-bold text-gray-900">ยืนยันการกระทำ</h2>
+                        <p id="confirm-message" class="text-gray-700 text-lg mt-4"></p>
+                        <div class="flex justify-center mt-6 space-x-4">
+                            <button id="confirm-btn"
+                                class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition">ตกลง</button>
+                            <button id="cancel-btn"
+                                class="bg-gray-400 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-500 transition">ยกเลิก</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Success Modal -->
+                <div id="success-modal"
+                    class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                    <div class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-2xl text-center">
+                        <h2 class="text-4xl font-bold text-green-600 mt-6">✅ สำเร็จ!</h2>
+                        <p id="success-message" class="text-gray-700 text-xl mt-4"></p>
+                        <button id="confirm-success-btn"
+                            class="mt-8 px-8 py-4 bg-blue-600 text-white text-xl font-semibold rounded-lg hover:bg-blue-700 transition">ตกลง</button>
+                    </div>
+                </div>
+
+                <!-- Error Modal -->
+                <div id="error-modal"
+                    class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                    <div class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-2xl text-center">
+                        <h2 class="text-4xl font-bold text-red-600 mt-6">❌ เกิดข้อผิดพลาด</h2>
+                        <p id="error-message" class="text-gray-700 text-xl mt-4"></p>
+                        <button id="confirm-error-btn"
+                            class="mt-8 px-8 py-4 bg-red-600 text-white text-xl font-semibold rounded-lg hover:bg-red-700 transition">ตกลง</button>
                     </div>
                 </div>
             </div>
-
-            <!-- Success Modal -->
-            <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-                <div class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-2xl text-center">
-                    <h2 class="text-4xl font-bold text-green-600 mt-6">✅ สำเร็จ!</h2>
-                    <p id="success-message" class="text-gray-700 text-xl mt-4"></p>
-                    <button id="confirm-success-btn" class="mt-8 px-8 py-4 bg-blue-600 text-white text-xl font-semibold rounded-lg hover:bg-blue-700 transition">ตกลง</button>
-                </div>
-            </div>
-
-            <!-- Error Modal -->
-            <div id="error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-                <div class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-2xl text-center">
-                    <h2 class="text-4xl font-bold text-red-600 mt-6">❌ เกิดข้อผิดพลาด</h2>
-                    <p id="error-message" class="text-gray-700 text-xl mt-4"></p>
-                    <button id="confirm-error-btn" class="mt-8 px-8 py-4 bg-red-600 text-white text-xl font-semibold rounded-lg hover:bg-red-700 transition">ตกลง</button>
-                </div>
-            </div>
-
-
-            <script>
-
-                let originalSkills = []; // Store original skills before editing
-
-                function toggleEdit(index) {
-                    const displaySection = document.getElementById(`skill-display-${index}`);
-                    const editSection = document.getElementById(`edit-container-${index}`);
-
-                    displaySection.classList.add('hidden'); // Hide display
-                    editSection.classList.remove('hidden'); // Show dropdown
-
-                    // Store original skill data before making changes
-                    originalSkills[index] = { ...memberSkills[index - 1] };
-
-                    populateSkillDropdown(index);
-                }
-
-                function cancelEdit(index) {
-                    document.getElementById(`skill-display-${index}`).classList.remove('hidden'); // Show display
-                    document.getElementById(`edit-container-${index}`).classList.add('hidden'); // Hide dropdown
-
-                    // Restore original skill data on cancel
-                    memberSkills[index - 1] = { ...originalSkills[index] };
-                    renderSkills(); // Re-render with original skill
-                }
-
-                function clearSkill(index) {
-                    // Clear only the selection, without changing stored data
-                    const skillDropdown = document.getElementById(`skill-dropdown-${index}`);
-                    const categoryDropdown = document.getElementById(`category-dropdown-${index}`);
-
-                    if (skillDropdown) skillDropdown.value = ""; // Clear skill dropdown
-                    if (categoryDropdown) categoryDropdown.value = ""; // Clear category dropdown
-                }
-
-
-                function showSuccessMessage(message, redirectUrl = null) {
-                    document.getElementById('success-message').textContent = message;
-                    const modal = document.getElementById('success-modal');
-                    modal.classList.remove('hidden');
-                    setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
-                
-                    // Auto-close the modal after 3 seconds and navigate if needed
-                    setTimeout(() => {
-                        closeModal('success-modal');
-                        if (redirectUrl) {
-                            window.location.href = redirectUrl;
-                        }
-                    }, 3000);
-                }
-                
-                function showErrorMessage(message, redirectUrl = null) {
-                    document.getElementById('error-message').textContent = message;
-                    const modal = document.getElementById('error-modal');
-                    modal.classList.remove('hidden');
-                    setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
-                
-                    // Auto-close the modal after 3 seconds and navigate if needed
-                    setTimeout(() => {
-                        closeModal('error-modal');
-                        if (redirectUrl) {
-                            window.location.href = redirectUrl;
-                        }
-                    }, 3000);
-                }
-                
-                function confirmAction(message, onConfirm) {
-                    document.getElementById('confirm-message').textContent = message;
-                    const modal = document.getElementById('confirm-modal');
-                    modal.classList.remove('hidden');
-                    setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
-                
-                    // Confirm action
-                    document.getElementById('confirm-btn').onclick = function () {
-                        closeModal('confirm-modal');
-                        onConfirm();
-                    };
-                
-                    // Cancel action
-                    document.getElementById('cancel-btn').onclick = function () {
-                        closeModal('confirm-modal');
-                    };
-                }
-                
-                function closeModal(modalId) {
-                    const modal = document.getElementById(modalId);
-                    modal.classList.remove('opacity-100', 'scale-100');
-                    setTimeout(() => modal.classList.add('hidden'), 300);
-                }
-                
-                // Hook up modals close button
-                document.getElementById('confirm-success-btn').addEventListener('click', function () {
-                    closeModal('success-modal');
-                });
-                
-                document.getElementById('confirm-error-btn').addEventListener('click', function () {
-                    closeModal('error-modal');
-                });
-                
-                // Updated saveSkill function with confirmation and error handling
-                async function saveSkill(index) {
-                    const dropdown = document.getElementById(`skill-dropdown-${index}`);
-                    const selectedSkillId = dropdown.value || null; // ✅ Ensure null values are handled
-                
-                    confirmAction("คุณต้องการบันทึกการเปลี่ยนแปลงหรือไม่?", async function () {
-                        const payload = {
-                            skill_1: memberSkills[0]?.skill_id || null,
-                            skill_2: memberSkills[1]?.skill_id || null,
-                            skill_3: memberSkills[2]?.skill_id || null,
-                        };
-                
-                        payload[`skill_${index}`] = selectedSkillId; // ✅ Allow empty skills
-                
-                        try {
-                            const response = await fetch(`http://localhost:3000/api/user/members/${memberId}/skills`, {
-                                method: 'PUT',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                                },
-                                body: JSON.stringify(payload)
-                            });
-                
-                            const responseData = await response.json();
-                
-                            if (response.ok) {
-                                await fetchMemberSkills();
-                                renderSkills();
-                                cancelEdit(index);
-                                showSuccessMessage(`✅ บันทึกทักษะที่ ${index} สำเร็จ!`, "skillconf.html");
-                            } else {
-                                showErrorMessage(responseData.error || '❌ เกิดข้อผิดพลาดในการบันทึกทักษะ');
-                            }
-                        } catch (error) {
-                            showErrorMessage('❌ เกิดข้อผิดพลาดในการบันทึกทักษะ');
-                        }
-                    });
-                }
-                
-                function clearSkill(index) {
-                    // Reset the skill dropdown and category dropdown for the specific skill index
-                    const skillDropdown = document.getElementById(`skill-dropdown-${index}`);
-                    const categoryDropdown = document.getElementById(`category-dropdown-${index}`);
-            
-                    if (skillDropdown) {
-                        skillDropdown.value = ""; // Clear selection
-                    }
-                    if (categoryDropdown) {
-                        categoryDropdown.value = ""; // Reset category
-                    }
-            
-                    // Update memberSkills array to reflect that the skill is cleared
-                    memberSkills[index - 1] = { skill_id: null, name: "ไม่ลงทะเบียนทักษะ", category: "ไม่ระบุหมวดหมู่" };
-            
-                    // Re-render the skill display with updated data
-                    renderSkills();
-                }
-
-            </script>
         </div>
     </div>
+    <script src="navbar.js"></script>
 </body>
 
 </html>
