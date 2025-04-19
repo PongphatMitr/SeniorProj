@@ -494,7 +494,10 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             await checkLoginStatus(); // this only checks login and fetches data
-
+            await fetchMemberProfile();        // ✅ sets globalUserId
+            await fetchMemberSkills();         // ✅ sets memberSkills
+            await fetchSkillsAndCategories();  // ✅ sets skill options
+            await fetchActivities();
             // Removed inline updateSidebar call here
 
             // Sidebar is now managed externally via sidebar.js
