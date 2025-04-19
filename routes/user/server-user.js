@@ -9,6 +9,7 @@ const transactionRoutes = require('./transactions');
 const contactRoutes = require('./contact');
 const branchRoutes = require('./branches');
 const announcementRoutes = require('./announcements');
+const projectRoutes = require('./projects');
 
 const router = express.Router();
 
@@ -23,6 +24,7 @@ module.exports = (pool) => {
     router.use('/contact', contactRoutes(pool));
     router.use('/branches', branchRoutes(pool)); // Ensure contact routes are used
     router.use('/announcements', announcementRoutes(pool));
+    router.use('/projects', projectRoutes(pool));
 
     return router;
 };

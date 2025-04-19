@@ -1,0 +1,458 @@
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>
+        Modify Announcement - Time Bank
+    </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+</head>
+
+<body class="bg-gray-100">
+    <div class="flex flex-col md:flex-row">
+        <!-- Sidebar -->
+        <div class="w-full md:w-1/6 bg-white h-screen p-5 sticky top-0 flex flex-col">
+            <nav class="flex-grow">
+                <ul id="navList" class="space-y-4"></ul>
+            </nav>
+        </div>
+        <!-- Main Content -->
+        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10 relative">
+            <!-- Language Toggle Switch -->
+            <div class="absolute top-5 right-5">
+                <div class="toggle-container" id="languageToggle">
+                    <span class="toggle-label active" data-lang="th" id="lang-th">
+                        ภาษาไทย
+                    </span>
+                    <span class="toggle-label" data-lang="en" id="lang-en">
+                        English
+                    </span>
+                </div>
+            </div>
+            <h1 class="text-4xl font-bold mb-5">
+                แก้ไขประกาศข่าวสาร
+            </h1>
+            <form class="bg-white p-5 rounded-lg text-black" id="announcementForm">
+                <div class="mb-4">
+                    <label class="block text-gray-700" for="announcementDate">
+                        วันที่ประกาศ
+                    </label>
+                    <input class="w-full p-2 border border-gray-300 rounded" id="announcementDate" required=""
+                        type="date" />
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700" for="announcementTitle">
+                        ชื่อหัวข้อ
+                    </label>
+                    <input class="w-full p-2 border border-gray-300 rounded" id="announcementTitle" required=""
+                        type="text" />
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700" for="announcementDescription">
+                        รายละเอียด
+                    </label>
+                    <textarea class="w-full p-2 border border-gray-300 rounded" id="announcementDescription"
+                        required=""></textarea>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700" for="announcementImage">
+                        รูปภาพประกอบ
+                    </label>
+                    <input accept="image/*" class="w-full p-2 border border-gray-300 rounded" id="announcementImage"
+                        type="file" />
+                    <img id="currentImage" class="mt-4" src="" alt="Current announcement image"
+                        style="max-width: 100%; display: none;" />
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700" for="announcementBranch">
+                        สาขา/ชุมชน
+                    </label>
+                    <div class="flex">
+                        <select class="w-full p-2 border border-gray-300 rounded" id="announcementBranch" required="">
+                        </select>
+                        <button class="ml-2 bg-blue-600 text-white px-4 py-2 rounded" id="addBranchButton"
+                            type="button">
+                            เพิ่ม
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-4 hidden" id="newBranchContainer">
+                    <label class="block text-gray-700" for="newBranchName">
+                        ชื่อสาขาใหม่
+                    </label>
+                    <input class="w-full p-2 border border-gray-300 rounded" id="newBranchName" type="text" />
+                    <button class="mt-2 bg-blue-600 text-white px-4 py-2 rounded" id="saveBranchButton" type="button">
+                        บันทึก
+                    </button>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700" for="announcementProject">
+                        โครงการ
+                    </label>
+                    <div class="flex">
+                        <select class="w-full p-2 border border-gray-300 rounded" id="announcementProject" required="">
+                        </select>
+                        <button class="ml-2 bg-blue-600 text-white px-4 py-2 rounded" id="addProjectButton"
+                            type="button">
+                            เพิ่ม
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-4 hidden" id="newProjectContainer">
+                    <label class="block text-gray-700" for="newProjectName">
+                        ชื่อโครงการใหม่
+                    </label>
+                    <input class="w-full p-2 border border-gray-300 rounded" id="newProjectName" type="text" />
+                    <button class="mt-2 bg-blue-600 text-white px-4 py-2 rounded" id="saveProjectButton" type="button">
+                        บันทึก
+                    </button>
+                </div>
+                <button class="bg-blue-600 text-white px-4 py-2 rounded" type="submit">
+                    บันทึกการแก้ไข
+                </button>
+                <button class="bg-red-600 text-white px-4 py-2 rounded mt-4" id="deleteAnnouncementButton"
+                    type="button">
+                    ลบประกาศ
+                </button>
+            </form>
+            <div class="mt-10">
+                <a class="bg-blue-600 text-white px-4 py-2 rounded" href="homepage.html">
+                    กลับ
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Message Modal -->
+    <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <div class="flex justify-center">
+                <div
+                    class="w-20 h-20 flex items-center justify-center rounded-full bg-green-100 border-4 border-green-500">
+                    <svg class="w-12 h-12 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-green-600 mt-6">แก้ไขสำเร็จ!</h2>
+            <p class="text-gray-700 text-lg mt-4" id="success-message">แก้ไขประกาศสำเร็จ</p>
+            <button id="success-confirm-btn"
+                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ยืนยัน
+            </button>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <h2 class="text-3xl font-bold text-red-600 mt-6">ยืนยันการลบประกาศ</h2>
+            <p class="text-gray-700 text-lg mt-4">ต้องการลบประกาศหรือไม่?</p>
+            <div class="mt-6 flex justify-center">
+                <button id="confirm-delete-btn"
+                    class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300 mr-4">
+                    ยืนยัน
+                </button>
+                <button id="cancel-delete-btn"
+                    class="px-6 py-3 bg-gray-600 text-white text-lg font-semibold rounded-lg hover:bg-gray-700 transition duration-300">
+                    ยกเลิก
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Toggle container */
+        .toggle-container {
+            display: flex;
+            background-color: #E5E7EB;
+            border-radius: 20px;
+            padding: 6px;
+            align-items: center;
+            justify-content: space-between;
+            width: 180px;
+        }
+
+        /* Labels */
+        .toggle-label {
+            flex: 1;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: gray;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 9999px;
+            padding: 5px;
+        }
+
+        .toggle-label.active {
+            background-color: white;
+            color: #1D4ED8;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Disabled Label */
+        .toggle-label.disabled {
+            pointer-events: none;
+            background-color: white;
+            color: #6B7280;
+            font-weight: bold;
+        }
+    </style>
+    <script>
+        function getToken() {
+            return localStorage.getItem('token');
+        }
+
+        function arrayBufferToBase64(buffer) {
+            let binary = '';
+            const bytes = new Uint8Array(buffer);
+            const len = bytes.byteLength;
+            for (let i = 0; i < len; i++) {
+                binary += String.fromCharCode(bytes[i]);
+            }
+            return window.btoa(binary);
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = getToken();
+            if (!token) {
+                alert('You are not logged in!');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const announcementId = urlParams.get('id');
+            if (!announcementId) {
+                alert('No announcement ID found!');
+                window.location.href = 'homepage.html';
+                return;
+            }
+
+            try {
+                const branchesResponse = await fetch('http://localhost:3000/api/user/branches', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (!branchesResponse.ok) {
+                    throw new Error(`HTTP error! status: ${branchesResponse.status}`);
+                }
+                const branches = await branchesResponse.json();
+                const branchesSelect = document.getElementById('announcementBranch');
+                branches.forEach(branch => {
+                    const option = document.createElement('option');
+                    option.value = branch.branch_id;
+                    option.textContent = branch.branch_name;
+                    branchesSelect.appendChild(option);
+                });
+
+                const projectsResponse = await fetch('http://localhost:3000/api/user/projects', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (!projectsResponse.ok) {
+                    throw new Error(`HTTP error! status: ${projectsResponse.status}`);
+                }
+                const projects = await projectsResponse.json();
+                const projectsSelect = document.getElementById('announcementProject');
+                projects.forEach(project => {
+                    const option = document.createElement('option');
+                    option.value = project.project_id;
+                    option.textContent = project.project_name;
+                    projectsSelect.appendChild(option);
+                });
+
+                const announcementResponse = await fetch(`http://localhost:3000/api/user/announcements/${announcementId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (!announcementResponse.ok) {
+                    throw new Error(`HTTP error! status: ${announcementResponse.status}`);
+                }
+                const announcement = await announcementResponse.json();
+                document.getElementById('announcementDate').value = new Date(announcement.date).toISOString().split('T')[0];
+                document.getElementById('announcementTitle').value = announcement.title;
+                document.getElementById('announcementDescription').value = announcement.description;
+                document.getElementById('announcementBranch').value = announcement.branch_id;
+                document.getElementById('announcementProject').value = announcement.project_id;
+
+                if (announcement.image) {
+                    const imageUrl = `data:image/jpeg;base64,${arrayBufferToBase64(announcement.image.data)}`;
+                    const currentImage = document.getElementById('currentImage');
+                    currentImage.src = imageUrl;
+                    currentImage.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error fetching branches, projects, or announcement:', error);
+            }
+        });
+
+        document.getElementById('addBranchButton').addEventListener('click', () => {
+            document.getElementById('newBranchContainer').classList.toggle('hidden');
+        });
+
+        document.getElementById('saveBranchButton').addEventListener('click', async () => {
+            const newBranchName = document.getElementById('newBranchName').value;
+            const token = getToken();
+            if (newBranchName) {
+                try {
+                    const response = await fetch('http://localhost:3000/api/user/branches', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ branch_name: newBranchName })
+                    });
+
+                    if (response.ok) {
+                        const newBranch = await response.json();
+                        const branchesSelect = document.getElementById('announcementBranch');
+                        const option = document.createElement('option');
+                        option.value = newBranch.branch_id;
+                        option.textContent = newBranch.branch_name;
+                        branchesSelect.appendChild(option);
+                        document.getElementById('newBranchContainer').classList.add('hidden');
+                        document.getElementById('newBranchName').value = '';
+                        showSuccessModal('Branch created successfully.');
+                    } else {
+                        alert('Failed to add branch');
+                    }
+                } catch (error) {
+                    console.error('Error adding branch:', error);
+                    alert('An error occurred while adding the branch');
+                }
+            }
+        });
+
+        document.getElementById('addProjectButton').addEventListener('click', () => {
+            document.getElementById('newProjectContainer').classList.toggle('hidden');
+        });
+
+        document.getElementById('saveProjectButton').addEventListener('click', async () => {
+            const newProjectName = document.getElementById('newProjectName').value;
+            const token = getToken();
+            if (newProjectName) {
+                try {
+                    const response = await fetch('http://localhost:3000/api/user/projects', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ project_name: newProjectName })
+                    });
+
+                    if (response.ok) {
+                        const newProject = await response.json();
+                        const projectsSelect = document.getElementById('announcementProject');
+                        const option = document.createElement('option');
+                        option.value = newProject.project_id;
+                        option.textContent = newProject.project_name;
+                        projectsSelect.appendChild(option);
+                        document.getElementById('newProjectContainer').classList.add('hidden');
+                        document.getElementById('newProjectName').value = '';
+                        showSuccessModal('Project created successfully.');
+                    } else {
+                        alert('Failed to add project');
+                    }
+                } catch (error) {
+                    console.error('Error adding project:', error);
+                    alert('An error occurred while adding the project');
+                }
+            }
+        });
+
+        document.getElementById('announcementForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData();
+            formData.append('date', document.getElementById('announcementDate').value);
+            formData.append('title', document.getElementById('announcementTitle').value);
+            formData.append('description', document.getElementById('announcementDescription').value);
+            if (document.getElementById('announcementImage').files[0]) {
+                formData.append('image', document.getElementById('announcementImage').files[0]);
+            }
+            formData.append('branch_id', document.getElementById('announcementBranch').value);
+            formData.append('project_id', document.getElementById('announcementProject').value);
+
+            const token = getToken();
+            const urlParams = new URLSearchParams(window.location.search);
+            const announcementId = urlParams.get('id');
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/announcements/${announcementId}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    showSuccessModal('Announcement modified successfully.');
+                } else {
+                    alert('Failed to modify announcement');
+                }
+            } catch (error) {
+                console.error('Error modifying announcement:', error);
+                alert('An error occurred while modifying the announcement');
+            }
+        });
+
+        document.getElementById('deleteAnnouncementButton').addEventListener('click', () => {
+            document.getElementById('delete-modal').classList.remove('hidden');
+        });
+
+        document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
+            const token = getToken();
+            const urlParams = new URLSearchParams(window.location.search);
+            const announcementId = urlParams.get('id');
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/announcements/${announcementId}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok){
+                    document.getElementById('delete-modal').classList.add('hidden');
+                    showSuccessModal('Announcement deleted successfully.');
+                } else {
+                    alert('Failed to delete announcement');
+                }
+            } catch (error) {
+                console.error('Error deleting announcement:', error);
+                alert('An error occurred while deleting the announcement');
+            }
+        });
+
+                        document.getElementById('cancel-delete-btn').addEventListener('click', () => {
+                            document.getElementById('delete-modal').classList.add('hidden');
+                        });
+
+                        function showSuccessModal(message) {
+                            document.getElementById('success-message').textContent = message;
+                            document.getElementById('success-modal').classList.remove('hidden');
+                        }
+
+                        document.getElementById('success-confirm-btn').addEventListener('click', () => {
+                            document.getElementById('success-modal').classList.add('hidden');
+                            window.location.href = 'homepage.html';
+                        });
+                    </script>
+                    <script src="navbar.js"></script>
+    </body>
+    
+    </html>

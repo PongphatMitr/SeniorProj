@@ -1,0 +1,389 @@
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>
+        Add Announcement - Time Bank
+    </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+</head>
+
+<body class="bg-gray-100">
+    <div class="flex flex-col md:flex-row">
+        <!-- Sidebar -->
+        <div class="w-full md:w-1/6 bg-white h-screen p-5 sticky top-0 flex flex-col">
+            <nav class="flex-grow">
+                <ul id="navList" class="space-y-4"></ul>
+            </nav>
+        </div>
+        <!-- Main Content -->
+        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10 relative">
+            <!-- Language Toggle Switch -->
+            <div class="absolute top-5 right-5">
+                <div class="toggle-container" id="languageToggle">
+                    <span class="toggle-label active" data-lang="th" id="lang-th">
+                        ภาษาไทย
+                    </span>
+                    <span class="toggle-label" data-lang="en" id="lang-en">
+                        English
+                    </span>
+                </div>
+            </div>
+            <h1 class="text-4xl font-bold mb-5">
+                เพิ่มประกาศข่าวสาร
+            </h1>
+            <form class="bg-white p-5 rounded-lg text-black" id="announcementForm">
+                <div class="mb-4">
+                    <label class="block text-gray-700" for="announcementDate">
+                        วันที่ประกาศ
+                    </label>
+                    <input class="w-full p-2 border border-gray-300 rounded" id="announcementDate" required=""
+                        type="date" />
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700" for="announcementTitle">
+                        ชื่อหัวข้อ
+                    </label>
+                    <input class="w-full p-2 border border-gray-300 rounded" id="announcementTitle" required=""
+                        type="text" />
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700" for="announcementDescription">
+                        รายละเอียด
+                    </label>
+                    <textarea class="w-full p-2 border border-gray-300 rounded" id="announcementDescription"
+                        required=""></textarea>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700" for="announcementImage">
+                        รูปภาพประกอบ
+                    </label>
+                    <input accept="image/*" class="w-full p-2 border border-gray-300 rounded" id="announcementImage"
+                        required="" type="file" />
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700" for="announcementBranch">
+                        สาขา/ชุมชน
+                    </label>
+                    <div class="flex">
+                        <select class="w-full p-2 border border-gray-300 rounded" id="announcementBranch" required="">
+                        </select>
+                        <button class="ml-2 bg-blue-600 text-white px-4 py-2 rounded" id="addBranchButton"
+                            type="button">
+                            เพิ่ม
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-4 hidden" id="newBranchContainer">
+                    <label class="block text-gray-700" for="newBranchName">
+                        ชื่อสาขาใหม่
+                    </label>
+                    <input class="w-full p-2 border border-gray-300 rounded" id="newBranchName" type="text" />
+                    <button class="mt-2 bg-blue-600 text-white px-4 py-2 rounded" id="saveBranchButton" type="button">
+                        บันทึก
+                    </button>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700" for="announcementProject">
+                        โครงการ
+                    </label>
+                    <div class="flex">
+                        <select class="w-full p-2 border border-gray-300 rounded" id="announcementProject" required="">
+                        </select>
+                        <button class="ml-2 bg-blue-600 text-white px-4 py-2 rounded" id="addProjectButton"
+                            type="button">
+                            เพิ่ม
+                        </button>
+                    </div>
+                </div>
+                <div class="mb-4 hidden" id="newProjectContainer">
+                    <label class="block text-gray-700" for="newProjectName">
+                        ชื่อโครงการใหม่
+                    </label>
+                    <input class="w-full p-2 border border-gray-300 rounded" id="newProjectName" type="text" />
+                    <button class="mt-2 bg-blue-600 text-white px-4 py-2 rounded" id="saveProjectButton" type="button">
+                        บันทึก
+                    </button>
+                </div>
+                <button class="bg-blue-600 text-white px-4 py-2 rounded" type="submit">
+                    เพิ่มประกาศ
+                </button>
+            </form>
+            <div class="mt-10">
+                <a class="bg-blue-600 text-white px-4 py-2 rounded" href="homepage.html">
+                    กลับ
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Message Modal -->
+    <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <div class="flex justify-center">
+                <div
+                    class="w-20 h-20 flex items-center justify-center rounded-full bg-green-100 border-4 border-green-500">
+                    <svg class="w-12 h-12 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-green-600 mt-6">สร้างสำเร็จ!</h2>
+            <p class="text-gray-700 text-lg mt-4" id="success-message">สร้างชุมชน/สาขาใหม่สำเร็จ</p>
+            <button id="success-confirm-btn"
+                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ยืนยัน
+            </button>
+        </div>
+    </div>
+
+    <!-- Announcement Success Modal -->
+    <div id="announcement-success-modal"
+        class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <div class="flex justify-center">
+                <div
+                    class="w-20 h-20 flex items-center justify-center rounded-full bg-green-100 border-4 border-green-500">
+                    <svg class="w-12 h-12 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-green-600 mt-6">เพิ่มสำเร็จ!</h2>
+            <p class="text-gray-700 text-lg mt-4" id="announcement-success-message">เพิ่มประกาศสำเร็จ</p>
+            <button id="announcement-success-confirm-btn"
+                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ยืนยัน
+            </button>
+        </div>
+    </div>
+
+    <style>
+        /* Toggle container */
+        .toggle-container {
+            display: flex;
+            background-color: #E5E7EB;
+            border-radius: 20px;
+            padding: 6px;
+            align-items: center;
+            justify-content: space-between;
+            width: 180px;
+        }
+
+        /* Labels */
+        .toggle-label {
+            flex: 1;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: gray;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 9999px;
+            padding: 5px;
+        }
+
+        .toggle-label.active {
+            background-color: white;
+            color: #1D4ED8;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Disabled Label */
+        .toggle-label.disabled {
+            pointer-events: none;
+            background-color: white;
+            color: #6B7280;
+            font-weight: bold;
+        }
+    </style>
+    <script src="navbar.js"></script>
+    <script src="selected-language.js"></script>
+    <script>
+        function getToken() {
+            return localStorage.getItem('token');
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = getToken();
+            if (!token) {
+                alert('You are not logged in!');
+                window.location.href = 'login.html';
+                return;
+            }
+
+            try {
+                const branchesResponse = await fetch('http://localhost:3000/api/user/branches', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (!branchesResponse.ok) {
+                    throw new Error(`HTTP error! status: ${branchesResponse.status}`);
+                }
+                const branches = await branchesResponse.json();
+                const branchesSelect = document.getElementById('announcementBranch');
+                branches.forEach(branch => {
+                    const option = document.createElement('option');
+                    option.value = branch.branch_id;
+                    option.textContent = branch.branch_name;
+                    branchesSelect.appendChild(option);
+                });
+
+                const projectsResponse = await fetch('http://localhost:3000/api/user/projects', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+                if (!projectsResponse.ok) {
+                    throw new Error(`HTTP error! status: ${projectsResponse.status}`);
+                }
+                const projects = await projectsResponse.json();
+                const projectsSelect = document.getElementById('announcementProject');
+                projects.forEach(project => {
+                    const option = document.createElement('option');
+                    option.value = project.project_id;
+                    option.textContent = project.project_name;
+                    projectsSelect.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error fetching branches or projects:', error);
+            }
+        });
+
+        document.getElementById('addBranchButton').addEventListener('click', () => {
+            document.getElementById('newBranchContainer').classList.toggle('hidden');
+        });
+
+        document.getElementById('saveBranchButton').addEventListener('click', async () => {
+            const newBranchName = document.getElementById('newBranchName').value;
+            const token = getToken();
+            if (newBranchName) {
+                try {
+                    const response = await fetch('http://localhost:3000/api/user/branches', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ branch_name: newBranchName })
+                    });
+
+                    if (response.ok) {
+                        const newBranch = await response.json();
+                        const branchesSelect = document.getElementById('announcementBranch');
+                        const option = document.createElement('option');
+                        option.value = newBranch.branch_id;
+                        option.textContent = newBranch.branch_name;
+                        branchesSelect.appendChild(option);
+                        document.getElementById('newBranchContainer').classList.add('hidden');
+                        document.getElementById('newBranchName').value = '';
+                        showSuccessModal('Branch created successfully.');
+                    } else {
+                        alert('Failed to add branch');
+                    }
+                } catch (error) {
+                    console.error('Error adding branch:', error);
+                    alert('An error occurred while adding the branch');
+                }
+            }
+        });
+
+        document.getElementById('addProjectButton').addEventListener('click', () => {
+            document.getElementById('newProjectContainer').classList.toggle('hidden');
+        });
+
+        document.getElementById('saveProjectButton').addEventListener('click', async () => {
+            const newProjectName = document.getElementById('newProjectName').value;
+            const token = getToken();
+            if (newProjectName) {
+                try {
+                    const response = await fetch('http://localhost:3000/api/user/projects', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        },
+                        body: JSON.stringify({ project_name: newProjectName })
+                    });
+
+                    if (response.ok) {
+                        const newProject = await response.json();
+                        const projectsSelect = document.getElementById('announcementProject');
+                        const option = document.createElement('option');
+                        option.value = newProject.project_id;
+                        option.textContent = newProject.project_name;
+                        projectsSelect.appendChild(option);
+                        document.getElementById('newProjectContainer').classList.add('hidden');
+                        document.getElementById('newProjectName').value = '';
+                        showSuccessModal('Project created successfully.');
+                    } else {
+                        alert('Failed to add project');
+                    }
+                } catch (error) {
+                    console.error('Error adding project:', error);
+                    alert('An error occurred while adding the project');
+                }
+            }
+        });
+
+        document.getElementById('announcementForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const formData = new FormData();
+            formData.append('date', document.getElementById('announcementDate').value);
+            formData.append('title', document.getElementById('announcementTitle').value);
+            formData.append('description', document.getElementById('announcementDescription').value);
+            formData.append('image', document.getElementById('announcementImage').files[0]);
+            formData.append('branch_id', document.getElementById('announcementBranch').value);
+            formData.append('project_id', document.getElementById('announcementProject').value);
+
+            const token = getToken();
+
+            try {
+                const response = await fetch('http://localhost:3000/api/user/announcements', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+
+                if (response.ok) {
+                    showAnnouncementSuccessModal('Announcement added successfully.');
+                } else {
+                    alert('Failed to add announcement');
+                }
+            } catch (error) {
+                console.error('Error adding announcement:', error);
+                alert('An error occurred while adding the announcement');
+            }
+        });
+
+        function showSuccessModal(message) {
+            document.getElementById('success-message').textContent = message;
+            document.getElementById('success-modal').classList.remove('hidden');
+        }
+
+        function showAnnouncementSuccessModal(message) {
+            document.getElementById('announcement-success-message').textContent = message;
+            document.getElementById('announcement-success-modal').classList.remove('hidden');
+        }
+
+        document.getElementById('success-confirm-btn').addEventListener('click', () => {
+            document.getElementById('success-modal').classList.add('hidden');
+        });
+
+        document.getElementById('announcement-success-confirm-btn').addEventListener('click', () => {
+            document.getElementById('announcement-success-modal').classList.add('hidden');
+            window.location.href = 'homepage.html';
+        });
+    </script>
+</body>
+
+</html>
