@@ -8,6 +8,7 @@ const exchangeRatesRoutes = require('./exchangeRates');
 const transactionRoutes = require('./transactions');
 const contactRoutes = require('./contact');
 const branchRoutes = require('./branches');
+const announcementRoutes = require('./announcements');
 
 const router = express.Router();
 
@@ -21,6 +22,7 @@ module.exports = (pool) => {
     router.use('/transactions', transactionRoutes(pool));
     router.use('/contact', contactRoutes(pool));
     router.use('/branches', branchRoutes(pool)); // Ensure contact routes are used
+    router.use('/announcements', announcementRoutes(pool));
 
     return router;
 };
