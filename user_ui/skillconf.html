@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet">
+    <script src="navbar.js"></script>
+
     <script>
         let memberId;
         let skills = [];
@@ -172,7 +174,6 @@
         }
 
 
-
         function filterSkillsByCategory(event) {
             const selectedCategory = event.target.value;
             const skillDropdownId = event.target.id.replace('category-dropdown', 'skill-dropdown');
@@ -294,6 +295,19 @@
             // Hide suggestions container
             suggestionsContainer.classList.add('hidden');
         }
+
+        function toggleEdit(index) {
+            const displaySection = document.getElementById(`skill-display-${index}`);
+            const editSection = document.getElementById(`edit-container-${index}`);
+        
+            displaySection.classList.add('hidden');
+            editSection.classList.remove('hidden');
+        
+            originalSkills[index] = { ...memberSkills[index - 1] };
+        
+            populateSkillDropdown(index);
+        }
+        
 
 
         // Removed inline updateSidebar function
@@ -553,7 +567,165 @@
             </div>
         </div>
     </div>
-    <script src="navbar.js"></script>
+    <script>
+
+        let originalSkills = []; // Store original skills before editing
+
+        function toggleEdit(index) {
+            const displaySection = document.getElementById(`skill-display-${index}`);
+            const editSection = document.getElementById(`edit-container-${index}`);
+
+            displaySection.classList.add('hidden'); // Hide display
+            editSection.classList.remove('hidden'); // Show dropdown
+
+            // Store original skill data before making changes
+            originalSkills[index] = { ...memberSkills[index - 1] };
+
+            populateSkillDropdown(index);
+        }
+
+        function cancelEdit(index) {
+            document.getElementById(`skill-display-${index}`).classList.remove('hidden'); // Show display
+            document.getElementById(`edit-container-${index}`).classList.add('hidden'); // Hide dropdown
+
+            // Restore original skill data on cancel
+            memberSkills[index - 1] = { ...originalSkills[index] };
+            renderSkills(); // Re-render with original skill
+        }
+
+        function clearSkill(index) {
+            // Clear only the selection, without changing stored data
+            const skillDropdown = document.getElementById(`skill-dropdown-${index}`);
+            const categoryDropdown = document.getElementById(`category-dropdown-${index}`);
+
+            if (skillDropdown) skillDropdown.value = ""; // Clear skill dropdown
+            if (categoryDropdown) categoryDropdown.value = ""; // Clear category dropdown
+        }
+
+
+        function showSuccessMessage(message, redirectUrl = null) {
+            document.getElementById('success-message').textContent = message;
+            const modal = document.getElementById('success-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
+        
+            // Auto-close the modal after 3 seconds and navigate if needed
+            setTimeout(() => {
+                closeModal('success-modal');
+                if (redirectUrl) {
+                    window.location.href = redirectUrl;
+                }
+            }, 3000);
+        }
+        
+        function showErrorMessage(message, redirectUrl = null) {
+            document.getElementById('error-message').textContent = message;
+            const modal = document.getElementById('error-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
+        
+            // Auto-close the modal after 3 seconds and navigate if needed
+            setTimeout(() => {
+                closeModal('error-modal');
+                if (redirectUrl) {
+                    window.location.href = redirectUrl;
+                }
+            }, 3000);
+        }
+        
+        function confirmAction(message, onConfirm) {
+            document.getElementById('confirm-message').textContent = message;
+            const modal = document.getElementById('confirm-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
+        
+            // Confirm action
+            document.getElementById('confirm-btn').onclick = function () {
+                closeModal('confirm-modal');
+                onConfirm();
+            };
+        
+            // Cancel action
+            document.getElementById('cancel-btn').onclick = function () {
+                closeModal('confirm-modal');
+            };
+        }
+        
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('opacity-100', 'scale-100');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+        
+        // Hook up modals close button
+        document.getElementById('confirm-success-btn').addEventListener('click', function () {
+            closeModal('success-modal');
+        });
+        
+        document.getElementById('confirm-error-btn').addEventListener('click', function () {
+            closeModal('error-modal');
+        });
+        
+        // Updated saveSkill function with confirmation and error handling
+        async function saveSkill(index) {
+            const dropdown = document.getElementById(`skill-dropdown-${index}`);
+            const selectedSkillId = dropdown.value || null; // ✅ Ensure null values are handled
+        
+            confirmAction("คุณต้องการบันทึกการเปลี่ยนแปลงหรือไม่?", async function () {
+                const payload = {
+                    skill_1: memberSkills[0]?.skill_id || null,
+                    skill_2: memberSkills[1]?.skill_id || null,
+                    skill_3: memberSkills[2]?.skill_id || null,
+                };
+        
+                payload[`skill_${index}`] = selectedSkillId; // ✅ Allow empty skills
+        
+                try {
+                    const response = await fetch(`http://localhost:3000/api/user/members/${memberId}/skills`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify(payload)
+                    });
+        
+                    const responseData = await response.json();
+        
+                    if (response.ok) {
+                        await fetchMemberSkills();
+                        renderSkills();
+                        cancelEdit(index);
+                        showSuccessMessage(`✅ บันทึกทักษะที่ ${index} สำเร็จ!`, "skillconf.html");
+                    } else {
+                        showErrorMessage(responseData.error || '❌ เกิดข้อผิดพลาดในการบันทึกทักษะ');
+                    }
+                } catch (error) {
+                    showErrorMessage('❌ เกิดข้อผิดพลาดในการบันทึกทักษะ');
+                }
+            });
+        }
+        
+        function clearSkill(index) {
+            // Reset the skill dropdown and category dropdown for the specific skill index
+            const skillDropdown = document.getElementById(`skill-dropdown-${index}`);
+            const categoryDropdown = document.getElementById(`category-dropdown-${index}`);
+    
+            if (skillDropdown) {
+                skillDropdown.value = ""; // Clear selection
+            }
+            if (categoryDropdown) {
+                categoryDropdown.value = ""; // Reset category
+            }
+    
+            // Update memberSkills array to reflect that the skill is cleared
+            memberSkills[index - 1] = { skill_id: null, name: "ไม่ลงทะเบียนทักษะ", category: "ไม่ระบุหมวดหมู่" };
+    
+            // Re-render the skill display with updated data
+            renderSkills();
+        }
+
+    </script>
 </body>
 
 </html>

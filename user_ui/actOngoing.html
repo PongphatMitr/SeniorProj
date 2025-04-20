@@ -21,6 +21,7 @@
 
     <script>
         let activities = [];
+        let currentRoleFilter = ''; // 'requester', 'provider', or '' for all
         let sortOrder = {
             title: 'asc',
             start_date: 'asc',
@@ -58,13 +59,20 @@
                 console.log('Response status:', response.status);
                 const data = await response.json();
                 console.log('Response data:', data);
-
+        
                 if (response.ok) {
-                    activities = data.activities.filter(activity => activity.requester_id === parseInt(localStorage.getItem('user_id')));
+                    const userId = parseInt(localStorage.getItem('user_id'));
+                    allOngoingActivities = data.activities.filter(a =>
+                        a.requester_id === userId || // user is owner
+                        (a.participants && a.participants.some(p => p.user_id === userId)) // user is participant
+                    );
+                    activities = allOngoingActivities;
+        
                     await fetchParticipants();
                     await fetchRequesterNames();
                     updateActivityStatus();
-                    renderTable(activities);
+                    filterActivityHistory(currentRoleFilter);
+        
                 } else {
                     console.error('Error:', data);
                     alert('Error fetching activities. Please try again.');
@@ -74,7 +82,28 @@
                 alert('Error fetching activities. Please try again.');
             }
         }
+        
 
+        function filterActivityHistory(role) {
+            currentRoleFilter = role; // update the global filter
+        
+            const userId = parseInt(localStorage.getItem('user_id'));
+            if (!userId) return;
+        
+            if (role === 'requester') {
+                activities = allOngoingActivities.filter(a => a.requester_id === userId);
+            } else if (role === 'provider') {
+                activities = allOngoingActivities.filter(a =>
+                    a.participants && a.participants.some(p => p.user_id === userId && p.user_id !== a.requester_id)
+                );
+            } else {
+                activities = allOngoingActivities;
+            }
+        
+            renderTable(activities);
+        }
+        
+        
         async function fetchParticipants() {
             for (let activity of activities) {
                 try {
@@ -132,36 +161,51 @@
         function renderTable(data) {
             const tbody = document.getElementById('activity-tbody');
             tbody.innerHTML = '';
-            data.forEach((activity, index) => {
+        
+            const allowedStatuses = ['กำลังจะเริ่ม', 'กำลังทำกิจกรรม', 'รอผู้ขอยืนยันผล', 'รอการอนุมัติ'];
+            const filteredActivities = data.filter(activity => allowedStatuses.includes(activity.status));
+        
+            if (filteredActivities.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = `
+                    <td colspan="7" class="text-center py-4 text-gray-500 italic">
+                        ไม่มีกิจกรรมที่ตรงกับเงื่อนไข
+                    </td>
+                `;
+                tbody.appendChild(emptyRow);
+                return;
+            }
+        
+            filteredActivities.forEach((activity, index) => {
                 const row = document.createElement('tr');
                 row.id = `row-${index + 1}`;
                 row.className = 'hover:bg-gray-100';
+        
+                const statusColor =
+                    activity.status === 'กำลังจะเริ่ม' ? 'bg-blue-500' :
+                    activity.status === 'กำลังทำกิจกรรม' ? 'bg-yellow-500' :
+                    activity.status === 'รอผู้ขอยืนยันผล' ? 'bg-pink-500' :
+                    activity.status === 'รอการอนุมัติ' ? 'bg-indigo-500' :
+                    'bg-gray-400';
+        
                 row.innerHTML = `
-                    <td aria-colindex="1" data-label="ชื่อผู้ขอ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${activity.requester_name}
+                    <td class="py-2 px-4 border-b border-gray-200">${activity.title}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">${formatDate(activity.created_at)}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">${formatDate(activity.start_date)}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">
+                        <span class="py-1 px-2 rounded ${statusColor} text-white">${activity.status}</span>
                     </td>
-                    <td aria-colindex="2" data-label="กิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${activity.title}
-                    </td>
-                    <td aria-colindex="3" data-label="วันที่สร้างกิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${formatDate(activity.created_at)}
-                    </td>
-                    <td aria-colindex="4" data-label="วันที่เริ่มกิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${formatDate(activity.start_date)}
-                    </td>
-                    <td aria-colindex="5" data-label="สถานะ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        <span class="py-1 px-2 rounded ${activity.status === 'กำลังจะเริ่ม' ? 'bg-blue-500' : activity.status === 'เสร็จสิ้น' ? 'bg-green-500' : activity.status === 'เกินเวลา' ? 'bg-orange-500' : 'bg-red-500'} text-white">${activity.status}</span>
-                    </td>
-                    <td aria-colindex="6" data-label="จำนวนผู้เข้าร่วม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${activity.current_participants} / ${activity.max_participants}
-                    </td>
-                    <td aria-colindex="7" data-label="การจัดการ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        <a href="myactivity-details.html?id=${activity.activity_id}" class="bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">รายละเอียด</a>
+                    <td class="py-2 px-4 border-b border-gray-200">${activity.current_participants} / ${activity.max_participants}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">ผู้สร้าง</td>
+                    <td class="py-2 px-4 border-b border-gray-200">
+                        <a href="myactivity-details.html?id=${activity.activity_id}" class="bg-blue-500 text-white font-bold py-1 px-2 rounded">รายละเอียด</a>
                     </td>
                 `;
                 tbody.appendChild(row);
             });
         }
+        
+        
 
         function formatDate(dateString) {
             const date = new Date(dateString);
@@ -245,7 +289,7 @@
             <div class="relative mb-10 z-10 h-[50px]">
 
                 <!-- 🕊️ Back Button (ซ้ายสุด) -->
-                <div class="absolute left-0 top-0">
+                <div class="absolute left-0 top-0
                     <button onclick="window.location.href='service.html'"
                         class="group inline-flex items-center gap-2 px-5 py-2.5 bg-white text-gray-900 font-medium rounded-full border border-gray-300 shadow-sm hover:bg-gray-100 transition duration-300 ease-in-out focus:outline-none focus:ring-2 focus:ring-gray-300">
                         <i class="fas fa-arrow-left text-sm wiggle-icon"></i>
@@ -563,7 +607,7 @@
                             return matchText && matchStartDate && matchEndDate && matchStartTime && matchEndTime && matchSkill && matchAvailable;
                         });
 
-                        renderActivityOngoing(filtered);
+                        renderTable(filtered);
                     }
 
 
@@ -627,7 +671,7 @@
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody id="history-tbody" role="rowgroup">
+                            <tbody id="activity-tbody" role="rowgroup">
                                 <!-- Activity history will be dynamically inserted here -->
                             </tbody>
                         </table>

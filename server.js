@@ -9,11 +9,32 @@ const userRoutes = require('./routes/user/server-user'); // Ensure correct relat
 const cron = require('node-cron');
 
 cron.schedule('* * * * *', async () => {
-    console.log("🔄 Checking for overdue activities...");
+    console.log("🔄 Checking and updating activity statuses...");
     const client = await pool.connect();
     try {
         await client.query('BEGIN');
 
+        // ✅ 1. จาก "กำลังจะเริ่ม" → "กำลังทำกิจกรรม"
+        await client.query(`
+            UPDATE activities
+            SET status = 'กำลังทำกิจกรรม',
+                updated_at = NOW()
+            WHERE status = 'กำลังจะเริ่ม'
+              AND (start_date::timestamp + start_time) <= NOW()
+              AND (end_date::timestamp + end_time) >= NOW()
+        `);
+
+        // ✅ 2. จาก "กำลังทำกิจกรรม" → "รอผู้ขอยืนยันผล"
+        await client.query(`
+            UPDATE activities
+            SET status = 'รอผู้ขอยืนยันผล',
+                updated_at = NOW()
+            WHERE status = 'กำลังทำกิจกรรม'
+              AND (end_date::timestamp + end_time) < NOW()
+              AND (end_date::timestamp + end_time + INTERVAL '1 day') >= NOW()
+        `);
+
+        // ✅ 3. จาก "รอผู้ขอยืนยันผล" → "เกินเวลา"
         await client.query(`
             UPDATE activities
             SET status = 'เกินเวลา',
@@ -23,7 +44,7 @@ cron.schedule('* * * * *', async () => {
         `);
 
         await client.query('COMMIT');
-        console.log("✅ Updated overdue activities");
+        console.log("✅ Updated all relevant activity statuses.");
     } catch (err) {
         await client.query('ROLLBACK');
         console.error("❌ Error during CRON job:", err.message);

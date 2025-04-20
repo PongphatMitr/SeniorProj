@@ -22,6 +22,8 @@
 
     <script>
         let activities = [];
+        let currentRoleFilter = ''; // default to all roles
+
         let sortOrder = {
             title: 'asc',
             start_date: 'asc',
@@ -236,36 +238,57 @@
         let allActivities = [];
 
         async function fetchActivityHistory(role = '') {
-            const userId = localStorage.getItem('user_id');
+            const userId = parseInt(localStorage.getItem('user_id'));
+        
             if (!userId) {
                 alert('User ID not found. Please log in again.');
                 return;
             }
-
+        
             try {
                 const response = await fetch(`http://localhost:3000/api/user/activities/history/${userId}?role=${role}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-
+        
                 if (!response.ok) {
                     throw new Error('Failed to fetch activity history');
                 }
-
+        
                 const data = await response.json();
-                allActivities = data.activities;
+        
+                // Assign role and filter by actual user relevance
+                allActivities = data.activities
+                    .map(a => ({
+                        ...a,
+                        role: a.requester_id === userId ? 'requester' : 'provider'
+                    }))
+                    .filter(a => {
+                        const allowedStatuses = ['เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา'];
+        
+                        if (!allowedStatuses.includes(a.status)) return false;
+        
+                        if (role === 'requester') return a.role === 'requester';
+                        if (role === 'provider') return a.role === 'provider';
+                        return true; // role === '' → show all relevant
+                    });
+        
                 renderActivityHistory(allActivities);
+        
             } catch (error) {
                 console.error('Error fetching activity history:', error);
                 alert('Error fetching activity history. Please try again.');
             }
         }
+        
+        
+        
 
         function renderActivityHistory(activities) {
             const historyTbody = document.getElementById('history-tbody');
             historyTbody.innerHTML = '';
-
+        
             if (activities.length === 0) {
                 const emptyRow = document.createElement('tr');
                 emptyRow.innerHTML = `
@@ -276,50 +299,45 @@
                 historyTbody.appendChild(emptyRow);
                 return;
             }
-
+        
             activities.forEach((activity, index) => {
                 const row = document.createElement('tr');
                 row.id = `history-row-${index + 1}`;
                 row.className = 'hover:bg-gray-100';
-
-                // 👇 Determine which page to link to based on the role
+        
                 const detailPage = activity.role === 'requester'
                     ? 'myactivity-details.html'
                     : 'activity-details.html';
-
+        
                 row.innerHTML = `
-                    <td aria-colindex="1" data-label="กิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${activity.title}
+                    <td class="py-2 px-4 border-b border-gray-200">${activity.title}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">${formatDate(activity.created_at)}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">${formatDate(activity.start_date)}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">
+                        <span class="py-1 px-2 rounded ${
+                            activity.status === 'เสร็จสิ้น' ? 'bg-green-500' :
+                            activity.status === 'เกินเวลา' ? 'bg-orange-500' :
+                            'bg-red-500'
+                        } text-white">${activity.status}</span>
                     </td>
-                    <td aria-colindex="2" data-label="วันที่สร้างกิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${formatDate(activity.created_at)}
-                    </td>
-                    <td aria-colindex="3" data-label="วันที่เริ่มกิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${formatDate(activity.start_date)}
-                    </td>
-                    <td aria-colindex="4" data-label="สถานะ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        <span class="py-1 px-2 rounded ${activity.status === 'เสร็จสิ้น' ? 'bg-green-500' : activity.status === 'เกินเวลา' ? 'bg-orange-500' : 'bg-red-500'} text-white">${activity.status}</span>
-                    </td>
-                    <td aria-colindex="5" data-label="จำนวนผู้เข้าร่วม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${activity.current_participants} / ${activity.max_participants}
-                    </td>
-                    <td aria-colindex="6" data-label="บทบาท" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${activity.role === 'requester' ? 'ผู้สร้าง' : 'ผู้เข้าร่วม'}
-                    </td>
-                    <td aria-colindex="7" data-label="การจัดการ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        <a href="${detailPage}?id=${activity.activity_id}" 
-                           class="bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">
-                            รายละเอียด
-                        </a>
+                    <td class="py-2 px-4 border-b border-gray-200">${activity.current_participants} / ${activity.max_participants}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">${activity.role === 'requester' ? 'ผู้สร้าง' : 'ผู้เข้าร่วม'}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">
+                        <a href="${detailPage}?id=${activity.activity_id}" class="bg-blue-500 text-white font-bold py-1 px-2 rounded">รายละเอียด</a>
                     </td>
                 `;
                 historyTbody.appendChild(row);
             });
         }
+        
 
         function filterActivityHistory(role) {
+            currentRoleFilter = role;
             fetchActivityHistory(role);
         }
+        
+        
+        
 
         function searchActivities() {
             const keyword = document.getElementById('search-input').value.toLowerCase();
@@ -335,7 +353,9 @@
             const startTime = startHours && startMinutes ? `${startHours}:${startMinutes}` : null;
             const endTime = endHours && endMinutes ? `${endHours}:${endMinutes}` : null;
 
-            const filtered = allActivities.filter(a => {
+            const filtered = allActivities
+            .filter(a => {
+                const matchRole = currentRoleFilter === '' || a.role === currentRoleFilter;
                 const matchText = a.title.toLowerCase().includes(keyword) || (a.description || '').toLowerCase().includes(keyword);
                 const matchStartDate = startDate ? new Date(a.start_date) >= new Date(startDate) : true;
                 const matchEndDate = endDate ? new Date(a.end_date) <= new Date(endDate) : true;
@@ -343,11 +363,13 @@
                 const matchEndTime = endTime ? a.end_time <= endTime : true;
                 const matchSkill = skill ? a.required_skill_id == skill : true;
                 const matchAvailable = availableOnly ? a.current_participants < a.max_participants : true;
-
-                return matchText && matchStartDate && matchEndDate && matchStartTime && matchEndTime && matchSkill && matchAvailable;
+        
+                return matchRole && matchText && matchStartDate && matchEndDate && matchStartTime && matchEndTime && matchSkill && matchAvailable;
             });
+        
 
-            renderActivityHistory(filtered);
+            fetchActivityHistory(currentRoleFilter);
+
         }
 
         async function fetchSkillsAndCategories() {

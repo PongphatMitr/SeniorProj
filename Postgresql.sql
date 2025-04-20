@@ -481,6 +481,38 @@ INSERT INTO activity_participants (
     2
 );
 
+INSERT INTO activities (
+    title,
+    description,
+    location,
+    start_date,
+    start_time,
+    end_date,
+    end_time,
+    max_participants,
+    requester_id,
+    requester_phone,
+    status,
+    time_tokens_required,
+    time_tokens_per_participant,
+    required_skills
+) VALUES (
+    'ทดสอบเปลี่ยนจากกำลังจะเริ่มเป็นกำลังทำกิจกรรม',
+    'กิจกรรมนี้จะเริ่มภายใน 1 นาทีและยาว 1 ชั่วโมง',
+    'สถานที่ทดสอบ',
+    CURRENT_DATE,
+    to_char(NOW() + INTERVAL '1 minute', 'HH24:MI')::time,  -- start in 30 sec
+    CURRENT_DATE,
+    to_char(NOW() + INTERVAL '1 hour 30 seconds', 'HH24:MI')::time, -- 1hr after start
+    10,
+    2,
+    '0812345678',
+    'กำลังจะเริ่ม',
+    5,
+    1,
+    1
+);
+
 
 UPDATE activities
 SET status = CASE
