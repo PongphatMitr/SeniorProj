@@ -1,9 +1,10 @@
+
 <html lang="en">
 
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>กิจกรรมที่ฉันสร้าง - Time Bank</title>
+    <title>กิจกรรมของฉันที่ดำเนินอยู่ - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
     <script src="navbar.js"></script>
@@ -20,8 +21,6 @@
     </style>
 
     <script>
-        let activities = [];
-        let allOngoingActivities = [];
         let sortOrder = {
             title: 'asc',
             start_date: 'asc',
@@ -40,10 +39,7 @@
                     }
                 });
                 if (response.ok) {
-                    const row = document.getElementById(rowId);
-                    if (row) {
-                        row.remove();
-                    }
+                    document.getElementById(rowId).remove();
                     alert("กิจกรรมถูกลบเรียบร้อยแล้ว");
                 } else {
                     alert("เกิดข้อผิดพลาดในการลบกิจกรรม");
@@ -51,67 +47,77 @@
             }
         }
 
+        let allOngoingActivities = [];
+        let currentRoleFilter = '';
+        
         async function fetchActivities() {
             try {
-                console.log('Fetching activities...');
+                const userId = parseInt(localStorage.getItem('user_id'));
                 const response = await fetch('http://localhost:3000/api/user/activities', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-                console.log('Response status:', response.status);
+        
                 const data = await response.json();
-                console.log('Response data:', data);
-
-                if (response.ok) {
-                    activities = data.activities.filter(activity => activity.requester_id === parseInt(localStorage.getItem('user_id')));
-                    await fetchParticipants();
-                    await fetchRequesterNames();
-                    updateActivityStatus();
-                    renderTable(activities);
-                } else {
-                    console.error('Error:', data);
-                    alert('Error fetching activities. Please try again.');
-                }
+                if (!response.ok) throw new Error('Failed to fetch activities.');
+        
+                const validStatuses = ['กำลังจะเริ่ม', 'กำลังทำกิจกรรม', 'รอผู้ขอยืนยันผล', 'รอการอนุมัติ'];
+                let fetchedActivities = data.activities.filter(a => validStatuses.includes(a.status));
+        
+                // Store all for now, filtering will be done after participants loaded
+                allOngoingActivities = fetchedActivities.map(a => ({
+                    ...a,
+                    required_skill_id: a.required_skills
+                }));
+                
+        
+                await fetchParticipants(); // populate `participants`
+                await fetchRequesterNames();
+        
+                // Now filter only activities that the user is involved in
+                allOngoingActivities = allOngoingActivities.filter(activity =>
+                    activity.requester_id === userId ||
+                    activity.participants.some(p => p.user_id === userId)
+                );
+        
+                renderActivityOngoing(allOngoingActivities);
+        
             } catch (error) {
                 console.error('Error fetching activities:', error);
                 alert('Error fetching activities. Please try again.');
             }
         }
-
+        
+        
         async function fetchParticipants() {
-            for (let activity of activities) {
+            for (let activity of allOngoingActivities) {
                 try {
                     const response = await fetch(`http://localhost:3000/api/user/activities/${activity.activity_id}/participants`, {
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
                         }
                     });
-                    if (!response.ok) {
-                        throw new Error(`Failed to fetch participants for activity ${activity.activity_id}`);
-                    }
                     const participants = await response.json();
                     activity.current_participants = participants.length;
-                    activity.participants = participants; // Store participants for later use
+                    activity.participants = participants;
                 } catch (error) {
                     console.error(`Error fetching participants for activity ${activity.activity_id}:`, error);
                     activity.current_participants = 0;
-                    activity.participants = []; // Ensure participants is an empty array on error
+                    activity.participants = [];
                 }
             }
         }
-
+        
         async function fetchRequesterNames() {
-            for (let activity of activities) {
+            for (let activity of allOngoingActivities) {
                 try {
                     const response = await fetch(`http://localhost:3000/api/user/members/${activity.requester_id}`, {
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
                         }
                     });
-                    if (!response.ok) {
-                        throw new Error(`Failed to fetch user details for user ${activity.requester_id}`);
-                    }
+                    if (!response.ok) throw new Error(`Failed to fetch user details for user ${activity.requester_id}`);
                     const user = await response.json();
                     activity.requester_name = user.name;
                 } catch (error) {
@@ -120,69 +126,104 @@
                 }
             }
         }
-
+        
         function updateActivityStatus() {
             const now = new Date();
             activities.forEach(activity => {
                 if (activity.status === 'กำลังจะเริ่ม') {
                     const activityEndDate = new Date(activity.end_date);
-                    if (activity.end_time) {
-                        const activityEndTime = activity.end_time.split(':');
-                        if (activityEndTime.length === 3) {
-                            activityEndDate.setHours(activityEndTime[0], activityEndTime[1], activityEndTime[2]);
-                        } else if (activityEndTime.length === 2) {
-                            activityEndDate.setHours(activityEndTime[0], activityEndTime[1], 0);
-                        }
-                    }
+                    const activityEndTime = activity.end_time.split(':');
+                    activityEndDate.setHours(activityEndTime[0], activityEndTime[1], activityEndTime[2]);
+
                     if (activityEndDate < now) {
                         activity.status = 'เกินเวลา';
                     }
                 }
             });
         }
+        
 
-        function renderTable(data) {
+        function renderActivityOngoing(data) {
             const tbody = document.getElementById('activity-tbody');
-            if (!tbody) {
-                console.error('Element with id "activity-tbody" not found.');
+            tbody.innerHTML = '';
+            const userId = parseInt(localStorage.getItem('user_id'));
+        
+            // Filter only activities the user is involved in
+            const filtered = data.filter(activity => {
+                const isRequester = activity.requester_id === userId;
+                const isParticipant = activity.participants?.some(p => p.user_id === userId);
+                if (currentRoleFilter === 'requester') {
+                    return isRequester;
+                } else if (currentRoleFilter === 'provider') {
+                    return isParticipant;
+                }
+                return isRequester || isParticipant; // All roles
+            });
+        
+            if (filtered.length === 0) {
+                const emptyRow = document.createElement('tr');
+                emptyRow.innerHTML = `
+                    <td colspan="7" class="text-center py-4 text-gray-500 italic">
+                        ไม่มีข้อมูลกิจกรรมที่กำลังดำเนินอยู่
+                    </td>
+                `;
+                tbody.appendChild(emptyRow);
                 return;
             }
-            tbody.innerHTML = '';
-            data.forEach((activity, index) => {
+        
+            filtered.forEach((activity, index) => {
+                const statusColor =
+                    activity.status === 'กำลังจะเริ่ม' ? 'bg-blue-500' :
+                    activity.status === 'กำลังทำกิจกรรม' ? 'bg-yellow-500' :
+                    activity.status === 'รอผู้ขอยืนยันผล' ? 'bg-pink-500' :
+                    activity.status === 'รอการอนุมัติ' ? 'bg-indigo-500' :
+                    'bg-gray-500';
+        
+                const isRequester = activity.requester_id === userId;
+                const isParticipantOnly = activity.participants.some(p => p.user_id === userId) && !isRequester;
+                
+                let role = '-';
+                let detailPage = 'activity-details.html';
+                
+                if (isRequester) {
+                    role = 'ผู้สร้าง';
+                    detailPage = 'myactivity-details.html';
+                } else if (isParticipantOnly) {
+                    role = 'ผู้เข้าร่วม';
+                }
+                    
+        
                 const row = document.createElement('tr');
-                row.id = `row-${index + 1}`;
+                row.id = `ongoing-row-${index + 1}`;
                 row.className = 'hover:bg-gray-100';
+        
                 row.innerHTML = `
-                    <td aria-colindex="1" data-label="ชื่อผู้ขอ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${activity.requester_name || ''}
+                    <td class="py-2 px-4 border-b border-gray-200">${activity.title}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">${formatDate(activity.created_at)}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">${formatDate(activity.start_date)}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">
+                        <span class="py-1 px-2 rounded text-white ${statusColor}">${activity.status}</span>
                     </td>
-                    <td aria-colindex="2" data-label="กิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${activity.title || ''}
-                    </td>
-                    <td aria-colindex="3" data-label="วันที่สร้างกิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${formatDate(activity.created_at)}
-                    </td>
-                    <td aria-colindex="4" data-label="วันที่เริ่มกิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${formatDate(activity.start_date)}
-                    </td>
-                    <td aria-colindex="5" data-label="สถานะ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        <span class="py-1 px-2 rounded ${activity.status === 'กำลังจะเริ่ม' ? 'bg-blue-500' : activity.status === 'เสร็จสิ้น' ? 'bg-green-500' : activity.status === 'เกินเวลา' ? 'bg-orange-500' : 'bg-red-500'} text-white">${activity.status || ''}</span>
-                    </td>
-                    <td aria-colindex="6" data-label="จำนวนผู้เข้าร่วม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${activity.current_participants || 0} / ${activity.max_participants || 0}
-                    </td>
-                    <td aria-colindex="7" data-label="การจัดการ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        <a href="myactivity-details.html?id=${activity.activity_id}" class="bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">รายละเอียด</a>
+                    <td class="py-2 px-4 border-b border-gray-200">${activity.current_participants} / ${activity.max_participants}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">${role}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">
+                        <a href="${detailPage}?id=${activity.activity_id}" class="bg-blue-500 text-white font-bold py-1 px-2 rounded">รายละเอียด</a>
                     </td>
                 `;
                 tbody.appendChild(row);
             });
         }
+        
+        
+        
+        function filterOngoingActivities(role) {
+            currentRoleFilter = role;
+            renderActivityOngoing(allOngoingActivities);
+        }
+        
 
         function formatDate(dateString) {
-            if (!dateString) return '';
             const date = new Date(dateString);
-            if (isNaN(date)) return '';
             const year = date.getFullYear() + 543; // Convert to Buddhist year
             const monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
             const month = monthNames[date.getMonth()];
@@ -196,40 +237,12 @@
 
             const sortedActivities = [...activities].sort((a, b) => {
                 if (type === 'string') {
-                    return order === 'asc' ? (a[column] || '').localeCompare(b[column] || '') : (b[column] || '').localeCompare(a[column] || '');
+                    return order === 'asc' ? a[column].localeCompare(b[column]) : b[column].localeCompare(a[column]);
                 } else if (type === 'date') {
                     return order === 'asc' ? new Date(a[column]) - new Date(b[column]) : new Date(b[column]) - new Date(a[column]);
                 }
-                return 0;
             });
-            renderTable(sortedActivities);
-        }
-
-        async function fetchActivityHistory(role = '') {
-            const userId = localStorage.getItem('user_id');
-            if (!userId) {
-                alert('User ID not found. Please log in again.');
-                return;
-            }
-
-            try {
-                const response = await fetch(`http://localhost:3000/api/user/activities/ongoing/${userId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Failed to fetch ongoing activities');
-                }
-
-                const data = await response.json();
-                allOngoingActivities = data.activities || [];
-                filterActivityHistory(role);
-            } catch (error) {
-                console.error('Error fetching ongoing activity:', error);
-                alert('Error fetching ongoing activity. Please try again.');
-            }
+            renderActivityOngoing(sortedActivities);
         }
 
         async function checkLoginStatus() {
@@ -270,79 +283,8 @@
             }
         }
 
-        function filterActivityHistory(role) {
-            let filtered = allOngoingActivities;
-
-            if (role === 'requester') {
-                filtered = allOngoingActivities.filter(act => act.role === 'requester');
-            } else if (role === 'provider') {
-                filtered = allOngoingActivities.filter(act => act.role === 'provider');
-            }
-
-            renderActivityOngoing(filtered);
-        }
-
-        function renderActivityOngoing(activities) {
-            const historyTbody = document.getElementById('history-tbody');
-            if (!historyTbody) {
-                console.error('Element with id "history-tbody" not found.');
-                return;
-            }
-            historyTbody.innerHTML = '';
-
-            if (!activities || activities.length === 0) {
-                const emptyRow = document.createElement('tr');
-                emptyRow.innerHTML = `
-                    <td colspan="7" class="text-center py-4 text-gray-500">
-                        ไม่มีข้อมูลกิจกรรมที่กำลังจะเริ่ม
-                    </td>
-                `;
-                historyTbody.appendChild(emptyRow);
-                return;
-            }
-
-            activities.forEach((activity, index) => {
-                const row = document.createElement('tr');
-                row.id = `history-row-${index + 1}`;
-                row.className = 'hover:bg-gray-100';
-
-                // 👇 Determine which page to link to
-                const detailPage = activity.role === 'requester'
-                    ? 'myactivity-details.html'
-                    : 'activity-details.html';
-
-                row.innerHTML = `
-                    <td aria-colindex="1" data-label="กิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${activity.title || ''}
-                    </td>
-                    <td aria-colindex="2" data-label="วันที่สร้างกิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${formatDate(activity.created_at)}
-                    </td>
-                    <td aria-colindex="3" data-label="วันที่เริ่มกิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${formatDate(activity.start_date)}
-                    </td>
-                    <td aria-colindex="4" data-label="สถานะ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        <span class="py-1 px-2 rounded bg-blue-500 text-white">${activity.status || ''}</span>
-                    </td>
-                    <td aria-colindex="5" data-label="จำนวนผู้เข้าร่วม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${activity.current_participants || 0} / ${activity.max_participants || 0}
-                    </td>
-                    <td aria-colindex="6" data-label="บทบาท" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${activity.role === 'requester' ? 'ผู้สร้าง' : 'ผู้เข้าร่วม'}
-                    </td>
-                    <td aria-colindex="7" data-label="การจัดการ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        <a href="${detailPage}?id=${activity.activity_id}" class="bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">
-                            รายละเอียด
-                        </a>
-                    </td>
-                `;
-                historyTbody.appendChild(row);
-            });
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
             checkLoginStatus();
-            fetchActivityHistory();
             fetchActivities();
         });
     </script>
@@ -422,13 +364,13 @@
 
                 <!-- Ongoing Activities -->
                 <a href="actOngoing.html"
-                    class="flex items-center justify-start gap-4 bg-blue-50 border border-blue-700 text-blue-900 font-medium px-6 py-4 rounded-xl shadow-md transition duration-200">
-                    <div class="bg-blue-600 text-white rounded-full p-3">
+                    class="flex items-center justify-start gap-4 bg-white hover:bg-blue-50 border border-blue-200 text-blue-700 hover:text-blue-900 font-medium px-6 py-4 rounded-xl shadow-md transition duration-200">
+                    <div class="bg-blue-100 text-blue-600 rounded-full p-3">
                         <i class="fas fa-clock text-lg"></i>
                     </div>
                     <div class="text-left">
                         <h2 class="text-base font-semibold">กิจกรรมของฉันที่ดำเนินอยู่</h2>
-                        <p class="text-sm text-blue-700">ดูรายการกิจกรรมที่กำลังดำเนินการ</p>
+                        <p class="text-sm text-blue-500">ดูรายการกิจกรรมที่กำลังดำเนินการ</p>
                     </div>
                 </a>
 
@@ -562,7 +504,7 @@
 
                 <script>
                     let skills = []
-                    let categories = []
+                    categories = []
 
                     function toggleAdvancedFilter() {
                         const filterBox = document.getElementById('advanced-filter');
@@ -664,24 +606,34 @@
                         const endMinutes = document.getElementById('end-minutes').value;
                         const skill = document.getElementById('skill-dropdown').value;
                         const availableOnly = document.getElementById('filter-available-slots').checked;
-
+                    
                         const startTime = startHours && startMinutes ? `${startHours}:${startMinutes}` : null;
                         const endTime = endHours && endMinutes ? `${endHours}:${endMinutes}` : null;
-
+                    
+                        const userId = parseInt(localStorage.getItem('user_id'));
+                    
                         const filtered = allOngoingActivities.filter(a => {
+                            const isRequester = a.requester_id === userId;
+                            const isParticipant = a.participants?.some(p => p.user_id === userId);
+                    
+                            if (currentRoleFilter === 'requester' && !isRequester) return false;
+                            if (currentRoleFilter === 'provider' && !isParticipant) return false;
+                    
                             const matchText = a.title.toLowerCase().includes(keyword) || (a.description || '').toLowerCase().includes(keyword);
                             const matchStartDate = startDate ? new Date(a.start_date) >= new Date(startDate) : true;
                             const matchEndDate = endDate ? new Date(a.end_date) <= new Date(endDate) : true;
                             const matchStartTime = startTime ? a.start_time >= startTime : true;
                             const matchEndTime = endTime ? a.end_time <= endTime : true;
-                            const matchSkill = skill ? a.required_skill_id == skill : true;
+                            const matchSkill = skill ? String(a.required_skill_id) === String(skill) : true;
                             const matchAvailable = availableOnly ? a.current_participants < a.max_participants : true;
-
+                    
                             return matchText && matchStartDate && matchEndDate && matchStartTime && matchEndTime && matchSkill && matchAvailable;
                         });
-
+                    
                         renderActivityOngoing(filtered);
                     }
+                    
+                    
 
 
                     function populateTimeDropdowns() {
@@ -701,11 +653,11 @@
                 </script>
 
                 <div class="mb-4 flex items-center justify-center">
-                    <button onclick="filterActivityHistory('')"
+                    <button onclick="filterOngoingActivities('')"
                         class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-full mx-2 shadow-lg transition duration-300 ease-in-out transform hover:scale-105">กิจกรรมทั้งหมด</button>
-                    <button onclick="filterActivityHistory('requester')"
+                    <button onclick="filterOngoingActivities('requester')"
                         class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-full mx-2 shadow-lg transition duration-300 ease-in-out transform hover:scale-105">ผู้สร้างกิจกรรม</button>
-                    <button onclick="filterActivityHistory('provider')"
+                    <button onclick="filterOngoingActivities('provider')"
                         class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-full mx-2 shadow-lg transition duration-300 ease-in-out transform hover:scale-105">ผู้เข้าร่วมกิจกรรม</button>
                 </div>
                 <div class="overflow-x-auto">
@@ -744,7 +696,7 @@
                                     </th>
                                 </tr>
                             </thead>
-                            <tbody id="history-tbody" role="rowgroup">
+                            <tbody id="activity-tbody" role="rowgroup">
                                 <!-- Activity history will be dynamically inserted here -->
                             </tbody>
                         </table>

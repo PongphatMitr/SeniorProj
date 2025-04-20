@@ -259,20 +259,15 @@
                 const data = await response.json();
         
                 // Assign role and filter by actual user relevance
-                allActivities = data.activities
-                    .map(a => ({
-                        ...a,
-                        role: a.requester_id === userId ? 'requester' : 'provider'
-                    }))
-                    .filter(a => {
-                        const allowedStatuses = ['เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา'];
-        
-                        if (!allowedStatuses.includes(a.status)) return false;
-        
-                        if (role === 'requester') return a.role === 'requester';
-                        if (role === 'provider') return a.role === 'provider';
-                        return true; // role === '' → show all relevant
-                    });
+                allActivities = data.activities.filter(a => {
+                    const allowedStatuses = ['เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา'];
+                    if (!allowedStatuses.includes(a.status)) return false;
+                
+                    if (role === 'requester') return a.role === 'requester';
+                    if (role === 'provider') return a.role === 'provider';
+                    return true;
+                });
+                
         
                 renderActivityHistory(allActivities);
         
@@ -281,7 +276,6 @@
                 alert('Error fetching activity history. Please try again.');
             }
         }
-        
         
         
 
@@ -321,7 +315,7 @@
                         } text-white">${activity.status}</span>
                     </td>
                     <td class="py-2 px-4 border-b border-gray-200">${activity.current_participants} / ${activity.max_participants}</td>
-                    <td class="py-2 px-4 border-b border-gray-200">${activity.role === 'requester' ? 'ผู้สร้าง' : 'ผู้เข้าร่วม'}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">${activity.role === 'requester' ? 'ผู้สร้าง' : activity.role === 'provider' ? 'ผู้เข้าร่วม' : '-'}</td>
                     <td class="py-2 px-4 border-b border-gray-200">
                         <a href="${detailPage}?id=${activity.activity_id}" class="bg-blue-500 text-white font-bold py-1 px-2 rounded">รายละเอียด</a>
                     </td>
@@ -349,28 +343,26 @@
             const endMinutes = document.getElementById('end-minutes').value;
             const skill = document.getElementById('skill-dropdown').value;
             const availableOnly = document.getElementById('filter-available-slots').checked;
-
+        
             const startTime = startHours && startMinutes ? `${startHours}:${startMinutes}` : null;
             const endTime = endHours && endMinutes ? `${endHours}:${endMinutes}` : null;
-
-            const filtered = allActivities
-            .filter(a => {
+        
+            const filtered = allActivities.filter(a => {
                 const matchRole = currentRoleFilter === '' || a.role === currentRoleFilter;
                 const matchText = a.title.toLowerCase().includes(keyword) || (a.description || '').toLowerCase().includes(keyword);
                 const matchStartDate = startDate ? new Date(a.start_date) >= new Date(startDate) : true;
                 const matchEndDate = endDate ? new Date(a.end_date) <= new Date(endDate) : true;
                 const matchStartTime = startTime ? a.start_time >= startTime : true;
                 const matchEndTime = endTime ? a.end_time <= endTime : true;
-                const matchSkill = skill ? a.required_skill_id == skill : true;
+                const matchSkill = skill ? String(a.required_skill_id) === String(skill) : true;
                 const matchAvailable = availableOnly ? a.current_participants < a.max_participants : true;
         
                 return matchRole && matchText && matchStartDate && matchEndDate && matchStartTime && matchEndTime && matchSkill && matchAvailable;
             });
         
-
-            fetchActivityHistory(currentRoleFilter);
-
+            renderActivityHistory(filtered);
         }
+        
 
         async function fetchSkillsAndCategories() {
             try {

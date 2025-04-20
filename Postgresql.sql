@@ -384,7 +384,7 @@ INSERT INTO activities (
     CURRENT_DATE,  -- or CURRENT_DATE - INTERVAL '1 day' if you want it backdated
     to_char(NOW() - INTERVAL '1 hour', 'HH24:MI')::time,
     CURRENT_DATE,
-    to_char(NOW(), 'HH24:MI')::time,  -- end time = now (1 hour after start)
+    to_char(NOW() + INTERVAL '1 minute', 'HH24:MI')::time,  -- end time = now (1 hour after start)
     10,
     2,
     '0123456789',
@@ -471,14 +471,14 @@ INSERT INTO activity_participants (
     user_id
 ) VALUES (
     6,
-    2
+    1
 );
 INSERT INTO activity_participants (
     activity_id,
     user_id
 ) VALUES (
     7,
-    2
+    1
 );
 
 INSERT INTO activities (

@@ -608,7 +608,7 @@ router.get('/', async (req, res) => {
                 LEFT JOIN skills s 
                     ON a.required_skills = s.skill_id
                 WHERE (a.requester_id = $1 OR ap.user_id = $1) 
-                AND a.status = 'กำลังจะเริ่ม'
+                AND a.status IN ('กำลังจะเริ่ม', 'กำลังทำกิจกรรม', 'รอผู้ขอยืนยันผล', 'รอการอนุมัติ')
                 ORDER BY a.start_date DESC, a.start_time DESC
             `;
 
@@ -619,6 +619,7 @@ router.get('/', async (req, res) => {
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
+
     
 
     router.post('/:activityId/confirm-completion', async (req, res) => {
