@@ -170,9 +170,36 @@ const transactionRoutes = (pool) => {
     });
 
 
+    // ✅ Route: Get transactions by logged-in user only
+    router.get('/me', authMiddleware, async (req, res) => {
+        const userId = req.user.userId;
 
+        try {
+            const result = await pool.query(
+                `SELECT 
+                    t.*, 
+                    a.title AS activity_title,
+                    COALESCE(a.description, '') AS activity_description,
+                    r.name AS requester_name,
+                    p.name AS participant_name
+                FROM transactions t
+                LEFT JOIN activities a ON t.activity_id = a.activity_id
+                LEFT JOIN users r ON t.requester_id = r.user_id
+                LEFT JOIN users p ON t.participant_id = p.user_id
+                WHERE t.user_id = $1
+                ORDER BY t.date DESC, t.time DESC`,
+                [userId]
+            );
 
+            res.json({ transactions: result.rows });
+        } catch (err) {
+            console.error('❌ Error fetching transactions:', err.message);
+            res.status(500).json({ error: 'An error occurred.' });
+        }
+    });
 
+    
+    
     return router;
 };
 

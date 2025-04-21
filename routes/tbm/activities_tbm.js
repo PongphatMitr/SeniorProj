@@ -345,80 +345,126 @@ const activityRoutes = (pool) => {
         try {
             await client.query('BEGIN');
 
-            // Fetch activity details
-            const activityResult = await client.query('SELECT * FROM activities WHERE activity_id = $1', [activityId]);
-            if (activityResult.rows.length === 0) {
-                throw new Error('Activity not found');
-            }
+            // 🧹 Remove old/duplicate logs (with null requester_id and participant_id)
+            await client.query(`
+                DELETE FROM transactions
+                WHERE activity_id = $1
+                AND requester_id IS NULL
+                AND participant_id IS NULL
+            `, [activityId]);
 
-            const activity = activityResult.rows[0];
+            // Get activity details
+            const activityRes = await client.query('SELECT * FROM activities WHERE activity_id = $1', [activityId]);
+            if (activityRes.rows.length === 0) throw new Error('Activity not found');
+            const activity = activityRes.rows[0];
 
-            // Fetch current number of participants
-            const participantsResult = await client.query('SELECT user_id FROM activity_participants WHERE activity_id = $1', [activityId]);
-            const participants = participantsResult.rows;
+            // Get participants
+            const participantsRes = await client.query('SELECT user_id FROM activity_participants WHERE activity_id = $1', [activityId]);
+            const participants = participantsRes.rows;
+            if (!participants || participants.length === 0) throw new Error('No participants found');
 
-            // Fetch exchange rate from community config
-            const configResult = await client.query(`
+            // Get requester
+            const requesterRes = await client.query('SELECT user_id, time_credits FROM users WHERE user_id = $1', [activity.requester_id]);
+            if (requesterRes.rows.length === 0) throw new Error('Requester not found');
+            const requester = requesterRes.rows[0];
+
+            // Get exchange rate
+            const configRes = await client.query(`
                 SELECT cc.default_exchange_rate_id, er.description
                 FROM community_config cc
                 JOIN exchange_rates er ON cc.default_exchange_rate_id = er.rate_id
                 LIMIT 1
             `);
-            if (configResult.rows.length === 0) {
-                throw new Error('Community config not found');
+            if (configRes.rows.length === 0) throw new Error('Community config not found');
+
+            const exchangeRateText = configRes.rows[0].description;
+            const exchangeRate = parseInt(exchangeRateText.split(' ')[0], 10);
+            if (isNaN(exchangeRate)) throw new Error('Invalid exchange rate format');
+
+            const totalTokens = exchangeRate * participants.length;
+            if (requester.time_credits < totalTokens) {
+                return res.status(400).json({
+                    error: 'Requester has insufficient time credits',
+                    available_credits: requester.time_credits
+                });
             }
 
-            const exchangeRate = parseInt(configResult.rows[0].description.split(' ')[0], 10); // Assuming the description is in the format '1 token per X hours'
-
-            // Update activity status
-            const result = await client.query(
-                'UPDATE activities SET status = $1 WHERE activity_id = $2 RETURNING *',
+            // Update activity status to เสร็จสิ้น
+            const statusRes = await client.query(
+                'UPDATE activities SET status = $1, updated_at = NOW() WHERE activity_id = $2 RETURNING *',
                 ['เสร็จสิ้น', activityId]
             );
 
-            // Deduct time tokens from the requester based on current participants and exchange rate
-            const requesterResult = await client.query('SELECT user_id, time_credits FROM users WHERE user_id = $1', [activity.requester_id]);
-            if (requesterResult.rows.length === 0) {
-                throw new Error('Requester not found');
-            }
-
-            const requester = requesterResult.rows[0];
-            const totalTokensRequired = participants.length * exchangeRate;
-
-            if (requester.time_credits < totalTokensRequired) {
-                res.status(400).json({ error: 'Not enough time credits', available_credits: requester.time_credits });
-                return;
-            }
-
-            await client.query('UPDATE users SET time_credits = time_credits - $1 WHERE user_id = $2', [totalTokensRequired, requester.user_id]);
-
-            // Log the transaction for the requester
-            await client.query(
-                'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type, date, time) VALUES ($1, $2, $3, $4, $5, NOW(), NOW())',
-                [requester.user_id, activityId, `Approved activity: ${activity.title}`, totalTokensRequired, 'spend']
-            );
-
-            // Add time credits to each participant
+            // Loop through each participant
             for (const participant of participants) {
-                await client.query('UPDATE users SET time_credits = time_credits + $1 WHERE user_id = $2', [activity.time_tokens_per_participant, participant.user_id]);
+                const participantId = participant.user_id;
 
-                // Log the transaction for each participant
+                // Log: requester spends credits
+                await client.query(`
+                    INSERT INTO transactions (
+                        user_id, activity_id, requester_id, participant_id,
+                        details, time_credits, transaction_type, date, time
+                    ) VALUES (
+                        $1, $2, $3, $4,
+                        $5, $6, $7, CURRENT_DATE, CURRENT_TIME
+                    )
+                `, [
+                    requester.user_id,
+                    activityId,
+                    requester.user_id,
+                    participantId,
+                    `Approved activity: ${activity.title}`,
+                    exchangeRate,
+                    'spend'
+                ]);
+
+                // Log: participant earns credits
+                await client.query(`
+                    INSERT INTO transactions (
+                        user_id, activity_id, requester_id, participant_id,
+                        details, time_credits, transaction_type, date, time
+                    ) VALUES (
+                        $1, $2, $3, $4,
+                        $5, $6, $7, CURRENT_DATE, CURRENT_TIME
+                    )
+                `, [
+                    participantId,
+                    activityId,
+                    requester.user_id,
+                    participantId,
+                    `Earned time credits for activity: ${activity.title}`,
+                    exchangeRate,
+                    'earn'
+                ]);
+
+                // Update participant balance
                 await client.query(
-                    'INSERT INTO transactions (user_id, activity_id, details, time_credits, transaction_type, date, time) VALUES ($1, $2, $3, $4, $5, NOW(), NOW())',
-                    [participant.user_id, activityId, `Earned time credits for activity: ${activity.title}`, activity.time_tokens_per_participant, 'earn']
+                    'UPDATE users SET time_credits = time_credits + $1 WHERE user_id = $2',
+                    [exchangeRate, participantId]
                 );
             }
 
+            // Deduct time credits from requester (only once)
+            await client.query(
+                'UPDATE users SET time_credits = time_credits - $1 WHERE user_id = $2',
+                [totalTokens, requester.user_id]
+            );
+
             await client.query('COMMIT');
-            res.json(result.rows[0]);
+            res.json(statusRes.rows[0]);
         } catch (err) {
             await client.query('ROLLBACK');
-            console.error('Error approving activity:', err.message);
-            res.status(500).json({ error: 'An error occurred. Please try again.' });
+            console.error('❌ Error approving activity:', err.message);
+            console.error(err.stack);
+            res.status(500).json({ error: 'An error occurred during approval process' });
         } finally {
             client.release();
         }
     });
+
+
+
+
 
     // Reject an activity
     router.post('/:activityId/reject', async (req, res) => {
