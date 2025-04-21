@@ -44,6 +44,7 @@
 
         async function fetchMemberSkills() {
             try {
+                // Corrected API endpoint to match backend route
                 const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/skills`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
@@ -94,6 +95,8 @@
             const editSection = document.getElementById(`edit-container-${index}`);
             displaySection.classList.add('hidden');
             editSection.classList.remove('hidden');
+            document.getElementById(`category-dropdown-${index}`).value = "";
+            document.getElementById(`skill-dropdown-${index}`).value = "";
             populateCategoryDropdown(index);
             populateSkillDropdown(index);
             clearSearchBar(index);
@@ -121,7 +124,7 @@
             const categoryDropdown = document.getElementById(`category-dropdown-${index}`);
             if (!categoryDropdown) return;
             const categories = [...new Set(skills.map(skill => skill.category))];
-            categoryDropdown.innerHTML = '<option value="">กรุณาเลือกหมวดหมู่</option>';
+            categoryDropdown.innerHTML = '<option disabled selected value="">กรุณาเลือกหมวดหมู่</option>';
             categories.forEach(category => {
                 const option = document.createElement('option');
                 option.value = category;
@@ -161,7 +164,7 @@
             const skillDropdownId = event.target.id.replace('category-dropdown', 'skill-dropdown');
             const skillDropdown = document.getElementById(skillDropdownId);
             if (!skillDropdown) return;
-            skillDropdown.innerHTML = '';
+            skillDropdown.innerHTML = '<option disabled selected value="">กรุณาเลือกทักษะ</option>';
             if (!selectedCategory) {
                 skillDropdown.disabled = true;
                 return;
@@ -272,6 +275,7 @@
             };
             payload[`skill_${index}`] = selectedSkillId;
             try {
+                // Corrected API endpoint to match backend route
                 const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/skills`, {
                     method: 'PUT',
                     headers: {
@@ -335,6 +339,14 @@
             const modal = document.getElementById(modalId);
             modal.classList.remove('opacity-100', 'scale-100');
             setTimeout(() => modal.classList.add('hidden'), 300);
+        }
+
+        function checkLoginStatus() {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('กรุณาเข้าสู่ระบบก่อนใช้งาน');
+                window.location.href = 'login.html';
+            }
         }
 
         document.addEventListener('DOMContentLoaded', () => {
