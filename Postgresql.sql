@@ -32,6 +32,8 @@ CREATE TYPE activity_status AS ENUM (
 
 CREATE TYPE transaction_type AS ENUM ('earn', 'spend');
 
+
+
 -- Create the branches table
 CREATE TABLE branches (
     branch_id SERIAL PRIMARY KEY,
@@ -89,6 +91,9 @@ CREATE TABLE activities (
     updated_at TIMESTAMP DEFAULT NOW(),
     FOREIGN KEY (requester_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
+
+-- Add column to activities table (no default)
+ALTER TABLE activities ADD COLUMN activity_type activity_type;
 
 -- Create the categories table
 CREATE TABLE categories (
@@ -481,6 +486,24 @@ INSERT INTO activity_participants (
     1
 );
 
+INSERT INTO activity_participants (
+    activity_id,
+    user_id
+) VALUES (
+    7,
+    4
+);
+
+INSERT INTO activity_participants (
+    activity_id,
+    user_id
+) VALUES (
+    7,
+    3
+);
+
+
+
 INSERT INTO activities (
     title,
     description,
@@ -541,4 +564,6 @@ WHERE
     OR
     (status = 'รอผู้ขอยืนยันผล'
      AND (end_date::timestamp + end_time + INTERVAL '1 day') < NOW());
+
+
 	 

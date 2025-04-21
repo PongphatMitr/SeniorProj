@@ -13,57 +13,88 @@
 
         async function fetchActivityDetails() {
             const urlParams = new URLSearchParams(window.location.search);
-            activityId = urlParams.get('id');  // Ensure activityId is set globally
-
+            activityId = urlParams.get('id');
+    
             if (!activityId) {
                 alert('ไม่พบรหัสกิจกรรม');
                 return;
             }
-
+    
             try {
                 const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}`, {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
                 });
-
+    
                 if (!response.ok) {
                     throw new Error('Error fetching activity details');
                 }
-
+    
                 const activity = await response.json();
-
-                // Add console logs to check fetched time data
-                console.log("Fetched Start Time:", activity.start_time);
-                console.log("Fetched End Time:", activity.end_time);
-
-                if (activity) {
-                    document.getElementById('service-title').value = activity.title || '';
-                    document.getElementById('service-description').value = activity.description || '';
-                    document.getElementById('service-location').value = activity.location || '';
-                    document.getElementById('service-start-date').value = activity.start_date ? activity.start_date.split('T')[0] : '';
-                    document.getElementById('service-time-start').value = activity.start_time ? activity.start_time.substring(0, 5) : '';
-                    document.getElementById('service-end-date').value = activity.end_date ? activity.end_date.split('T')[0] : '';
-                    document.getElementById('service-time-end').value = activity.end_time ? activity.end_time.substring(0, 5) : '';
-                    document.getElementById('service-people').value = activity.max_participants || '';
-                    document.getElementById('requester-name').value = activity.requester_name || '';
-                    document.getElementById('requester-phone').value = activity.requester_phone || '';
-                    document.getElementById('service-status').value = activity.status || '';
-
-                    // ✅ Handle required skills
-                    displayRequiredSkills(activity.required_skills);
-
-                    // ✅ Fetch participants and update the join button
-                    await fetchParticipants(activityId, activity.max_participants);
-
-                    // ✅ Update join button based on activity status
-                    updateJoinButton(activity.status, activity.start_date, activity.start_time);
-                } else {
+    
+                if (!activity) {
                     alert('ไม่พบรายละเอียดกิจกรรม');
+                    return;
                 }
+    
+                // Fill in form values
+                document.getElementById('service-title').value = activity.title || '';
+                document.getElementById('service-description').value = activity.description || '';
+                document.getElementById('service-location').value = activity.location || '';
+                document.getElementById('service-start-date').value = activity.start_date || '';
+                document.getElementById('service-time-start').value = activity.start_time || '';
+                document.getElementById('service-end-date').value = activity.end_date || '';
+                document.getElementById('service-time-end').value = activity.end_time || '';
+                document.getElementById('service-people').value = activity.max_participants || '';
+                document.getElementById('requester-name').value = activity.requester_name || '';
+                document.getElementById('requester-phone').value = activity.requester_phone || '';
+                document.getElementById('service-status').value = activity.status || '';
+    
+                // ✅ Display type label consistently
+                displayActivityType(activity);
+    
+                // ✅ Handle cancel button logic
+                const cancelButton = document.getElementById('cancel-activity-button');
+                const joinButton = document.getElementById('join-button');
+                const startDateTime = new Date(`${activity.start_date}T${activity.start_time}`);
+                const now = new Date();
+    
+                if (cancelButton) {
+                    if (activity.status === 'ยกเลิก') {
+                        cancelButton.disabled = true;
+                        cancelButton.innerText = 'กิจกรรมถูกยกเลิกแล้ว';
+                        cancelButton.classList.add('bg-gray-500');
+    
+                        if (joinButton) {
+                            joinButton.innerText = 'ปิดรับสมัคร';
+                            joinButton.classList.remove('bg-green-500', 'bg-red-500');
+                            joinButton.classList.add('bg-gray-500');
+                            joinButton.disabled = true;
+                        }
+                    } else if (now >= startDateTime) {
+                        cancelButton.disabled = true;
+                        cancelButton.innerText = 'ไม่สามารถยกเลิกได้';
+                        cancelButton.classList.remove('bg-red-600', 'hover:bg-red-700');
+                        cancelButton.classList.add('bg-gray-500');
+                    }
+                }
+    
+                // ✅ Show required skill
+                displayRequiredSkills(activity.required_skills);
+    
+                // ✅ Show participants + adjust join button
+                await fetchParticipants(activityId, activity.max_participants);
+    
+                // ✅ Adjust join button based on status
+                updateJoinButton(activity.status, activity.start_date, activity.start_time);
             } catch (error) {
                 console.error('Error fetching activity details:', error);
                 alert('เกิดข้อผิดพลาดในการดึงรายละเอียดกิจกรรม');
             }
         }
+        
+        
 
         function displayRequiredSkills(requiredSkills) {
             const skillsContainer = document.getElementById('selected-skills-list');
@@ -470,6 +501,14 @@
 
                     <hr class="my-8 border-gray-200">
 
+                    <!-- Activity Type Display -->
+                    <div id="activity-type-container" class="my-6 text-center">
+                        <label class="block text-blue-700 text-lg font-bold mb-2">ประเภทของกิจกรรม</label>
+                        <p id="activity-type-text" class="text-gray-800 text-lg font-medium"></p>
+                    </div>
+
+                    <hr class="my-8 border-gray-200">
+
                     <!-- Service Information -->
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="service-title">
@@ -697,6 +736,28 @@
                 modal.classList.add('hidden');
             };
         }
+
+        function displayActivityType(activity) {
+            const activityTypeTextEl = document.getElementById('activity-type-text');
+        
+            if (!activity || !activity.activity_type) {
+                activityTypeTextEl.innerText = 'ไม่พบข้อมูลประเภทกิจกรรม';
+                activityTypeTextEl.className = 'text-red-600 text-sm';
+                return;
+            }
+        
+            const typeLabel = activity.activity_type === 'exchange'
+                ? 'มีการแลกเปลี่ยนโทเค็นเวลา'
+                : 'ไม่มีการแลกเปลี่ยนโทเค็นเวลา';
+        
+            activityTypeTextEl.innerText = typeLabel;
+            activityTypeTextEl.className = `inline-block px-4 py-1 text-sm font-medium border rounded-full ${
+                activity.activity_type === 'exchange'
+                    ? 'text-green-600 border-green-600 bg-green-50'
+                    : 'text-gray-600 border-gray-500 bg-gray-100'
+            }`;
+        }
+        
     </script>
 
 </body>

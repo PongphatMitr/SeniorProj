@@ -99,8 +99,8 @@ function updateSidebar(isLoggedIn) {
                   <i class="fas fa-home mr-3 w-5"></i> หน้าหลัก
                 </a>
               </li>
-              ${createDropdown('community-dropdown', 'กิจกรรม', 'fas fa-users', [
-                  { href: 'service.html', text: 'กิจกรรมชุมชน', icon: 'fas fa-users' },
+              ${createDropdown('community-dropdown', 'กิจกรรมทั้งหมด', 'fas fa-users', [
+                  { href: 'service.html', text: 'กิจกรรมของชุมชน', icon: 'fas fa-users' },
                   { href: 'history.html', text: 'ธุรกรรมเวลา', icon: 'fas fa-history' },
                   { href: 'create-service.html', text: 'สร้างกิจกรรม', icon: 'fas fa-plus-circle' }
               ])}

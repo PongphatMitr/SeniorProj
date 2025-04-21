@@ -215,7 +215,7 @@
 
         async function submitActivity(event) {
             event.preventDefault();
-
+        
             const title = document.getElementById('title').value;
             const description = document.getElementById('description').value;
             const location = document.getElementById('location').value;
@@ -225,29 +225,36 @@
             const requesterId = document.getElementById('requester-id').value;
             const requesterPhone = document.getElementById('requester-phone').value;
             const status = document.getElementById('status').value;
+            const activityType = document.getElementById('activity-type').value;
+        
+            if (!activityType) {
+                alert('กรุณาเลือกประเภทของกิจกรรม');
+                return;
+            }
+        
             const timeTokensRequired = parseFloat(document.getElementById('time-tokens-required').value);
             const timeTokensPerParticipant = parseFloat(document.getElementById('time-tokens-per-participant').value);
-
+        
             const startHours = document.getElementById('start-hours').value;
             const startMinutes = document.getElementById('start-minutes').value;
             const endHours = document.getElementById('end-hours').value;
             const endMinutes = document.getElementById('end-minutes').value;
-
+        
             if (!startHours || !startMinutes || !endHours || !endMinutes) {
                 alert('กรุณาเลือกเวลาเริ่มต้นและเวลาสิ้นสุดให้ครบ');
                 return;
             }
-
+        
             const startTime = `${startHours}:${startMinutes}`;
             const endTime = `${endHours}:${endMinutes}`;
-
+        
             if (selectedSkills.length === 0) {
                 alert('กรุณาเลือก 1 ทักษะสำหรับกิจกรรม');
                 return;
             }
-
+        
             const required_skill = selectedSkills[0].skill_id;
-
+        
             const activityData = {
                 title,
                 description,
@@ -260,11 +267,12 @@
                 requester_id: requesterId,
                 requester_phone: requesterPhone,
                 status,
-                time_tokens_required: timeTokensRequired,
-                time_tokens_per_participant: timeTokensPerParticipant,
-                required_skills: required_skill
+                time_tokens_required: activityType === 'exchange' ? timeTokensRequired : 0,
+                time_tokens_per_participant: activityType === 'exchange' ? timeTokensPerParticipant : 0,
+                required_skills: required_skill,
+                activity_type: activityType
             };
-
+        
             try {
                 const response = await fetch('http://localhost:3000/api/user/activities', {
                     method: 'POST',
@@ -274,12 +282,12 @@
                     },
                     body: JSON.stringify(activityData)
                 });
-
+        
                 if (!response.ok) {
                     const errorData = await response.json();
                     throw new Error(`Activity creation failed: ${errorData.error}`);
                 }
-
+        
                 alert('สร้างกิจกรรมสำเร็จ!');
                 window.location.href = 'actOngoing.html';
             } catch (error) {
@@ -287,6 +295,7 @@
                 alert('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
             }
         }
+        
 
         async function checkLoginStatus() {
             const token = localStorage.getItem('token');
@@ -345,8 +354,15 @@
             const startDate = document.getElementById('start-date');
             const endDate = document.getElementById('end-date');
 
-            if (startHours) startHours.addEventListener('change', calculateTimeTokens);
-            if (startMinutes) startMinutes.addEventListener('change', calculateTimeTokens);
+            if (startHours) startHours.addEventListener('change', () => {
+                autoSetEndTime();
+                calculateTimeTokens();
+            });
+            if (startMinutes) startMinutes.addEventListener('change', () => {
+                autoSetEndTime();
+                calculateTimeTokens();
+            });
+            
             if (endHours) endHours.addEventListener('change', calculateTimeTokens);
             if (endMinutes) endMinutes.addEventListener('change', calculateTimeTokens);
 
@@ -432,6 +448,20 @@
                         </div>
                     </div>
                     <hr class="my-8 border-gray-200" />
+
+                    <div class="mb-4">
+                        <label for="activity-type" class="block text-gray-700 text-sm font-bold mb-2">
+                          ประเภทของกิจกรรม <span class="text-red-500">*</span>
+                        </label>
+                        <select id="activity-type" class="shadow border rounded w-full py-2 px-3 text-gray-700" required>
+                          <option value="" disabled selected>-- กรุณาเลือกประเภทกิจกรรม --</option>
+                          <option value="exchange">มีการแลกเปลี่ยนโทเค็นเวลา</option>
+                          <option value="non_exchange">ไม่มีการแลกเปลี่ยนโทเค็นเวลา</option>
+                        </select>
+                      </div>
+
+                    <hr class="my-8 border-gray-200" />
+
                     <!-- Activity Details -->
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="title">ชื่อกิจกรรม</label>
@@ -476,6 +506,7 @@
                         </div>
                     </div>
                     <hr class="my-8 border-gray-200" />
+                      
                     <!-- Date -->
                     <div class="grid grid-cols-2 gap-4 mb-4">
                         <div>
@@ -558,8 +589,8 @@
                             </select>
                         </div>
                     </div>
-                    <!-- Time Tokens -->
-                    <div class="grid grid-cols-2 gap-4 mb-4">
+                    <!-- Time Tokens (conditionally visible) -->
+                    <div id="token-fields" class="grid grid-cols-2 gap-4 mb-4 hidden">
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2"
                                 for="time-tokens-required">จำนวนโทเค็นเวลาที่ต้องการ</label>
@@ -588,6 +619,44 @@
             </div>
         </div>
     </div>
+    <script>
+        function autoSetEndTime() {
+            const startHours = parseInt(document.getElementById('start-hours').value, 10);
+            const startMinutes = parseInt(document.getElementById('start-minutes').value, 10);
+        
+            if (isNaN(startHours) || isNaN(startMinutes)) return;
+        
+            let endHours = startHours + 1;
+            let endMinutes = startMinutes;
+        
+            if (endHours >= 24) {
+                endHours = endHours % 24;
+            }
+        
+            document.getElementById('end-hours').value = endHours.toString().padStart(2, '0');
+            document.getElementById('end-minutes').value = endMinutes.toString().padStart(2, '0');
+        
+            calculateTimeTokens();
+        }
+
+        // At the end of your <script>
+        function handleActivityTypeChange() {
+            const type = document.getElementById('activity-type').value;
+            const tokenFields = document.getElementById('token-fields');
+            if (type === 'exchange') {
+                tokenFields.classList.remove('hidden');
+                calculateTimeTokens(); // recalculate if needed
+            } else {
+                tokenFields.classList.add('hidden');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('activity-type').addEventListener('change', handleActivityTypeChange);
+            handleActivityTypeChange(); // for default state on load
+        });
+        
+    </script>
 </body>
 
 </html>

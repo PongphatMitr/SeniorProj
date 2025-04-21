@@ -13,23 +13,23 @@
         async function fetchActivityDetails() {
             const urlParams = new URLSearchParams(window.location.search);
             activityId = urlParams.get('id');
-
+        
             if (!activityId) {
                 alert('ไม่พบรหัสกิจกรรม');
                 return;
             }
-
+        
             try {
                 const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
-
+        
                 if (!response.ok) {
                     throw new Error('Error fetching activity details');
                 }
-
+        
                 const activity = await response.json();
-
+        
                 if (activity) {
                     document.getElementById('service-title').value = activity.title || '';
                     document.getElementById('service-description').value = activity.description || '';
@@ -42,20 +42,29 @@
                     document.getElementById('requester-name').value = activity.requester_name || '';
                     document.getElementById('requester-phone').value = activity.requester_phone || '';
                     document.getElementById('service-status').value = activity.status || '';
-
+        
+                    // ✅ Display Activity Type in a formal label
+                    const typeLabel = activity.activity_type === 'exchange'
+                        ? 'มีการแลกเปลี่ยนโทเค็นเวลา'
+                        : 'ไม่มีการแลกเปลี่ยนโทเค็นเวลา';
+        
+                    const activityTypeTextEl = document.getElementById('activity-type-text');
+                    activityTypeTextEl.innerText = typeLabel;
+                    activityTypeTextEl.className = `inline-block px-4 py-1 text-sm font-medium border rounded-full ${
+                        activity.activity_type === 'exchange'
+                            ? 'text-green-600 border-green-600 bg-green-50'
+                            : 'text-gray-600 border-gray-500 bg-gray-100'
+                    }`;
+        
                     const cancelButton = document.getElementById('cancel-activity-button');
-
-                    // Combine start_date and start_time into a single datetime string
                     const activityStartDateTime = new Date(`${activity.start_date}T${activity.start_time}`);
                     const now = new Date();
-
-                    // Disable cancel button if status is already "ยกเลิก"
+        
                     if (activity.status === 'ยกเลิก') {
                         cancelButton.disabled = true;
                         cancelButton.innerText = 'กิจกรรมถูกยกเลิกแล้ว';
                         cancelButton.classList.add('bg-gray-500');
-
-                        // Also disable join button
+        
                         const joinButton = document.getElementById('join-button');
                         if (joinButton) {
                             joinButton.innerText = 'ปิดรับสมัคร';
@@ -63,23 +72,18 @@
                             joinButton.classList.add('bg-gray-500');
                             joinButton.disabled = true;
                         }
-
-                        // Disable cancel button if activity already started
                     } else if (now >= activityStartDateTime) {
                         cancelButton.disabled = true;
                         cancelButton.innerText = 'ไม่สามารถยกเลิกได้';
                         cancelButton.classList.remove('bg-red-600', 'hover:bg-red-700');
                         cancelButton.classList.add('bg-gray-500');
                     }
-
-                    // ✅ Handle required skills
+        
                     displayRequiredSkills(activity.required_skills);
-
-                    // ✅ Fetch participants and update the join button
                     await fetchParticipants(activityId, activity.max_participants);
-
-                    // ✅ Update join button based on activity status
                     updateJoinButton(activity.status);
+
+                    displayActivityType(activity);
                 } else {
                     alert('ไม่พบรายละเอียดกิจกรรม');
                 }
@@ -88,6 +92,8 @@
                 alert('เกิดข้อผิดพลาดในการดึงรายละเอียดกิจกรรม');
             }
         }
+        
+        
 
 
         function updateJoinButton(status) {
@@ -511,6 +517,14 @@
 
                     <hr class="my-8 border-gray-200">
 
+                    <!-- Activity Type Display -->
+                    <div id="activity-type-container" class="my-6 text-center">
+                        <label class="block text-blue-700 text-lg font-bold mb-2">ประเภทของกิจกรรม</label>
+                        <p id="activity-type-text" class="text-gray-800 text-lg font-medium"></p>
+                    </div>
+
+                    <hr class="my-8 border-gray-200">
+                    
                     <!-- Service Information -->
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="service-title">
@@ -683,6 +697,21 @@
         </div>
 
         <script src="navbar.js"></script>
+        <script>
+            function displayActivityType(activity) {
+                const activityTypeTextEl = document.getElementById('activity-type-text');
+            
+                if (!activity || !activity.activity_type) {
+                    activityTypeTextEl.innerText = 'ไม่พบข้อมูลประเภทกิจกรรม';
+                    return;
+                }
+            
+                activityTypeTextEl.innerText = activity.activity_type === 'exchange'
+                    ? 'มีการแลกเปลี่ยนโทเค็นเวลา'
+                    : 'ไม่มีการแลกเปลี่ยนโทเค็นเวลา';
+            }
+            
+        </script>
 </body>
 
 </html>
