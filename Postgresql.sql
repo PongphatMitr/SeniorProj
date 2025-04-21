@@ -381,22 +381,24 @@ INSERT INTO activities (
     status,
     time_tokens_required,
     time_tokens_per_participant,
-    required_skills
+    required_skills,
+    activity_type
 ) VALUES (
-	    'กิจกรรมเช็คคอนเฟิมรายชื่อตอนเสร็จสิ้น',
+    'กิจกรรมเช็คคอนเฟิมรายชื่อตอนเสร็จสิ้น',
     'เริ่มเมื่อ 1 ชั่วโมงก่อนเวลานี้ และจะจบอีกชั่วโมงถัดมา',
     'Test Location',
-    CURRENT_DATE,  -- or CURRENT_DATE - INTERVAL '1 day' if you want it backdated
+    CURRENT_DATE,
     to_char(NOW() - INTERVAL '1 hour', 'HH24:MI')::time,
     CURRENT_DATE,
-    to_char(NOW() + INTERVAL '1 minute', 'HH24:MI')::time,  -- end time = now (1 hour after start)
+    to_char(NOW() + INTERVAL '1 minute', 'HH24:MI')::time,
     10,
     2,
     '0123456789',
     'กำลังจะเริ่ม',
     5,
     1,
-    1
+    1,
+    'exchange'
 );
 
 INSERT INTO activities (
@@ -413,22 +415,24 @@ INSERT INTO activities (
     status,
     time_tokens_required,
     time_tokens_per_participant,
-    required_skills
+    required_skills,
+    activity_type
 ) VALUES (
-    'กิจกรรมเช็คคอนเฟิมรายชื่อตอนยังไม่เสร็จ	',
+    'กิจกรรมเช็คคอนเฟิมรายชื่อตอนยังไม่เสร็จ',
     'เริ่มเมื่อ 1 นาทีที่แล้ว และสิ้นสุดอีก 1 ชั่วโมงถัดมา',
     'Test Location',
     CURRENT_DATE,
     to_char(NOW() - INTERVAL '1 minute', 'HH24:MI')::time,
     CURRENT_DATE,
-    to_char(NOW() + INTERVAL '59 minute', 'HH24:MI')::time,  -- 1 hour after start
+    to_char(NOW() + INTERVAL '59 minute', 'HH24:MI')::time,
     10,
     2,
     '0123456789',
     'กำลังจะเริ่ม',
     5,
     1,
-    1
+    1,
+    'exchange'
 );
 
 INSERT INTO activities (
@@ -445,23 +449,26 @@ INSERT INTO activities (
     status,
     time_tokens_required,
     time_tokens_per_participant,
-    required_skills
+    required_skills,
+    activity_type
 ) VALUES (
     'กิจกรรมเมื่อวานใกล้จะเกินเวลา',
     'จะกลายเป็นเกินเวลาอีก 1 นาที หลังจากวันสิ้นสุด + เวลา + 1 นาที',
     'Test Location',
     CURRENT_DATE - INTERVAL '1 day',
-    to_char(NOW() - INTERVAL '2 hour', 'HH24:MI')::time,       -- started 2 hrs ago yesterday
+    to_char(NOW() - INTERVAL '2 hour', 'HH24:MI')::time,
     CURRENT_DATE - INTERVAL '1 day',
-    to_char(NOW() + INTERVAL '1 minute', 'HH24:MI')::time,     -- ends in 1 min from now (yesterday)
+    to_char(NOW() + INTERVAL '1 minute', 'HH24:MI')::time,
     10,
     2,
     '0123456789',
     'กำลังจะเริ่ม',
     5,
     1,
-    1
+    1,
+    'non-exchange'
 );
+
 
 
 INSERT INTO activity_participants (
@@ -518,7 +525,8 @@ INSERT INTO activities (
     status,
     time_tokens_required,
     time_tokens_per_participant,
-    required_skills
+    required_skills,
+	activity_type
 ) VALUES (
     'ทดสอบเปลี่ยนจากกำลังจะเริ่มเป็นกำลังทำกิจกรรม',
     'กิจกรรมนี้จะเริ่มภายใน 1 นาทีและยาว 1 ชั่วโมง',
@@ -533,7 +541,8 @@ INSERT INTO activities (
     'กำลังจะเริ่ม',
     5,
     1,
-    1
+    1,
+	'exchange'
 );
 
 

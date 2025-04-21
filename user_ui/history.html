@@ -147,9 +147,10 @@
         
             data.forEach((tx) => {
                 const isEarn = tx.transaction_type === 'earn';
-                const sign = isEarn ? '+' : '−';
-                const creditColor = isEarn ? 'text-green-600' : 'text-red-600';
-                const typeLabel = isEarn ? 'โอนเข้า' : 'โอนออก';
+                const isZero = tx.time_credits === 0;
+                const sign = isZero ? '' : (isEarn ? '+' : '−');
+                const creditColor = isZero ? 'text-black' : (isEarn ? 'text-green-600' : 'text-red-600');
+                const typeLabel = isEarn ? 'โอนเข้า' : 'โอนออก';                
         
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-gray-50 transition text-base text-gray-800';

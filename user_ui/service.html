@@ -116,135 +116,131 @@
             });
         }
 
+        function formatDateShort(dateString) {
+            const date = new Date(dateString);
+            return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear() + 543}`;
+        }
+        
+        function formatTimeShort(timeString) {
+            const [hour, minute] = timeString.split(':');
+            return `${hour}.${minute}`;
+        }
+         
+
         function renderTable(data) {
             const tbody = document.getElementById('activity-tbody');
             tbody.innerHTML = '';
-
+        
             const now = new Date();
-
+        
             data.forEach((activity, index) => {
-                const userJoined = activity.participants && activity.participants.some(p => p.user_id === globalUserId);
+                const userJoined = activity.participants?.some(p => p.user_id === globalUserId);
                 const matchesUserSkill = memberSkills.includes(activity.required_skills);
-
-                const activityStart = new Date(activity.start_date);
-                const [startHour, startMin] = activity.start_time.split(':').map(Number);
-                activityStart.setHours(startHour, startMin, 0, 0);
-
-                const activityEnd = new Date(activity.end_date);
-                const [endHour, endMin] = activity.end_time.split(':').map(Number);
-                activityEnd.setHours(endHour, endMin, 0, 0);
-
+                const isRequester = activity.requester_id === globalUserId;
+        
+                const activityStart = new Date(activity.start_date + 'T' + activity.start_time);
+                const activityEnd = new Date(activity.end_date + 'T' + activity.end_time);
                 const activityAlreadyStarted = now >= activityStart;
                 const activityEnded = now > activityEnd;
-
+        
+                // Join button logic
                 let joinButtonContent = '';
-                let showButton = false;
 
-                if (['ยกเลิก', 'เกินเวลา', 'เสร็จสิ้น', 'ผู้เข้าร่วมไม่ครบ'].includes(activity.status)) {
-                    joinButtonContent = `<span class="bg-gray-500 text-white font-bold py-1 px-2 rounded">ไม่สำเร็จ</span>`;
-                } else if (activity.status === 'รอผู้ขอยืนยันผล') {
-                    joinButtonContent = `<span class="bg-yellow-500 text-white font-bold py-1 px-2 rounded">รอการยืนยันผล</span>`;
-                } else if (activity.status === 'รอการอนุมัติ') {
-                    joinButtonContent = `<span class="bg-indigo-500 text-white font-bold py-1 px-2 rounded">ปิดรับสมัคร</span>`;
-                } else if (activity.requester_id === globalUserId) {
-                    joinButtonContent = `<span class="bg-orange-500 text-white font-bold py-1 px-2 rounded">เจ้าของกิจกรรม</span>`;
-                } else if (!matchesUserSkill && activity.status === 'กำลังจะเริ่ม') {
-                    joinButtonContent = `<span class="text-sm text-gray-400 italic">ไม่ตรงทักษะ</span>`;
-                } else if (activity.status === 'กำลังทำกิจกรรม') {
-                    if (userJoined) {
-                        joinButtonContent = `<span class="bg-cyan-600 text-white font-bold py-1 px-2 rounded">🚫 ไม่สามารถยกเลิกได้</span>`;
-                    } else {
-                        joinButtonContent = `<span class="bg-cyan-600 text-white font-bold py-1 px-2 rounded">⛔ ปิดรับสมัครแล้ว</span>`;
-                    }
-                } else if (activity.status === 'กำลังจะเริ่ม') {
-                    showButton = true;
-                } else {
-                    showButton = true;
-                }
-
-                if (showButton) {
-                    let joinButtonText = 'เข้าร่วม';
-                    let joinButtonClass = 'bg-blue-500';
-                    let disabledAttr = '';
-
-                    if (activity.status === 'รอการอนุมัติ') {
-                        joinButtonText = '⛔ ปิดรับแล้ว';
-                        joinButtonClass = 'bg-cyan-600';
-                        disabledAttr = 'disabled';
-                    } else if (activityAlreadyStarted && !userJoined) {
-                        joinButtonText = '⛔ ปิดรับสมัครแล้ว';
-                        joinButtonClass = 'bg-cyan-600';
-                        disabledAttr = 'disabled';
-                    } else if (activityAlreadyStarted && userJoined) {
-                        joinButtonText = '🚫 ไม่สามารถยกเลิกได้';
-                        joinButtonClass = 'bg-cyan-600';
-                        disabledAttr = 'disabled';
+                if (activity.status === 'เสร็จสิ้น') {
+                    joinButtonContent = `<span class="text-green-600 font-medium">✔️ เสร็จสิ้น</span>`;
+                } else if (['ยกเลิก', 'เกินเวลา'].includes(activity.status)) {
+                    joinButtonContent = `<span class="text-red-600 font-medium">❌ ไม่สำเร็จ</span>`;
+                } else if (['กำลังจะเริ่ม'].includes(activity.status)) {
+                    if (isRequester) {
+                        joinButtonContent = `<span class="text-orange-500 font-semibold"><i class="fas fa-user-shield mr-1"></i>เจ้าของกิจกรรม</span>`;
                     } else if (userJoined) {
-                        joinButtonText = 'ยกเลิก';
-                        joinButtonClass = 'bg-red-500';
+                        joinButtonContent = `
+                            <button onclick="handleJoinButton(${activity.activity_id}, ${index})"
+                                class="bg-red-500 text-white font-bold py-1 px-2 rounded join-button">
+                                ยกเลิก
+                            </button>`;
+                    } else if (!matchesUserSkill) {
+                        joinButtonContent = `<span class="text-sm text-gray-500 italic">ไม่ตรงทักษะ</span>`;
+                    } else if (activity.current_participants >= activity.max_participants) {
+                        joinButtonContent = `<span class="text-sm text-yellow-600 font-medium">👥 ผู้เข้าร่วมเต็ม</span>`;
+                    } else {
+                        joinButtonContent = `
+                            <button onclick="handleJoinButton(${activity.activity_id}, ${index})"
+                                class="bg-blue-500 text-white font-bold py-1 px-2 rounded join-button">
+                                เข้าร่วม
+                            </button>`;
                     }
-
-                    joinButtonContent = `
-                        <button onclick="handleJoinButton(${activity.activity_id}, ${index})"
-                            class="${joinButtonClass} text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline join-button"
-                            ${disabledAttr}>
-                            ${joinButtonText}
-                        </button>
-                    `;
+                } else if (['กำลังทำกิจกรรม', 'รอผู้ขอยืนยันผล', 'รอการอนุมัติ'].includes(activity.status)) {
+                    if (isRequester) {
+                        joinButtonContent = `<span class="text-orange-500 font-semibold"><i class="fas fa-user-shield mr-1"></i>เจ้าของกิจกรรม</span>`;
+                    } else if (userJoined) {
+                        joinButtonContent = `<span class="text-gray-500 text-sm">🚫 ไม่สามารถออกกิจกรรมได้</span>`;
+                    } else {
+                        joinButtonContent = `<span class="text-gray-500 text-sm">⛔ ปิดรับสมัครแล้ว</span>`;
+                    }
                 }
-
-                const activityDetailsPage = (activity.requester_id === globalUserId)
-                    ? "myactivity-details.html"
-                    : "activity-details.html";
-
-                const statusColor =
-                    activity.status === 'กำลังจะเริ่ม' ? 'bg-blue-500' :
-                        activity.status === 'กำลังทำกิจกรรม' ? 'bg-yellow-500' :
-                            activity.status === 'รอผู้ขอยืนยันผล' ? 'bg-pink-500' :
-                                activity.status === 'รอการอนุมัติ' ? 'bg-indigo-500' :
-                                    activity.status === 'เสร็จสิ้น' ? 'bg-green-500' :
-                                        activity.status === 'เกินเวลา' ? 'bg-orange-500' :
-                                            activity.status === 'ผู้เข้าร่วมไม่ครบ' ? 'bg-red-600' :
-                                                'bg-gray-500';
-
+                
+        
+                const statusColor = {
+                    'กำลังจะเริ่ม': 'bg-blue-500',
+                    'กำลังทำกิจกรรม': 'bg-yellow-500',
+                    'รอผู้ขอยืนยันผล': 'bg-pink-500',
+                    'รอการอนุมัติ': 'bg-indigo-500',
+                    'เสร็จสิ้น': 'bg-green-500',
+                    'เกินเวลา': 'bg-orange-500',
+                    'ผู้เข้าร่วมไม่ครบ': 'bg-red-600'
+                }[activity.status] || 'bg-gray-500';
+        
                 const row = document.createElement('tr');
                 row.id = `row-${index + 1}`;
                 row.className = 'hover:bg-gray-100';
+        
                 row.innerHTML = `
-                    <td class="py-2 px-4 border-b border-gray-200">${activity.title}</td>
-                    <td class="py-2 px-4 border-b border-gray-200">${formatDate(activity.created_at)}</td>
-                    <td class="py-2 px-4 border-b border-gray-200">${formatDate(activity.start_date)}</td>
-                    <td class="py-2 px-4 border-b border-gray-200">
-                        <span class="py-1 px-2 rounded ${statusColor} text-white">${activity.status}</span>
-                    </td>
-                    <td class="py-2 px-4 border-b border-gray-200">
-                        <span id="participants-${index}">${activity.current_participants}</span> / ${activity.max_participants}
-                    </td>
-                    <td class="py-2 px-4 border-b border-gray-200">
-                        <a href="${activityDetailsPage}?id=${activity.activity_id}" 
-                           class="bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">
-                            รายละเอียด
-                        </a>
-                    </td>
-                    <td class="py-2 px-4 border-b border-gray-200">
-                        ${joinButtonContent}
-                    </td>
-                `;
+                <td class="py-2 px-4 border-b border-gray-200 font-semibold text-center">
+                    <span class="${activity.activity_type === 'exchange' ? 'text-lime-500' : 'text-gray-400'} font-semibold">
+                        ${activity.activity_type === 'exchange' ? 'มีเครดิต' : 'ไม่มีเครดิต'}
+                    </span>
+                </td>
+                <td class="py-2 px-4 border-b border-gray-200">${activity.title}</td>
+                <td class="py-2 px-4 border-b border-gray-200">${activity.required_skill_name || '-'}</td>
+                <td class="py-2 px-4 border-b border-gray-200">
+                    <div class="text-sm leading-snug text-gray-800">
+                        <div>${formatDateShort(activity.start_date)}</div>
+                        <div class="text-gray-500">(${formatTimeShort(activity.start_time)} - ${formatTimeShort(activity.end_time)})</div>
+                    </div>
+                </td>
+                <td class="py-2 px-4 border-b border-gray-200 text-center text-center">
+                    <span class="inline-block px-3 py-1 rounded-md text-white font-medium text-base ${statusColor}">
+                        ${activity.status}
+                    </span>
+                </td>
+                <td class="py-2 px-4 border-b border-gray-200 text-center text-center">
+                    <span id="participants-${index}">${activity.current_participants}</span> / ${activity.max_participants}
+                </td>
+                <td class="py-2 px-4 border-b border-gray-200 text-center text-center">
+                    <a href="${isRequester ? 'myactivity-details.html' : 'activity-details.html'}?id=${activity.activity_id}"
+                       class="inline-block w-full bg-blue-500 text-white font-bold py-1 px-2 rounded text-center whitespace-nowrap">
+                       รายละเอียด
+                    </a>
+                </td>
+                <td class="py-2 px-4 border-b border-gray-200 text-center text-center">
+                    ${joinButtonContent}
+                </td>
+            `;
+            
                 tbody.appendChild(row);
             });
-
+        
             if (data.length === 0) {
                 const row = document.createElement('tr');
                 row.innerHTML = `
-                    <td colspan="7" class="text-center text-gray-500 py-6">
+                    <td colspan="8" class="text-center text-gray-500 py-6">
                         ไม่พบกิจกรรมที่ตรงกับการค้นหา
-                    </td>
-                `;
+                    </td>`;
                 tbody.appendChild(row);
             }
         }
-
-
+        
         function formatDate(dateString) {
             const date = new Date(dateString);
             const year = date.getFullYear() + 543; // Convert to Buddhist year
@@ -838,53 +834,25 @@
                         สร้างกิจกรรม
                     </a>
                 </div>
-
-                <div class="overflow-x-auto w-full">
-                    <div class="min-w-[1000px]">
-                        <table role="table">
-                            <table role="table" aria-busy="false" aria-colcount="7"
-                                class="table b-table b-table-stacked-md w-full">
-                                <thead role="rowgroup" class="bg-gray-100">
-                                    <tr role="row">
-                                        <th role="columnheader" scope="col" aria-colindex="1"
-                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
-                                            onclick="sortTable('title', 'string')">
-                                            กิจกรรม <i class="fas fa-sort"></i>
-                                        </th>
-                                        <th role="columnheader" scope="col" aria-colindex="2"
-                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
-                                            onclick="sortTable('created_at', 'date')">
-                                            วันที่สร้างกิจกรรม <i class="fas fa-sort"></i>
-                                        </th>
-                                        <th role="columnheader" scope="col" aria-colindex="3"
-                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
-                                            onclick="sortTable('start_date', 'date')">
-                                            วันที่เริ่มกิจกรรม <i class="fas fa-sort"></i>
-                                        </th>
-                                        <th role="columnheader" scope="col" aria-colindex="4"
-                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
-                                            onclick="sortTable('status', 'string')">
-                                            สถานะ <i class="fas fa-sort"></i>
-                                        </th>
-                                        <th role="columnheader" scope="col" aria-colindex="5"
-                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                            จำนวนผู้เข้าร่วม
-                                        </th>
-                                        <th role="columnheader" scope="col" aria-colindex="6"
-                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                            การจัดการ
-                                        </th>
-                                        <th role="columnheader" scope="col" aria-colindex="7"
-                                            class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                            เข้าร่วม
-                                        </th>
-                                    </tr>
-                                </thead>
-                                <tbody id="activity-tbody" role="rowgroup">
-                                    <!-- Activities will be dynamically inserted here -->
-                                </tbody>
-                            </table>
-                    </div>
+                <div class="w-full overflow-x-auto">
+                    <table class="table-fixed w-full text-sm border-collapse">
+                        <thead class="bg-gray-100">
+                            <tr class="h-16">
+                                <th class="px-4 py-2 text-center font-semibold text-gray-600 w-[10%]">ประเภท</th>
+                                <th class="px-4 py-2 text-left font-semibold text-gray-600 w-[20%] cursor-pointer" onclick="sortTable('title', 'string')">กิจกรรม <i class="fas fa-sort"></i></th>
+                                <th class="px-4 py-2 text-left font-semibold text-gray-600 w-[15%]">ทักษะที่ต้องการ</th>
+                                <th class="px-4 py-2 text-left font-semibold text-gray-600 w-[14%]">ช่วงเวลา</th>
+                                <th class="px-4 py-2 text-center font-semibold text-gray-600 w-[12%]">สถานะ</th>
+                                <th class="px-4 py-2 text-center font-semibold text-gray-600 w-[10%]">ผู้เข้าร่วม</th>
+                                <th class="px-4 py-2 text-center font-semibold text-gray-600 w-[10%]">รายละเอียด</th>
+                                <th class="px-4 py-2 text-center font-semibold text-gray-600 w-[9%]">เข้าร่วม</th>
+                            </tr>
+                            </thead>                            
+                            <tbody id="activity-tbody" class="align-top break-words whitespace-normal text-base">
+                                <!-- Dynamic rows will go here -->
+                        </tbody>
+                      </table>                      
+                  </div>
                 </div>
             </div>
         </div>

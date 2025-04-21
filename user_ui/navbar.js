@@ -46,21 +46,22 @@ function updateSidebar(isLoggedIn) {
           </span>
           <i class="fas fa-chevron-left transition-transform duration-300 transform ${isOpen ? 'rotate-[-90deg]' : 'rotate-0'}"></i>
         </button>
-          <ul id="${id}" class="ml-8 transition-all duration-300 ease-in-out space-y-2"
-              style="height: ${isOpen ? `${items.length * 44}px` : '0'}; overflow: hidden; visibility: ${isOpen ? 'visible' : 'hidden'};">
+          <ul id="${id}" class="ml-8 transition-all duration-300 ease-in-out space-y-3"
+              style="height: ${isOpen ? `${items.length * 48 + 12}px` : '0'}; overflow: hidden; visibility: ${isOpen ? 'visible' : 'hidden'};">
 
-          ${items.map(item => {
+            ${items.map((item, index) => {
             const active = item.href === currentPage;
             const activeClass = active
               ? 'bg-blue-100 text-blue-700 font-semibold'
               : 'text-gray-600 hover:text-blue-600 hover:bg-gray-100';
-            return `
-              <li>
+              return `
+              <li class="${index === 0 ? 'mt-3' : ''}">
                 <a href="${item.href}" class="flex items-center p-2 rounded-lg transition ${activeClass}">
                   <i class="${item.icon} mr-3 w-4"></i> ${item.text}
                 </a>
               </li>
             `;
+            
           }).join('')}
         </ul>
       </li>
