@@ -41,22 +41,23 @@
             </div>
             <!-- Transaction History Section -->
             <div class="bg-white text-gray-800 p-6 rounded-lg shadow-md">
-                <h2 class="text-xl font-bold mb-2">ประวัติการทำธุรกรรม</h2>
+                <h2 class="text-xl font-bold mb-2">ประวัติการแลกเปลี่ยนเวลา</h2>
                 <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white">
-                        <thead>
-                            <tr>
-                                <th class="py-2 px-4 border-b text-left">ชื่อ</th>
-                                <th class="py-2 px-4 border-b text-left">รายการเดินบัญชี</th>
-                                <th class="py-2 px-4 border-b text-left">จำนวน</th>
-                                <th class="py-2 px-4 border-b text-left">วันที่</th>
-                                <th class="py-2 px-4 border-b text-left">เวลา</th>
-                            </tr>
+                    <table class="min-w-full table-auto text-base text-gray-800 bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden">
+                        <thead class="bg-gray-50 border-b border-gray-200 text-base font-semibold text-gray-700 uppercase tracking-wide">
+                          <tr>
+                            <th class="px-4 py-3 text-left">รหัสธุรกรรม</th>
+                            <th class="px-4 py-3 text-left">ชื่อ</th>
+                            <th class="px-4 py-3 text-left">ประเภท</th>
+                            <th class="px-4 py-3 text-left">จำนวน</th>
+                            <th class="px-4 py-3 text-left">วันที่</th>
+                            <th class="px-4 py-3 text-left">เวลา</th>
+                          </tr>
                         </thead>
-                        <tbody id="transactionLog">
-                            <!-- Transactions will be dynamically inserted here -->
+                        <tbody id="transactionLog" class="divide-y divide-gray-100 bg-white">
+                          <!-- Transaction rows will be dynamically inserted here -->
                         </tbody>
-                    </table>
+                      </table>                                  
                 </div>
             </div>
         </div>
@@ -127,45 +128,56 @@
                 const response = await fetch('http://localhost:3000/api/user/transactions/log', {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                 });
-
+        
                 if (!response.ok) throw new Error(`Error fetching transaction log: ${response.status}`);
-
+        
                 const data = await response.json();
                 const transactionLogElement = document.getElementById('transactionLog');
-
+        
                 if (!data.transactions || data.transactions.length === 0) {
-                    transactionLogElement.innerHTML = '<tr><td colspan="5" class="text-center py-4">ไม่มีประวัติธุรกรรม</td></tr>';
+                    transactionLogElement.innerHTML = `
+                        <tr>
+                            <td colspan="6" class="text-center text-gray-500 py-6 text-base font-medium">
+                                ไม่มีประวัติธุรกรรมในระบบของคุณ
+                            </td>
+                        </tr>`;
                     return;
                 }
-
+        
                 transactionLogElement.innerHTML = '';
-
+        
                 data.transactions.forEach(transaction => {
                     const isSender = transaction.transaction_type === 'โอนออก';
                     const amount = isSender ? -transaction.time_credit : transaction.time_credit;
-                    const amountText = amount > 0 ? `+ ${amount} ชั่วโมง` : `- ${Math.abs(amount)} ชั่วโมง`;
-                    const amountColor = amount > 0 ? 'text-green-500' : 'text-red-500';
+                    const amountText = amount > 0 ? `+${amount} ชั่วโมง` : `−${Math.abs(amount)} ชั่วโมง`;
+                    const amountColor = amount > 0 ? 'text-green-600' : 'text-red-600';
                     const otherPartyName = members[transaction.other_party_id] || 'ไม่ทราบชื่อ';
-
-                    const transactionDate = new Date(transaction.date);
-                    const date = transactionDate.toLocaleDateString();
-                    const time = transactionDate.toLocaleTimeString();
-
+        
+                    const dateObj = new Date(transaction.date);
+                    const date = dateObj.toLocaleDateString('th-TH');
+                    const time = dateObj.toLocaleTimeString('th-TH', { hour: '2-digit', minute: '2-digit' });
+        
                     const row = document.createElement('tr');
+                    row.className = 'hover:bg-gray-100 transition text-base text-gray-800';
+        
                     row.innerHTML = `
-                        <td class="py-2 px-4 border-b">${otherPartyName}</td>
-                        <td class="py-2 px-4 border-b">${transaction.transaction_type}</td>
-                        <td class="py-2 px-4 border-b ${amountColor}">${amountText}</td>
-                        <td class="py-2 px-4 border-b">${date}</td>
-                        <td class="py-2 px-4 border-b">${time}</td>
+                        <td class="px-4 py-3 font-medium text-gray-700">${transaction.transaction_id}</td>
+                        <td class="px-4 py-3">${otherPartyName}</td>
+                        <td class="px-4 py-3">${transaction.transaction_type}</td>
+                        <td class="px-4 py-3 ${amountColor} font-semibold">${amountText}</td>
+                        <td class="px-4 py-3">${date}</td>
+                        <td class="px-4 py-3">${time}</td>
                     `;
+        
                     transactionLogElement.appendChild(row);
                 });
-
+        
             } catch (error) {
                 console.error('Error fetching transaction log:', error);
             }
         }
+        
+        
     </script>
 </body>
 
