@@ -38,27 +38,36 @@ const memberRoutes = (pool) => {
         }
     });
 
-    // Update member skills
+    // Update or insert member skills
     router.put('/:memberId/skills', async (req, res) => {
         const { memberId } = req.params;
         const { skill_1, skill_2, skill_3 } = req.body;
 
         try {
-            const result = await pool.query(
-                `UPDATE member_skills SET skill_1 = $1, skill_2 = $2, skill_3 = $3 WHERE user_id = $4 RETURNING *`,
+            const updateResult = await pool.query(
+                `UPDATE member_skills 
+             SET skill_1 = $1, skill_2 = $2, skill_3 = $3, updated_at = NOW() 
+             WHERE user_id = $4 RETURNING *`,
                 [skill_1, skill_2, skill_3, memberId]
             );
 
-            if (result.rowCount === 0) {
-                return res.status(404).json({ error: 'Member not found' });
+            if (updateResult.rowCount === 0) {
+                // No row to update, insert instead
+                const insertResult = await pool.query(
+                    `INSERT INTO member_skills (user_id, skill_1, skill_2, skill_3)
+                 VALUES ($1, $2, $3, $4) RETURNING *`,
+                    [memberId, skill_1, skill_2, skill_3]
+                );
+                return res.status(201).json({ message: 'Skills added successfully' });
             }
 
             res.status(200).json({ message: 'Skills updated successfully' });
         } catch (err) {
-            console.error('Error updating skills:', err.message);
+            console.error('Error upserting skills:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
+
 
     // Get transactions of a member
     router.get('/:id/transactions', async (req, res) => {
