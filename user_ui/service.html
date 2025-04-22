@@ -118,12 +118,16 @@
 
         function formatDateShort(dateString) {
             const date = new Date(dateString);
-            return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear() + 543}`;
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = (date.getFullYear() + 543).toString(); // Buddhist year
+            return `${day}/${month}/${year}`;
         }
         
         function formatTimeShort(timeString) {
+            if (!timeString) return '-';
             const [hour, minute] = timeString.split(':');
-            return `${hour}.${minute}`;
+            return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')} น.`;
         }
          
 
@@ -148,7 +152,7 @@
 
                 if (activity.status === 'เสร็จสิ้น') {
                     joinButtonContent = `<span class="text-green-600 font-medium">✔️ เสร็จสิ้น</span>`;
-                } else if (['ยกเลิก', 'เกินเวลา'].includes(activity.status)) {
+                } else if (['ยกเลิก', 'เกินเวลา', 'ผู้เข้าร่วมไม่ครบ'].includes(activity.status)) {
                     joinButtonContent = `<span class="text-red-600 font-medium">❌ ไม่สำเร็จ</span>`;
                 } else if (['กำลังจะเริ่ม'].includes(activity.status)) {
                     if (isRequester) {
@@ -188,8 +192,9 @@
                     'รอการอนุมัติ': 'bg-indigo-500',
                     'เสร็จสิ้น': 'bg-green-500',
                     'เกินเวลา': 'bg-orange-500',
-                    'ผู้เข้าร่วมไม่ครบ': 'bg-red-600'
+                    'ผู้เข้าร่วมไม่ครบ': 'bg-rose-500' // ✅ Unique color
                 }[activity.status] || 'bg-gray-500';
+                
         
                 const row = document.createElement('tr');
                 row.id = `row-${index + 1}`;

@@ -6,6 +6,110 @@ dotenv.config();
 const activityRoutes = (pool) => {
     const router = express.Router();
 
+    // Get all activities with optional filters and pagination
+    router.get('/', async (req, res) => {
+        const {
+            title,
+            location,
+            status,
+            description,
+            required_skill,
+            start_date,
+            end_date,
+            requester_id,
+            activity_type, // ✅ ADD THIS
+            page = 1,
+            pageSize = 10
+        } = req.query;
+
+        const offset = (page - 1) * pageSize;
+        const conditions = [];
+        const values = [];
+        let idx = 1;
+
+        if (title) {
+            conditions.push(`LOWER(a.title) LIKE LOWER($${idx++})`);
+            values.push(`%${title}%`);
+        }
+
+        if (location) {
+            conditions.push(`LOWER(a.location) LIKE LOWER($${idx++})`);
+            values.push(`%${location}%`);
+        }
+
+        if (status) {
+            conditions.push(`a.status = $${idx++}`);
+            values.push(status);
+        }
+
+        if (description) {
+            conditions.push(`LOWER(a.description) LIKE LOWER($${idx++})`);
+            values.push(`%${description}%`);
+        }
+
+        if (required_skill) {
+            conditions.push(`a.required_skills = $${idx++}`);
+            values.push(required_skill);
+        }
+
+        if (start_date) {
+            conditions.push(`a.start_date = $${idx++}`);
+            values.push(start_date);
+        }
+
+        if (end_date) {
+            conditions.push(`a.end_date <= $${idx++}`);
+            values.push(end_date);
+        }
+
+        if (requester_id) {
+            conditions.push(`a.requester_id = $${idx++}`);
+            values.push(requester_id);
+        }
+
+        if (activity_type) {
+            conditions.push(`a.activity_type = $${idx++}`);
+            values.push(activity_type);
+        }
+
+        const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+        const limit = parseInt(pageSize);
+        const offsetValue = parseInt(offset);
+        values.push(limit);
+        values.push(offsetValue);
+
+        try {
+            const query = `
+                SELECT 
+                    a.*, 
+                    a.activity_type,
+                    a.requester_id,
+                    COALESCE(r.name, '') AS requester_name,
+                    s.name AS required_skill_name
+                FROM activities a
+                LEFT JOIN users r ON a.requester_id = r.user_id
+                LEFT JOIN skills s ON a.required_skills = s.skill_id
+                ${whereClause}
+                ORDER BY a.start_date DESC, a.start_time DESC
+                LIMIT $${idx++} OFFSET $${idx}
+            `;
+
+            const result = await pool.query(query, values);
+
+            const countQuery = `
+                SELECT COUNT(*) FROM activities a
+                ${whereClause}
+            `;
+            const countResult = await pool.query(countQuery, values.slice(0, values.length - 2));
+
+            res.json({ activities: result.rows, total: parseInt(countResult.rows[0].count, 10) });
+        } catch (err) {
+            console.error('Error fetching activities:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+
+
     // Add a route to delete a participant from an activity
     router.delete('/:activityId/participants/:memberId', async (req, res) => {
         const { activityId, memberId } = req.params;
@@ -19,103 +123,104 @@ const activityRoutes = (pool) => {
         }
     });
 
-// Get all activities with optional filters and pagination
-router.get('/', async (req, res) => {
-    const {
-        title,
-        location,
-        status,
-        description,
-        required_skill,
-        start_date,
-        end_date,
-        requester_id,
-        page = 1,
-        pageSize = 10
-    } = req.query;
+    // Get historical activities for a user
+    router.get('/history/:userId', async (req, res) => {
+        const { userId } = req.params;
+        const { role, title, start_date, end_date, start_time, end_time, required_skill, available_only } = req.query;
 
-    const offset = (page - 1) * pageSize;
-    const conditions = [];
-    const values = [];
-    let idx = 1;
+        if (isNaN(userId)) {
+            return res.status(400).json({ error: 'Invalid user ID' });
+        }
 
-    if (title) {
-        conditions.push(`LOWER(a.title) LIKE LOWER($${idx++})`);
-        values.push(`%${title}%`);
-    }
-
-    if (location) {
-        conditions.push(`LOWER(a.location) LIKE LOWER($${idx++})`);
-        values.push(`%${location}%`);
-    }
-
-    if (status) {
-        conditions.push(`a.status = $${idx++}`);
-        values.push(status);
-    }
-
-    if (description) {
-        conditions.push(`LOWER(a.description) LIKE LOWER($${idx++})`);
-        values.push(`%${description}%`);
-    }
-
-    if (required_skill) {
-        conditions.push(`a.required_skills = $${idx++}`);
-        values.push(required_skill);
-    }
-
-    if (start_date) {
-        conditions.push(`a.start_date = $${idx++}`);
-        values.push(start_date);
-    }
-
-    if (end_date) {
-        conditions.push(`a.end_date = $${idx++}`);
-        values.push(end_date);
-    }
-
-    if (requester_id) {
-        conditions.push(`a.requester_id = $${idx++}`);
-        values.push(requester_id);
-    }
-
-    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
-
-    const limit = parseInt(pageSize);
-    const offsetValue = parseInt(offset);
-    values.push(limit);
-    values.push(offsetValue);
-
-    try {
-        const query = `
-            SELECT a.*, 
-                   COALESCE(r.name, '') AS requester_name,
-                   s.name AS required_skill_name
-            FROM activities a
-            LEFT JOIN users r ON a.requester_id = r.user_id
-            LEFT JOIN skills s ON a.required_skills = s.skill_id
-            ${whereClause}
-            ORDER BY a.start_date DESC, a.start_time DESC
-            LIMIT $${idx++} OFFSET $${idx}
+        let whereClause = `
+            (a.requester_id = $1 OR ap.user_id = $1)
+            AND a.status != 'กำลังจะเริ่ม'
         `;
+        const values = [userId];
+        let idx = 2;
 
-        const result = await pool.query(query, values);
+        if (role === 'requester') {
+            whereClause = `a.requester_id = $1 AND a.status != 'กำลังจะเริ่ม'`;
+        } else if (role === 'provider') {
+            whereClause = `ap.user_id = $1 AND a.status != 'กำลังจะเริ่ม'`;
+        }
 
-        // Total count for pagination
-        const countQuery = `
-            SELECT COUNT(*) FROM activities a
-            ${whereClause}
-        `;
-        const countResult = await pool.query(countQuery, values.slice(0, values.length - 2));
+        if (title) {
+            whereClause += ` AND LOWER(a.title) LIKE LOWER($${idx++})`;
+            values.push(`%${title}%`);
+        }
 
-        res.json({ activities: result.rows, total: parseInt(countResult.rows[0].count, 10) });
-    } catch (err) {
-        console.error('Error fetching activities:', err.message);
-        res.status(500).json({ error: 'An error occurred. Please try again.' });
-    }
-});
+        if (start_date) {
+            whereClause += ` AND a.start_date >= $${idx++}`;
+            values.push(start_date);
+        }
 
-    
+        if (end_date) {
+            whereClause += ` AND a.end_date <= $${idx++}`;
+            values.push(end_date);
+        }
+
+        if (start_time) {
+            whereClause += ` AND a.start_time >= $${idx++}`;
+            values.push(start_time);
+        }
+
+        if (end_time) {
+            whereClause += ` AND a.end_time <= $${idx++}`;
+            values.push(end_time);
+        }
+
+        if (required_skill) {
+            whereClause += ` AND a.required_skills = $${idx++}`;
+            values.push(required_skill);
+        }
+
+        if (available_only === 'true') {
+            whereClause += ` AND (SELECT COUNT(*) FROM activity_participants ap2 WHERE ap2.activity_id = a.activity_id) < a.max_participants`;
+        }
+
+        try {
+            const query = `
+                SELECT 
+                    a.activity_id, 
+                    a.title, 
+                    a.status, 
+                    a.created_at, 
+                    a.start_date, 
+                    a.end_date, 
+                    a.start_time, 
+                    a.end_time,
+                    a.max_participants,
+                    a.required_skills AS required_skill_id,
+                    a.requester_id,
+                    a.activity_type, -- ✅ INCLUDED HERE
+                    s.name AS required_skill_name, 
+                    (
+                        SELECT COUNT(*) 
+                        FROM activity_participants ap2
+                        WHERE ap2.activity_id = a.activity_id
+                    ) AS current_participants,
+                    CASE 
+                        WHEN a.requester_id = $1 THEN 'requester'
+                        ELSE 'provider'
+                    END AS role
+                FROM activities a
+                LEFT JOIN activity_participants ap 
+                    ON a.activity_id = ap.activity_id AND ap.user_id = $1
+                LEFT JOIN skills s 
+                    ON a.required_skills = s.skill_id
+                WHERE ${whereClause}
+                ORDER BY a.start_date DESC, a.start_time DESC
+            `;
+
+            const result = await pool.query(query, values);
+            res.json({ activities: result.rows });
+        } catch (err) {
+            console.error('Error fetching historical activities:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+
 
     // Get an activity by ID
     router.get('/:id', async (req, res) => {
@@ -544,7 +649,8 @@ router.get('/', async (req, res) => {
 
         try {
             const query = `
-                SELECT a.activity_id, 
+                SELECT 
+                    a.activity_id, 
                     a.title, 
                     a.status, 
                     a.created_at, 
@@ -554,6 +660,8 @@ router.get('/', async (req, res) => {
                     a.end_time,
                     a.max_participants,
                     a.required_skills AS required_skill_id,
+                    a.activity_type, -- ✅ Include activity_type
+                    a.requester_id,  -- ✅ Include requester_id
                     s.name AS required_skill_name, 
                     (
                         SELECT COUNT(*) 
@@ -671,7 +779,37 @@ router.get('/', async (req, res) => {
             client.release();
         }
     });
-    
+
+    // Fix the POST route to add a participant to an activity
+    router.post('/:activityId/participants', async (req, res) => {
+        const { activityId } = req.params;
+        const { memberId } = req.body;
+
+        if (!memberId) {
+            return res.status(400).json({ error: 'memberId is required in request body' });
+        }
+
+        try {
+            // Check if participant already exists to avoid duplicates
+            const existing = await pool.query(
+                'SELECT * FROM activity_participants WHERE activity_id = $1 AND user_id = $2',
+                [activityId, memberId]
+            );
+            if (existing.rows.length > 0) {
+                return res.status(409).json({ error: 'Participant already joined this activity' });
+            }
+
+            await pool.query(
+                'INSERT INTO activity_participants (activity_id, user_id, attended) VALUES ($1, $2, false)',
+                [activityId, memberId]
+            );
+            res.status(201).json({ message: 'Participant added successfully' });
+        } catch (err) {
+            console.error('Error adding participant:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
+        
 
 
     return router;

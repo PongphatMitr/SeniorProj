@@ -14,34 +14,43 @@ cron.schedule('* * * * *', async () => {
     try {
         await client.query('BEGIN');
 
-        // ✅ 1. จาก "กำลังจะเริ่ม" → "กำลังทำกิจกรรม"
         await client.query(`
+            -- 0. ไม่มีผู้เข้าร่วม → ผู้เข้าร่วมไม่ครบ
+            UPDATE activities
+            SET status = 'ผู้เข้าร่วมไม่ครบ',
+                updated_at = NOW()
+            WHERE status = 'กำลังจะเริ่ม'
+              AND (start_date::timestamp + start_time) <= NOW()
+              AND (end_date::timestamp + end_time) >= NOW()
+              AND NOT EXISTS (
+                  SELECT 1 FROM activity_participants ap 
+                  WHERE ap.activity_id = activities.activity_id
+              );
+        
+            -- 1. จาก "กำลังจะเริ่ม" → "กำลังทำกิจกรรม"
             UPDATE activities
             SET status = 'กำลังทำกิจกรรม',
                 updated_at = NOW()
             WHERE status = 'กำลังจะเริ่ม'
               AND (start_date::timestamp + start_time) <= NOW()
-              AND (end_date::timestamp + end_time) >= NOW()
-        `);
-
-        // ✅ 2. จาก "กำลังทำกิจกรรม" → "รอผู้ขอยืนยันผล"
-        await client.query(`
+              AND (end_date::timestamp + end_time) >= NOW();
+        
+            -- 2. จาก "กำลังทำกิจกรรม" → "รอผู้ขอยืนยันผล"
             UPDATE activities
             SET status = 'รอผู้ขอยืนยันผล',
                 updated_at = NOW()
             WHERE status = 'กำลังทำกิจกรรม'
               AND (end_date::timestamp + end_time) < NOW()
-              AND (end_date::timestamp + end_time + INTERVAL '1 day') >= NOW()
-        `);
-
-        // ✅ 3. จาก "รอผู้ขอยืนยันผล" → "เกินเวลา"
-        await client.query(`
+              AND (end_date::timestamp + end_time + INTERVAL '1 day') >= NOW();
+        
+            -- 3. จาก "รอผู้ขอยืนยันผล" → "เกินเวลา"
             UPDATE activities
             SET status = 'เกินเวลา',
                 updated_at = NOW()
             WHERE status = 'รอผู้ขอยืนยันผล'
-              AND (end_date::timestamp + end_time + INTERVAL '1 day') < NOW()
+              AND (end_date::timestamp + end_time + INTERVAL '1 day') < NOW();
         `);
+        
 
         await client.query('COMMIT');
         console.log("✅ Updated all relevant activity statuses.");

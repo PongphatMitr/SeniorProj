@@ -148,16 +148,12 @@
             tbody.innerHTML = '';
             const userId = parseInt(localStorage.getItem('user_id'));
         
-            // Filter only activities the user is involved in
             const filtered = data.filter(activity => {
                 const isRequester = activity.requester_id === userId;
                 const isParticipant = activity.participants?.some(p => p.user_id === userId);
-                if (currentRoleFilter === 'requester') {
-                    return isRequester;
-                } else if (currentRoleFilter === 'provider') {
-                    return isParticipant;
-                }
-                return isRequester || isParticipant; // All roles
+                if (currentRoleFilter === 'requester') return isRequester;
+                if (currentRoleFilter === 'provider') return isParticipant;
+                return isRequester || isParticipant;
             });
         
             if (filtered.length === 0) {
@@ -180,40 +176,57 @@
                     'bg-gray-500';
         
                 const isRequester = activity.requester_id === userId;
-                const isParticipantOnly = activity.participants.some(p => p.user_id === userId) && !isRequester;
-                
-                let role = '-';
-                let detailPage = 'activity-details.html';
-                
-                if (isRequester) {
-                    role = 'ผู้สร้าง';
-                    detailPage = 'myactivity-details.html';
-                } else if (isParticipantOnly) {
-                    role = 'ผู้เข้าร่วม';
-                }
-                    
         
                 const row = document.createElement('tr');
                 row.id = `ongoing-row-${index + 1}`;
                 row.className = 'hover:bg-gray-100';
         
                 row.innerHTML = `
-                    <td class="py-2 px-4 border-b border-gray-200">${activity.title}</td>
-                    <td class="py-2 px-4 border-b border-gray-200">${formatDate(activity.created_at)}</td>
-                    <td class="py-2 px-4 border-b border-gray-200">${formatDate(activity.start_date)}</td>
-                    <td class="py-2 px-4 border-b border-gray-200">
-                        <span class="py-1 px-2 rounded text-white ${statusColor}">${activity.status}</span>
+                    <td class="py-2 px-4 border-b border-gray-200 font-semibold text-center">
+                        <span class="${activity.activity_type === 'exchange' ? 'text-lime-500' : 'text-gray-400'} font-semibold">
+                            ${activity.activity_type === 'exchange' ? 'มีเครดิต' : 'ไม่มีเครดิต'}
+                        </span>
                     </td>
-                    <td class="py-2 px-4 border-b border-gray-200">${activity.current_participants} / ${activity.max_participants}</td>
-                    <td class="py-2 px-4 border-b border-gray-200">${role}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">${activity.title}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">${activity.required_skill_name || '-'}</td>
                     <td class="py-2 px-4 border-b border-gray-200">
-                        <a href="${detailPage}?id=${activity.activity_id}" class="bg-blue-500 text-white font-bold py-1 px-2 rounded">รายละเอียด</a>
+                        <div class="text-sm leading-snug text-gray-800">
+                            <div>${formatDateShort(activity.start_date)}</div>
+                            <div class="text-gray-500">(${formatTimeShort(activity.start_time)} - ${formatTimeShort(activity.end_time)})</div>
+                        </div>
+                    </td>
+                    <td class="py-2 px-4 border-b border-gray-200 text-center text-center">
+                        <span class="inline-block px-3 py-1 rounded-md text-white font-medium text-base ${statusColor}">
+                            ${activity.status}
+                        </span>
+                    </td>
+                    <td class="py-2 px-4 border-b border-gray-200 text-center text-center">
+                        <span id="participants-${index}">${activity.current_participants}</span> / ${activity.max_participants}
+                    </td>
+                    <td class="py-2 px-4 border-b border-gray-200 text-center text-center">
+                        <a href="${isRequester ? 'myactivity-details.html' : 'activity-details.html'}?id=${activity.activity_id}"
+                           class="inline-block w-full bg-blue-500 text-white font-bold py-1 px-2 rounded text-center whitespace-nowrap">
+                           รายละเอียด
+                        </a>
                     </td>
                 `;
                 tbody.appendChild(row);
             });
         }
         
+        function formatDateShort(dateString) {
+            const date = new Date(dateString);
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = (date.getFullYear() + 543).toString(); // Buddhist year
+            return `${day}/${month}/${year}`;
+        }
+        
+        function formatTimeShort(timeString) {
+            if (!timeString) return '-';
+            const [hour, minute] = timeString.split(':');
+            return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')} น.`;
+        }
         
         
         function filterOngoingActivities(role) {
@@ -660,44 +673,22 @@
                     <button onclick="filterOngoingActivities('provider')"
                         class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-full mx-2 shadow-lg transition duration-300 ease-in-out transform hover:scale-105">ผู้เข้าร่วมกิจกรรม</button>
                 </div>
-                <div class="overflow-x-auto">
-                    <div class="table-responsive-sm">
-                        <table role="table" aria-busy="false" aria-colcount="7"
-                            class="table b-table b-table-stacked-md w-full">
-                            <thead role="rowgroup" class="bg-gray-100">
-                                <tr role="row">
-                                    <th role="columnheader" scope="col" aria-colindex="1"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                        กิจกรรม
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="2"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                        วันที่สร้างกิจกรรม
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="3"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                        วันที่เริ่มกิจกรรม
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="4"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                        สถานะ
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="5"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                        จำนวนผู้เข้าร่วม
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="6"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                        บทบาท
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="7"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                        การจัดการ
-                                    </th>
+                <div class="w-full overflow-x-auto">
+                    <table class="table-fixed w-full text-sm border-collapse">
+                            <thead class="bg-gray-100">
+                                <tr class="h-16">
+                                    <th class="px-4 py-2 text-center font-semibold text-gray-600 w-[10%]">ประเภท</th>
+                                    <th class="px-4 py-2 text-left font-semibold text-gray-600 w-[20%] cursor-pointer" onclick="sortTable('title', 'string')">กิจกรรม <i class="fas fa-sort"></i></th>
+                                    <th class="px-4 py-2 text-left font-semibold text-gray-600 w-[15%]">ทักษะที่ต้องการ</th>
+                                    <th class="px-4 py-2 text-left font-semibold text-gray-600 w-[14%]">ช่วงเวลา</th>
+                                    <th class="px-4 py-2 text-center font-semibold text-gray-600 w-[12%]">สถานะ</th>
+                                    <th class="px-4 py-2 text-center font-semibold text-gray-600 w-[10%]">ผู้เข้าร่วม</th>
+                                    <th class="px-4 py-2 text-center font-semibold text-gray-600 w-[10%]">รายละเอียด</th>
                                 </tr>
-                            </thead>
-                            <tbody id="activity-tbody" role="rowgroup">
-                                <!-- Activity history will be dynamically inserted here -->
+                                </thead>
+                                
+                            <tbody id="activity-tbody" class="align-top break-words whitespace-normal text-base">
+                                <!-- Activity onGoing will be dynamically inserted here -->
                             </tbody>
                         </table>
                     </div>

@@ -52,29 +52,105 @@
 
         async function fetchActivities() {
             try {
-                console.log('Fetching activities...');
                 const response = await fetch('http://localhost:3000/api/user/activities', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-                console.log('Response status:', response.status);
-                const data = await response.json();
-                console.log('Response data:', data);
-
-                if (response.ok) {
-                    activities = data.activities.filter(activity => activity.requester_id === parseInt(localStorage.getItem('user_id')));
-                    await fetchParticipants();
-                    await fetchRequesterNames();
-                    updateActivityStatus();
-                    renderTable(activities);
-                } else {
-                    console.error('Error:', data);
-                    alert('Error fetching activities. Please try again.');
+        
+                if (!response.ok) {
+                    throw new Error('Failed to fetch activities');
                 }
+        
+                const data = await response.json();
+        
+                activities = data.activities.filter(activity => activity.requester_id === parseInt(localStorage.getItem('user_id')));
+        
+                await fetchParticipants();
+                await fetchRequesterNames();
+                updateActivityStatus();
+                renderActivityHistory(activities);
+        
             } catch (error) {
                 console.error('Error fetching activities:', error);
                 alert('Error fetching activities. Please try again.');
+            }
+        }
+        
+        
+
+        async function fetchActivityHistory(role = '') {
+            const userId = parseInt(localStorage.getItem('user_id'));
+
+            if (!userId) {
+                alert('User ID not found. Please log in again.');
+                return;
+            }
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/activities/history/${userId}?role=${role}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Failed to fetch activity history');
+                }
+
+                const data = await response.json();
+
+                // Filter activities by allowed statuses and role
+                activities = data.activities.filter(a => {
+                    const allowedStatuses = ['เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา'];
+                    if (!allowedStatuses.includes(a.status)) return false;
+
+                    if (role === 'requester') return a.role === 'requester';
+                    if (role === 'provider') return a.role === 'provider';
+                    return true;
+                }).map(a => {
+                    // Ensure activity_type is set correctly
+                    // If missing, try to infer or default to 'non-exchange'
+                    if (!a.activity_type) {
+                        // Try to infer from other fields if possible, else default
+                        a.activity_type = a.hasOwnProperty('activity_type') ? a.activity_type : 'non-exchange';
+                    }
+                    return a;
+                });
+
+                await fetchParticipants();
+                await fetchRequesterNames();
+                updateActivityStatus();
+                renderActivityHistory(activities);
+
+            } catch (error) {
+                console.error('Error fetching activity history:', error);
+                alert('Error fetching activity history. Please try again.');
+            }
+        }
+
+        async function fetchRequesterNames() {
+            for (let activity of activities) {
+                try {
+                    if (!activity.requester_id) {
+                        // If requester_id is missing or invalid, assign 'Unknown' and skip fetch
+                        activity.requester_name = 'Unknown';
+                        continue;
+                    }
+                    const response = await fetch(`http://localhost:3000/api/user/members/${activity.requester_id}`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    if (!response.ok) {
+                        throw new Error(`Failed to fetch user details for user ${activity.requester_id}`);
+                    }
+                    const user = await response.json();
+                    activity.requester_name = user.name;
+                } catch (error) {
+                    console.error(`Error fetching requester name for user ${activity.requester_id}:`, error);
+                    activity.requester_name = 'Unknown';
+                }
             }
         }
 
@@ -122,9 +198,10 @@
             activities.forEach(activity => {
                 if (activity.status === 'กำลังจะเริ่ม') {
                     const activityEndDate = new Date(activity.end_date);
-                    const activityEndTime = activity.end_time.split(':');
-                    activityEndDate.setHours(activityEndTime[0], activityEndTime[1], activityEndTime[2]);
-
+                    if (activity.end_time) {
+                        const activityEndTime = activity.end_time.split(':');
+                        activityEndDate.setHours(activityEndTime[0], activityEndTime[1], activityEndTime[2] || 0);
+                    }
                     if (activityEndDate < now) {
                         activity.status = 'เกินเวลา';
                     }
@@ -132,206 +209,89 @@
             });
         }
 
-        function renderTable(data) {
-            const tbody = document.getElementById('activity-tbody');
-            tbody.innerHTML = '';
-            data.forEach((activity, index) => {
-                const row = document.createElement('tr');
-                row.id = `row-${index + 1}`;
-                row.className = 'hover:bg-gray-100';
-                row.innerHTML = `
-                    <td aria-colindex="1" data-label="ชื่อผู้ขอ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${activity.requester_name}
-                    </td>
-                    <td aria-colindex="2" data-label="กิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${activity.title}
-                    </td>
-                    <td aria-colindex="3" data-label="วันที่สร้างกิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${formatDate(activity.created_at)}
-                    </td>
-                    <td aria-colindex="4" data-label="วันที่เริ่มกิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${formatDate(activity.start_date)}
-                    </td>
-                    <td aria-colindex="5" data-label="สถานะ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        <span class="py-1 px-2 rounded ${activity.status === 'กำลังจะเริ่ม' ? 'bg-blue-500' : activity.status === 'เสร็จสิ้น' ? 'bg-green-500' : activity.status === 'เกินเวลา' ? 'bg-orange-500' : 'bg-red-500'} text-white">${activity.status}</span>
-                    </td>
-                    <td aria-colindex="6" data-label="จำนวนผู้เข้าร่วม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${activity.current_participants} / ${activity.max_participants}
-                    </td>
-                    <td aria-colindex="7" data-label="การจัดการ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        <a href="myactivity-details.html?id=${activity.activity_id}" class="bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">รายละเอียด</a>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            const year = date.getFullYear() + 543; // Convert to Buddhist year
-            const monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
-            const month = monthNames[date.getMonth()];
-            const day = date.getDate();
-            return `<span class="day-part">${day}</span> <span class="month-year-part">${month}</span> <span class="month-year-part">${year}</span>`;
-        }
-
-        function sortTable(column, type) {
-            const order = sortOrder[column] === 'asc' ? 'desc' : 'asc';
-            sortOrder[column] = order;
-
-            const sortedActivities = [...activities].sort((a, b) => {
-                if (type === 'string') {
-                    return order === 'asc' ? a[column].localeCompare(b[column]) : b[column].localeCompare(a[column]);
-                } else if (type === 'date') {
-                    return order === 'asc' ? new Date(a[column]) - new Date(b[column]) : new Date(b[column]) - new Date(a[column]);
-                }
-            });
-            renderTable(sortedActivities);
-        }
-
-        async function checkLoginStatus() {
-            const token = localStorage.getItem('token');
-            if (token) {
-                try {
-                    const response = await fetch('http://localhost:3000/api/user/auth/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-
-                    if (response.ok) {
-                        const userData = await response.json();
-                        localStorage.setItem('user_id', userData.user.userId);
-                        localStorage.setItem('user_name', userData.user.name);
-                        updateSidebar(true);
-
-                        // ✅ Only fetch history for this page (not created activities)
-                        fetchActivityHistory();
-                    } else {
-                        localStorage.removeItem('token');
-                        updateSidebar(false);
-                        const goToLogin = confirm('Session expired. Do you want to go to the login page?');
-                        if (goToLogin) {
-                            window.location.href = 'log-in.html';
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    localStorage.removeItem('token');
-                    updateSidebar(false);
-                    const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
-                    if (goToLogin) {
-                        window.location.href = 'log-in.html';
-                    }
-                }
-            } else {
-                updateSidebar(false);
-                const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
-                if (goToLogin) {
-                    window.location.href = 'log-in.html';
-                }
-            }
-        }
-
-        let allActivities = [];
-
-        async function fetchActivityHistory(role = '') {
-            const userId = parseInt(localStorage.getItem('user_id'));
-        
-            if (!userId) {
-                alert('User ID not found. Please log in again.');
-                return;
-            }
-        
-            try {
-                const response = await fetch(`http://localhost:3000/api/user/activities/history/${userId}?role=${role}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-        
-                if (!response.ok) {
-                    throw new Error('Failed to fetch activity history');
-                }
-        
-                const data = await response.json();
-        
-                // Assign role and filter by actual user relevance
-                allActivities = data.activities.filter(a => {
-                    const allowedStatuses = ['เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา'];
-                    if (!allowedStatuses.includes(a.status)) return false;
-                
-                    if (role === 'requester') return a.role === 'requester';
-                    if (role === 'provider') return a.role === 'provider';
-                    return true;
-                });
-                
-        
-                renderActivityHistory(allActivities);
-        
-            } catch (error) {
-                console.error('Error fetching activity history:', error);
-                alert('Error fetching activity history. Please try again.');
-            }
-        }
-        
-        
-
         function renderActivityHistory(activities) {
             const historyTbody = document.getElementById('history-tbody');
             historyTbody.innerHTML = '';
-        
+
             if (activities.length === 0) {
                 const emptyRow = document.createElement('tr');
-                emptyRow.innerHTML = `
-                    <td colspan="7" class="text-center py-4 text-gray-500 italic">
+                emptyRow.innerHTML =
+                    `<td colspan="7" class="text-center py-4 text-gray-500 italic">
                         ไม่มีข้อมูลกิจกรรม
-                    </td>
-                `;
+                    </td>`;
                 historyTbody.appendChild(emptyRow);
                 return;
             }
-        
+
             activities.forEach((activity, index) => {
                 const row = document.createElement('tr');
                 row.id = `history-row-${index + 1}`;
                 row.className = 'hover:bg-gray-100';
-        
-                const detailPage = activity.role === 'requester'
-                    ? 'myactivity-details.html'
-                    : 'activity-details.html';
-        
-                row.innerHTML = `
+
+                const statusColor = {
+                    'กำลังจะเริ่ม': 'bg-blue-500',
+                    'กำลังทำกิจกรรม': 'bg-yellow-500',
+                    'รอผู้ขอยืนยันผล': 'bg-pink-500',
+                    'รอการอนุมัติ': 'bg-indigo-500',
+                    'เสร็จสิ้น': 'bg-green-500',
+                    'เกินเวลา': 'bg-orange-500',
+                    'ยกเลิก': 'bg-red-600'
+                }[activity.status] || 'bg-gray-500';
+
+                const isRequester = activity.role === 'requester';
+
+                row.innerHTML =
+                    `<td class="py-2 px-4 border-b border-gray-200 font-semibold text-center">
+                        <span class="${activity.activity_type === 'exchange' ? 'text-lime-500' : 'text-gray-400'} font-semibold">
+                            ${activity.activity_type === 'exchange' ? 'มีเครดิต' : 'ไม่มีเครดิต'}
+                        </span>
+                    </td>
                     <td class="py-2 px-4 border-b border-gray-200">${activity.title}</td>
-                    <td class="py-2 px-4 border-b border-gray-200">${formatDate(activity.created_at)}</td>
-                    <td class="py-2 px-4 border-b border-gray-200">${formatDate(activity.start_date)}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">${activity.required_skill_name || '-'}</td>
                     <td class="py-2 px-4 border-b border-gray-200">
-                        <span class="py-1 px-2 rounded ${
-                            activity.status === 'เสร็จสิ้น' ? 'bg-green-500' :
-                            activity.status === 'เกินเวลา' ? 'bg-orange-500' :
-                            'bg-red-500'
-                        } text-white">${activity.status}</span>
+                        <div class="text-sm leading-snug text-gray-800">
+                            <div>${formatDateShort(activity.start_date)}</div>
+                            <div class="text-gray-500">(${formatTimeShort(activity.start_time)} - ${formatTimeShort(activity.end_time)})</div>
+                        </div>
                     </td>
-                    <td class="py-2 px-4 border-b border-gray-200">${activity.current_participants} / ${activity.max_participants}</td>
-                    <td class="py-2 px-4 border-b border-gray-200">${activity.role === 'requester' ? 'ผู้สร้าง' : activity.role === 'provider' ? 'ผู้เข้าร่วม' : '-'}</td>
-                    <td class="py-2 px-4 border-b border-gray-200">
-                        <a href="${detailPage}?id=${activity.activity_id}" class="bg-blue-500 text-white font-bold py-1 px-2 rounded">รายละเอียด</a>
+                    <td class="py-2 px-4 border-b border-gray-200 text-center">
+                        <span class="inline-block px-3 py-1 rounded-md text-white font-medium text-base ${statusColor}">
+                            ${activity.status}
+                        </span>
                     </td>
-                `;
+                    <td class="py-2 px-4 border-b border-gray-200 text-center">
+                        <span id="participants-${index}">${activity.current_participants}</span> / ${activity.max_participants}
+                    </td>
+                    <td class="py-2 px-4 border-b border-gray-200 text-center">
+                        <a href="${isRequester ? 'myactivity-details.html' : 'activity-details.html'}?id=${activity.activity_id}"
+                           class="inline-block w-full bg-blue-500 text-white font-bold py-1 px-2 rounded text-center whitespace-nowrap">
+                           รายละเอียด
+                        </a>
+                    </td>`;
+
                 historyTbody.appendChild(row);
             });
         }
-        
+
+        function formatDateShort(dateString) {
+            if (!dateString) return '-';
+            const date = new Date(dateString);
+            const day = date.getDate().toString().padStart(2, '0');
+            const month = (date.getMonth() + 1).toString().padStart(2, '0');
+            const year = (date.getFullYear() + 543).toString(); // Buddhist year
+            return `${day}/${month}/${year}`;
+        }
+
+        function formatTimeShort(timeString) {
+            if (!timeString) return '-';
+            const [hour, minute] = timeString.split(':');
+            return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')} น.`;
+        }
 
         function filterActivityHistory(role) {
             currentRoleFilter = role;
             fetchActivityHistory(role);
         }
-        
-        
-        
 
         function searchActivities() {
             const keyword = document.getElementById('search-input').value.toLowerCase();
@@ -343,11 +303,11 @@
             const endMinutes = document.getElementById('end-minutes').value;
             const skill = document.getElementById('skill-dropdown').value;
             const availableOnly = document.getElementById('filter-available-slots').checked;
-        
+
             const startTime = startHours && startMinutes ? `${startHours}:${startMinutes}` : null;
             const endTime = endHours && endMinutes ? `${endHours}:${endMinutes}` : null;
-        
-            const filtered = allActivities.filter(a => {
+
+            const filtered = activities.filter(a => {
                 const matchRole = currentRoleFilter === '' || a.role === currentRoleFilter;
                 const matchText = a.title.toLowerCase().includes(keyword) || (a.description || '').toLowerCase().includes(keyword);
                 const matchStartDate = startDate ? new Date(a.start_date) >= new Date(startDate) : true;
@@ -356,13 +316,12 @@
                 const matchEndTime = endTime ? a.end_time <= endTime : true;
                 const matchSkill = skill ? String(a.required_skill_id) === String(skill) : true;
                 const matchAvailable = availableOnly ? a.current_participants < a.max_participants : true;
-        
+
                 return matchRole && matchText && matchStartDate && matchEndDate && matchStartTime && matchEndTime && matchSkill && matchAvailable;
             });
-        
+
             renderActivityHistory(filtered);
         }
-        
 
         async function fetchSkillsAndCategories() {
             try {
@@ -462,6 +421,51 @@
             document.getElementById('end-hours').innerHTML = '<option value="" selected disabled>-- ชั่วโมง --</option>' + hourOptions;
             document.getElementById('start-minutes').innerHTML = minuteOptions;
             document.getElementById('end-minutes').innerHTML = minuteOptions;
+        }
+
+        async function checkLoginStatus() {
+            const token = localStorage.getItem('token');
+            if (token) {
+                try {
+                    const response = await fetch('http://localhost:3000/api/user/auth/verify', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${token}`
+                        }
+                    });
+
+                    if (response.ok) {
+                        const userData = await response.json();
+                        localStorage.setItem('user_id', userData.user.userId);
+                        localStorage.setItem('user_name', userData.user.name);
+                        updateSidebar(true);
+
+                        fetchActivityHistory();
+                    } else {
+                        localStorage.removeItem('token');
+                        updateSidebar(false);
+                        const goToLogin = confirm('Session expired. Do you want to go to the login page?');
+                        if (goToLogin) {
+                            window.location.href = 'log-in.html';
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    localStorage.removeItem('token');
+                    updateSidebar(false);
+                    const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
+                    if (goToLogin) {
+                        window.location.href = 'log-in.html';
+                    }
+                }
+            } else {
+                updateSidebar(false);
+                const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
+                if (goToLogin) {
+                    window.location.href = 'log-in.html';
+                }
+            }
         }
 
         window.addEventListener('DOMContentLoaded', () => {
@@ -692,47 +696,24 @@
                     <button onclick="filterActivityHistory('provider')"
                         class="bg-orange-500 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-full mx-2 shadow-lg transition duration-300 ease-in-out transform hover:scale-105">ผู้เข้าร่วมกิจกรรม</button>
                 </div>
-                <div class="overflow-x-auto">
-                    <div class="table-responsive-sm">
-                        <table role="table" aria-busy="false" aria-colcount="7"
-                            class="table b-table b-table-stacked-md w-full">
-                            <thead role="rowgroup" class="bg-gray-100">
-                                <tr role="row">
-                                    <th role="columnheader" scope="col" aria-colindex="1"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                        กิจกรรม
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="2"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                        วันที่สร้างกิจกรรม
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="3"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                        วันที่เริ่มกิจกรรม
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="4"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                        สถานะ
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="5"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                        จำนวนผู้เข้าร่วม
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="6"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                        บทบาท
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="7"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                        การจัดการ
-                                    </th>
-                                </tr>
-                            </thead>
-                            <tbody id="history-tbody" role="rowgroup">
-                                <!-- Activity history will be dynamically inserted here -->
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="w-full overflow-x-auto">
+                    <table class="table-fixed w-full text-sm border-collapse">
+                        <thead class="bg-gray-100">
+                            <tr class="h-16">
+                                <th class="px-4 py-2 text-center font-semibold text-gray-600 w-[10%]">ประเภท</th>
+                                <th class="px-4 py-2 text-left font-semibold text-gray-600 w-[20%] cursor-pointer" onclick="sortTable('title', 'string')">กิจกรรม <i class="fas fa-sort"></i></th>
+                                <th class="px-4 py-2 text-left font-semibold text-gray-600 w-[15%]">ทักษะที่ต้องการ</th>
+                                <th class="px-4 py-2 text-left font-semibold text-gray-600 w-[14%]">ช่วงเวลา</th>
+                                <th class="px-4 py-2 text-center font-semibold text-gray-600 w-[12%]">สถานะ</th>
+                                <th class="px-4 py-2 text-center font-semibold text-gray-600 w-[10%]">ผู้เข้าร่วม</th>
+                                <th class="px-4 py-2 text-center font-semibold text-gray-600 w-[10%]">รายละเอียด</th>
+                            </tr>
+                        </thead>
+
+                        <tbody id="history-tbody" class="align-top break-words whitespace-normal text-base">
+                            <!-- Activity history will be dynamically inserted here -->
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>

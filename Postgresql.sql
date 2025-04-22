@@ -21,6 +21,7 @@ DROP TABLE IF EXISTS projects CASCADE;
 DROP TYPE IF EXISTS user_status CASCADE;
 DROP TYPE IF EXISTS activity_status CASCADE;
 DROP TYPE IF EXISTS transaction_type CASCADE;
+DROP TYPE IF EXISTS activity_type CASCADE;
 
 -- Create enum types
 CREATE TYPE user_status AS ENUM ('active', 'inactive', 'suspended', 'pending_approval', 'offline');
@@ -32,6 +33,7 @@ CREATE TYPE activity_status AS ENUM (
 
 CREATE TYPE transaction_type AS ENUM ('earn', 'spend');
 
+CREATE TYPE activity_type AS ENUM ('exchange', 'non_exchange');
 
 
 -- Create the branches table
@@ -86,14 +88,12 @@ CREATE TABLE activities (
     time_tokens_required INT DEFAULT 0,
     time_tokens_per_participant INT DEFAULT 0,
     required_skills INT NOT NULL,
-    confirmation_pending BOOLEAN DEFAULT false, -- ✅ NEW
+    activity_type activity_type NOT NULL,  -- Add this line
+    confirmation_pending BOOLEAN DEFAULT false,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
     FOREIGN KEY (requester_id) REFERENCES users(user_id) ON DELETE CASCADE
 );
-
--- Add column to activities table (no default)
-ALTER TABLE activities ADD COLUMN activity_type activity_type;
 
 -- Create the categories table
 CREATE TABLE categories (
@@ -272,11 +272,11 @@ INSERT INTO users (username, password, email, role, name, phone, address, branch
 ('save002', '$2a$10$4tEtE.kQJrXrM2G5w.8Fs.PWVcMz/WeE0iZSfPPdxz0DTY82mVOTy', 'savewaris001@gmail.com', 'Member', 'Test User', '1234567890', '123 Test St, Test City', 1, 10, 'active');
 
 -- Insert initial data into activities (with required_skills)
-INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, requester_phone, status, time_tokens_required, time_tokens_per_participant, required_skills) VALUES 
-('กิจกรรมทำความสะอาดชุมชน', 'ทำความสะอาดชุมชน', 'Community Center', '2023-01-01', '09:00', '2023-01-01', '12:00', 20, 1, '1234567890', 'เกินเวลา', 20, 1, 4),
-('กิจกรรมสอนคอมพิวเตอร์', 'สอนคอมพิวเตอร์ให้กับชุมชน', 'Community Center', '2023-01-15', '10:00', '2023-01-15', '13:00', 15, 1, '0987654321', 'เกินเวลา', 15, 1, 5),
-('กิจกรรมทำอาหาร', 'ทำอาหารร่วมกัน', 'Community Kitchen', '2023-01-30', '11:00', '2023-01-30', '14:00', 10, 1, '0987654321', 'เสร็จสิ้น', 10, 1, 6),
-('กิจกรรมทำสวน', 'ทำสวนร่วมกัน', 'Community Garden', '2023-02-05', '08:00', '2023-02-05', '11:00', 25, 1, '0987654321', 'เสร็จสิ้น', 25, 1, 7);
+INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, requester_phone, status, time_tokens_required, time_tokens_per_participant, required_skills, activity_type) VALUES 
+('กิจกรรมทำความสะอาดชุมชน', 'ทำความสะอาดชุมชน', 'Community Center', '2023-01-01', '09:00', '2023-01-01', '12:00', 20, 1, '1234567890', 'เกินเวลา', 20, 1, 4,'exchange'),
+('กิจกรรมสอนคอมพิวเตอร์', 'สอนคอมพิวเตอร์ให้กับชุมชน', 'Community Center', '2023-01-15', '10:00', '2023-01-15', '13:00', 15, 1, '0987654321', 'เกินเวลา', 15, 1, 5, 'exchange'),
+('กิจกรรมทำอาหาร', 'ทำอาหารร่วมกัน', 'Community Kitchen', '2023-01-30', '11:00', '2023-01-30', '14:00', 10, 1, '0987654321', 'เสร็จสิ้น', 10, 1, 6, 'exchange'),
+('กิจกรรมทำสวน', 'ทำสวนร่วมกัน', 'Community Garden', '2023-02-05', '08:00', '2023-02-05', '11:00', 25, 1, '0987654321', 'เสร็จสิ้น', 25, 1, 7, 'non_exchange');
 
 -- Insert initial data into categories
 INSERT INTO categories (category) VALUES 
@@ -466,7 +466,7 @@ INSERT INTO activities (
     5,
     1,
     1,
-    'non-exchange'
+    'non_exchange'
 );
 
 
@@ -575,4 +575,3 @@ WHERE
      AND (end_date::timestamp + end_time + INTERVAL '1 day') < NOW());
 
 
-	 
