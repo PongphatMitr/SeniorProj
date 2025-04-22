@@ -6,9 +6,9 @@
     <title>
         แลกเปลี่ยนเวลา - Time Bank
     </title>
-    <script src="https://cdn.tailwindcss.com">
-    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <script src="navbar.js"></script>
     <script>
         let globalUserId = null;
         let members = [];
@@ -39,6 +39,7 @@
 
             } catch (error) {
                 console.error('Error fetching member profile:', error);
+                showMessage('เกิดข้อผิดพลาดในการดึงข้อมูลสมาชิก', true);
             }
         }
 
@@ -59,26 +60,23 @@
                     } else {
                         localStorage.removeItem('token');
                         // Sidebar update handled externally
-                        const goToLogin = confirm('Session expired. Do you want to go to the login page?');
-                        if (goToLogin) {
+                        showConfirmation('Session expired. Do you want to go to the login page?', () => {
                             window.location.href = 'log-in.html';
-                        }
+                        });
                     }
                 } catch (error) {
                     console.error('Error:', error);
                     localStorage.removeItem('token');
                     // Sidebar update handled externally
-                    const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
-                    if (goToLogin) {
+                    showConfirmation('An error occurred. Do you want to go to the login page?', () => {
                         window.location.href = 'log-in.html';
-                    }
+                    });
                 }
             } else {
                 // Sidebar update handled externally
-                const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
-                if (goToLogin) {
+                showConfirmation('You are not logged in. Do you want to go to the login page?', () => {
                     window.location.href = 'log-in.html';
-                }
+                });
             }
         }
 
@@ -100,7 +98,7 @@
 
             } catch (error) {
                 console.error('Error fetching user details:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้');
+                showMessage('เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้', true);
             }
         }
 
@@ -121,7 +119,7 @@
                 members = data.members;
             } catch (error) {
                 console.error('Error fetching members:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลสมาชิก');
+                showMessage('เกิดข้อผิดพลาดในการดึงข้อมูลสมาชิก', true);
             }
         }
 
@@ -176,13 +174,11 @@
             const amount = document.getElementById('amount').value;
 
             if (!recipientId || !amount || amount <= 0) {
-                alert('กรุณากรอกข้อมูลให้ครบถ้วนและจำนวนต้องมากกว่า 0');
+                showMessage('กรุณากรอกข้อมูลให้ครบถ้วนและจำนวนต้องมากกว่า 0', true);
                 return;
             }
 
-            const confirmTransfer = confirm(`คุณต้องการโอน ${amount} เครดิตเวลาให้กับผู้ใช้ ID: ${recipientId} ใช่หรือไม่?`);
-
-            if (confirmTransfer) {
+            showConfirmation(`คุณต้องการโอน ${amount} เครดิตเวลาให้กับผู้ใช้ ID: ${recipientId} ใช่หรือไม่?`, async () => {
                 try {
                     const response = await fetch('http://localhost:3000/api/user/transactions/transfer', {
                         method: 'POST',
@@ -196,15 +192,15 @@
                     const data = await response.json();
                     if (!response.ok) throw new Error(data.error || 'Transaction failed');
 
-                    alert('✅ การโอนสำเร็จ!');
+                    showMessage('✅ การโอนสำเร็จ!', false);
                     fetchMemberProfile(); // Refresh balance
                     resetTransferForm();  // Reset form
 
                 } catch (error) {
                     console.error('❌ Transfer error:', error);
-                    alert(`เกิดข้อผิดพลาด: ${error.message}`);
+                    showMessage(`เกิดข้อผิดพลาด: ${error.message}`, true);
                 }
-            }
+            });
         }
 
         function resetTransferForm() {
@@ -226,6 +222,60 @@
             document.getElementById('recipientName').innerText = 'ชื่อผู้รับ'; // Reset display name
             document.getElementById('recipientUserId').innerText = 'ID: -'; // Reset display ID
             document.getElementById('recipientDisplay').classList.add('hidden'); // Hide display
+        }
+
+        function showMessage(message, isError = false) {
+            const modal = document.getElementById('message-modal');
+            const title = document.getElementById('message-title');
+            const text = document.getElementById('message-text');
+            const icon = document.getElementById('message-icon');
+            const iconSvg = document.getElementById('message-icon-svg');
+            const iconPath = document.getElementById('message-icon-path');
+
+            text.textContent = message;
+            modal.classList.remove('hidden');
+
+            title.classList.remove('text-red-600', 'text-green-600');
+            icon.classList.remove('bg-red-100', 'border-red-500', 'bg-green-100', 'border-green-500');
+            iconSvg.classList.remove('text-red-500', 'text-green-500');
+
+            if (isError) {
+                title.textContent = "เกิดข้อผิดพลาด!";
+                title.classList.add('text-red-600');
+                icon.classList.add('bg-red-100', 'border-red-500');
+                iconSvg.classList.add('text-red-500');
+                iconPath.setAttribute("d", "M6 18L18 6M6 6l12 12"); // X icon
+            } else {
+                title.textContent = "สำเร็จ!";
+                title.classList.add('text-green-600');
+                icon.classList.add('bg-green-100', 'border-green-500');
+                iconSvg.classList.add('text-green-500');
+                iconPath.setAttribute("d", "M5 13l4 4L19 7"); // Checkmark icon
+            }
+
+            setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
+
+            document.getElementById('confirm-message-btn').onclick = () => {
+                modal.classList.add('hidden');
+                modal.classList.remove('opacity-100', 'scale-100');
+            };
+        }
+
+        function showConfirmation(message, onConfirm) {
+            const modal = document.getElementById('confirm-modal');
+            const text = document.getElementById('confirm-message');
+
+            text.textContent = message;
+            modal.classList.remove('hidden');
+
+            document.getElementById('confirm-yes-btn').onclick = () => {
+                modal.classList.add('hidden');
+                onConfirm(); // Execute the function if confirmed
+            };
+
+            document.getElementById('confirm-no-btn').onclick = () => {
+                modal.classList.add('hidden');
+            };
         }
     </script>
 </head>
@@ -250,16 +300,14 @@
                     ยอดคงเหลือ
                 </h2>
                 <div class="flex items-center">
-                    <i class="fas fa-wallet text-3xl text-blue-600 mr-4">
-                    </i>
+                    <i class="fas fa-wallet text-3xl text-blue-600 mr-4"></i>
                     <span class="text-2xl font-bold" id="userBalance">
                         000 เครดิต
                     </span>
                 </div>
             </div>
             <!-- Transfer Form -->
-            <form class="bg-white text-gray-800 p-6 rounded-lg shadow-md" id="transferForm"
-                onsubmit="handleTransfer(event)">
+            <form class="bg-white text-gray-800 p-6 rounded-lg shadow-md" id="transferForm" onsubmit="handleTransfer(event)">
                 <!-- Sender -->
                 <div class="mb-4">
                     <label class="block font-bold text-gray-700 mb-2">
@@ -267,8 +315,7 @@
                     </label>
                     <!-- Sender Display -->
                     <div class="bg-gray-100 p-4 rounded-lg flex items-center shadow-md">
-                        <i class="fas fa-user-circle text-3xl text-blue-600 mr-4">
-                        </i>
+                        <i class="fas fa-user-circle text-3xl text-blue-600 mr-4"></i>
                         <div>
                             <p class="font-bold text-gray-700" id="senderName">
                                 ชื่อของคุณ
@@ -284,16 +331,13 @@
                     <label class="block font-bold text-gray-700 mb-2">
                         ถึง
                     </label>
-                    <input class="w-full p-3 rounded-lg border focus:ring focus:ring-blue-300" id="recipient"
-                        name="recipient" oninput="searchMembers()" placeholder="กรอก เลขบัญชี หรือ ชื่อ" required="" />
+                    <input class="w-full p-3 rounded-lg border focus:ring focus:ring-blue-300" id="recipient" name="recipient" oninput="searchMembers()" placeholder="กรอก เลขบัญชี หรือ ชื่อ" required />
                     <input id="recipient-id" name="recipient-id" type="hidden" />
-                    <div class="absolute w-full bg-white border rounded-lg mt-1 hidden" id="search-results-dropdown">
-                    </div>
+                    <div class="absolute w-full bg-white border rounded-lg mt-1 hidden" id="search-results-dropdown"></div>
                 </div>
                 <!-- Recipient Display  OPTION 1-->
                 <div class="bg-gray-100 p-4 rounded-lg flex items-center shadow-md hidden" id="recipientDisplay">
-                    <i class="fas fa-user-circle text-3xl text-blue-600 mr-4">
-                    </i>
+                    <i class="fas fa-user-circle text-3xl text-blue-600 mr-4"></i>
                     <div class="flex-1">
                         <p class="font-bold text-gray-700" id="recipientName">
                             ชื่อผู้รับ
@@ -302,32 +346,16 @@
                             ID: -
                         </p>
                     </div>
-                    <button class="ml-4 text-red-500 hover:text-red-700 font-bold text-sm" onclick="clearRecipient()">
+                    <button class="ml-4 text-red-500 hover:text-red-700 font-bold text-sm" type="button" onclick="clearRecipient()">
                         ❌ Clear
                     </button>
                 </div>
-                <!-- Recipient Display OPTION 2-->
-                <!-- <div class="bg-gray-100 p-4 rounded-lg flex items-center shadow-md hidden relative" id="recipientDisplay">
-        <i class="fas fa-user-circle text-3xl text-blue-600 mr-4"></i>
-        <div class="flex-1">
-            <p class="font-bold text-gray-700" id="recipientName">ชื่อผู้รับ</p>
-            <p class="text-gray-500 text-sm" id="recipientUserId">ID: -</p>
-        </div> -->
-                <!-- Clear Button -->
-                <!-- <button onclick="clearRecipient()" 
-            class="absolute top-2 right-2 text-gray-500 hover:text-red-600 transition duration-200">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-        </button>
-    </div> -->
                 <!-- Amount -->
                 <div class="mb-4">
                     <label class="block font-bold text-gray-700 mb-2 mt-8">
                         จำนวนเครดิตเวลา
                     </label>
-                    <input class="w-full p-3 rounded-lg border focus:ring focus:ring-blue-300" id="amount" min="0"
-                        name="amount" placeholder="กรอกจำนวน" required="" type="number" />
+                    <input class="w-full p-3 rounded-lg border focus:ring focus:ring-blue-300" id="amount" min="0" name="amount" placeholder="กรอกจำนวน" required type="number" />
                 </div>
                 <!-- Transfer Button -->
                 <button class="w-full bg-blue-600 hover:bg-blue-800 text-white font-bold py-3 px-4 rounded-lg">
@@ -336,8 +364,40 @@
             </form>
         </div>
     </div>
-    <script src="navbar.js">
-    </script>
+
+    <!-- Success & Error Message Modal -->
+    <div id="message-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden transition-opacity duration-300 z-50">
+        <div class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-2xl text-center transform scale-95 transition-transform duration-300">
+            <div class="flex justify-center">
+                <div id="message-icon" class="w-24 h-24 flex items-center justify-center rounded-full border-4 animate-bounce">
+                    <svg id="message-icon-svg" class="w-16 h-16" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path id="message-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                    </svg>
+                </div>
+            </div>
+            <h2 id="message-title" class="text-4xl font-bold mt-6"></h2>
+            <p id="message-text" class="text-gray-700 text-xl mt-4"></p>
+            <button id="confirm-message-btn" class="mt-8 px-8 py-4 bg-blue-600 text-white text-xl font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ตกลง
+            </button>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden transition-opacity duration-300 z-50">
+        <div class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-lg text-center transform scale-95 transition-transform duration-300">
+            <h2 id="confirm-title" class="text-3xl font-bold text-yellow-600">ยืนยันการโอนเครดิตเวลา</h2>
+            <p id="confirm-message" class="text-gray-700 text-xl mt-4"></p>
+            <div class="mt-6 flex justify-center gap-4">
+                <button id="confirm-yes-btn" class="px-6 py-3 bg-green-600 text-white text-lg font-semibold rounded-lg hover:bg-green-700 transition duration-300">
+                    ยืนยัน
+                </button>
+                <button id="confirm-no-btn" class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300">
+                    ยกเลิก
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>

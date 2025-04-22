@@ -40,7 +40,7 @@
 
             } catch (error) {
                 console.error('Error fetching user details:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้');
+                showMessage('เกิดข้อผิดพลาดในการดึงข้อมูลผู้ใช้', true);
             }
         }
 
@@ -61,11 +61,11 @@
                     populateCategoryDropdown();
                 } else {
                     console.error('Expected an array but got:', data);
-                    alert('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะ');
+                    showMessage('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะ', true);
                 }
             } catch (error) {
                 console.error('Error fetching skills:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะ');
+                showMessage('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะ', true);
             }
         }
 
@@ -115,7 +115,7 @@
             if (!selectedSkillId) return;
 
             if (selectedSkills.length > 0) {
-                alert('คุณสามารถเลือกได้เพียง 1 ทักษะเท่านั้น');
+                showMessage('คุณสามารถเลือกได้เพียง 1 ทักษะเท่านั้น', true);
                 return;
             }
 
@@ -170,7 +170,7 @@
                 calculateTimeTokens();
             } catch (error) {
                 console.error('Error fetching community config:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
+                showMessage('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน', true);
             }
         }
 
@@ -215,7 +215,7 @@
 
         async function submitActivity(event) {
             event.preventDefault();
-        
+
             const title = document.getElementById('title').value;
             const description = document.getElementById('description').value;
             const location = document.getElementById('location').value;
@@ -226,35 +226,35 @@
             const requesterPhone = document.getElementById('requester-phone').value;
             const status = document.getElementById('status').value;
             const activityType = document.getElementById('activity-type').value;
-        
+
             if (!activityType) {
-                alert('กรุณาเลือกประเภทของกิจกรรม');
+                showMessage('กรุณาเลือกประเภทของกิจกรรม', true);
                 return;
             }
-        
+
             const timeTokensRequired = parseFloat(document.getElementById('time-tokens-required').value);
             const timeTokensPerParticipant = parseFloat(document.getElementById('time-tokens-per-participant').value);
-        
+
             const startHours = document.getElementById('start-hours').value;
             const startMinutes = document.getElementById('start-minutes').value;
             const endHours = document.getElementById('end-hours').value;
             const endMinutes = document.getElementById('end-minutes').value;
-        
+
             if (!startHours || !startMinutes || !endHours || !endMinutes) {
-                alert('กรุณาเลือกเวลาเริ่มต้นและเวลาสิ้นสุดให้ครบ');
+                showMessage('กรุณาเลือกเวลาเริ่มต้นและเวลาสิ้นสุดให้ครบ', true);
                 return;
             }
-        
+
             const startTime = `${startHours}:${startMinutes}`;
             const endTime = `${endHours}:${endMinutes}`;
-        
+
             if (selectedSkills.length === 0) {
-                alert('กรุณาเลือก 1 ทักษะสำหรับกิจกรรม');
+                showMessage('กรุณาเลือก 1 ทักษะสำหรับกิจกรรม', true);
                 return;
             }
-        
+
             const required_skill = selectedSkills[0].skill_id;
-        
+
             const activityData = {
                 title,
                 description,
@@ -272,7 +272,7 @@
                 required_skills: required_skill,
                 activity_type: activityType
             };
-        
+
             try {
                 const response = await fetch('http://localhost:3000/api/user/activities', {
                     method: 'POST',
@@ -282,20 +282,22 @@
                     },
                     body: JSON.stringify(activityData)
                 });
-        
+
                 if (!response.ok) {
                     const errorData = await response.json();
                     throw new Error(`Activity creation failed: ${errorData.error}`);
                 }
-        
-                alert('สร้างกิจกรรมสำเร็จ!');
-                window.location.href = 'actOngoing.html';
+
+                showMessage('สร้างกิจกรรมสำเร็จ!', false);
+                setTimeout(() => {
+                    window.location.href = 'actOngoing.html';
+                }, 1500);
             } catch (error) {
                 console.error('Error:', error);
-                alert('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+                showMessage('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง', true);
             }
         }
-        
+
 
         async function checkLoginStatus() {
             const token = localStorage.getItem('token');
@@ -314,27 +316,78 @@
                     } else {
                         localStorage.removeItem('token');
                         updateSidebar(false);
-                        const goToLogin = confirm('Session expired. Do you want to go to the login page?');
-                        if (goToLogin) {
+                        showConfirmation('Session expired. Do you want to go to the login page?', () => {
                             window.location.href = 'log-in.html';
-                        }
+                        });
                     }
                 } catch (error) {
                     console.error('Error:', error);
                     localStorage.removeItem('token');
                     updateSidebar(false);
-                    const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
-                    if (goToLogin) {
+                    showConfirmation('An error occurred. Do you want to go to the login page?', () => {
                         window.location.href = 'log-in.html';
-                    }
+                    });
                 }
             } else {
                 updateSidebar(false);
-                const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
-                if (goToLogin) {
+                showConfirmation('You are not logged in. Do you want to go to the login page?', () => {
                     window.location.href = 'log-in.html';
-                }
+                });
             }
+        }
+
+        function showMessage(message, isError = false) {
+            const modal = document.getElementById('message-modal');
+            const title = document.getElementById('message-title');
+            const text = document.getElementById('message-text');
+            const icon = document.getElementById('message-icon');
+            const iconSvg = document.getElementById('message-icon-svg');
+            const iconPath = document.getElementById('message-icon-path');
+
+            text.textContent = message;
+            modal.classList.remove('hidden');
+
+            title.classList.remove('text-red-600', 'text-green-600');
+            icon.classList.remove('bg-red-100', 'border-red-500', 'bg-green-100', 'border-green-500');
+            iconSvg.classList.remove('text-red-500', 'text-green-500');
+
+            if (isError) {
+                title.textContent = "เกิดข้อผิดพลาด!";
+                title.classList.add('text-red-600');
+                icon.classList.add('bg-red-100', 'border-red-500');
+                iconSvg.classList.add('text-red-500');
+                iconPath.setAttribute("d", "M6 18L18 6M6 6l12 12"); // X icon
+            } else {
+                title.textContent = "สำเร็จ!";
+                title.classList.add('text-green-600');
+                icon.classList.add('bg-green-100', 'border-green-500');
+                iconSvg.classList.add('text-green-500');
+                iconPath.setAttribute("d", "M5 13l4 4L19 7"); // Checkmark icon
+            }
+
+            setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
+
+            document.getElementById('confirm-message-btn').onclick = () => {
+                modal.classList.add('hidden');
+                modal.classList.remove('opacity-100', 'scale-100');
+            };
+        }
+
+        function showConfirmation(message, onConfirm) {
+            const modal = document.getElementById('confirm-modal');
+            const text = document.getElementById('confirm-message');
+
+            text.textContent = message;
+            modal.classList.remove('hidden');
+
+            document.getElementById('confirm-yes-btn').onclick = () => {
+                modal.classList.add('hidden');
+                onConfirm(); // Execute the function if confirmed
+            };
+
+            document.getElementById('confirm-no-btn').onclick = () => {
+                modal.classList.add('hidden');
+            };
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -362,7 +415,7 @@
                 autoSetEndTime();
                 calculateTimeTokens();
             });
-            
+
             if (endHours) endHours.addEventListener('change', calculateTimeTokens);
             if (endMinutes) endMinutes.addEventListener('change', calculateTimeTokens);
 
@@ -377,6 +430,9 @@
                     syncDates(e.target.value);
                 });
             }
+
+            document.getElementById('activity-type').addEventListener('change', handleActivityTypeChange);
+            handleActivityTypeChange(); // for default state on load
         });
 
         function setStartDateRange() {
@@ -411,6 +467,36 @@
                 endDateInput.value = startDateValue;
             }
             endDateInput.setAttribute('min', startDateValue);
+        }
+
+        function autoSetEndTime() {
+            const startHours = parseInt(document.getElementById('start-hours').value, 10);
+            const startMinutes = parseInt(document.getElementById('start-minutes').value, 10);
+
+            if (isNaN(startHours) || isNaN(startMinutes)) return;
+
+            let endHours = startHours + 1;
+            let endMinutes = startMinutes;
+
+            if (endHours >= 24) {
+                endHours = endHours % 24;
+            }
+
+            document.getElementById('end-hours').value = endHours.toString().padStart(2, '0');
+            document.getElementById('end-minutes').value = endMinutes.toString().padStart(2, '0');
+
+            calculateTimeTokens();
+        }
+
+        function handleActivityTypeChange() {
+            const type = document.getElementById('activity-type').value;
+            const tokenFields = document.getElementById('token-fields');
+            if (type === 'exchange') {
+                tokenFields.classList.remove('hidden');
+                calculateTimeTokens(); // recalculate if needed
+            } else {
+                tokenFields.classList.add('hidden');
+            }
         }
     </script>
 </head>
@@ -610,51 +696,67 @@
                             class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
                             ย้อนกลับ
                         </button>
-                        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                            type="submit">
+                        <button type="button" onclick="showCreateConfirmation()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                             สร้างกิจกรรม
-                        </button>
+                        </button>                
                     </div>
                 </form>
             </div>
         </div>
     </div>
+
+    <!-- Success & Error Message Modal -->
+    <div id="message-modal"
+        class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden transition-opacity duration-300 z-50">
+        <div
+            class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-2xl text-center transform scale-95 transition-transform duration-300">
+            <div class="flex justify-center">
+                <div id="message-icon"
+                    class="w-24 h-24 flex items-center justify-center rounded-full border-4 animate-bounce">
+                    <svg id="message-icon-svg" class="w-16 h-16" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path id="message-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                    </svg>
+                </div>
+            </div>
+            <h2 id="message-title" class="text-4xl font-bold mt-6"></h2>
+            <p id="message-text" class="text-gray-700 text-xl mt-4"></p>
+            <button id="confirm-message-btn"
+                class="mt-8 px-8 py-4 bg-blue-600 text-white text-xl font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ตกลง
+            </button>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal"
+        class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden transition-opacity duration-300 z-50">
+        <div
+            class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-lg text-center transform scale-95 transition-transform duration-300">
+            <h2 id="confirm-title" class="text-3xl font-bold text-yellow-600">ยืนยันการสร้างกิจกรรม</h2>
+            <p id="confirm-message" class="text-gray-700 text-xl mt-4"></p>
+            <div class="mt-6 flex justify-center gap-4">
+                <button id="confirm-yes-btn"
+                    class="px-6 py-3 bg-green-600 text-white text-lg font-semibold rounded-lg hover:bg-green-700 transition duration-300">
+                    ยืนยัน
+                </button>
+                <button id="confirm-no-btn"
+                    class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300">
+                    ยกเลิก
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        function autoSetEndTime() {
-            const startHours = parseInt(document.getElementById('start-hours').value, 10);
-            const startMinutes = parseInt(document.getElementById('start-minutes').value, 10);
-        
-            if (isNaN(startHours) || isNaN(startMinutes)) return;
-        
-            let endHours = startHours + 1;
-            let endMinutes = startMinutes;
-        
-            if (endHours >= 24) {
-                endHours = endHours % 24;
-            }
-        
-            document.getElementById('end-hours').value = endHours.toString().padStart(2, '0');
-            document.getElementById('end-minutes').value = endMinutes.toString().padStart(2, '0');
-        
-            calculateTimeTokens();
+        function showCreateConfirmation() {
+            showConfirmation("คุณต้องการสร้างกิจกรรมนี้ใช่หรือไม่?", () => {
+                const form = document.querySelector("form");
+                if (form) {
+                    submitActivity({ preventDefault: () => {} });
+                }
+            });
         }
-
-        // At the end of your <script>
-        function handleActivityTypeChange() {
-            const type = document.getElementById('activity-type').value;
-            const tokenFields = document.getElementById('token-fields');
-            if (type === 'exchange') {
-                tokenFields.classList.remove('hidden');
-                calculateTimeTokens(); // recalculate if needed
-            } else {
-                tokenFields.classList.add('hidden');
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('activity-type').addEventListener('change', handleActivityTypeChange);
-            handleActivityTypeChange(); // for default state on load
-        });
         
     </script>
 </body>

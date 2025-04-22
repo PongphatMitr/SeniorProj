@@ -6,7 +6,6 @@
     <title>รายชื่อผู้เข้าร่วม - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
-    </link>
     <script>
         let participants = [];
 
@@ -15,7 +14,7 @@
             const activityId = urlParams.get('id');
 
             if (!activityId) {
-                alert('ไม่พบรหัสกิจกรรม');
+                showMessage('ไม่พบรหัสกิจกรรม', true);
                 return;
             }
 
@@ -36,10 +35,11 @@
                     renderParticipants(participants);
                 } else {
                     console.error('Expected an array but got:', participants);
+                    showMessage('เกิดข้อผิดพลาดในการดึงรายชื่อผู้เข้าร่วม', true);
                 }
             } catch (error) {
                 console.error('Error fetching participants:', error);
-                alert('เกิดข้อผิดพลาดในการดึงรายชื่อผู้เข้าร่วม');
+                showMessage('เกิดข้อผิดพลาดในการดึงรายชื่อผู้เข้าร่วม', true);
             }
         }
 
@@ -72,33 +72,40 @@
             const checkedCheckboxes = document.querySelectorAll('.participant-checkbox:checked');
 
             if (checkedCheckboxes.length === 0) {
-                alert('กรุณาเลือกอย่างน้อย 1 ผู้เข้าร่วมที่มาร่วมกิจกรรม');
+                showMessage('กรุณาเลือกอย่างน้อย 1 ผู้เข้าร่วมที่มาร่วมกิจกรรม', true);
                 return;
             }
 
             const attendedUserIds = Array.from(checkedCheckboxes).map(cb => parseInt(cb.dataset.userId));
 
-            try {
-                const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}/confirm-completion`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({ attendedUserIds })  // 🟢 Pass attendance list
-                });
+            showConfirmation('คุณต้องการยืนยันการเสร็จสิ้นกิจกรรมใช่หรือไม่?', async () => {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}/confirm-completion`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({ attendedUserIds })  // 🟢 Pass attendance list
+                    });
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || 'Unknown error');
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Unknown error');
+                    }
+
+                    showMessage('ยืนยันกิจกรรมสำเร็จ รอการอนุมัติจาก TimeBank Manager', false);
+                    document.getElementById('confirm-completion-btn').classList.add('hidden');
+                    // Disable all checkboxes after confirmation
+                    document.querySelectorAll('.participant-checkbox').forEach(cb => {
+                        cb.checked = false;
+                        cb.disabled = true;
+                    });
+                } catch (error) {
+                    console.error('Error confirming completion:', error);
+                    showMessage('เกิดข้อผิดพลาด: ' + error.message, true);
                 }
-
-                alert('ยืนยันกิจกรรมสำเร็จ รอการอนุมัติจาก TimeBank Manager');
-                document.getElementById('confirm-completion-btn').classList.add('hidden');
-            } catch (error) {
-                console.error('Error confirming completion:', error);
-                alert('เกิดข้อผิดพลาด: ' + error.message);
-            }
+            });
         }
 
         function disableConfirmedCheckboxes(attendedUserIds) {
@@ -134,6 +141,11 @@
                 // Always hide the button for these final states
                 if (status === 'รอการอนุมัติ' || status === 'เสร็จสิ้น' || status === 'เกินเวลา') {
                     confirmButton.classList.add('hidden');
+                    // Disable all checkboxes if status is final
+                    if (Array.isArray(participants)) {
+                        const attendedUserIds = participants.filter(p => p.attended).map(p => p.user_id);
+                        disableConfirmedCheckboxes(attendedUserIds);
+                    }
                     return;
                 }
 
@@ -153,11 +165,8 @@
             fetchParticipants();
             checkLoginStatus();
             checkIfRequester();
-            checkConfirmedAttendanceStatus(); // ✅ make sure this is here
+            checkConfirmedAttendanceStatus();
         });
-
-
-
 
         async function checkIfRequester() {
             const token = localStorage.getItem('token');
@@ -202,8 +211,6 @@
             }
         }
 
-
-
         async function checkLoginStatus() {
             const token = localStorage.getItem('token');
             if (token) {
@@ -231,6 +238,59 @@
             }
         }
 
+        function showMessage(message, isError = false) {
+            const modal = document.getElementById('message-modal');
+            const title = document.getElementById('message-title');
+            const text = document.getElementById('message-text');
+            const icon = document.getElementById('message-icon');
+            const iconSvg = document.getElementById('message-icon-svg');
+            const iconPath = document.getElementById('message-icon-path');
+
+            text.textContent = message;
+            modal.classList.remove('hidden');
+
+            title.classList.remove('text-red-600', 'text-green-600');
+            icon.classList.remove('bg-red-100', 'border-red-500', 'bg-green-100', 'border-green-500');
+            iconSvg.classList.remove('text-red-500', 'text-green-500');
+
+            if (isError) {
+                title.textContent = "เกิดข้อผิดพลาด!";
+                title.classList.add('text-red-600');
+                icon.classList.add('bg-red-100', 'border-red-500');
+                iconSvg.classList.add('text-red-500');
+                iconPath.setAttribute("d", "M6 18L18 6M6 6l12 12"); // X icon
+            } else {
+                title.textContent = "สำเร็จ!";
+                title.classList.add('text-green-600');
+                icon.classList.add('bg-green-100', 'border-green-500');
+                iconSvg.classList.add('text-green-500');
+                iconPath.setAttribute("d", "M5 13l4 4L19 7"); // Checkmark icon
+            }
+
+            setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
+
+            document.getElementById('confirm-message-btn').onclick = () => {
+                modal.classList.add('hidden');
+                modal.classList.remove('opacity-100', 'scale-100');
+            };
+        }
+
+        function showConfirmation(message, onConfirm) {
+            const modal = document.getElementById('confirm-modal');
+            const text = document.getElementById('confirm-message');
+
+            text.textContent = message;
+            modal.classList.remove('hidden');
+
+            document.getElementById('confirm-yes-btn').onclick = () => {
+                modal.classList.add('hidden');
+                onConfirm(); // Execute the function if confirmed
+            };
+
+            document.getElementById('confirm-no-btn').onclick = () => {
+                modal.classList.add('hidden');
+            };
+        }
     </script>
     <script src="navbar.js"></script>
 </head>
@@ -286,6 +346,49 @@
                         class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
                         onclick="window.history.back()" type="button">ย้อนกลับ</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success & Error Message Modal -->
+    <div id="message-modal"
+        class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden transition-opacity duration-300 z-50">
+        <div
+            class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-2xl text-center transform scale-95 transition-transform duration-300">
+            <div class="flex justify-center">
+                <div id="message-icon"
+                    class="w-24 h-24 flex items-center justify-center rounded-full border-4 animate-bounce">
+                    <svg id="message-icon-svg" class="w-16 h-16" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path id="message-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                    </svg>
+                </div>
+            </div>
+            <h2 id="message-title" class="text-4xl font-bold mt-6"></h2>
+            <p id="message-text" class="text-gray-700 text-xl mt-4"></p>
+            <button id="confirm-message-btn"
+                class="mt-8 px-8 py-4 bg-blue-600 text-white text-xl font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ตกลง
+            </button>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal"
+        class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden transition-opacity duration-300 z-50">
+        <div
+            class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-lg text-center transform scale-95 transition-transform duration-300">
+            <h2 id="confirm-title" class="text-3xl font-bold text-yellow-600">ยืนยันการขออนุมัติ</h2>
+            <p id="confirm-message" class="text-gray-700 text-xl mt-4"></p>
+            <div class="mt-6 flex justify-center gap-4">
+                <button id="confirm-yes-btn"
+                    class="px-6 py-3 bg-green-600 text-white text-lg font-semibold rounded-lg hover:bg-green-700 transition duration-300">
+                    ยืนยัน
+                </button>
+                <button id="confirm-no-btn"
+                    class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300">
+                    ยกเลิก
+                </button>
             </div>
         </div>
     </div>
