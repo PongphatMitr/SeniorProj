@@ -11,7 +11,7 @@
 <body class="bg-gray-100">
     <div class="flex flex-col md:flex-row">
         <!-- Sidebar -->
-        <div class="w-full md:w-1/6 bg-white min-h-screen p-5 sticky top-0 flex flex-col z-[1] overflow-visible">
+        <div class="w-full md:w-1/6 bg-white h-screen p-5 sticky top-0 flex flex-col">
             <nav class="flex-grow">
                 <ul id="navList" class="space-y-4"></ul>
             </nav>
@@ -122,8 +122,6 @@
                     alert('An error occurred. Please try again.');
                 });
 
-            // Initialize the sidebar
-            checkLoginStatus();
         });
 
         function renderUserProfile(data) {

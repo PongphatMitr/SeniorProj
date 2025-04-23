@@ -3,6 +3,19 @@ const express = require('express');
 const communityConfigRoutes = (pool) => {
     const router = express.Router();
 
+    // Get logs of community config changes
+    router.get('/logs', async (req, res) => {
+        try {
+            const result = await pool.query(`
+            SELECT * FROM community_config_log ORDER BY changed_at DESC
+        `);
+            res.json({ logs: result.rows });
+        } catch (err) {
+            console.error('Error fetching community config logs:', err.message);
+            res.status(500).json({ error: 'An error occurred while fetching logs' });
+        }
+    });
+
     // Get community configuration
     router.get('/', async (req, res) => {
         try {
@@ -74,6 +87,17 @@ const communityConfigRoutes = (pool) => {
                 'UPDATE community_config SET default_time_token = $1, default_exchange_rate_id = $2, minimum_time_token_hours = $3, minimum_time_token_minutes = $4 RETURNING *',
                 [default_time_token, default_exchange_rate_id, minimum_time_token_hours, minimum_time_token_minutes]
             );
+
+            // Log the change
+            await client.query(`
+    INSERT INTO community_config_log (config_id, changed_by, change_description)
+    VALUES ($1, $2, $3)
+`, [
+                result.rows[0].config_id,
+                req.user?.user_id || 1, // fallback ID if auth not passed
+                'ได้มีการเปลี่ยนแปลงการตั้งค่าของชุมชน',
+            ]);
+
 
             await client.query('COMMIT');
 

@@ -1,41 +1,41 @@
 function updateSidebar(isLoggedIn) {
   const navList = document.getElementById('navList');
   if (!navList) {
-      console.error('navList element not found.');
-      return;
+    console.error('navList element not found.');
+    return;
   }
   const sidebarHeader = `
   <div class="flex items-center mb-10">
-    <img alt="Logo of Time Bank System, a clock with a handshake in the center" class="w-10 h-10 rounded-full" height="50" src="https://placehold.co/50x50/png?text=Logo" width="50" />
+    <img alt="Logo of Time Bank System, a clock with a handshake in the center" class="w-10 h-10 rounded-full" height="50" src="../images/timebank.png" width="50" />
     <span class="ml-3 text-xl font-bold text-blue-600"> TIMEBANK </span>
   </div>
 `;
 
   // Helper to get current path filename
   function getCurrentPage() {
-      const path = window.location.pathname;
-      return path.substring(path.lastIndexOf('/') + 1);
+    const path = window.location.pathname;
+    return path.substring(path.lastIndexOf('/') + 1);
   }
 
   // Save dropdown states in localStorage to persist open state across page loads
   function getDropdownState(id) {
-      const state = localStorage.getItem('dropdown-' + id);
-      return state === 'true';
+    const state = localStorage.getItem('dropdown-' + id);
+    return state === 'true';
   }
   function setDropdownState(id, state) {
-      localStorage.setItem('dropdown-' + id, state ? 'true' : 'false');
+    localStorage.setItem('dropdown-' + id, state ? 'true' : 'false');
   }
 
   function createDropdown(id, title, iconClass, items) {
     const currentPage = getCurrentPage();
     let isOpen = getDropdownState(id);
-  
+
     // Auto-open dropdown if current page matches any item
     if (!isOpen) {
       isOpen = items.some(item => item.href === currentPage);
       if (isOpen) setDropdownState(id, true);
     }
-  
+
     return `
       <li class="mb-4">
         <button aria-expanded="${isOpen}" aria-controls="${id}" 
@@ -50,42 +50,42 @@ function updateSidebar(isLoggedIn) {
               style="height: ${isOpen ? `${items.length * 48 + 12}px` : '0'}; overflow: hidden; visibility: ${isOpen ? 'visible' : 'hidden'};">
 
             ${items.map((item, index) => {
-            const active = item.href === currentPage;
-            const activeClass = active
-              ? 'bg-blue-100 text-blue-700 font-semibold'
-              : 'text-gray-600 hover:text-blue-600 hover:bg-gray-100';
-              return `
+      const active = item.href === currentPage;
+      const activeClass = active
+        ? 'bg-blue-100 text-blue-700 font-semibold'
+        : 'text-gray-600 hover:text-blue-600 hover:bg-gray-100';
+      return `
               <li class="${index === 0 ? 'mt-3' : ''}">
                 <a href="${item.href}" class="flex items-center p-2 rounded-lg transition ${activeClass}">
                   <i class="${item.icon} mr-3 w-4"></i> ${item.text}
                 </a>
               </li>
             `;
-            
-          }).join('')}
+
+    }).join('')}
         </ul>
       </li>
     `;
   }
-  
+
 
   if (isLoggedIn) {
-      (async () => {
-          try {
-              const response = await fetch('http://localhost:3000/api/user/auth/verify', {
-                  method: 'POST',
-                  headers: {
-                      'Content-Type': 'application/json',
-                      'Authorization': `Bearer ${localStorage.getItem('token')}`
-                  }
-              });
-              if (!response.ok) {
-                  throw new Error('Failed to fetch user details');
-              }
-              const member = await response.json();
-              const memberId = member.userId || member.user_id;
+    (async () => {
+      try {
+        const response = await fetch('http://localhost:3000/api/user/auth/verify', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+        if (!response.ok) {
+          throw new Error('Failed to fetch user details');
+        }
+        const member = await response.json();
+        const memberId = member.userId || member.user_id;
 
-              navList.innerHTML = `
+        navList.innerHTML = `
               ${sidebarHeader}
               <li class="mb-5 flex items-center justify-between">
                 <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300 flex-grow" href="log-out.html">
@@ -101,15 +101,15 @@ function updateSidebar(isLoggedIn) {
                 </a>
               </li>
               ${createDropdown('community-dropdown', 'กิจกรรมทั้งหมด', 'fas fa-users', [
-                  { href: 'service.html', text: 'กิจกรรมของชุมชน', icon: 'fas fa-users' },
-                  { href: 'history.html', text: 'ธุรกรรมเวลา', icon: 'fas fa-history' },
-                  { href: 'create-service.html', text: 'สร้างกิจกรรม', icon: 'fas fa-plus-circle' }
-              ])}
+          { href: 'service.html', text: 'กิจกรรมของชุมชน', icon: 'fas fa-users' },
+          { href: 'history.html', text: 'ธุรกรรมเวลา', icon: 'fas fa-history' },
+          { href: 'create-service.html', text: 'สร้างกิจกรรม', icon: 'fas fa-plus-circle' }
+        ])}
               ${createDropdown('management-dropdown', 'การจัดการของฉัน', 'fas fa-cogs', [
-                  { href: 'profile.html', text: 'จัดการข้อมูลส่วนตัว', icon: 'fas fa-user-edit' },
-                  { href: 'transfer.html', text: 'แลกเปลี่ยนเวลา', icon: 'fas fa-exchange-alt' },
-                  { href: 'balance.html', text: 'ยอดคงเหลือ', icon: 'fas fa-wallet' }
-              ])}
+          { href: 'profile.html', text: 'จัดการข้อมูลส่วนตัว', icon: 'fas fa-user-edit' },
+          { href: 'transfer.html', text: 'แลกเปลี่ยนเวลา', icon: 'fas fa-exchange-alt' },
+          { href: 'balance.html', text: 'ยอดคงเหลือ', icon: 'fas fa-wallet' }
+        ])}
               <li class="mb-4">
                 <a href="contact.html" class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-100 p-2 rounded-lg transition ${getCurrentPage() === 'contact.html' ? 'bg-blue-100 text-blue-700 font-semibold' : ''}">
                   <i class="fas fa-phone-alt mr-3 w-5"></i> ติดต่อเรา
@@ -117,13 +117,13 @@ function updateSidebar(isLoggedIn) {
               </li>
             `;
 
-          } catch (error) {
-              console.error('Error fetching user details:', error);
-              alert('เกิดข้อผิดพลาดขณะโหลดข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
-          }
-      })();
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+        alert('เกิดข้อผิดพลาดขณะโหลดข้อมูลผู้ใช้ กรุณาเข้าสู่ระบบใหม่อีกครั้ง');
+      }
+    })();
   } else {
-      navList.innerHTML = `
+    navList.innerHTML = `
     ${sidebarHeader}
     <li class="mb-5">
       <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="log-in.html">
@@ -184,45 +184,45 @@ async function checkLoginStatus() {
   const isLoginPage = window.location.pathname.endsWith('login.html');
   const isRegisterPage = window.location.pathname.endsWith('register.html');
   if (token) {
-      try {
-          const response = await fetch('http://localhost:3000/api/user/auth/verify', {
-              method: 'POST',
-              headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${token}`
-              }
-          });
-          if (response.ok) {
-              updateSidebar(true);
-          } else {
-              localStorage.removeItem('token');
-              updateSidebar(false);
-              if (!isLoginPage && !isRegisterPage) {
-                  showErrorModal('Token verification failed. Redirecting to login page.');
-              }
-          }
-      } catch (error) {
-          console.error('Error:', error);
-          localStorage.removeItem('token');
-          updateSidebar(false);
-          if (!isLoginPage && !isRegisterPage) {
-              showErrorModal('Error occurred during token verification. Redirecting to login page.');
-          }
+    try {
+      const response = await fetch('http://localhost:3000/api/user/auth/verify', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (response.ok) {
+        updateSidebar(true);
+      } else {
+        localStorage.removeItem('token');
+        updateSidebar(false);
+        if (!isLoginPage && !isRegisterPage) {
+          showErrorModal('Token verification failed. Redirecting to login page.');
+        }
       }
-  } else {
+    } catch (error) {
+      console.error('Error:', error);
+      localStorage.removeItem('token');
       updateSidebar(false);
       if (!isLoginPage && !isRegisterPage) {
-          showErrorModal('No token found. Redirecting to login page.');
+        showErrorModal('Error occurred during token verification. Redirecting to login page.');
       }
+    }
+  } else {
+    updateSidebar(false);
+    if (!isLoginPage && !isRegisterPage) {
+      showErrorModal('No token found. Redirecting to login page.');
+    }
   }
 }
 
 function showLogoutModal() {
   const logoutModal = document.getElementById('logout-modal');
   if (logoutModal) {
-      logoutModal.classList.remove('hidden');
+    logoutModal.classList.remove('hidden');
   } else {
-      console.error('Logout modal element not found.');
+    console.error('Logout modal element not found.');
   }
 }
 
@@ -236,10 +236,10 @@ function showErrorModal(message) {
   const errorModal = document.getElementById('error-modal');
   const errorMessage = document.getElementById('error-message');
   if (errorModal && errorMessage) {
-      errorMessage.textContent = message;
-      errorModal.classList.remove('hidden');
+    errorMessage.textContent = message;
+    errorModal.classList.remove('hidden');
   } else {
-      console.error('Error modal or message element not found.');
+    console.error('Error modal or message element not found.');
   }
 }
 
@@ -283,8 +283,8 @@ document.addEventListener('DOMContentLoaded', () => {
   </div>
 `;
   if (body) {
-      body.insertAdjacentHTML('beforeend', logoutModalHTML);
-      body.insertAdjacentHTML('beforeend', errorModalHTML);
+    body.insertAdjacentHTML('beforeend', logoutModalHTML);
+    body.insertAdjacentHTML('beforeend', errorModalHTML);
   }
   const logoutConfirmBtn = document.getElementById('logout-confirm-btn');
   const logoutCancelBtn = document.getElementById('logout-cancel-btn');
@@ -292,21 +292,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const errorConfirmBtn = document.getElementById('error-confirm-btn');
   const errorModal = document.getElementById('error-modal');
   if (logoutConfirmBtn && logoutModal) {
-      logoutConfirmBtn.addEventListener('click', logout);
-      if (logoutCancelBtn) {
-          logoutCancelBtn.addEventListener('click', () => {
-              logoutModal.classList.add('hidden');
-          });
-      }
+    logoutConfirmBtn.addEventListener('click', logout);
+    if (logoutCancelBtn) {
+      logoutCancelBtn.addEventListener('click', () => {
+        logoutModal.classList.add('hidden');
+      });
+    }
   } else {
-      console.error('Logout confirmation or modal elements not found.');
+    console.error('Logout confirmation or modal elements not found.');
   }
   if (errorConfirmBtn && errorModal) {
-      errorConfirmBtn.addEventListener('click', () => {
-          errorModal.classList.add('hidden');
-          window.location.href = 'log-in.html';
-      });
+    errorConfirmBtn.addEventListener('click', () => {
+      errorModal.classList.add('hidden');
+      window.location.href = 'log-in.html';
+    });
   } else {
-      console.error('Error confirmation or modal elements not found.');
+    console.error('Error confirmation or modal elements not found.');
   }
 });

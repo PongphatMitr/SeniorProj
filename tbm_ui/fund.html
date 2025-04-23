@@ -11,7 +11,7 @@
 <body class="bg-gray-100">
     <div class="flex flex-col md:flex-row">
         <!-- Sidebar -->
-        <div class="w-full md:w-1/6 bg-white min-h-screen p-5 sticky top-0 flex flex-col z-[1] overflow-visible">
+        <div class="w-full md:w-1/6 bg-white h-screen p-5 sticky top-0 flex flex-col">
             <nav class="flex-grow">
                 <ul id="navList" class="space-y-4"></ul>
             </nav>
@@ -106,48 +106,7 @@
             }
         }
 
-        async function checkLoginStatus() {
-            const token = localStorage.getItem('token');
-            if (token) {
-                try {
-                    const response = await fetch('http://localhost:3000/api/tbm/auth/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-
-                    if (response.ok) {
-                        updateSidebar(true);
-                    } else {
-                        localStorage.removeItem('token');
-                        updateSidebar(false);
-                        const goToLogin = confirm('Session expired. Do you want to go to the login page?');
-                        if (goToLogin) {
-                            window.location.href = 'login.html';
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    localStorage.removeItem('token');
-                    updateSidebar(false);
-                    const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
-                    if (goToLogin) {
-                        window.location.href = 'login.html';
-                    }
-                }
-            } else {
-                updateSidebar(false);
-                const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
-                if (goToLogin) {
-                    window.location.href = 'login.html';
-                }
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
-            checkLoginStatus();
             fetchFundData();
         });
     </script>

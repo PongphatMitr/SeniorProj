@@ -11,7 +11,7 @@
 <body class="bg-gray-100">
     <div class="flex">
         <!-- Sidebar -->
-        <div class="w-full md:w-1/6 bg-white min-h-screen p-5 sticky top-0 flex flex-col z-[1] overflow-visible">
+        <div class="w-full md:w-1/6 bg-white h-screen p-5 sticky top-0 flex flex-col">
             <nav class="flex-grow">
                 <ul id="navList" class="space-y-4"></ul>
             </nav>
@@ -19,12 +19,16 @@
         <!-- Main Content -->
         <div class="w-5/6 bg-blue-700 text-white p-10 relative">
             <!-- Language Toggle Switch -->
-            <div class="absolute top-5 right-5">
+            <div class="absolute top-5 right-5 flex items-center gap-4">
+                <!-- Notification Placeholder -->
+                <div id="mainNotificationPanel" class="relative"></div>
+                <!-- Language Toggle Switch -->
                 <div class="toggle-container" id="languageToggle">
                     <span class="toggle-label active" data-lang="th" id="lang-th">ภาษาไทย</span>
                     <span class="toggle-label" data-lang="en" id="lang-en">English</span>
                 </div>
             </div>
+
             <h1 class="text-4xl font-bold mb-5">TIME BANK</h1>
             <h2 class="text-3xl font-bold mb-5">ธนาคารเวลา คืออะไร ?</h2>
             <p class="mb-10">
@@ -33,9 +37,9 @@
             </p>
             <div class="flex items-center mb-5">
                 <h2 class="text-3xl font-bold mr-4">ข่าวสารประชาสัมพันธ์</h2>
-                <a class="bg-white text-blue-600 px-4 py-2 rounded" href="announcement.html">เพิ่ม</a>
+                <a class="bg-white font-bold text-lg text-blue-600 px-4 py-3 rounded-3xl" href="announcement.html">เพิ่ม</a>
             </div>
-            <div class="grid grid-cols-2 gap-5" id="newsContainer">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5" id="newsContainer">
                 <!-- News items will be dynamically inserted here -->
             </div>
         </div>
@@ -82,6 +86,7 @@
             transition: all 0.3s ease;
             border-radius: 9999px;
             padding: 5px;
+            user-select: none;
         }
 
         .toggle-label.active {
@@ -152,11 +157,17 @@
             langThai.addEventListener('click', () => {
                 currentLang = 'thai';
                 updateContent(currentLang);
+                if (typeof window.renderNotificationsToContainer === 'function') {
+                    window.renderNotificationsToContainer('mainNotificationPanel');
+                }
             });
 
             langEnglish.addEventListener('click', () => {
                 currentLang = 'english';
                 updateContent(currentLang);
+                if (typeof window.renderNotificationsToContainer === 'function') {
+                    window.renderNotificationsToContainer('mainNotificationPanel');
+                }
             });
 
             // Initialize content
@@ -200,13 +211,13 @@
                             }
 
                             newsElement.innerHTML = `
-                            <button class="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 rounded delete-btn" data-id="${announcement.announcement_id}">
+                            <button class="absolute top-2 right-2 bg-red-600 text-white px-2 py-2 rounded-md delete-btn" data-id="${announcement.announcement_id}" aria-label="Delete announcement">
                                 <i class="fas fa-trash-alt"></i>
                             </button>
-                            <button class="absolute top-2 right-14 bg-yellow-500 text-white px-2 py-1 rounded modify-btn" data-id="${announcement.announcement_id}">
+                            <button class="absolute top-2 right-12 bg-yellow-500 text-white px-2 py-2 rounded-md modify-btn" data-id="${announcement.announcement_id}" aria-label="Modify announcement">
                                 <i class="fas fa-edit"></i>
                             </button>
-                            <img src="${imageUrl}" class="h-40 w-full object-cover mb-5 rounded" alt="Announcement image">
+                            <img src="${imageUrl}" class="h-40 w-full object-cover mb-5 rounded" alt="Announcement image showing ${announcement.title}">
                             <p class="text-gray-500 mb-2">${new Date(announcement.date).toLocaleDateString()}</p>
                             <p class="font-bold text-lg">${announcement.title}</p>
                             <p>${announcement.description}</p>
@@ -279,9 +290,70 @@
             document.getElementById('cancel-delete-btn').addEventListener('click', () => {
                 document.getElementById('delete-modal').classList.add('hidden');
             });
+
+            // Notification toggle and rendering logic
+            const notifToggleBtn = document.getElementById('notif-toggle-btn');
+            const notifDropdown = document.getElementById('notif-dropdown');
+
+            // Function to toggle dropdown visibility
+            function toggleDropdown() {
+                const isHidden = notifDropdown.classList.contains('hidden');
+                if (isHidden) {
+                    notifDropdown.classList.remove('hidden');
+                    notifToggleBtn.setAttribute('aria-expanded', 'true');
+                } else {
+                    notifDropdown.classList.add('hidden');
+                    notifToggleBtn.setAttribute('aria-expanded', 'false');
+                }
+            }
+
+            // Close dropdown if clicked outside
+            function handleClickOutside(event) {
+                if (!notifDropdown.contains(event.target) && !notifToggleBtn.contains(event.target)) {
+                    notifDropdown.classList.add('hidden');
+                    notifToggleBtn.setAttribute('aria-expanded', 'false');
+                }
+            }
+
+            notifToggleBtn.addEventListener('click', () => {
+                toggleDropdown();
+            });
+
+            document.addEventListener('click', handleClickOutside);
+
+            // Keyboard accessibility for notification toggle
+            notifToggleBtn.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    notifDropdown.classList.add('hidden');
+                    notifToggleBtn.setAttribute('aria-expanded', 'false');
+                    notifToggleBtn.focus();
+                }
+                if (e.key === 'ArrowDown' && notifDropdown.classList.contains('hidden')) {
+                    e.preventDefault();
+                    toggleDropdown();
+                    // Focus first notification item if exists
+                    const firstItem = notifDropdown.querySelector('li:not(.font-semibold)');
+                    if (firstItem) firstItem.focus();
+                }
+            });
+
+            // Call renderNotificationsToContainer initially if function exists
+            if (typeof window.renderNotificationsToContainer === 'function') {
+                window.renderNotificationsToContainer('mainNotificationPanel');
+            }
         });
     </script>
     <script src="navbar.js"></script>
+    <script src="notification.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            if (typeof window.renderNotificationsToContainer === 'function') {
+                window.renderNotificationsToContainer('mainNotificationPanel');
+            } else {
+                console.warn("Notification function not ready.");
+            }
+        });
+    </script>
 </body>
 
 </html>

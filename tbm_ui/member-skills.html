@@ -341,16 +341,7 @@
             setTimeout(() => modal.classList.add('hidden'), 300);
         }
 
-        function checkLoginStatus() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                alert('กรุณาเข้าสู่ระบบก่อนใช้งาน');
-                window.location.href = 'login.html';
-            }
-        }
-
         document.addEventListener('DOMContentLoaded', () => {
-            checkLoginStatus();
             fetchMemberId();
             const confirmSuccessBtn = document.getElementById('confirm-success-btn');
             const confirmErrorBtn = document.getElementById('confirm-error-btn');
