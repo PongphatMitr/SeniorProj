@@ -345,7 +345,7 @@ const activityRoutes = (pool) => {
         try {
             await client.query('BEGIN');
 
-            // 🧹 Clean up old transactions with null requester/participant
+            // Clean up invalid transactions
             await client.query(`
                 DELETE FROM transactions
                 WHERE activity_id = $1
@@ -353,19 +353,24 @@ const activityRoutes = (pool) => {
                 AND participant_id IS NULL
             `, [activityId]);
 
-            // Get activity details
+            // Get activity
             const activityRes = await client.query('SELECT *, activity_type FROM activities WHERE activity_id = $1', [activityId]);
             if (activityRes.rows.length === 0) throw new Error('Activity not found');
             const activity = activityRes.rows[0];
             const isExchange = activity.activity_type === 'exchange';
 
-            // Get participants
-            const participantsRes = await client.query('SELECT user_id FROM activity_participants WHERE activity_id = $1 AND attended = true', [activityId]);
+            // Get attended participants
+            const participantsRes = await client.query(`
+                SELECT user_id FROM activity_participants
+                WHERE activity_id = $1 AND attended = true
+            `, [activityId]);
             const participants = participantsRes.rows;
-            if (!participants || participants.length === 0) throw new Error('No attended participants found');
+            if (participants.length === 0) throw new Error('No attended participants found');
 
             // Get requester
-            const requesterRes = await client.query('SELECT user_id, time_credits FROM users WHERE user_id = $1', [activity.requester_id]);
+            const requesterRes = await client.query(`
+                SELECT user_id, time_credits FROM users WHERE user_id = $1
+            `, [activity.requester_id]);
             if (requesterRes.rows.length === 0) throw new Error('Requester not found');
             const requester = requesterRes.rows[0];
 
@@ -382,7 +387,9 @@ const activityRoutes = (pool) => {
             const exchangeRate = parseInt(exchangeRateText.split(' ')[0], 10);
             if (isNaN(exchangeRate)) throw new Error('Invalid exchange rate format');
 
-            const totalTokens = isExchange ? exchangeRate * participants.length : 0;
+            const perPersonTokens = isExchange ? exchangeRate : 0;
+            const totalTokens = perPersonTokens * participants.length;
+
             if (isExchange && requester.time_credits < totalTokens) {
                 return res.status(400).json({
                     error: 'Requester has insufficient time credits',
@@ -390,68 +397,70 @@ const activityRoutes = (pool) => {
                 });
             }
 
-            // Update activity status to เสร็จสิ้น
-            const statusRes = await client.query(
-                'UPDATE activities SET status = $1, updated_at = NOW() WHERE activity_id = $2 RETURNING *',
-                ['เสร็จสิ้น', activityId]
-            );
-
-            for (const participant of participants) {
-                const participantId = participant.user_id;
-
-                // Log: requester spends
-                await client.query(`
-                    INSERT INTO transactions (
-                        user_id, activity_id, requester_id, participant_id,
-                        details, time_credits, transaction_type, date, time
-                    ) VALUES (
-                        $1, $2, $3, $4,
-                        $5, $6, $7, CURRENT_DATE, CURRENT_TIME
-                    )
-                `, [
-                    requester.user_id,
-                    activityId,
-                    requester.user_id,
-                    participantId,
-                    `Approved activity: ${activity.title} (${isExchange ? 'exchange' : 'non_exchange'})`,
-                    isExchange ? exchangeRate : 0,
-                    'spend'
-                ]);
-
-                // Log: participant earns
-                await client.query(`
-                    INSERT INTO transactions (
-                        user_id, activity_id, requester_id, participant_id,
-                        details, time_credits, transaction_type, date, time
-                    ) VALUES (
-                        $1, $2, $3, $4,
-                        $5, $6, $7, CURRENT_DATE, CURRENT_TIME
-                    )
-                `, [
-                    participantId,
-                    activityId,
-                    requester.user_id,
-                    participantId,
-                    `Earned time credits for activity: ${activity.title} (${isExchange ? 'exchange' : 'non_exchange'})`,
-                    isExchange ? exchangeRate : 0,
-                    'earn'
-                ]);
-
-                // Update participant balance if exchange
-                if (isExchange) {
-                    await client.query(
-                        'UPDATE users SET time_credits = time_credits + $1 WHERE user_id = $2',
-                        [exchangeRate, participantId]
-                    );
-                }
-            }
+            // Update activity status to "เสร็จสิ้น"
+            const statusRes = await client.query(`
+                UPDATE activities
+                SET status = $1, updated_at = NOW()
+                WHERE activity_id = $2
+                RETURNING *
+            `, ['เสร็จสิ้น', activityId]);
 
             // Deduct total tokens from requester if exchange
             if (isExchange) {
-                await client.query(
-                    'UPDATE users SET time_credits = time_credits - $1 WHERE user_id = $2',
-                    [totalTokens, requester.user_id]
-                );
+                await client.query(`
+                    UPDATE users
+                    SET time_credits = time_credits - $1
+                    WHERE user_id = $2
+                `, [totalTokens, requester.user_id]);
+            }
+
+            // Process each attended participant
+            for (const { user_id: participantId } of participants) {
+                if (isExchange) {
+                    await client.query(`
+                        UPDATE users
+                        SET time_credits = time_credits + $1
+                        WHERE user_id = $2
+                    `, [perPersonTokens, participantId]);
+                }
+
+                // Earn log for participant
+                await client.query(`
+                    INSERT INTO transactions (
+                        user_id, activity_id, requester_id, participant_id,
+                        details, time_credits, transaction_type, date, time
+                    ) VALUES (
+                        $1, $2, $3, $4,
+                        $5, $6, $7, CURRENT_DATE, CURRENT_TIME
+                    )
+                `, [
+                    participantId,
+                    activityId,
+                    requester.user_id,
+                    participantId,
+                    `Earned time credits for activity: ${activity.title}`,
+                    perPersonTokens,
+                    'earn'
+                ]);
+
+                // Spend log from requester for each participant
+                await client.query(`
+                    INSERT INTO transactions (
+                        user_id, activity_id, requester_id, participant_id,
+                        details, time_credits, transaction_type, date, time
+                    ) VALUES (
+                        $1, $2, $3, $4,
+                        $5, $6, $7, CURRENT_DATE, CURRENT_TIME
+                    )
+                `, [
+                    requester.user_id,
+                    activityId,
+                    requester.user_id,
+                    participantId,
+                    `Spent time credits for participant: ${participantId} in activity: ${activity.title}`,
+                    perPersonTokens,
+                    'spend'
+                ]);
             }
 
             await client.query('COMMIT');
@@ -464,6 +473,7 @@ const activityRoutes = (pool) => {
             client.release();
         }
     });
+
 
 
 

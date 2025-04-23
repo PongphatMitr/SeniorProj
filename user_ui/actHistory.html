@@ -226,7 +226,7 @@
             activities.forEach((activity, index) => {
                 const row = document.createElement('tr');
                 row.id = `history-row-${index + 1}`;
-                row.className = 'hover:bg-gray-100';
+                row.className = 'hover:bg-gray-100 align-middle';
 
                 const statusColor = {
                     'กำลังจะเริ่ม': 'bg-blue-500',
@@ -242,13 +242,13 @@
                 const isRequester = activity.role === 'requester';
 
                 row.innerHTML =
-                    `<td class="py-2 px-4 border-b border-gray-200 font-semibold text-center">
+                    `<td class="py-2 px-4 border-b border-gray-200 font-semibold text-center align-middle">
                         <span class="${activity.activity_type === 'exchange' ? 'text-lime-500' : 'text-gray-400'} font-semibold">
                             ${activity.activity_type === 'exchange' ? 'มีเครดิต' : 'ไม่มีเครดิต'}
                         </span>
                     </td>
-                    <td class="py-2 px-4 border-b border-gray-200">${activity.title}</td>
-                    <td class="py-2 px-4 border-b border-gray-200">${activity.required_skill_name || '-'}</td>
+                    <td class="py-2 px-4 border-b border-gray-200 align-middle">${activity.title}</td>
+                    <td class="py-2 px-4 border-b border-gray-200 align-middle">${activity.required_skill_name || '-'}</td>
                     <td class="py-2 px-4 border-b border-gray-200">
                         <div class="text-sm leading-snug text-gray-800">
                             <div>${formatDateShort(activity.start_date)}</div>
@@ -424,53 +424,8 @@
             document.getElementById('end-minutes').innerHTML = minuteOptions;
         }
 
-        async function checkLoginStatus() {
-            const token = localStorage.getItem('token');
-            if (token) {
-                try {
-                    const response = await fetch('http://localhost:3000/api/user/auth/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-
-                    if (response.ok) {
-                        const userData = await response.json();
-                        localStorage.setItem('user_id', userData.user.userId);
-                        localStorage.setItem('user_name', userData.user.name);
-                        updateSidebar(true);
-
-                        fetchActivityHistory();
-                    } else {
-                        localStorage.removeItem('token');
-                        updateSidebar(false);
-                        const goToLogin = confirm('Session expired. Do you want to go to the login page?');
-                        if (goToLogin) {
-                            window.location.href = 'log-in.html';
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    localStorage.removeItem('token');
-                    updateSidebar(false);
-                    const goToLogin = confirm('An error occurred. Do you want to go to the login page?');
-                    if (goToLogin) {
-                        window.location.href = 'log-in.html';
-                    }
-                }
-            } else {
-                updateSidebar(false);
-                const goToLogin = confirm('You are not logged in. Do you want to go to the login page?');
-                if (goToLogin) {
-                    window.location.href = 'log-in.html';
-                }
-            }
-        }
 
         window.addEventListener('DOMContentLoaded', () => {
-            checkLoginStatus();
             fetchSkillsAndCategories();
             populateTimeDropdowns();
         });

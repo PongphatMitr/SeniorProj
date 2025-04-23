@@ -25,23 +25,38 @@
         <div class="w-full md:w-5/6 bg-blue-700 text-white p-10 rounded-lg shadow-lg">
             <h1 class="text-3xl font-bold text-center mb-5" id="userName">user name</h1>
             <!-- User Balance Section -->
-            <div class="bg-white text-gray-800 p-6 rounded-lg shadow-md mb-5">
-                <h2 class="text-xl font-bold mb-2">ยอดคงเหลือ</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="flex items-center">
-                        <i class="fas fa-wallet text-3xl text-blue-600 mr-4"></i>
-                        <span class="text-2xl font-bold" id="userBalance">000 เครดิต</span>
+            <div class="bg-white rounded-2xl shadow-xl p-8 mb-12">
+                <h2 class="text-2xl font-bold text-blue-700 mb-8">ยอดคงเหลือบัญชีของคุณ</h2>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-y-10 lg:gap-y-0 lg:gap-x-16 items-start">
+
+                    <!-- Wallet Balance -->
+                    <div class="flex items-start space-x-8">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center shadow-sm">
+                            <i class="fas fa-wallet text-2xl text-blue-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-lg text-gray-500 mb-1">จำนวนเครดิตเวลาทั้งหมด</p>
+                            <p id="userBalance" class="text-xl font-bold text-green-600">8 ชั่วโมง</p>
+                        </div>
                     </div>
-                    <div class="flex items-center">
-                        <i class="fas fa-id-badge text-3xl text-blue-600 mr-4"></i>
-                        <span class="text-2xl font-bold text-blue-600" id="userId"
-                            style="font-family: 'Roboto Mono', monospace;">เลขที่บัญชี: 000</span>
+
+                    <!-- Account Number -->
+                    <div class="flex items-start space-x-8">
+                        <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center shadow-sm">
+                            <i class="fas fa-id-badge text-2xl text-blue-600"></i>
+                        </div>
+                        <div>
+                            <p class="text-lg text-gray-500 mb-1">เลขที่บัญชี Time Bank</p>
+                            <p id="userId" class="text-xl font-bold text-blue-700 font-mono">เลขที่บัญชี: 2</p>
+                        </div>
                     </div>
                 </div>
             </div>
+
             <!-- Transaction History Section -->
             <div class="bg-white text-gray-800 p-6 rounded-lg shadow-md">
-                <h2 class="text-xl font-bold mb-2">ประวัติการแลกเปลี่ยนเวลา</h2>
+                <h2 class="text-2xl font-extrabold text-blue-700 tracking-tight mb-2 leading-snug">ประวัติการแลกเปลี่ยนเวลา</h2>
                 <div class="overflow-x-auto">
                     <table class="min-w-full table-auto text-base text-gray-800 bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden">
                         <thead class="bg-gray-50 border-b border-gray-200 text-base font-semibold text-gray-700 uppercase tracking-wide">

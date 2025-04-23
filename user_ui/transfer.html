@@ -14,7 +14,6 @@
         let members = [];
 
         document.addEventListener('DOMContentLoaded', () => {
-            checkLoginStatus();
             fetchMemberProfile();
             fetchUserDetails();
             fetchMembers();
@@ -40,43 +39,6 @@
             } catch (error) {
                 console.error('Error fetching member profile:', error);
                 showMessage('เกิดข้อผิดพลาดในการดึงข้อมูลสมาชิก', true);
-            }
-        }
-
-        async function checkLoginStatus() {
-            const token = localStorage.getItem('token');
-            if (token) {
-                try {
-                    const response = await fetch('http://localhost:3000/api/user/auth/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-
-                    if (response.ok) {
-                        // Sidebar update handled externally via sidebar.js
-                    } else {
-                        localStorage.removeItem('token');
-                        // Sidebar update handled externally
-                        showConfirmation('Session expired. Do you want to go to the login page?', () => {
-                            window.location.href = 'log-in.html';
-                        });
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    localStorage.removeItem('token');
-                    // Sidebar update handled externally
-                    showConfirmation('An error occurred. Do you want to go to the login page?', () => {
-                        window.location.href = 'log-in.html';
-                    });
-                }
-            } else {
-                // Sidebar update handled externally
-                showConfirmation('You are not logged in. Do you want to go to the login page?', () => {
-                    window.location.href = 'log-in.html';
-                });
             }
         }
 

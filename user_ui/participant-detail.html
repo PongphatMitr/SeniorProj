@@ -8,6 +8,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script>
         let participants = [];
+        let currentUserId = null;
+        let isRequester = false;
+        let activityStatus = '';
+
 
         async function fetchParticipants() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -46,14 +50,26 @@
         function renderParticipants(data) {
             const tbody = document.getElementById('participants-tbody');
             tbody.innerHTML = '';
+        
             data.forEach((participant) => {
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-gray-100';
-
-                const checkboxHtml = participant.attended
-                    ? `<input type="checkbox" class="participant-checkbox" data-user-id="${participant.user_id}" checked disabled>`
-                    : `<input type="checkbox" class="participant-checkbox" data-user-id="${participant.user_id}">`;
-
+        
+                // Determine checkbox HTML based on role and activity status
+                const checkboxHtml = (() => {
+                    if (participant.attended) {
+                        return `<input type="checkbox" class="participant-checkbox" data-user-id="${participant.user_id}" checked disabled>`;
+                    }
+        
+                    // Participants can't edit anything
+                    if (!isRequester || activityStatus !== 'รอผู้ขอยืนยันผล') {
+                        return `<input type="checkbox" class="participant-checkbox" data-user-id="${participant.user_id}" disabled>`;
+                    }
+        
+                    // Only requester during valid status can check
+                    return `<input type="checkbox" class="participant-checkbox" data-user-id="${participant.user_id}">`;
+                })();
+        
                 row.innerHTML = `
                     <td class="py-4 px-6 border-b border-gray-200">${participant.name}</td>
                     <td class="py-4 px-6 border-b border-gray-200">${participant.phone}</td>
@@ -65,6 +81,7 @@
                 tbody.appendChild(row);
             });
         }
+        
 
         async function confirmCompletion() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -163,7 +180,6 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchParticipants();
-            checkLoginStatus();
             checkIfRequester();
             checkConfirmedAttendanceStatus();
         });
@@ -172,72 +188,44 @@
             const token = localStorage.getItem('token');
             const urlParams = new URLSearchParams(window.location.search);
             const activityId = urlParams.get('id');
-
+        
             if (!token || !activityId) {
                 document.getElementById('confirm-completion-btn').classList.add('hidden');
                 return;
             }
-
+        
             try {
-                // Get user profile
                 const userResponse = await fetch('http://localhost:3000/api/user/auth/profile', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
-
+        
                 if (!userResponse.ok) throw new Error("Failed to fetch user");
-
                 const userData = await userResponse.json();
-                const userId = userData.user_id;
-
-                // Get activity info
+                currentUserId = userData.user_id;
+        
                 const activityResponse = await fetch(`http://localhost:3000/api/user/activities/${activityId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
-
+        
                 if (!activityResponse.ok) throw new Error("Failed to fetch activity");
-
                 const activityData = await activityResponse.json();
-
-                if (activityData.requester_id !== userId) {
+        
+                activityStatus = activityData.status;
+                isRequester = activityData.requester_id === currentUserId;
+        
+                if (isRequester && activityStatus === 'รอผู้ขอยืนยันผล') {
+                    document.getElementById('confirm-completion-btn').classList.remove('hidden');
+                } else {
                     document.getElementById('confirm-completion-btn').classList.add('hidden');
                 }
+        
+                fetchParticipants(); // Fetch only after role and status are known
             } catch (error) {
                 console.error('Error checking requester role:', error);
                 document.getElementById('confirm-completion-btn').classList.add('hidden');
             }
         }
-
-        async function checkLoginStatus() {
-            const token = localStorage.getItem('token');
-            if (token) {
-                try {
-                    const response = await fetch('http://localhost:3000/api/user/auth/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        updateSidebar(true, data.user_id);
-                    } else {
-                        updateSidebar(false);
-                    }
-                } catch (error) {
-                    console.error('Error verifying token:', error);
-                    updateSidebar(false);
-                }
-            } else {
-                updateSidebar(false);
-            }
-        }
-
+        
         function showMessage(message, isError = false) {
             const modal = document.getElementById('message-modal');
             const title = document.getElementById('message-title');

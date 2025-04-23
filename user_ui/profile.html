@@ -11,7 +11,6 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchMemberProfile();
-            checkLoginStatus();
         });
 
         async function fetchMemberProfile() {
@@ -136,15 +135,6 @@
 
             // Hide the "ย้อนกลับ" button
             backButton.style.display = 'none';
-        }
-
-        async function checkLoginStatus() {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                alert('You are not logged in. Redirecting to login page.');
-                window.location.href = 'log-in.html';
-                return;
-            }
         }
 
         function saveChanges() {

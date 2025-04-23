@@ -256,37 +256,8 @@
 
         // Removed inline updateSidebar function from here
 
-        async function checkLoginStatus() {
-            const token = localStorage.getItem('token');
-            if (token) {
-                try {
-                    const response = await fetch('http://localhost:3000/api/user/auth/verify', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-
-                    if (response.ok) {
-                        updateSidebar(true);
-                    } else {
-                        localStorage.removeItem('token');
-                        updateSidebar(false);
-                    }
-                } catch (error) {
-                    console.error('Error:', error);
-                    localStorage.removeItem('token');
-                    updateSidebar(false);
-                }
-            } else {
-                updateSidebar(false);
-            }
-        }
-
         // Check if the user is already logged in
         document.addEventListener('DOMContentLoaded', () => {
-            checkLoginStatus();
             fetchMemberProfile().then(fetchActivityDetails);
 
             // Set current date and time if fields are empty
@@ -558,13 +529,14 @@
                             <select id="service-status"
                                 class="editable-select shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                 disabled>
-                                <option value="กำลังจะเริ่ม">กำลังจะเริ่ม</option>
-                                <option value="เสร็จสิ้น">เสร็จสิ้น</option>
-                                <option value="ยกเลิก">ยกเลิก</option>
-                                <option value="เกินเวลา">เกินเวลา</option>
-                                <option value="กำลังทำกิจกรรม">กำลังทำกิจกรรม</option>
-                                <option value="รอผู้ขอยืนยันผล">รอผู้ขอยืนยันผล</option>
-                                <option value="รอการอนุมัติ">รอการอนุมัติ</option>
+                                <option value="กำลังจะเริ่ม">กิจกรรมกำลังจะเริ่ม</option>
+                                <option value="เสร็จสิ้น">กิจกรรมเสร็จสิ้นแล้ว</option>
+                                <option value="ยกเลิก">ยกเลิกกิจกรรม</option>
+                                <option value="เกินเวลา">กิจกรรมเกินเวลาที่กำหนด</option>
+                                <option value="กำลังทำกิจกรรม">อยู่ระหว่างทำกิจกรรม</option>
+                                <option value="รอผู้ขอยืนยันผล">อยู่ระหว่างรอการยืนยันผลจากผู้ขอ</option>
+                                <option value="รอการอนุมัติ">รอการอนุมัติจาก TimeBank</option>
+                                <option value="ผู้เข้าร่วมไม่ครบ">ยกเลิกกิจกรรม (ผู้เข้าร่วมไม่ครบ)</option>
                             </select>
                         </div>
                     </div>
