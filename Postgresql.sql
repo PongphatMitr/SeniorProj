@@ -89,7 +89,6 @@ CREATE TABLE activities (
     time_tokens_per_participant INT DEFAULT 0,
     required_skills INT NOT NULL,
     activity_type activity_type NOT NULL,  -- Add this line
-    confirmation_pending BOOLEAN DEFAULT false,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
     FOREIGN KEY (requester_id) REFERENCES users(user_id) ON DELETE CASCADE
@@ -173,10 +172,12 @@ CREATE TABLE community_config_log (
     config_id INT NOT NULL,
     changed_by INT NOT NULL,
     change_description TEXT NOT NULL,
+    changed_fields JSONB,  -- ✅ Add this line
     changed_at TIMESTAMP DEFAULT NOW(),
     FOREIGN KEY (config_id) REFERENCES community_config(config_id),
     FOREIGN KEY (changed_by) REFERENCES users(user_id)
 );
+
 
 -- Create the user_login_log table to log user login activities
 CREATE TABLE user_login_log (
