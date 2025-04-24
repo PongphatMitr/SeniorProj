@@ -149,7 +149,7 @@ const activityRoutes = (pool) => {
         const {
             title, description, location, start_date, start_time, end_date, end_time,
             max_participants, requester_id, requester_phone, status,
-            time_tokens_required, time_tokens_per_participant, required_skills
+            time_tokens_required, time_tokens_per_participant, required_skills, activity_type
         } = req.body;
 
         if (isNaN(required_skills)) {
@@ -162,13 +162,13 @@ const activityRoutes = (pool) => {
 
             const result = await client.query(
                 `INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, 
-                                         max_participants, requester_id, requester_phone, status, 
-                                         time_tokens_required, time_tokens_per_participant, required_skills)
-                 VALUES ($1, $2, $3, $4, $5::TIME, $6, $7::TIME, $8, $9, $10, $11, $12, $13, $14) 
-                 RETURNING *`,
+                             max_participants, requester_id, requester_phone, status, 
+                             time_tokens_required, time_tokens_per_participant, required_skills, activity_type)
+     VALUES ($1, $2, $3, $4, $5::TIME, $6, $7::TIME, $8, $9, $10, $11, $12, $13, $14, $15)
+     RETURNING *`,
                 [title, description, location, start_date, start_time, end_date, end_time,
                     max_participants, requester_id, requester_phone, status,
-                    time_tokens_required, time_tokens_per_participant, required_skills]
+                    time_tokens_required, time_tokens_per_participant, required_skills, activity_type]
             );
 
             await client.query('COMMIT');
@@ -519,7 +519,7 @@ const activityRoutes = (pool) => {
         }
     });
 
-    
+
 
     return router;
 };

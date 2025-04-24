@@ -251,6 +251,11 @@
             const requesterId = document.getElementById('requester-id').value;
             const requesterPhone = document.getElementById('phone').value;
             const status = document.getElementById('status').value;
+            const activityType = document.getElementById('activity-type').value;
+            if (!activityType) {
+                alert('กรุณาเลือกประเภทของกิจกรรม');
+                return;
+            }
             const timeTokensRequired = parseFloat(document.getElementById('time-tokens-required').value);
             const timeTokensPerParticipant = parseFloat(document.getElementById('time-tokens-per-participant').value);
             const startHours = document.getElementById('start-hours').value;
@@ -271,7 +276,7 @@
             const activityData = {
                 title, description, location, start_date: startDate, start_time: startTime, end_date: endDate, end_time: endTime,
                 max_participants: maxParticipants, requester_id: requesterId, requester_phone: requesterPhone, status,
-                time_tokens_required: timeTokensRequired, time_tokens_per_participant: timeTokensPerParticipant, required_skills: required_skill
+                time_tokens_required: timeTokensRequired, time_tokens_per_participant: timeTokensPerParticipant, required_skills: required_skill, activity_type: activityType
             };
             try {
                 const response = await fetch('http://localhost:3000/api/tbm/activities', {
@@ -286,13 +291,22 @@
                     const errorData = await response.json();
                     throw new Error(`Activity creation failed: ${errorData.error}`);
                 }
-                alert('สร้างกิจกรรมสำเร็จ!');
-                window.location.href = 'activity.html';
+                showSuccessModal();
             } catch (error) {
                 console.error('Error:', error);
                 alert('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
             }
         }
+
+    function showSuccessModal() {
+        document.getElementById('success-modal').classList.remove('hidden');
+    }
+
+    function closeSuccessModal() {
+        document.getElementById('success-modal').classList.add('hidden');
+        window.location.href = 'activity.html';
+    }
+
 
         async function fetchUserDetails() {
             // Implement the function to fetch user details
@@ -374,6 +388,11 @@
             if (dateParam) {
                 document.getElementById('start-date').value = dateParam;
                 document.getElementById('end-date').value = dateParam;
+            }
+
+            const successConfirmBtn = document.getElementById('success-confirm-btn');
+            if (successConfirmBtn) {
+                successConfirmBtn.addEventListener('click', closeSuccessModal);
             }
         });
 
@@ -466,6 +485,15 @@
                         </div>
                     </div>
                     <hr class="my-8 border-gray-200">
+                    <div class="mb-4">
+                        <label for="activity-type" class="block text-gray-700 text-sm font-bold mb-2">ประเภทของกิจกรรม</label>
+                        <select id="activity-type" class="shadow border rounded w-full py-2 px-3 text-gray-700" required>
+                            <option value="" disabled selected>-- เลือกประเภทกิจกรรม --</option>
+                            <option value="exchange">มีเครดิต (แลกเปลี่ยนเวลา)</option>
+                            <option value="non_exchange">ไม่มีเครดิต (บริการอาสา)</option>
+                        </select>
+                    </div>
+<hr class="my-8 border-gray-200">
                     <!-- Section: Activity Details -->
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="title">ชื่อกิจกรรม</label>
@@ -621,6 +649,28 @@
             </div>
         </div>
     </div>
+    
+    <!-- Success Message Modal -->
+    <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <div class="flex justify-center">
+                <div class="w-20 h-20 flex items-center justify-center rounded-full bg-green-100 border-4 border-green-500">
+                    <svg class="w-12 h-12 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-green-600 mt-6">สร้างกิจกรรมสำเร็จ!</h2>
+            <p class="text-gray-700 text-lg mt-4" id="success-message">กิจกรรมของคุณถูกสร้างเรียบร้อยแล้ว</p>
+            <button id="success-confirm-btn" onclick="closeSuccessModal()"
+                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ตกลง
+            </button>
+
+        </div>
+    </div>
+
     <script src="navbar.js"></script>
 </body>
 </html>
