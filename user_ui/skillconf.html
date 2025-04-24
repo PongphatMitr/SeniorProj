@@ -323,23 +323,28 @@
                             'Authorization': `Bearer ${token}`
                         }
                     });
-
+    
                     if (response.ok) {
-                        // Sidebar update is handled externally via sidebar.js
-                        fetchMemberId();
+                        console.log('✅ Login verified');
+                        fetchMemberId(); // ⬅️ Trigger skill fetch
                     } else {
+                        console.warn('⚠️ Invalid token - logging out');
                         localStorage.removeItem('token');
-                        // Sidebar update handled externally
+                        window.location.href = 'login.html'; // Redirect if needed
                     }
                 } catch (error) {
-                    console.error('Error:', error);
+                    console.error('❌ Token verification failed:', error);
                     localStorage.removeItem('token');
-                    // Sidebar update handled externally
+                    window.location.href = 'login.html';
                 }
             } else {
-                // Sidebar update handled externally
+                console.warn('⚠️ No token found - redirecting to login');
+                window.location.href = 'login.html';
             }
         }
+    
+        // ✅ Automatically call checkLoginStatus when page loads
+        window.onload = checkLoginStatus;
 
     </script>
 </head>
