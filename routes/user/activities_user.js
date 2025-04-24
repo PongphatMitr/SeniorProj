@@ -555,15 +555,15 @@ const activityRoutes = (pool) => {
 
         let whereClause = `
             (a.requester_id = $1 OR ap.user_id = $1)
-            AND a.status != 'กำลังจะเริ่ม'
+            AND a.status IN ('เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา', 'ผู้เข้าร่วมไม่ครบ')
         `;
         const values = [userId];
         let idx = 2;
 
         if (role === 'requester') {
-            whereClause = `a.requester_id = $1 AND a.status != 'กำลังจะเริ่ม'`;
+            whereClause = `a.requester_id = $1 AND a.status IN ('เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา', 'ผู้เข้าร่วมไม่ครบ')`;
         } else if (role === 'provider') {
-            whereClause = `ap.user_id = $1 AND a.status != 'กำลังจะเริ่ม'`;
+            whereClause = `ap.user_id = $1 AND a.status IN ('เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา', 'ผู้เข้าร่วมไม่ครบ')`;
         }
 
         if (title) {
@@ -612,6 +612,7 @@ const activityRoutes = (pool) => {
                     a.end_time,
                     a.max_participants,
                     a.required_skills AS required_skill_id,
+                    a.location,
                     s.name AS required_skill_name, 
                     (
                         SELECT COUNT(*) 
@@ -621,7 +622,9 @@ const activityRoutes = (pool) => {
                     CASE 
                         WHEN a.requester_id = $1 THEN 'requester'
                         ELSE 'provider'
-                    END AS role
+                    END AS role,
+                    a.activity_type,
+                    a.requester_id
                 FROM activities a
                 LEFT JOIN activity_participants ap 
                     ON a.activity_id = ap.activity_id AND ap.user_id = $1
@@ -638,7 +641,7 @@ const activityRoutes = (pool) => {
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
-    
+
     // Get ongoing activities for a user
     router.get('/ongoing/:userId', async (req, res) => {
         const { userId } = req.params;
@@ -660,8 +663,9 @@ const activityRoutes = (pool) => {
                     a.end_time,
                     a.max_participants,
                     a.required_skills AS required_skill_id,
-                    a.activity_type, -- ✅ Include activity_type
-                    a.requester_id,  -- ✅ Include requester_id
+                    a.activity_type,
+                    a.requester_id,
+                    a.location,
                     s.name AS required_skill_name, 
                     (
                         SELECT COUNT(*) 

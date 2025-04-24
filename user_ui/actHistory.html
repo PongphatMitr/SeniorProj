@@ -50,35 +50,6 @@
             }
         }
 
-        async function fetchActivities() {
-            try {
-                const response = await fetch('http://localhost:3000/api/user/activities', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-        
-                if (!response.ok) {
-                    throw new Error('Failed to fetch activities');
-                }
-        
-                const data = await response.json();
-        
-                activities = data.activities.filter(activity => activity.requester_id === parseInt(localStorage.getItem('user_id')));
-        
-                await fetchParticipants();
-                await fetchRequesterNames();
-                updateActivityStatus();
-                renderActivityHistory(activities);
-        
-            } catch (error) {
-                console.error('Error fetching activities:', error);
-                alert('Error fetching activities. Please try again.');
-            }
-        }
-        
-        
-
         async function fetchActivityHistory(role = '') {
             const userId = parseInt(localStorage.getItem('user_id'));
 
@@ -110,9 +81,7 @@
                     return true;
                 }).map(a => {
                     // Ensure activity_type is set correctly
-                    // If missing, try to infer or default to 'non-exchange'
                     if (!a.activity_type) {
-                        // Try to infer from other fields if possible, else default
                         a.activity_type = a.hasOwnProperty('activity_type') ? a.activity_type : 'non-exchange';
                     }
                     return a;
@@ -133,7 +102,6 @@
             for (let activity of activities) {
                 try {
                     if (!activity.requester_id) {
-                        // If requester_id is missing or invalid, assign 'Unknown' and skip fetch
                         activity.requester_name = 'Unknown';
                         continue;
                     }
@@ -164,31 +132,11 @@
                     });
                     const participants = await response.json();
                     activity.current_participants = participants.length;
-                    activity.participants = participants; // Store participants for later use
+                    activity.participants = participants;
                 } catch (error) {
                     console.error(`Error fetching participants for activity ${activity.activity_id}:`, error);
                     activity.current_participants = 0;
-                    activity.participants = []; // Ensure participants is an empty array on error
-                }
-            }
-        }
-
-        async function fetchRequesterNames() {
-            for (let activity of activities) {
-                try {
-                    const response = await fetch(`http://localhost:3000/api/user/members/${activity.requester_id}`, {
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        }
-                    });
-                    if (!response.ok) {
-                        throw new Error(`Failed to fetch user details for user ${activity.requester_id}`);
-                    }
-                    const user = await response.json();
-                    activity.requester_name = user.name;
-                } catch (error) {
-                    console.error(`Error fetching requester name for user ${activity.requester_id}:`, error);
-                    activity.requester_name = 'Unknown';
+                    activity.participants = [];
                 }
             }
         }
@@ -279,7 +227,7 @@
             const date = new Date(dateString);
             const day = date.getDate().toString().padStart(2, '0');
             const month = (date.getMonth() + 1).toString().padStart(2, '0');
-            const year = (date.getFullYear() + 543).toString(); // Buddhist year
+            const year = (date.getFullYear() + 543).toString();
             return `${day}/${month}/${year}`;
         }
 
@@ -388,7 +336,6 @@
             const filterBox = document.getElementById('advanced-filter');
             filterBox.classList.toggle('hidden');
 
-            // Add event listener for click outside when opening
             if (!filterBox.classList.contains('hidden')) {
                 document.addEventListener('click', handleClickOutsideFilter);
             } else {
@@ -408,7 +355,6 @@
             const filterBox = document.getElementById('advanced-filter');
             const button = document.querySelector('button[onclick="toggleAdvancedFilter()"]');
 
-            // If the click target is not inside the filter or the toggle button
             if (!filterBox.contains(event.target) && !button.contains(event.target)) {
                 closeAdvancedFilter();
             }
@@ -424,10 +370,10 @@
             document.getElementById('end-minutes').innerHTML = minuteOptions;
         }
 
-
         window.addEventListener('DOMContentLoaded', () => {
             fetchSkillsAndCategories();
             populateTimeDropdowns();
+            fetchActivityHistory();
         });
     </script>
 </head>
@@ -462,29 +408,13 @@
 
             </div>
 
-
             <style>
                 @keyframes gentle-wiggle {
-
-                    0%,
-                    100% {
-                        transform: translateX(0);
-                    }
-
-                    25% {
-                        transform: translateX(-3px);
-                    }
-
-                    50% {
-                        transform: translateX(3px);
-                    }
-
-                    75% {
-                        transform: translateX(-2px);
-                    }
+                    0%, 100% { transform: translateX(0); }
+                    25% { transform: translateX(-3px); }
+                    50% { transform: translateX(3px); }
+                    75% { transform: translateX(-2px); }
                 }
-
-                /* Only animate on hover */
                 .group:hover .wiggle-icon {
                     animation: gentle-wiggle 2.5s ease-in-out infinite;
                 }
@@ -492,7 +422,6 @@
 
             <div class="flex items-center justify-between border-b pb-2 mb-5"></div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 max-w-6xl mx-auto">
-                <!-- All Community Activities -->
                 <a href="service.html"
                     class="flex items-center justify-start gap-4 bg-white hover:bg-purple-50 border border-purple-200 text-purple-700 hover:text-purple-900 font-medium px-6 py-4 rounded-xl shadow-md transition duration-200">
                     <div class="bg-purple-100 text-purple-600 rounded-full p-5">
@@ -504,7 +433,6 @@
                     </div>
                 </a>
 
-                <!-- Ongoing Activities -->
                 <a href="actOngoing.html"
                     class="flex items-center justify-start gap-4 bg-white hover:bg-blue-50 border border-blue-200 text-blue-700 hover:text-blue-900 font-medium px-6 py-4 rounded-xl shadow-md transition duration-200">
                     <div class="bg-blue-100 text-blue-600 rounded-full p-3">
@@ -516,7 +444,6 @@
                     </div>
                 </a>
 
-                <!-- Activity History -->
                 <a href="actHistory.html"
                     class="flex items-center justify-start gap-4 bg-white hover:bg-green-50 border border-green-200 text-green-700 hover:text-green-900 font-medium px-6 py-4 rounded-xl shadow-md transition duration-200">
                     <div class="bg-green-100 text-green-600 rounded-full p-3">
@@ -530,9 +457,7 @@
             </div>
             <div class="bg-white text-black p-8 rounded-lg shadow-lg mt-10">
 
-                <!-- 📦 Search and Filters Component (with full JS functions) -->
                 <div class="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-4 mb-6 items-start">
-                    <!-- Search Input -->
                     <div class="flex-grow min-w-0">
                         <div class="relative">
                             <input id="search-input" type="text" placeholder="ค้นหากิจกรรม..."
@@ -544,7 +469,6 @@
                         </div>
                     </div>
 
-                    <!-- ตัวกรองเพิ่มเติม Button -->
                     <div class="relative">
                         <button onclick="toggleAdvancedFilter()"
                             class="w-full flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2.5 rounded-xl shadow transition duration-200">
@@ -552,7 +476,6 @@
                             ตัวกรองเพิ่มเติม
                         </button>
 
-                        <!-- Dropdown box -->
                         <div id="advanced-filter"
                             class="absolute right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl w-[700px] p-4 z-50 hidden overflow-y-auto max-h-[600px]">
 
@@ -567,19 +490,16 @@
                                     <input id="filter-end-date" type="date"
                                         class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 focus:outline-none" />
                                 </div>
-                                <!-- Section: Time -->
                                 <div class="grid grid-cols-2 gap-4">
                                     <div class="mb-6">
                                         <label for="start-time"
                                             class="block text-gray-700 text-sm font-bold mb-2">เวลาเริ่มต้น</label>
                                         <div
                                             class="flex items-center bg-white border shadow border rounded w-full py-2 px-3 text-gray-700">
-                                            <!-- Hour Selector -->
                                             <select id="start-hours" name="start-hours"
                                                 class="text-gray-700 w-full text-center focus:outline-none">
                                                 <option value="" selected disabled>-- ชั่วโมง --</option>
                                             </select>
-                                            <!-- Minute Selector -->
                                             <select id="start-minutes" name="start-minutes"
                                                 class="text-gray-700 w-full text-center focus:outline-none">
                                                 <option value="00" selected>00 นาที</option>
@@ -591,12 +511,10 @@
                                             class="block text-gray-700 text-sm font-bold mb-2">เวลาสิ้นสุด</label>
                                         <div
                                             class="flex items-center bg-white border shadow border rounded w-full py-2 px-3 text-gray-700">
-                                            <!-- Hour Selector -->
                                             <select id="end-hours" name="end-hours"
                                                 class="text-gray-700 w-full text-center focus:outline-none">
                                                 <option value="" selected disabled>-- ชั่วโมง --</option>
                                             </select>
-                                            <!-- Minute Selector -->
                                             <select id="end-minutes" name="end-minutes"
                                                 class="text-gray-700 w-full text-center focus:outline-none">
                                                 <option value="00" selected>00 นาที</option>
@@ -667,7 +585,6 @@
                         </thead>
 
                         <tbody id="history-tbody" class="align-top break-words whitespace-normal text-base">
-                            <!-- Activity history will be dynamically inserted here -->
                         </tbody>
                     </table>
                 </div>
