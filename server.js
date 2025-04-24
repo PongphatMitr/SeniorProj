@@ -8,6 +8,9 @@ const userRoutes = require('./routes/user/server-user'); // Ensure correct relat
 
 const cron = require('node-cron');
 
+const http = require('http');
+const { Server } = require('socket.io');
+
 cron.schedule('* * * * *', async () => {
     console.log("🔄 Checking and updating activity statuses...");
     const client = await pool.connect();
@@ -50,7 +53,7 @@ cron.schedule('* * * * *', async () => {
             WHERE status = 'รอผู้ขอยืนยันผล'
               AND (end_date::timestamp + end_time + INTERVAL '1 day') < NOW();
         `);
-        
+
 
         await client.query('COMMIT');
         console.log("✅ Updated all relevant activity statuses.");
@@ -66,6 +69,15 @@ cron.schedule('* * * * *', async () => {
 dotenv.config();
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: '*', // Allow all origins or restrict to your frontend
+        methods: ['GET', 'POST', 'PUT', 'DELETE']
+    }
+});
+app.set('io', io); // So routes can use it like req.app.get('io')
+
 const port = process.env.PORT || 3000;
 
 // PostgreSQL connection pool
@@ -89,8 +101,8 @@ app.use(express.json());
 app.use(cors());
 
 // Use the TBM and User routes
-app.use('/api/tbm', tbmRoutes(pool));
-app.use('/api/user', userRoutes(pool));
+app.use('/api/tbm', tbmRoutes(pool, io));
+app.use('/api/user', userRoutes(pool, io));
 
 app.get('/', (req, res) => {
     res.send('Welcome to Time Bank API');
@@ -102,6 +114,6 @@ app.use((err, req, res, next) => {
     res.status(500).send('Something broke!');
 });
 
-app.listen(port, () => {
-    console.log(`Server is running on port ${port}`);
+server.listen(port, () => {
+    console.log(`🚀 Server with Socket.IO is running on port ${port}`);
 });

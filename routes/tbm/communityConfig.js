@@ -123,6 +123,8 @@ const communityConfigRoutes = (pool) => {
 
             await client.query('COMMIT');
 
+            req.app.get('io')?.emit('configUpdated');
+
             if (result.rows.length > 0) {
                 res.json(result.rows[0]);
             } else {

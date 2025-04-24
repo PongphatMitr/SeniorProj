@@ -15,20 +15,20 @@ const projectRoutes = require('./projects'); // Add this line
 
 const router = express.Router();
 
-module.exports = (pool) => {
-    router.use('/auth', authRoutes(pool));
-    router.use('/members', memberRoutes(pool));
-    router.use('/activities', activityRoutes(pool));
-    router.use('/skills', skillRoutes(pool));
-    router.use('/funds', fundRoutes(pool));
-    router.use('/community-config', communityConfigRoutes(pool));
-    router.use('/exchange-rates', exchangeRatesRoutes(pool));
-    router.use('/transactions', transactionRoutes(pool));
-    router.use('/report', reportRoutes(pool));
-    router.use('/branches', branchRoutes(pool));
-    router.use('/feedback', feedbackRoutes(pool));
-    router.use('/announcements', announcementRoutes(pool));
-    router.use('/projects', projectRoutes(pool)); // Add this line
+module.exports = (pool, io) => {
+    router.use('/auth', authRoutes(pool, io));
+    router.use('/members', memberRoutes(pool, io));
+    router.use('/activities', activityRoutes(pool, io));
+    router.use('/skills', skillRoutes(pool, io));
+    router.use('/funds', fundRoutes(pool, io));
+    router.use('/community-config', communityConfigRoutes(pool, io));
+    router.use('/exchange-rates', exchangeRatesRoutes(pool, io));
+    router.use('/transactions', transactionRoutes(pool, io));
+    router.use('/report', reportRoutes(pool, io));
+    router.use('/branches', branchRoutes(pool, io));
+    router.use('/feedback', feedbackRoutes(pool, io));
+    router.use('/announcements', announcementRoutes(pool, io));
+    router.use('/projects', projectRoutes(pool, io)); // Add this line
 
     return router;
 };
