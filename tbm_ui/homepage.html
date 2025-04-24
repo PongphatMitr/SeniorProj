@@ -157,17 +157,11 @@
             langThai.addEventListener('click', () => {
                 currentLang = 'thai';
                 updateContent(currentLang);
-                if (typeof window.renderNotificationsToContainer === 'function') {
-                    window.renderNotificationsToContainer('mainNotificationPanel');
-                }
             });
 
             langEnglish.addEventListener('click', () => {
                 currentLang = 'english';
                 updateContent(currentLang);
-                if (typeof window.renderNotificationsToContainer === 'function') {
-                    window.renderNotificationsToContainer('mainNotificationPanel');
-                }
             });
 
             // Initialize content
@@ -291,10 +285,6 @@
                 document.getElementById('delete-modal').classList.add('hidden');
             });
 
-            // Notification toggle and rendering logic
-            const notifToggleBtn = document.getElementById('notif-toggle-btn');
-            const notifDropdown = document.getElementById('notif-dropdown');
-
             // Function to toggle dropdown visibility
             function toggleDropdown() {
                 const isHidden = notifDropdown.classList.contains('hidden');
@@ -314,46 +304,10 @@
                     notifToggleBtn.setAttribute('aria-expanded', 'false');
                 }
             }
-
-            notifToggleBtn.addEventListener('click', () => {
-                toggleDropdown();
-            });
-
-            document.addEventListener('click', handleClickOutside);
-
-            // Keyboard accessibility for notification toggle
-            notifToggleBtn.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    notifDropdown.classList.add('hidden');
-                    notifToggleBtn.setAttribute('aria-expanded', 'false');
-                    notifToggleBtn.focus();
-                }
-                if (e.key === 'ArrowDown' && notifDropdown.classList.contains('hidden')) {
-                    e.preventDefault();
-                    toggleDropdown();
-                    // Focus first notification item if exists
-                    const firstItem = notifDropdown.querySelector('li:not(.font-semibold)');
-                    if (firstItem) firstItem.focus();
-                }
-            });
-
-            // Call renderNotificationsToContainer initially if function exists
-            if (typeof window.renderNotificationsToContainer === 'function') {
-                window.renderNotificationsToContainer('mainNotificationPanel');
-            }
         });
     </script>
     <script src="navbar.js"></script>
     <script src="notification.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            if (typeof window.renderNotificationsToContainer === 'function') {
-                window.renderNotificationsToContainer('mainNotificationPanel');
-            } else {
-                console.warn("Notification function not ready.");
-            }
-        });
-    </script>
 </body>
 
 </html>

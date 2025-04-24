@@ -74,6 +74,24 @@ const communityConfigRoutes = (pool) => {
         try {
             await client.query('BEGIN');
 
+            // Fetch current config before update
+            const currentResult = await client.query('SELECT * FROM community_config LIMIT 1');
+            const current = currentResult.rows[0];
+            const changes = {};
+
+            if (current.default_time_token !== default_time_token) {
+                changes.default_time_token = `${current.default_time_token} → ${default_time_token}`;
+            }
+            if (current.default_exchange_rate_id !== default_exchange_rate_id) {
+                changes.default_exchange_rate_id = `${current.default_exchange_rate_id} → ${default_exchange_rate_id}`;
+            }
+            if (current.minimum_time_token_hours !== minimum_time_token_hours) {
+                changes.minimum_time_token_hours = `${current.minimum_time_token_hours} → ${minimum_time_token_hours}`;
+            }
+            if (current.minimum_time_token_minutes !== minimum_time_token_minutes) {
+                changes.minimum_time_token_minutes = `${current.minimum_time_token_minutes} → ${minimum_time_token_minutes}`;
+            }
+
             // Update branch name if provided
             if (branch_name) {
                 await client.query(
@@ -90,16 +108,22 @@ const communityConfigRoutes = (pool) => {
 
             // Log the change
             await client.query(`
-    INSERT INTO community_config_log (config_id, changed_by, change_description)
-    VALUES ($1, $2, $3)
+    INSERT INTO community_config_log (config_id, changed_by, change_description, changed_fields)
+    VALUES ($1, $2, $3, $4)
 `, [
                 result.rows[0].config_id,
-                req.user?.user_id || 1, // fallback ID if auth not passed
-                'ได้มีการเปลี่ยนแปลงการตั้งค่าของชุมชน',
+                req.user?.user_id || 1,
+                Object.keys(changes).length > 0
+                    ? 'มีการเปลี่ยนแปลงค่าการตั้งค่าชุมชน'
+                    : 'ไม่มีการเปลี่ยนแปลง',
+                JSON.stringify(changes)
             ]);
 
 
+
             await client.query('COMMIT');
+
+            req.app.get('io')?.emit('configUpdated');
 
             if (result.rows.length > 0) {
                 res.json(result.rows[0]);
