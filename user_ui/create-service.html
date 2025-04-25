@@ -180,39 +180,49 @@
             const endHours = document.getElementById('end-hours')?.value;
             const endMinutes = document.getElementById('end-minutes')?.value;
             const maxParticipants = parseInt(document.getElementById('max-participants')?.value, 10) || 0;
-
-            if (!startHours || !startMinutes || !endHours || !endMinutes || maxParticipants <= 0) {
+        
+            const startDateInput = document.getElementById('start-date');
+            const endDateInput = document.getElementById('end-date');
+        
+            if (!startHours || !startMinutes || !endHours || !endMinutes || !startDateInput || !endDateInput) {
                 document.getElementById('time-tokens-required').value = '0.00';
                 document.getElementById('time-tokens-per-participant').value = '0.00';
                 return;
             }
-
-            const startTime = new Date();
-            startTime.setHours(parseInt(startHours, 10), parseInt(startMinutes, 10), 0);
-
-            const endTime = new Date();
-            endTime.setHours(parseInt(endHours, 10), parseInt(endMinutes, 10), 0);
-
-            let durationInHours = (endTime - startTime) / (1000 * 60 * 60);
-            if (durationInHours < 0) {
-                durationInHours += 24;
+        
+            const startDateStr = startDateInput.value;
+            let endDateStr = endDateInput.value;
+        
+            // Create full datetime objects
+            const startDateTime = new Date(`${startDateStr}T${startHours}:${startMinutes}`);
+            let endDateTime = new Date(`${endDateStr}T${endHours}:${endMinutes}`);
+        
+            // ✅ If end datetime is before or equal to start datetime, auto push end date +1
+            if (endDateTime <= startDateTime) {
+                endDateTime.setDate(endDateTime.getDate() + 1);
+                const newEndDate = endDateTime.toISOString().split("T")[0];
+                endDateInput.value = newEndDate;
+                endDateInput.setAttribute("min", newEndDate);
             }
-
+        
+            // Recalculate after adjustment
+            const finalDuration = (endDateTime - startDateTime) / (1000 * 60 * 60);
+        
             let timeTokensRequired = 0;
             let timeTokensPerParticipant = 0;
-
+        
             if (exchangeRate === '1 โทเคนเวลา ต่อ 1 ชั่วโมง') {
-                timeTokensPerParticipant = durationInHours;
-                timeTokensRequired = maxParticipants * durationInHours;
+                timeTokensPerParticipant = finalDuration;
+                timeTokensRequired = maxParticipants * finalDuration;
             } else if (exchangeRate === '1 โทเคนเวลา ต่อ 1 กิจกรรม') {
                 timeTokensPerParticipant = 1;
                 timeTokensRequired = maxParticipants;
             }
-
+        
             document.getElementById('time-tokens-required').value = timeTokensRequired.toFixed(2);
             document.getElementById('time-tokens-per-participant').value = timeTokensPerParticipant.toFixed(2);
         }
-
+        
         async function submitActivity(event) {
             event.preventDefault();
 
@@ -394,46 +404,58 @@
             checkLoginStatus();
             fetchCommunityConfig();
             fetchSkillsAndCategories();
-
+        
             setStartDateRange();
-
+        
             const maxParticipants = document.getElementById('max-participants');
             if (maxParticipants) maxParticipants.addEventListener('input', calculateTimeTokens);
-
+        
             const startHours = document.getElementById('start-hours');
             const startMinutes = document.getElementById('start-minutes');
             const endHours = document.getElementById('end-hours');
             const endMinutes = document.getElementById('end-minutes');
             const startDate = document.getElementById('start-date');
             const endDate = document.getElementById('end-date');
-
+        
             if (startHours) startHours.addEventListener('change', () => {
                 autoSetEndTime();
+                updateEndDate(startDate.value); // 🔄 Check time conflict
                 calculateTimeTokens();
             });
+        
             if (startMinutes) startMinutes.addEventListener('change', () => {
                 autoSetEndTime();
+                updateEndDate(startDate.value); // 🔄 Check time conflict
                 calculateTimeTokens();
             });
-
-            if (endHours) endHours.addEventListener('change', calculateTimeTokens);
-            if (endMinutes) endMinutes.addEventListener('change', calculateTimeTokens);
-
+        
+            if (endHours) endHours.addEventListener('change', () => {
+                updateEndDate(startDate.value); // 🔄 Check if end is before start
+                calculateTimeTokens();
+            });
+        
+            if (endMinutes) endMinutes.addEventListener('change', () => {
+                updateEndDate(startDate.value); // 🔄 Check if end is before start
+                calculateTimeTokens();
+            });
+        
             if (startDate) {
                 startDate.addEventListener('input', (e) => {
-                    updateEndDate(e.target.value);
+                    updateEndDate(e.target.value); // 🔄 Ensure end date is not behind
                     calculateTimeTokens();
                 });
             }
+        
             if (endDate) {
                 endDate.addEventListener('input', (e) => {
                     syncDates(e.target.value);
                 });
             }
-
+        
             document.getElementById('activity-type').addEventListener('change', handleActivityTypeChange);
-            handleActivityTypeChange(); // for default state on load
+            handleActivityTypeChange(); // initialize token visibility
         });
+        
 
         function setStartDateRange() {
             const now = new Date();
@@ -463,30 +485,72 @@
 
         function updateEndDate(startDateValue) {
             const endDateInput = document.getElementById('end-date');
+            const startHours = parseInt(document.getElementById('start-hours').value, 10);
+            const startMinutes = parseInt(document.getElementById('start-minutes').value, 10);
+            const endHours = parseInt(document.getElementById('end-hours').value, 10);
+            const endMinutes = parseInt(document.getElementById('end-minutes').value, 10);
+        
+            if (!endDateInput) return;
+        
+            // Always update minimum
+            endDateInput.setAttribute('min', startDateValue);
+        
+            // If end date is before start date, fix it
             if (endDateInput.value < startDateValue) {
                 endDateInput.value = startDateValue;
             }
-            endDateInput.setAttribute('min', startDateValue);
+        
+            // 🔍 If start-date == end-date, and start-time > end-time, then end-date += 1 day
+            if (
+                endDateInput.value === startDateValue &&
+                !isNaN(startHours) && !isNaN(startMinutes) &&
+                !isNaN(endHours) && !isNaN(endMinutes)
+            ) {
+                const startTime = startHours * 60 + startMinutes;
+                const endTime = endHours * 60 + endMinutes;
+        
+                if (startTime > endTime) {
+                    // 🕒 Start is after end → must be next day
+                    const newEndDate = new Date(startDateValue);
+                    newEndDate.setDate(newEndDate.getDate() + 1);
+                    const formattedNewEndDate = newEndDate.toISOString().split('T')[0];
+        
+                    endDateInput.value = formattedNewEndDate;
+                    endDateInput.setAttribute('min', formattedNewEndDate);
+                }
+            }
         }
+        
+        
 
         function autoSetEndTime() {
             const startHours = parseInt(document.getElementById('start-hours').value, 10);
             const startMinutes = parseInt(document.getElementById('start-minutes').value, 10);
-
+        
             if (isNaN(startHours) || isNaN(startMinutes)) return;
-
+        
             let endHours = startHours + 1;
             let endMinutes = startMinutes;
-
+        
             if (endHours >= 24) {
                 endHours = endHours % 24;
+        
+                // Auto increment end date by 1 day
+                const endDateInput = document.getElementById('end-date');
+                const currentEndDate = new Date(endDateInput.value);
+                currentEndDate.setDate(currentEndDate.getDate() + 1);
+        
+                const newEndDateStr = currentEndDate.toISOString().split('T')[0];
+                endDateInput.value = newEndDateStr;
+                endDateInput.setAttribute('min', newEndDateStr);
             }
-
+        
             document.getElementById('end-hours').value = endHours.toString().padStart(2, '0');
             document.getElementById('end-minutes').value = endMinutes.toString().padStart(2, '0');
-
+        
             calculateTimeTokens();
         }
+        
 
         function handleActivityTypeChange() {
             const type = document.getElementById('activity-type').value;

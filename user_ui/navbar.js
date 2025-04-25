@@ -70,12 +70,25 @@ function updateSidebar(isLoggedIn) {
 
   if (isLoggedIn) {
     (async () => {
+      let profileData = {};
       try {
+        const token = localStorage.getItem('token');
+        try {
+          const profileResponse = await fetch('http://localhost:3000/api/tbm/auth/profile', {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          if (profileResponse.ok) {
+            profileData = await profileResponse.json();
+          }
+        } catch (err) {
+          console.error('Failed to fetch profile for sidebar:', err);
+        }
+
         const response = await fetch('http://localhost:3000/api/user/auth/verify', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
+            'Authorization': `Bearer ${token}`
           }
         });
         if (!response.ok) {
@@ -87,13 +100,13 @@ function updateSidebar(isLoggedIn) {
         navList.innerHTML = `
 ${sidebarHeader}
 <li class="mb-5 flex items-center justify-between">
- <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300 flex-grow" href="log-out.html">
-  <i class="fas fa-user mr-3"></i>
-  โปรไฟล์
- </a>
- <button aria-label="Logout" class="text-red-600 hover:text-red-800 p-2 rounded transition duration-300" onclick="showLogoutModal()">
-  <i class="fas fa-sign-out-alt"></i>
- </button>
+  <a class="flex items-center hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300 flex-grow" href="log-out.html">
+    <i class="fas fa-user mr-3 text-blue-600"></i>
+<span class="text-blue-600 font-bold">${profileData.name || 'โปรไฟล์'}</span>
+  </a>
+  <button aria-label="Logout" class="text-red-600 hover:text-red-800 p-2 rounded transition duration-300" onclick="showLogoutModal()">
+    <i class="fas fa-sign-out-alt"></i>
+  </button>
 </li>
 <li class="mb-4">
  <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-100 p-2 rounded-lg transition ${getCurrentPage() === 'homepage.html' ? 'bg-blue-100 text-blue-700 font-semibold' : ''}" href="homepage.html">
