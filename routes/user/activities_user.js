@@ -1,5 +1,8 @@
 const express = require('express');
 const dotenv = require('dotenv');
+const io = req.app.get('io');
+io.emit('activityUpdated', { activityId: Number(activityId) });
+
 
 dotenv.config();
 
