@@ -1,12 +1,9 @@
 const express = require('express');
 const dotenv = require('dotenv');
-const io = req.app.get('io');
-io.emit('activityUpdated', { activityId: Number(activityId) });
-
 
 dotenv.config();
 
-const activityRoutes = (pool) => {
+const activityRoutes = (pool, io) => {
     const router = express.Router();
 
     // Get all activities with optional filters and pagination
@@ -495,7 +492,8 @@ const activityRoutes = (pool) => {
             }
 
             await client.query('COMMIT');
-            res.json({ message: 'Activity approved successfully', activityId });
+            io.emit('activityUpdated', { activityId: Number(activityId) }); // ✅ emit after commit
+            res.json({ message: 'Activity approved successfully', activityId });            
         } catch (err) {
             await client.query('ROLLBACK');
             console.error('Error approving activity:', err);
