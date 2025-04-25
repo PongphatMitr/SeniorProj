@@ -167,11 +167,9 @@
         <!-- Main Content -->
         <div class="w-5/6 bg-blue-700 text-white p-10">
             <!-- Language Toggle Switch -->
-            <div class="absolute top-5 right-5">
-                <div class="toggle-container" id="languageToggle">
-                    <span class="toggle-label active" id="lang-th" data-lang="th"> ภาษาไทย </span>
-                    <span class="toggle-label" id="lang-en" data-lang="en"> English </span>
-                </div>
+            <div class="absolute top-5 right-5 flex items-center gap-4">
+                <!-- Notification Placeholder -->
+                <div id="mainNotificationPanel" class="relative"></div>
             </div>
             <h1 class="text-4xl font-bold mb-5">ปฏิทินกิจกรรม</h1>
             <div class="bg-white text-black p-8 rounded-lg shadow-lg">
@@ -398,6 +396,8 @@
             </div>
         </div>
     </div>
+        <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+        <script src="notification.js"></script>
 </body>
 
 </html>

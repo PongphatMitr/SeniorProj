@@ -264,6 +264,10 @@
         </div>
         <!-- Main Content -->
         <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
+            <div class="absolute top-5 right-5 flex items-center gap-4">
+                <!-- Notification Placeholder -->
+                <div id="mainNotificationPanel" class="relative"></div>
+            </div>
             <h1 class="text-4xl font-bold mb-5"> อนุมัติกิจกรรม </h1>
             <div class="bg-white text-black p-8 rounded-lg shadow-lg max-w-4xl mx-auto">
                 <h2 class="text-3xl font-bold mb-6 text-center text-blue-700" id="activity-title">
@@ -386,6 +390,8 @@
             </div>
         </div>
     </div>
+        <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+        <script src="notification.js"></script>
 </body>
 
 </html>

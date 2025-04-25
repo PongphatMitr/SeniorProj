@@ -22,11 +22,6 @@
             <div class="absolute top-5 right-5 flex items-center gap-4">
                 <!-- Notification Placeholder -->
                 <div id="mainNotificationPanel" class="relative"></div>
-                <!-- Language Toggle Switch -->
-                <div class="toggle-container" id="languageToggle">
-                    <span class="toggle-label active" data-lang="th" id="lang-th">ภาษาไทย</span>
-                    <span class="toggle-label" data-lang="en" id="lang-en">English</span>
-                </div>
             </div>
 
             <h1 class="text-4xl font-bold mb-5">TIME BANK</h1>
@@ -37,7 +32,8 @@
             </p>
             <div class="flex items-center mb-5">
                 <h2 class="text-3xl font-bold mr-4">ข่าวสารประชาสัมพันธ์</h2>
-                <a class="bg-white font-bold text-lg text-blue-600 px-4 py-3 rounded-3xl" href="announcement.html">เพิ่ม</a>
+                <a class="bg-white font-bold text-lg text-blue-600 px-4 py-3 rounded-3xl"
+                    href="announcement.html">เพิ่ม</a>
             </div>
             <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5" id="newsContainer">
                 <!-- News items will be dynamically inserted here -->
@@ -154,15 +150,17 @@
                 localStorage.setItem('selectedLanguage', lang);
             }
 
-            langThai.addEventListener('click', () => {
-                currentLang = 'thai';
-                updateContent(currentLang);
-            });
+            if (langThai && langEnglish) {
+                langThai.addEventListener('click', () => {
+                    currentLang = 'thai';
+                    updateContent(currentLang);
+                });
 
-            langEnglish.addEventListener('click', () => {
-                currentLang = 'english';
-                updateContent(currentLang);
-            });
+                langEnglish.addEventListener('click', () => {
+                    currentLang = 'english';
+                    updateContent(currentLang);
+                });
+            }
 
             // Initialize content
             updateContent(currentLang);
@@ -255,58 +253,45 @@
             fetchAnnouncements();
 
             // Handle delete confirmation
-            document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
-                const announcementId = document.getElementById('confirm-delete-btn').getAttribute('data-id');
-                const token = localStorage.getItem('token');
+            const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+            if (confirmDeleteBtn) {
+                confirmDeleteBtn.addEventListener('click', async () => {
+                    const announcementId = confirmDeleteBtn.getAttribute('data-id');
+                    const token = localStorage.getItem('token');
 
-                try {
-                    const response = await fetch(`http://localhost:3000/api/tbm/announcements/${announcementId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Authorization': `Bearer ${token}`
+                    try {
+                        const response = await fetch(`http://localhost:3000/api/tbm/announcements/${announcementId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+
+                        if (response.ok) {
+                            alert('Announcement deleted successfully.');
+                            document.getElementById('delete-modal').classList.add('hidden');
+                            fetchAnnouncements(); // Refresh the announcements list
+                        } else {
+                            alert('Failed to delete announcement.');
                         }
-                    });
-
-                    if (response.ok) {
-                        alert('Announcement deleted successfully.');
-                        document.getElementById('delete-modal').classList.add('hidden');
-                        fetchAnnouncements(); // Refresh the announcements list
-                    } else {
-                        alert('Failed to delete announcement.');
+                    } catch (error) {
+                        console.error('Error deleting announcement:', error);
+                        alert('An error occurred while deleting the announcement.');
                     }
-                } catch (error) {
-                    console.error('Error deleting announcement:', error);
-                    alert('An error occurred while deleting the announcement.');
-                }
-            });
-
-            // Handle delete cancellation
-            document.getElementById('cancel-delete-btn').addEventListener('click', () => {
-                document.getElementById('delete-modal').classList.add('hidden');
-            });
-
-            // Function to toggle dropdown visibility
-            function toggleDropdown() {
-                const isHidden = notifDropdown.classList.contains('hidden');
-                if (isHidden) {
-                    notifDropdown.classList.remove('hidden');
-                    notifToggleBtn.setAttribute('aria-expanded', 'true');
-                } else {
-                    notifDropdown.classList.add('hidden');
-                    notifToggleBtn.setAttribute('aria-expanded', 'false');
-                }
+                });
             }
 
-            // Close dropdown if clicked outside
-            function handleClickOutside(event) {
-                if (!notifDropdown.contains(event.target) && !notifToggleBtn.contains(event.target)) {
-                    notifDropdown.classList.add('hidden');
-                    notifToggleBtn.setAttribute('aria-expanded', 'false');
-                }
+            // Handle delete cancellation
+            const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+            if (cancelDeleteBtn) {
+                cancelDeleteBtn.addEventListener('click', () => {
+                    document.getElementById('delete-modal').classList.add('hidden');
+                });
             }
         });
     </script>
     <script src="navbar.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
     <script src="notification.js"></script>
 </body>
 
