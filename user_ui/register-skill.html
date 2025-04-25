@@ -450,65 +450,56 @@
             }
         }
 
-        // Search skills for autocomplete suggestions
         async function searchSkills(event, index) {
-            const searchTerm = event.target.value.trim().toLowerCase();
+            const searchTerm = event.target.value.toLowerCase();
             const suggestionsContainer = document.getElementById(`suggestions-${index}`);
 
+            // Clear previous suggestions
             suggestionsContainer.innerHTML = '';
-            suggestionsContainer.classList.remove('visible');
+            suggestionsContainer.classList.add('hidden');
 
-            if (!searchTerm) return;
+            if (!searchTerm.trim()) {
+                return; // Do nothing if search term is empty
+            }
 
             try {
-                const response = await fetch(`http://localhost:3000/api/user/skills/search?term=${encodeURIComponent(searchTerm)}`);
-                if (!response.ok) throw new Error('ไม่สามารถค้นหาทักษะได้');
+                const response = await fetch(`http://localhost:3000/api/user/skills/search?term=${encodeURIComponent(searchTerm)}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
                 const data = await response.json();
 
-                if (!Array.isArray(data)) throw new Error('ข้อมูลค้นหาไม่ถูกต้อง');
-
-                // Filter out already selected skills in other slots
-                const selectedSkillIds = [];
-                for (let i = 1; i <= 3; i++) {
-                    if (i !== index) {
-                        const val = document.getElementById(`skill-dropdown-${i}`).value;
-                        if (val) selectedSkillIds.push(val);
-                    }
-                }
-
-                const filteredSkills = data.filter(s => !selectedSkillIds.includes(String(s.skill_id)));
-
-                if (filteredSkills.length === 0) {
-                    const noResult = document.createElement('div');
-                    noResult.textContent = 'ไม่พบทักษะที่ตรงกัน';
-                    noResult.className = 'suggestion-item cursor-default select-none text-gray-500';
-                    suggestionsContainer.appendChild(noResult);
-                    suggestionsContainer.classList.add('visible');
+                if (!Array.isArray(data)) {
+                    console.error('Expected an array but got:', data);
+                    showErrorMessage('เกิดข้อผิดพลาดในการค้นหาทักษะ');
                     return;
                 }
 
+                // Get already registered skills to prevent duplicates
+                const registeredSkillIds = memberSkills.map(skill => skill.skill_id).filter(id => id !== null);
+
+                // Filter out already selected skills
+                const filteredSkills = data.filter(skill => !registeredSkillIds.includes(skill.skill_id));
+
+                // Populate suggestions container with search results
                 filteredSkills.forEach(skill => {
-                    const div = document.createElement('div');
-                    div.textContent = `${skill.name} (${skill.category})`;
-                    div.className = 'suggestion-item';
-                    div.tabIndex = 0;
-                    div.addEventListener('click', () => {
-                        selectSkill(skill, index);
-                    });
-                    div.addEventListener('keydown', e => {
-                        if (e.key === 'Enter' || e.key === ' ') {
-                            e.preventDefault();
-                            selectSkill(skill, index);
-                        }
-                    });
-                    suggestionsContainer.appendChild(div);
+                    const suggestionItem = document.createElement('div');
+                    suggestionItem.className = 'px-4 py-2 cursor-pointer hover:bg-gray-200';
+                    suggestionItem.textContent = `${skill.name} (${skill.category})`;
+                    suggestionItem.onclick = () => selectSkill(skill, index);
+                    suggestionsContainer.appendChild(suggestionItem);
                 });
 
-                suggestionsContainer.classList.add('visible');
+                // Show suggestions container if skills are found
+                if (filteredSkills.length > 0) {
+                    suggestionsContainer.classList.remove('hidden');
+                }
 
             } catch (error) {
-                console.error(error);
-                showErrorMessage('เกิดข้อผิดพลาดในการค้นหาทักษะ กรุณาลองใหม่อีกครั้ง');
+                console.error('Error searching skills:', error);
+                showErrorMessage('เกิดข้อผิดพลาดในการค้นหาทักษะ');
             }
         }
 
@@ -517,22 +508,33 @@
             const skillDropdown = document.getElementById(`skill-dropdown-${index}`);
             const categoryDropdown = document.getElementById(`category-dropdown-${index}`);
             const suggestionsContainer = document.getElementById(`suggestions-${index}`);
+            const searchInput = document.getElementById(`search-bar-${index}`);
 
-            // Set category and skill dropdowns
+            // Set category in dropdown and manually trigger change to populate skills
             categoryDropdown.value = skill.category;
             filterSkillsByCategory({ target: categoryDropdown }, index);
 
-            // After filtering, set skill dropdown value
+            // Wait a tick to ensure dropdowns are populated, then set selected skill
             setTimeout(() => {
                 skillDropdown.value = skill.skill_id;
                 validateNoDuplicateSkills(index);
             }, 0);
 
-            // Hide suggestions
-            suggestionsContainer.classList.remove('visible');
-            const searchInput = document.getElementById(`search-bar-${index}`);
+            // Update local state immediately (to match what will be saved)
+            memberSkills[index - 1] = {
+                skill_id: skill.skill_id,
+                name: skill.name,
+                category: skill.category
+            };
+
+            // Clear the search bar
             if (searchInput) searchInput.value = '';
+
+            // Hide suggestion container properly
+            suggestionsContainer.innerHTML = '';
+            suggestionsContainer.classList.add('hidden');
         }
+
 
         // Toggle edit mode for a skill slot
         function toggleEdit(index) {

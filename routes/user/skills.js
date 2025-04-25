@@ -6,26 +6,6 @@ dotenv.config();
 const skillRoutes = (pool) => {
     const router = express.Router();
 
-    // Update member skills (top 3)
-    router.put('/members/:userId/skills', async (req, res) => {
-        const { userId } = req.params;
-        const { skill_1, skill_2, skill_3 } = req.body;
-
-        try {
-            const result = await pool.query(
-                `INSERT INTO member_skills (user_id, skill_1, skill_2, skill_3)
-             VALUES ($1, $2, $3, $4)
-             ON CONFLICT (user_id)
-             DO UPDATE SET skill_1 = $2, skill_2 = $3, skill_3 = $4`,
-                [userId, skill_1, skill_2, skill_3]
-            );
-            res.status(200).json({ message: 'Skills updated successfully' });
-        } catch (err) {
-            console.error('Error updating member skills:', err.message);
-            res.status(500).json({ error: 'Failed to update skills' });
-        }
-    });
-
     // Search skills by term
     router.get('/search', async (req, res) => {
         const { term } = req.query;
@@ -36,7 +16,9 @@ const skillRoutes = (pool) => {
                 FROM skills 
                 JOIN categories ON skills.category_id = categories.category_id 
                 WHERE LOWER(skills.name) LIKE $1 
-                OR LOWER(categories.category) LIKE $1`,
+                OR LOWER(categories.category) LIKE $1 
+                OR SIMILARITY(LOWER(skills.name), $1) > 0.3 
+                OR SIMILARITY(LOWER(categories.category), $1) > 0.3`,
                 [`%${term.toLowerCase()}%`]
             );
             res.json(result.rows);
@@ -49,11 +31,7 @@ const skillRoutes = (pool) => {
     // Get all skills
     router.get('/', async (req, res) => {
         try {
-            const result = await pool.query(
-                `SELECT skills.skill_id, skills.name, skills.category_id, categories.category 
-                 FROM skills 
-                 JOIN categories ON skills.category_id = categories.category_id`
-            );
+            const result = await pool.query('SELECT skills.skill_id, skills.name, skills.category_id, categories.category FROM skills JOIN categories ON skills.category_id = categories.category_id');
             res.json(result.rows);
         } catch (err) {
             console.error('Error fetching all skills:', err.message);
@@ -61,21 +39,13 @@ const skillRoutes = (pool) => {
         }
     });
 
+
     // Get a skill by ID
     router.get('/:id', async (req, res) => {
         const { id } = req.params;
 
         try {
-            const result = await pool.query(
-                `SELECT skills.skill_id, skills.name, skills.category_id, categories.category 
-                 FROM skills 
-                 JOIN categories ON skills.category_id = categories.category_id 
-                 WHERE skill_id = $1`,
-                [id]
-            );
-            if (result.rows.length === 0) {
-                return res.status(404).json({ error: 'Skill not found' });
-            }
+            const result = await pool.query('SELECT skills.skill_id, skills.name, skills.category_id, categories.category FROM skills JOIN categories ON skills.category_id = categories.category_id WHERE skill_id = $1', [id]);
             res.json(result.rows[0]);
         } catch (err) {
             console.error('Error fetching skill by ID:', err.message);
@@ -100,11 +70,7 @@ const skillRoutes = (pool) => {
 
         try {
             const result = await pool.query(
-                `SELECT skills.skill_id, skills.name, skills.category_id, categories.category 
-                 FROM member_skills 
-                 JOIN skills ON member_skills.skill_id = skills.skill_id 
-                 JOIN categories ON skills.category_id = categories.category_id 
-                 WHERE member_skills.member_id = $1`,
+                'SELECT skills.skill_id, skills.name, skills.category_id, categories.category FROM member_skills JOIN skills ON member_skills.skill_id = skills.skill_id JOIN categories ON skills.category_id = categories.category_id WHERE member_skills.member_id = $1',
                 [memberId]
             );
             res.json({ skills: result.rows });
@@ -117,10 +83,6 @@ const skillRoutes = (pool) => {
     // Create a new skill
     router.post('/', async (req, res) => {
         const { name, category } = req.body;
-
-        if (!name || !category) {
-            return res.status(400).json({ error: 'Skill name and category are required' });
-        }
 
         try {
             // Find or create the category
@@ -139,14 +101,10 @@ const skillRoutes = (pool) => {
         }
     });
 
-    // Update a skill category and its skills
+    // Update a skill category
     router.put('/category/:category', async (req, res) => {
         const { category } = req.params;
         const { newCategory, newSkills } = req.body;
-
-        if (!newCategory || !Array.isArray(newSkills)) {
-            return res.status(400).json({ error: 'New category and newSkills array are required' });
-        }
 
         const client = await pool.connect();
         try {
@@ -154,13 +112,9 @@ const skillRoutes = (pool) => {
 
             // Update the category name
             const categoryResult = await client.query('UPDATE categories SET category = $1 WHERE category = $2 RETURNING category_id', [newCategory, category]);
-            if (categoryResult.rowCount === 0) {
-                await client.query('ROLLBACK');
-                return res.status(404).json({ error: 'Category not found' });
-            }
             const categoryId = categoryResult.rows[0].category_id;
 
-            // Update or insert skills
+            // Update the skill names
             for (const skill of newSkills) {
                 if (skill.skill_id) {
                     await client.query('UPDATE skills SET name = $1, category_id = $2 WHERE skill_id = $3', [skill.name, categoryId, skill.skill_id]);

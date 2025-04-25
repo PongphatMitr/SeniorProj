@@ -1,26 +1,29 @@
-<html lang="en">
+<html>
 
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>รายชื่อผู้เข้าร่วม - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
-    <script src="navbar.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
     <script>
         let participants = [];
+        let currentUserId = null;
+        let isRequester = false;
+        let activityStatus = '';
+
 
         async function fetchParticipants() {
             const urlParams = new URLSearchParams(window.location.search);
             const activityId = urlParams.get('id');
 
             if (!activityId) {
-                alert('ไม่พบรหัสกิจกรรม');
+                showMessage('ไม่พบรหัสกิจกรรม', true);
                 return;
             }
 
             try {
-                const response = await fetch(`http://localhost:3000/api/tbm/activities/${activityId}/participants`, {
+                const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}/participants`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -36,36 +39,252 @@
                     renderParticipants(participants);
                 } else {
                     console.error('Expected an array but got:', participants);
+                    showMessage('เกิดข้อผิดพลาดในการดึงรายชื่อผู้เข้าร่วม', true);
                 }
             } catch (error) {
                 console.error('Error fetching participants:', error);
-                alert('เกิดข้อผิดพลาดในการดึงรายชื่อผู้เข้าร่วม');
+                showMessage('เกิดข้อผิดพลาดในการดึงรายชื่อผู้เข้าร่วม', true);
             }
         }
 
         function renderParticipants(data) {
             const tbody = document.getElementById('participants-tbody');
             tbody.innerHTML = '';
+        
             data.forEach((participant) => {
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-gray-100';
+        
+                // Determine checkbox HTML based on role and activity status
+                const checkboxHtml = (() => {
+                    if (participant.attended) {
+                        return `<input type="checkbox" class="participant-checkbox" data-user-id="${participant.user_id}" checked disabled>`;
+                    }
+        
+                    // Participants can't edit anything
+                    if (!isRequester || activityStatus !== 'รอผู้ขอยืนยันผล') {
+                        return `<input type="checkbox" class="participant-checkbox" data-user-id="${participant.user_id}" disabled>`;
+                    }
+        
+                    // Only requester during valid status can check
+                    return `<input type="checkbox" class="participant-checkbox" data-user-id="${participant.user_id}">`;
+                })();
+        
                 row.innerHTML = `
                     <td class="py-4 px-6 border-b border-gray-200">${participant.name}</td>
-                    <td class="py-4 px-6 border-b border-gray-200">${participant.email}</td>
+                    <td class="py-4 px-6 border-b border-gray-200">${participant.phone}</td>
                     <td class="py-4 px-6 border-b border-gray-200">${participant.skills.join(', ')}</td>
+                    <td class="py-4 px-6 border-b border-gray-200 text-center">
+                        ${checkboxHtml}
+                    </td>
                 `;
                 tbody.appendChild(row);
             });
         }
+        
+
+        async function confirmCompletion() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const activityId = urlParams.get('id');
+            const checkedCheckboxes = document.querySelectorAll('.participant-checkbox:checked');
+
+            if (checkedCheckboxes.length === 0) {
+                showMessage('กรุณาเลือกอย่างน้อย 1 ผู้เข้าร่วมที่มาร่วมกิจกรรม', true);
+                return;
+            }
+
+            const attendedUserIds = Array.from(checkedCheckboxes).map(cb => parseInt(cb.dataset.userId));
+
+            showConfirmation('คุณต้องการยืนยันการเสร็จสิ้นกิจกรรมใช่หรือไม่?', async () => {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}/confirm-completion`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify({ attendedUserIds })  // 🟢 Pass attendance list
+                    });
+
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(errorData.error || 'Unknown error');
+                    }
+
+                    showMessage('ยืนยันกิจกรรมสำเร็จ รอการอนุมัติจาก TimeBank Manager', false);
+                    document.getElementById('confirm-completion-btn').classList.add('hidden');
+                    // Disable all checkboxes after confirmation
+                    document.querySelectorAll('.participant-checkbox').forEach(cb => {
+                        cb.checked = false;
+                        cb.disabled = true;
+                    });
+                } catch (error) {
+                    console.error('Error confirming completion:', error);
+                    showMessage('เกิดข้อผิดพลาด: ' + error.message, true);
+                }
+            });
+        }
+
+        function disableConfirmedCheckboxes(attendedUserIds) {
+            document.querySelectorAll('.participant-checkbox').forEach(checkbox => {
+                const userId = parseInt(checkbox.dataset.userId);
+                if (attendedUserIds.includes(userId)) {
+                    checkbox.checked = true;
+                }
+                checkbox.disabled = true;
+            });
+        }
+
+        async function checkConfirmedAttendanceStatus() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const activityId = urlParams.get('id');
+
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}`, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+
+                if (!response.ok) throw new Error("Failed to fetch activity data");
+
+                const activity = await response.json();
+                const confirmButton = document.getElementById('confirm-completion-btn');
+
+                const status = activity.status;
+                const now = new Date();
+                const endDateTime = new Date(`${activity.end_date}T${activity.end_time}:00`);
+
+                // Always hide the button for these final states
+                if (status === 'รอการอนุมัติ' || status === 'เสร็จสิ้น' || status === 'เกินเวลา') {
+                    confirmButton.classList.add('hidden');
+                    // Disable all checkboxes if status is final
+                    if (Array.isArray(participants)) {
+                        const attendedUserIds = participants.filter(p => p.attended).map(p => p.user_id);
+                        disableConfirmedCheckboxes(attendedUserIds);
+                    }
+                    return;
+                }
+
+                // Show button only if activity is past end datetime and not yet 'เกินเวลา'
+                if (now >= endDateTime) {
+                    confirmButton.classList.remove('hidden');
+                } else {
+                    confirmButton.classList.add('hidden');
+                }
+            } catch (error) {
+                console.error('Error checking attendance status:', error);
+            }
+        }
+
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchParticipants();
+            checkIfRequester();
+            checkConfirmedAttendanceStatus();
         });
+
+        async function checkIfRequester() {
+            const token = localStorage.getItem('token');
+            const urlParams = new URLSearchParams(window.location.search);
+            const activityId = urlParams.get('id');
+        
+            if (!token || !activityId) {
+                document.getElementById('confirm-completion-btn').classList.add('hidden');
+                return;
+            }
+        
+            try {
+                const userResponse = await fetch('http://localhost:3000/api/user/auth/profile', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+        
+                if (!userResponse.ok) throw new Error("Failed to fetch user");
+                const userData = await userResponse.json();
+                currentUserId = userData.user_id;
+        
+                const activityResponse = await fetch(`http://localhost:3000/api/user/activities/${activityId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+        
+                if (!activityResponse.ok) throw new Error("Failed to fetch activity");
+                const activityData = await activityResponse.json();
+        
+                activityStatus = activityData.status;
+                isRequester = activityData.requester_id === currentUserId;
+        
+                if (isRequester && activityStatus === 'รอผู้ขอยืนยันผล') {
+                    document.getElementById('confirm-completion-btn').classList.remove('hidden');
+                } else {
+                    document.getElementById('confirm-completion-btn').classList.add('hidden');
+                }
+        
+                fetchParticipants(); // Fetch only after role and status are known
+            } catch (error) {
+                console.error('Error checking requester role:', error);
+                document.getElementById('confirm-completion-btn').classList.add('hidden');
+            }
+        }
+        
+        function showMessage(message, isError = false) {
+            const modal = document.getElementById('message-modal');
+            const title = document.getElementById('message-title');
+            const text = document.getElementById('message-text');
+            const icon = document.getElementById('message-icon');
+            const iconSvg = document.getElementById('message-icon-svg');
+            const iconPath = document.getElementById('message-icon-path');
+
+            text.textContent = message;
+            modal.classList.remove('hidden');
+
+            title.classList.remove('text-red-600', 'text-green-600');
+            icon.classList.remove('bg-red-100', 'border-red-500', 'bg-green-100', 'border-green-500');
+            iconSvg.classList.remove('text-red-500', 'text-green-500');
+
+            if (isError) {
+                title.textContent = "เกิดข้อผิดพลาด!";
+                title.classList.add('text-red-600');
+                icon.classList.add('bg-red-100', 'border-red-500');
+                iconSvg.classList.add('text-red-500');
+                iconPath.setAttribute("d", "M6 18L18 6M6 6l12 12"); // X icon
+            } else {
+                title.textContent = "สำเร็จ!";
+                title.classList.add('text-green-600');
+                icon.classList.add('bg-green-100', 'border-green-500');
+                iconSvg.classList.add('text-green-500');
+                iconPath.setAttribute("d", "M5 13l4 4L19 7"); // Checkmark icon
+            }
+
+            setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
+
+            document.getElementById('confirm-message-btn').onclick = () => {
+                modal.classList.add('hidden');
+                modal.classList.remove('opacity-100', 'scale-100');
+            };
+        }
+
+        function showConfirmation(message, onConfirm) {
+            const modal = document.getElementById('confirm-modal');
+            const text = document.getElementById('confirm-message');
+
+            text.textContent = message;
+            modal.classList.remove('hidden');
+
+            document.getElementById('confirm-yes-btn').onclick = () => {
+                modal.classList.add('hidden');
+                onConfirm(); // Execute the function if confirmed
+            };
+
+            document.getElementById('confirm-no-btn').onclick = () => {
+                modal.classList.add('hidden');
+            };
+        }
     </script>
+    <script src="navbar.js"></script>
 </head>
 
 <body class="bg-gray-100">
-    <div class="flex flex-col md:flex-row">
+    <div class="flex flex-col md:flex-row min-h-screen">
         <!-- Sidebar -->
         <div class="w-full md:w-1/6 bg-white h-screen p-5 sticky top-0 flex flex-col">
             <nav class="flex-grow">
@@ -74,35 +293,28 @@
         </div>
         <!-- Main Content -->
         <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
-            <div class="absolute top-5 right-5 flex items-center gap-4">
-                <!-- Notification Placeholder -->
-                <div id="mainNotificationPanel" class="relative"></div>
-            </div>
-            <h1 class="text-4xl font-bold mb-5">
-                รายชื่อผู้เข้าร่วม
-            </h1>
-            <div class="bg-white text-black p-12 rounded-lg shadow-lg max-w-6xl mx-auto">
+            <div class="bg-white p-8 rounded-lg shadow-lg">
+                <h1 class="text-4xl font-bold mb-5 text-center text-blue-700">
+                    รายชื่อผู้เข้าร่วม
+                </h1>
                 <div class="overflow-x-auto mt-4">
                     <div class="table-responsive-sm">
-                        <table aria-busy="false" aria-colcount="3" class="table b-table b-table-stacked-md w-full"
+                        <table aria-busy="false" aria-colcount="4" class="table b-table b-table-stacked-md w-full"
                             role="table">
                             <thead class="bg-gray-100" role="rowgroup">
                                 <tr role="row">
                                     <th aria-colindex="1"
                                         class="py-4 px-6 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        ชื่อ
-                                    </th>
+                                        role="columnheader" scope="col">ชื่อ</th>
                                     <th aria-colindex="2"
                                         class="py-4 px-6 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        อีเมล
-                                    </th>
+                                        role="columnheader" scope="col">เบอร์โทร</th>
                                     <th aria-colindex="3"
                                         class="py-4 px-6 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        ทักษะ
-                                    </th>
+                                        role="columnheader" scope="col">ทักษะ</th>
+                                    <th aria-colindex="4"
+                                        class="py-4 px-6 text-left text-sm font-semibold text-gray-600"
+                                        role="columnheader" scope="col">เข้าร่วม</th>
                                 </tr>
                             </thead>
                             <tbody id="participants-tbody" role="rowgroup">
@@ -111,18 +323,63 @@
                         </table>
                     </div>
                 </div>
-                <div class="flex items-center justify-center mt-6">
-                    <button
-                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-4 px-6 ml-2 rounded focus:outline-none focus:shadow-outline"
-                        onclick="window.history.back()" type="button">
-                        ย้อนกลับ
+                <div class="flex items-center justify-center mt-6 space-x-4">
+                    <!-- Button: Requester confirms activity completion -->
+                    <button id="confirm-completion-btn"
+                        class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        onclick="confirmCompletion()" type="button">
+                        ยืนยันการเสร็จสิ้น
                     </button>
+                    <button
+                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                        onclick="window.history.back()" type="button">ย้อนกลับ</button>
                 </div>
             </div>
         </div>
     </div>
-        <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-        <script src="notification.js"></script>
+
+    <!-- Success & Error Message Modal -->
+    <div id="message-modal"
+        class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden transition-opacity duration-300 z-50">
+        <div
+            class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-2xl text-center transform scale-95 transition-transform duration-300">
+            <div class="flex justify-center">
+                <div id="message-icon"
+                    class="w-24 h-24 flex items-center justify-center rounded-full border-4 animate-bounce">
+                    <svg id="message-icon-svg" class="w-16 h-16" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path id="message-icon-path" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" />
+                    </svg>
+                </div>
+            </div>
+            <h2 id="message-title" class="text-4xl font-bold mt-6"></h2>
+            <p id="message-text" class="text-gray-700 text-xl mt-4"></p>
+            <button id="confirm-message-btn"
+                class="mt-8 px-8 py-4 bg-blue-600 text-white text-xl font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ตกลง
+            </button>
+        </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal"
+        class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden transition-opacity duration-300 z-50">
+        <div
+            class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-lg text-center transform scale-95 transition-transform duration-300">
+            <h2 id="confirm-title" class="text-3xl font-bold text-yellow-600">ยืนยันการขออนุมัติ</h2>
+            <p id="confirm-message" class="text-gray-700 text-xl mt-4"></p>
+            <div class="mt-6 flex justify-center gap-4">
+                <button id="confirm-yes-btn"
+                    class="px-6 py-3 bg-green-600 text-white text-lg font-semibold rounded-lg hover:bg-green-700 transition duration-300">
+                    ยืนยัน
+                </button>
+                <button id="confirm-no-btn"
+                    class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300">
+                    ยกเลิก
+                </button>
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>
