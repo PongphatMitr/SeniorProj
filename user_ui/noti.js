@@ -442,6 +442,7 @@ function resolveStatusMapping(oldStatus, newStatus) {
 }
 
 async function fetchAndCheckNotifications() {
+    
   if (!token || !userId) return;
 
   try {
@@ -470,39 +471,32 @@ async function fetchAndCheckNotifications() {
     const activeStatuses = ['กำลังจะเริ่ม', 'กำลังทำกิจกรรม', 'รอผู้ขอยืนยันผล', 'รอการอนุมัติ'];
     let newNotis = [];
 
-
     for (let act of related) {
         const currentStatus = act.status;
         const isActive = activeStatuses.includes(currentStatus);
       
-        const unifiedIdPrefix = `unified-${act.activity_id}`;
-        const wasCleared = clearedUnifiedIds.some(id => id.startsWith(unifiedIdPrefix));
-      
-        if (wasCleared) {
-          console.log('⛔ Skipped cleared active notification:', act.title); // ✅ VALID inside loop
-          continue;
-        }
-
         const alreadyStored = notifications.find(n =>
-            n.activity_id === act.activity_id &&
-            n.status === currentStatus &&
-            n.type === 'unified'
+          n.activity_id === act.activity_id &&
+          n.status === currentStatus &&
+          n.type === 'unified'
         );
-
+      
+        const unifiedIdPrefix = `unified-${act.activity_id}`;
+      
+        const wasCleared = clearedUnifiedIds.some(id => id.startsWith(unifiedIdPrefix));
+        if (wasCleared) continue; // ⛔ skip if cleared permanently
+      
         if (isActive) {
-            if (!alreadyStored) {
-            const noti = createUnifiedNotification(act);
-            newNotis.push(noti);
-            } else {
-            newNotis.push(alreadyStored);
-            }
+          const noti = createUnifiedNotification(act);
+          newNotis.push(noti);
         } else if (!alreadyStored) {
-            const noti = createUnifiedNotification(act);
-            newNotis.push(noti);
+          const noti = createUnifiedNotification(act);
+          newNotis.push(noti);
         } else {
-            newNotis.push(alreadyStored);
+          newNotis.push(alreadyStored);
         }
-        }
+      }
+      
 
     localStorage.setItem('notifications', JSON.stringify(newNotis));
     notifications = newNotis;
