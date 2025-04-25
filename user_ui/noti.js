@@ -2,7 +2,9 @@ let token = null;
 let userId = null;
 let statusChangeNotifications = [];
 let notifications = [];
-let clearedNotificationIds = JSON.parse(localStorage.getItem('clearedNotificationIds') || '[]');
+let inactiveUnifiedNotifications = [];
+let clearedInactiveUnifiedIds = JSON.parse(localStorage.getItem('clearedInactiveUnifiedIds') || '[]');
+let clearedUnifiedIds = JSON.parse(localStorage.getItem('clearedUnifiedIds') || '[]');
 
 
 const statusColor = {
@@ -60,66 +62,62 @@ function formatOffset(offsetMs) {
 }
 
 function formatRelativeTime(timestamp) {
-    const now = new Date();
-    const then = new Date(timestamp);
-    const diffMs = now - then;
-  
-    const mins = Math.floor(diffMs / (60 * 1000));
-    if (mins < 1) return 'เมื่อสักครู่';
-    if (mins < 60) return `${mins} นาทีที่แล้ว`;
-  
-    const hours = Math.floor(mins / 60);
-    if (hours < 24) return `${hours} ชั่วโมงที่แล้ว`;
-  
-    const days = Math.floor(hours / 24);
-    return `${days} วันที่แล้ว`;
-  }
-  
+  const now = new Date();
+  const then = new Date(timestamp);
+  const diffMs = now - then;
+
+  const mins = Math.floor(diffMs / (60 * 1000));
+  if (mins < 1) return 'เมื่อสักครู่';
+  if (mins < 60) return `${mins} นาทีที่แล้ว`;
+
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours} ชั่วโมงที่แล้ว`;
+
+  const days = Math.floor(hours / 24);
+  return `${days} วันที่แล้ว`;
+}
 
 function formatActivityDuration(startDateRaw, startTime, endDateRaw, endTime) {
-    try {
-      let startDate = new Date(startDateRaw);
-      let endDate = new Date(endDateRaw);
-  
-      // If times are provided separately (like "15:00:00"), override the time part
-      if (startTime && startTime.includes(':')) {
-        const [h, m] = startTime.split(':');
-        startDate.setHours(parseInt(h), parseInt(m));
-      }
-      if (endTime && endTime.includes(':')) {
-        const [h, m] = endTime.split(':');
-        endDate.setHours(parseInt(h), parseInt(m));
-      }
-  
-      const thaiMonths = [
-        'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
-        'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
-      ];
-  
-      const day = startDate.getDate();
-      const month = thaiMonths[startDate.getMonth()];
-      const year = startDate.getFullYear() + 543;
-  
-      const startHour = startDate.getHours().toString().padStart(2, '0');
-      const startMinute = startDate.getMinutes().toString().padStart(2, '0');
-      const endHour = endDate.getHours().toString().padStart(2, '0');
-      const endMinute = endDate.getMinutes().toString().padStart(2, '0');
-  
-      return `${day} ${month} ${year} เวลา ${startHour}.${startMinute} น.-${endHour}.${endMinute} น.`;
-    } catch (err) {
-      console.error('❌ Invalid date format:', err);
-      return 'เวลาผิดพลาด';
+  try {
+    let startDate = new Date(startDateRaw);
+    let endDate = new Date(endDateRaw);
+
+    if (startTime && startTime.includes(':')) {
+      const [h, m] = startTime.split(':');
+      startDate.setHours(parseInt(h), parseInt(m));
     }
+    if (endTime && endTime.includes(':')) {
+      const [h, m] = endTime.split(':');
+      endDate.setHours(parseInt(h), parseInt(m));
+    }
+
+    const thaiMonths = [
+      'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+      'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+    ];
+
+    const day = startDate.getDate();
+    const month = thaiMonths[startDate.getMonth()];
+    const year = startDate.getFullYear() + 543;
+
+    const startHour = startDate.getHours().toString().padStart(2, '0');
+    const startMinute = startDate.getMinutes().toString().padStart(2, '0');
+    const endHour = endDate.getHours().toString().padStart(2, '0');
+    const endMinute = endDate.getMinutes().toString().padStart(2, '0');
+
+    return `${day} ${month} ${year} เวลา ${startHour}.${startMinute} น.-${endHour}.${endMinute} น.`;
+  } catch (err) {
+    console.error('❌ Invalid date format:', err);
+    return 'เวลาผิดพลาด';
   }
-  
-  
-  
-  function generateNotificationHTML(activity, status, prevStatus = null, description = '', timeStr = '') {
-    const location = activity.location || 'ไม่ระบุ';
-    const timeDisplay = timeStr || formatActivityDuration(activity.start_date, activity.start_time, activity.end_date, activity.end_time);
-    const statusChange = prevStatus && prevStatus !== status;
-  
-    return `
+}
+
+function generateNotificationHTML(activity, status, prevStatus = null, description = '', timeStr = '') {
+  const location = activity.location || 'ไม่ระบุ';
+  const timeDisplay = timeStr || formatActivityDuration(activity.start_date, activity.start_time, activity.end_date, activity.end_time);
+  const statusChange = prevStatus && prevStatus !== status;
+
+  return `
   <div class="text-sm text-gray-700">
     <div class="font-semibold"><i class='fas fa-clipboard-list text-blue-700 mr-1'></i> ${activity.title}${statusChange ? ` มีการเปลี่ยนสถานะ` : ''}</div>
     <div class="text-xs text-gray-700 mt-2 leading-relaxed">
@@ -140,24 +138,50 @@ function formatActivityDuration(startDateRaw, startTime, endDateRaw, endTime) {
     </div>
   </div>
   `;
-  }
-  
+}
 
-  function createUnifiedNotification(activity, prevStatus = null) {
+function createUnifiedNotification(activity, prevStatus = null) {
+  const timeStr = formatActivityDuration(activity.start_date, activity.start_time, activity.end_date, activity.end_time);
+
+  const statusDescriptions = {
+    'กำลังจะเริ่ม': 'โปรดเตรียมตัวเข้าร่วมกิจกรรม',
+    'กำลังทำกิจกรรม': 'กิจกรรมกำลังดำเนินอยู่',
+    'รอผู้ขอยืนยันผล': 'โปรดยืนยันการเข้าร่วมกิจกรรมหลังจบกิจกรรม',
+    'รอการอนุมัติ': 'กำลังรออนุมัติ โปรดติดตามผลการอนุมัติ',
+    'เกินเวลา': 'กิจกรรมเลยเวลา โปรดตรวจสอบสถานะของคุณ',
+  };
+
+  const description = statusDescriptions[activity.status] || 'โปรดตรวจสอบรายละเอียดกิจกรรม';
+
+  const message = generateNotificationHTML(
+    activity,
+    activity.status,
+    prevStatus,
+    description,
+    timeStr
+  );
+
+  return {
+    id: `unified-${activity.activity_id}-${Date.now()}`,
+    activity_id: activity.activity_id,
+    title: `กิจกรรม "${activity.title}"`,
+    message,
+    timestamp: new Date().toISOString(),
+    read: false,
+    link: activity.requester_id === userId ? `myactivity-details.html?id=${activity.activity_id}` : `activity-details.html?id=${activity.activity_id}`,
+    status: activity.status,
+    prevStatus: prevStatus || null,
+    type: 'unified'
+  };
+}
+
+function createInactiveUnifiedNotification(activity, prevStatus = null) {
+    const inactiveStatuses = ['เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา', 'ผู้เข้าร่วมไม่ครบ'];
+    if (!inactiveStatuses.includes(activity.status)) return null;
+  
     const timeStr = formatActivityDuration(activity.start_date, activity.start_time, activity.end_date, activity.end_time);
   
-    const statusDescriptions = {
-      'กำลังจะเริ่ม': 'โปรดเตรียมตัวเข้าร่วมกิจกรรม',
-      'กำลังทำกิจกรรม': 'กิจกรรมกำลังดำเนินอยู่',
-      'รอผู้ขอยืนยันผล': 'โปรดยืนยันการเข้าร่วมกิจกรรมหลังจบกิจกรรม',
-      'รอการอนุมัติ': 'กำลังรออนุมัติ โปรดติดตามผลการอนุมัติ',
-      'เกินเวลา': 'กิจกรรมเลยเวลา โปรดตรวจสอบสถานะของคุณ',
-      'ยกเลิก': 'กิจกรรมนี้ถูกยกเลิก โปรดตรวจสอบรายละเอียด',
-      'เสร็จสิ้น': 'กิจกรรมเสร็จสมบูรณ์ โปรดตรวจสอบเวลาแลกเปลี่ยน',
-      'ผู้เข้าร่วมไม่ครบ': 'ไม่มีผู้เข้าร่วมครบตามที่กำหนด กิจกรรมถูกยกเลิก'
-    };
-  
-    const description = statusDescriptions[activity.status] || 'โปรดตรวจสอบรายละเอียดกิจกรรม';
+    const description = 'กิจกรรมของคุณสิ้นสุดลงแล้ว โปรดตรวจสอบรายละเอียด';
   
     const message = generateNotificationHTML(
       activity,
@@ -168,266 +192,244 @@ function formatActivityDuration(startDateRaw, startTime, endDateRaw, endTime) {
     );
   
     return {
-      id: `unified-${activity.activity_id}-${Date.now()}`,
+      id: `inactive-unified-${activity.activity_id}-${Date.now()}`,
       activity_id: activity.activity_id,
-      title: `กิจกรรม "${activity.title}"`,
+      title: `สิ้นสุดกิจกรรม "${activity.title}"`,
       message,
       timestamp: new Date().toISOString(),
       read: false,
       link: activity.requester_id === userId ? `myactivity-details.html?id=${activity.activity_id}` : `activity-details.html?id=${activity.activity_id}`,
       status: activity.status,
-      prevStatus: prevStatus || null,
-      type: 'unified'
+      prevStatus: prevStatus,
+      type: 'inactive-unified'
     };
   }
   
 
 function createStatusChangeNotification(activity, oldStatus, newStatus) {
-    const resolvedNewStatus = resolveStatusMapping(oldStatus, newStatus);
-  
-    // ✅ Use the same formatted time string like createUnifiedNotification
-    const timeStr = formatActivityDuration(activity.start_date, activity.start_time, activity.end_date, activity.end_time);
-  
-    const message = generateNotificationHTML(
-      activity,
-      resolvedNewStatus,
-      oldStatus,
-      'สถานะกิจกรรมมีการเปลี่ยนแปลง โปรดตรวจสอบ',
-      timeStr
-    );
-  
-    return {
-      id: `statuschange-${activity.activity_id}-${Date.now()}`,
-      activity_id: activity.activity_id,
-      title: `สถานะเปลี่ยนแปลงกิจกรรม "${activity.title}"`,
-      message,
-      timestamp: new Date().toISOString(),
-      read: false,
-      link: activity.requester_id === userId ? `myactivity-details.html?id=${activity.activity_id}` : `activity-details.html?id=${activity.activity_id}`,
-      status: resolvedNewStatus,
-      prevStatus: oldStatus,
-      type: 'statuschange'
-    };
+  const resolvedNewStatus = resolveStatusMapping(oldStatus, newStatus);
+
+  const timeStr = formatActivityDuration(activity.start_date, activity.start_time, activity.end_date, activity.end_time);
+
+  const message = generateNotificationHTML(
+    activity,
+    resolvedNewStatus,
+    oldStatus,
+    'สถานะกิจกรรมมีการเปลี่ยนแปลง โปรดตรวจสอบ',
+    timeStr
+  );
+
+  return {
+    id: `statuschange-${activity.activity_id}-${Date.now()}`,
+    activity_id: activity.activity_id,
+    title: `สถานะเปลี่ยนแปลงกิจกรรม "${activity.title}"`,
+    message,
+    timestamp: new Date().toISOString(),
+    read: false,
+    link: activity.requester_id === userId ? `myactivity-details.html?id=${activity.activity_id}` : `activity-details.html?id=${activity.activity_id}`,
+    status: resolvedNewStatus,
+    prevStatus: oldStatus,
+    type: 'statuschange'
+  };
 }
 
-  
 function renderNotificationPanel() {
-    const list = document.getElementById('notification-list');
-    const count = document.getElementById('notification-count');
-    const noNotif = document.getElementById('no-notifications');
-  
-    notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
-    statusChangeNotifications = JSON.parse(localStorage.getItem('statusChangeNotifications') || '[]');
-  
-    const activeStatuses = ['กำลังจะเริ่ม', 'กำลังทำกิจกรรม', 'รอผู้ขอยืนยันผล', 'รอการอนุมัติ'];
-  
-    const getStartTimeMs = (n) => {
-      const dateStr = n.start_date || (n.activity && n.activity.start_date);
-      const timeStr = n.start_time || (n.activity && n.activity.start_time);
-      if (!dateStr || !timeStr) return 0;
-      return new Date(`${dateStr}T${timeStr}`).getTime();
-    };
-  
-    const unifiedUnreadActive = [];
-    const unifiedUnreadInactive = [];
-    const unifiedReadInactive = [];
-  
-    for (const n of notifications) {
-      const isActive = activeStatuses.includes(n.status);
-      if (!n.read && isActive) unifiedUnreadActive.push(n);
-      else if (!n.read && !isActive) unifiedUnreadInactive.push(n);
-      else if (n.read && !isActive) unifiedReadInactive.push(n);
-    }
-  
-    const statusChangeUnread = statusChangeNotifications.filter(n => !n.read);
-    const statusChangeRead = statusChangeNotifications.filter(n => n.read);
-  
-    const sortByStartTime = arr => arr.sort((a, b) => getStartTimeMs(a) - getStartTimeMs(b));
-    sortByStartTime(unifiedUnreadActive);
-    sortByStartTime(unifiedUnreadInactive);
-    sortByStartTime(unifiedReadInactive);
-    sortByStartTime(statusChangeUnread);
-    sortByStartTime(statusChangeRead);
-  
-    list.innerHTML = '';
-    let unread = 0;
-  
-    // ✅ Declare before use
-    let headerElements = [];
-  
-    const sectionHeader = (title, id) => {
-      const li = document.createElement('li');
-      li.className = `
-        sticky top-[3.25rem] z-10
-        px-6 py-3
-        bg-white/80 backdrop-blur-md
-        border-b border-gray-200
-        flex items-center gap-3
-        text-base font-semibold text-gray-800
-        shadow-sm
-        transition-all duration-300
-      `;
-      li.dataset.groupId = id;
-  
-      const iconMap = {
-        active: `<i class="fas fa-briefcase text-blue-600 text-lg"></i>`,
-        statuschange: `<i class="fas fa-exchange-alt text-purple-600 text-lg"></i>`,
-        others: `<i class="fas fa-archive text-gray-500 text-lg"></i>`,
-      };
-  
-      const labelMap = {
-        active: 'กิจกรรมของฉันที่กำลังดำเนินอยู่',
-        statuschange: 'การเปลี่ยนแปลงของกิจกรรม',
-        others: 'กิจกรรมอื่น ๆ ทั้งหมด',
-      };
-  
-      li.innerHTML = `
-        ${iconMap[id] || ''}
-        <span>${labelMap[id] || title}</span>
-      `;
-  
-      headerElements.push(li);
-      return li;
-    };
-  
-    const renderGroup = (title, notiList, groupId) => {
-      if (notiList.length === 0) return;
-      list.appendChild(sectionHeader(title, groupId));
-  
-      for (const n of notiList) {
-        const isRead = n.read;
-        const isInactive = !activeStatuses.includes(n.status);
-        const isStatusChange = n.type === 'statuschange';
-  
-        const li = document.createElement('li');
-        li.className = `p-3 cursor-pointer rounded-md transition hover:bg-gray-100 ${isRead ? 'opacity-60' : ''}`;
-        li.innerHTML = `${n.message}<div class='text-xs text-gray-400 mt-1'>${formatRelativeTime(n.timestamp)}</div>`;
-  
-        li.onclick = () => {
-          if (isStatusChange) {
-            const idx = statusChangeNotifications.findIndex(x => x.id === n.id);
-            if (idx !== -1) {
-              statusChangeNotifications[idx].read = true;
-              localStorage.setItem('statusChangeNotifications', JSON.stringify(statusChangeNotifications));
-            }
-          } else if (isInactive) {
-            const idx = notifications.findIndex(x => x.id === n.id);
-            if (idx !== -1) {
-              notifications[idx].read = true;
-              localStorage.setItem('notifications', JSON.stringify(notifications));
-            }
-          }
-          renderNotificationPanel();
-          if (n.link) location.href = n.link;
-        };
-  
-        list.appendChild(li);
-        if (!isRead) unread++;
-      }
-    };
-  
-    renderGroup('กิจกรรมของฉันที่กำลังดำเนินอยู่', unifiedUnreadActive, 'active');
-    renderGroup('การเปลี่ยนแปลงของกิจกรรม', [...statusChangeUnread, ...statusChangeRead], 'statuschange');
-    renderGroup('กิจกรรมอื่น ๆ ทั้งหมด', [...unifiedUnreadInactive, ...unifiedReadInactive], 'others');
-  
-    count.textContent = unread;
-    count.classList.toggle('hidden', unread === 0);
-    noNotif.classList.toggle('hidden', unread > 0);
-  
-    // Scroll highlight for sticky headers
-    const panel = document.getElementById('notification-panel');
-    panel.addEventListener('scroll', () => {
-      let lastActive = null;
-      for (const header of headerElements) {
-        const rect = header.getBoundingClientRect();
-        const panelRect = panel.getBoundingClientRect();
-        const topOffset = rect.top - panelRect.top;
-  
-        if (topOffset <= 0) {
-          lastActive = header;
-        } else {
-          header.classList.remove('bg-indigo-100', 'text-indigo-700');
-          header.classList.add('bg-white/80', 'text-gray-800');
-        }
-      }
-  
-      if (lastActive) {
-        headerElements.forEach(h => {
-          h.classList.remove('bg-indigo-100', 'text-indigo-700');
-          h.classList.add('bg-white/80', 'text-gray-800');
-        });
-        lastActive.classList.remove('bg-white/80', 'text-gray-800');
-        lastActive.classList.add('bg-indigo-100', 'text-indigo-700');
-      }
-    });
+  const list = document.getElementById('notification-list');
+  const count = document.getElementById('notification-count');
+  const noNotif = document.getElementById('no-notifications');
+
+  notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+  statusChangeNotifications = JSON.parse(localStorage.getItem('statusChangeNotifications') || '[]');
+  inactiveUnifiedNotifications = JSON.parse(localStorage.getItem('inactiveUnifiedNotifications') || '[]');
+
+  const activeStatuses = ['กำลังจะเริ่ม', 'กำลังทำกิจกรรม', 'รอผู้ขอยืนยันผล', 'รอการอนุมัติ'];
+
+  const getStartTimeMs = (n) => {
+    const dateStr = n.start_date || (n.activity && n.activity.start_date);
+    const timeStr = n.start_time || (n.activity && n.activity.start_time);
+    if (!dateStr || !timeStr) return 0;
+    return new Date(`${dateStr}T${timeStr}`).getTime();
+  };
+
+  // Separate notifications by type and read status
+  const unifiedUnreadActive = [];
+  const unifiedUnreadInactive = [];
+  const unifiedReadInactive = [];
+
+  for (const n of notifications) {
+    // Skip inactive-unified notifications so they won't be rendered
+    if (n.type === 'inactive-unified') continue;
+
+    const isActive = activeStatuses.includes(n.status);
+    if (!n.read && isActive) unifiedUnreadActive.push(n);
+    else if (!n.read && !isActive) unifiedUnreadInactive.push(n);
+    else if (n.read && !isActive) unifiedReadInactive.push(n);
   }
+
+  const statusChangeUnread = statusChangeNotifications.filter(n => !n.read);
+  const statusChangeRead = statusChangeNotifications.filter(n => n.read);
+
+  const sortByStartTime = arr => arr.sort((a, b) => getStartTimeMs(a) - getStartTimeMs(b));
+  sortByStartTime(unifiedUnreadActive);
+  sortByStartTime(unifiedUnreadInactive);
+  sortByStartTime(unifiedReadInactive);
+  sortByStartTime(statusChangeUnread);
+  sortByStartTime(statusChangeRead);
+
+  list.innerHTML = '';
+  let unread = 0;
+
+  const renderGroup = (title, items, groupId) => {
+    if (items.length === 0) return;
+    const li = document.createElement('li');
+    li.className = `
+      sticky top-[3.25rem] z-10
+      px-6 py-3
+      bg-white/80 backdrop-blur-md
+      border-b border-gray-200
+      flex items-center gap-3
+      text-base font-semibold text-gray-800
+      shadow-sm
+      transition-all duration-300
+    `;
+    li.dataset.groupId = groupId;
+
+    const iconMap = {
+      active: `<i class="fas fa-briefcase text-blue-600 text-lg"></i>`,
+      statuschange: `<i class="fas fa-exchange-alt text-purple-600 text-lg"></i>`,
+      others: `<i class="fas fa-archive text-gray-500 text-lg"></i>`,
+    };
+
+    const labelMap = {
+      active: 'กิจกรรมของฉันที่กำลังดำเนินอยู่',
+      statuschange: 'การเปลี่ยนแปลงของกิจกรรม',
+      others: 'กิจกรรมอื่น ๆ ทั้งหมด',
+    };
+
+    li.innerHTML = `
+      ${iconMap[groupId] || ''}
+      <span>${labelMap[groupId] || title}</span>
+    `;
+
+    list.appendChild(li);
+
+    for (const n of items) {
+      const isRead = n.read;
+      const isInactive = !activeStatuses.includes(n.status);
+      const isStatusChange = n.type === 'statuschange';
+
+      const itemLi = document.createElement('li');
+      itemLi.className = `p-3 cursor-pointer rounded-md transition hover:bg-gray-100 ${isRead ? 'opacity-60' : ''}`;
+      itemLi.innerHTML = `${n.message}<div class='text-xs text-gray-400 mt-1'>${formatRelativeTime(n.timestamp)}</div>`;
+
+      itemLi.onclick = () => {
+        if (isStatusChange) {
+          const idx = statusChangeNotifications.findIndex(x => x.id === n.id);
+          if (idx !== -1) {
+            statusChangeNotifications[idx].read = true;
+            localStorage.setItem('statusChangeNotifications', JSON.stringify(statusChangeNotifications));
+          }
+        } else {
+          const idx = notifications.findIndex(x => x.id === n.id);
+          if (idx !== -1) {
+            notifications[idx].read = true;
+            localStorage.setItem('notifications', JSON.stringify(notifications));
+          }
+        }
+        renderNotificationPanel();
+        if (n.link) location.href = n.link;
+      };
+
+      list.appendChild(itemLi);
+      if (!isRead) unread++;
+    }
+  };
+
+  renderGroup('กิจกรรมของฉันที่กำลังดำเนินอยู่', unifiedUnreadActive, 'active');
+  renderGroup('การเปลี่ยนแปลงของกิจกรรม', [...statusChangeUnread, ...statusChangeRead], 'statuschange');
+  renderGroup('กิจกรรมอื่น ๆ ทั้งหมด', [...unifiedUnreadInactive, ...unifiedReadInactive], 'others');
+
+  count.textContent = unread;
+  count.classList.toggle('hidden', unread === 0);
+  noNotif.classList.toggle('hidden', unread > 0);
+}
+
+function setupNotificationEvents() {
+  const bell = document.getElementById('notification-bell');
+  const panel = document.getElementById('notification-panel');
+  const clearBtn = document.getElementById('clear-notifications');
+  const markReadBtn = document.getElementById('mark-read');
+
+  bell.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isHidden = panel.classList.contains('hidden');
+    panel.classList.toggle('hidden', !isHidden);
+    bell.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+  });
+
+  markReadBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+
+    const activeStatuses = ['กำลังจะเริ่ม', 'กำลังทำกิจกรรม', 'รอผู้ขอยืนยันผล', 'รอการอนุมัติ'];
+
+    statusChangeNotifications = statusChangeNotifications.map(n => ({ ...n, read: true }));
+    inactiveUnifiedNotifications = inactiveUnifiedNotifications.map(n => ({ ...n, read: true }));
+    notifications = notifications.map(n => {
+      const isActive = activeStatuses.includes(n.status);
+      if (!isActive && n.type !== 'inactive-unified') {
+        return { ...n, read: true };
+      }
+      return n;
+    });
+
+    localStorage.setItem('notifications', JSON.stringify(notifications));
+    localStorage.setItem('statusChangeNotifications', JSON.stringify(statusChangeNotifications));
+    localStorage.setItem('inactiveUnifiedNotifications', JSON.stringify(inactiveUnifiedNotifications));
+    renderNotificationPanel();
+  });
+
+  clearBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+
+    // Clear only read statusChangeNotifications
+    statusChangeNotifications = statusChangeNotifications.filter(n => !n.read);
+
+    // Clear only read inactive unified notifications and record cleared IDs
+    const toClearInactiveIds = inactiveUnifiedNotifications.filter(n => n.read).map(n => n.id);
+    clearedInactiveUnifiedIds = [...new Set([...clearedInactiveUnifiedIds, ...toClearInactiveIds])];
+    localStorage.setItem('clearedInactiveUnifiedIds', JSON.stringify(clearedInactiveUnifiedIds));
+    inactiveUnifiedNotifications = inactiveUnifiedNotifications.filter(n => !n.read);
+
+    // Clear only read unified inactive notifications (excluding inactiveUnifiedNotifications)
+    const toClearUnifiedIds = notifications
+    .filter(n => n.read && activeStatuses.includes(n.status) && n.type === 'unified')
+    .map(n => n.id);
   
-  
+    clearedUnifiedIds = [...new Set([...clearedUnifiedIds, ...toClearUnifiedIds])];
+    localStorage.setItem('clearedUnifiedIds', JSON.stringify(clearedUnifiedIds));
+    
+    notifications = notifications.filter(n => {
+        if (n.type === 'inactive-unified') return true;
+        const isActive = activeStatuses.includes(n.status);
+        if (n.read && !isActive) return false; // Clear read inactive
+        if (n.read && isActive && n.type === 'unified') return false; // Clear read active
+        return true;
+    });
   
 
-  function setupNotificationEvents() {
-    const bell = document.getElementById('notification-bell');
-    const panel = document.getElementById('notification-panel');
-    const clearBtn = document.getElementById('clear-notifications');
-    const markReadBtn = document.getElementById('mark-read');
-  
-    // Toggle visibility
-    bell.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const isHidden = panel.classList.contains('hidden');
-      panel.classList.toggle('hidden', !isHidden);
-      bell.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
-    });
-  
-    // 📖 อ่านทั้งหมด – mark as read only for specific sections (statuschange + others)
-    markReadBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-  
-      const activeStatuses = ['กำลังจะเริ่ม', 'กำลังทำกิจกรรม', 'รอผู้ขอยืนยันผล', 'รอการอนุมัติ'];
-  
-      // ✅ Mark only read for statusChangeNotifications
-      statusChangeNotifications = statusChangeNotifications.map(n => ({ ...n, read: true }));
-  
-      // ✅ Only mark as read for unified inactive notifications
-      notifications = notifications.map(n => {
-        const isActive = activeStatuses.includes(n.status);
-        if (!isActive) {
-          return { ...n, read: true };
-        }
-        return n; // leave active notifications untouched
-      });
-  
-      localStorage.setItem('notifications', JSON.stringify(notifications));
-      localStorage.setItem('statusChangeNotifications', JSON.stringify(statusChangeNotifications));
-      renderNotificationPanel();
-    });
-  
-    // 🗑️ ล้างทั้งหมด – clear only read statuschange + read inactive unified
-    clearBtn.addEventListener('click', (e) => {
-      e.stopPropagation();
-  
-      statusChangeNotifications = statusChangeNotifications.filter(n => !n.read);
-  
-      const activeStatuses = ['กำลังจะเริ่ม', 'กำลังทำกิจกรรม', 'รอผู้ขอยืนยันผล', 'รอการอนุมัติ'];
-      notifications = notifications.filter(n => {
-        const isActive = activeStatuses.includes(n.status);
-        return !(n.read && !isActive); // remove only read + inactive
-      });
-  
-      localStorage.setItem('notifications', JSON.stringify(notifications));
-      localStorage.setItem('statusChangeNotifications', JSON.stringify(statusChangeNotifications));
-      renderNotificationPanel();
-    });
-  
-    // Auto-close panel when click outside
-    document.addEventListener('click', (e) => {
-      if (!panel.contains(e.target) && !bell.contains(e.target)) {
-        panel.classList.add('hidden');
-        bell.setAttribute('aria-expanded', 'false');
-      }
-    });
-  }
-  
+    localStorage.setItem('notifications', JSON.stringify(notifications));
+    localStorage.setItem('statusChangeNotifications', JSON.stringify(statusChangeNotifications));
+    localStorage.setItem('inactiveUnifiedNotifications', JSON.stringify(inactiveUnifiedNotifications));
+    renderNotificationPanel();
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!panel.contains(e.target) && !bell.contains(e.target)) {
+      panel.classList.add('hidden');
+      bell.setAttribute('aria-expanded', 'false');
+    }
+  });
+}
 
 function resolveStatusMapping(oldStatus, newStatus) {
   if (oldStatus === 'กำลังจะเริ่ม' && newStatus === 'กำลังทำกิจกรรม') return 'กำลังทำกิจกรรม';
@@ -440,65 +442,135 @@ function resolveStatusMapping(oldStatus, newStatus) {
 }
 
 async function fetchAndCheckNotifications() {
-    if (!token || !userId) return;
-  
-    try {
-      const res = await fetch(`http://localhost:3000/api/user/activities`, {
+  if (!token || !userId) return;
+
+  try {
+    const res = await fetch(`http://localhost:3000/api/user/activities`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) return;
+
+    const data = await res.json();
+    let all = data.activities;
+
+    for (let act of all) {
+      const resP = await fetch(`http://localhost:3000/api/user/activities/${act.activity_id}/participants`, {
         headers: { Authorization: `Bearer ${token}` }
       });
-      if (!res.ok) return;
-  
-      const data = await res.json();
-      let all = data.activities;
-  
-      // Fetch participants for each activity
-      for (let act of all) {
-        const resP = await fetch(`http://localhost:3000/api/user/activities/${act.activity_id}/participants`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        act.participants = await resP.json();
-      }
-  
-      const related = all.filter(a =>
-        a.requester_id === userId || a.participants.some(p => p.user_id === userId)
-      );
-  
-      // Load local read state to avoid regenerating inactive notis
-      const stored = JSON.parse(localStorage.getItem('notifications') || '[]');
-      notifications = stored;
-  
-      const activeStatuses = ['กำลังจะเริ่ม', 'กำลังทำกิจกรรม', 'รอผู้ขอยืนยันผล', 'รอการอนุมัติ'];
-      let newNotis = [];
-  
-      for (let act of related) {
+      act.participants = await resP.json();
+    }
+
+    const related = all.filter(a =>
+      a.requester_id === userId || a.participants.some(p => p.user_id === userId)
+    );
+
+    const stored = JSON.parse(localStorage.getItem('notifications') || '[]');
+    notifications = stored;
+
+    const activeStatuses = ['กำลังจะเริ่ม', 'กำลังทำกิจกรรม', 'รอผู้ขอยืนยันผล', 'รอการอนุมัติ'];
+    let newNotis = [];
+
+
+    for (let act of related) {
         const currentStatus = act.status;
         const isActive = activeStatuses.includes(currentStatus);
       
-        const alreadyStored = notifications.find(n =>
-          n.activity_id === act.activity_id &&
-          n.status === currentStatus &&
-          n.type === 'unified'
-        );
+        const unifiedIdPrefix = `unified-${act.activity_id}`;
+        const wasCleared = clearedUnifiedIds.some(id => id.startsWith(unifiedIdPrefix));
       
-        if (isActive) {
-          const noti = createUnifiedNotification(act);
-          newNotis.push(noti); // ✅ always regenerate
-        } else if (!alreadyStored) {
-          const noti = createUnifiedNotification(act);
-          newNotis.push(noti); // ✅ one-time add for inactive
-        } else {
-          newNotis.push(alreadyStored); // ✅ reuse existing with read:true if already viewed
+        if (wasCleared) {
+          console.log('⛔ Skipped cleared active notification:', act.title); // ✅ VALID inside loop
+          continue;
         }
-      }      
-  
-      localStorage.setItem('notifications', JSON.stringify(newNotis));
-      notifications = newNotis;
-      renderNotificationPanel();
-    } catch (e) {
-      console.error('⚠️ fetchAndCheckNotifications failed', e);
-    }
+
+        const alreadyStored = notifications.find(n =>
+            n.activity_id === act.activity_id &&
+            n.status === currentStatus &&
+            n.type === 'unified'
+        );
+
+        if (isActive) {
+            if (!alreadyStored) {
+            const noti = createUnifiedNotification(act);
+            newNotis.push(noti);
+            } else {
+            newNotis.push(alreadyStored);
+            }
+        } else if (!alreadyStored) {
+            const noti = createUnifiedNotification(act);
+            newNotis.push(noti);
+        } else {
+            newNotis.push(alreadyStored);
+        }
+        }
+
+    localStorage.setItem('notifications', JSON.stringify(newNotis));
+    notifications = newNotis;
+    renderNotificationPanel();
+  } catch (e) {
+    console.error('⚠️ fetchAndCheckNotifications failed', e);
   }
-  
+}
+
+async function fetchAndCheckInactiveUnifiedNotifications() {
+  if (!token || !userId) return;
+
+  try {
+    const res = await fetch(`http://localhost:3000/api/user/activities`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+
+    let all = data.activities;
+    for (let act of all) {
+      const resP = await fetch(`http://localhost:3000/api/user/activities/${act.activity_id}/participants`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      act.participants = await resP.json();
+    }
+
+    const related = all.filter(a => a.requester_id === userId || a.participants.some(p => p.user_id === userId));
+
+    let localInactiveUnifiedNotis = JSON.parse(localStorage.getItem('inactiveUnifiedNotifications') || '[]');
+
+    for (let act of related) {
+      const inactiveStatuses = ['เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา', 'ผู้เข้าร่วมไม่ครบ'];
+      if (!inactiveStatuses.includes(act.status)) continue;
+
+      const notiIdPrefix = `inactive-unified-${act.activity_id}-`;
+      const wasCleared = clearedInactiveUnifiedIds.some(id => id.startsWith(notiIdPrefix));
+      if (wasCleared) continue;
+
+      const alreadyExists = localInactiveUnifiedNotis.some(n =>
+        n.activity_id === act.activity_id &&
+        n.status === act.status &&
+        n.type === 'inactive-unified'
+      );
+
+      if (!alreadyExists) {
+        const noti = createInactiveUnifiedNotification(act);
+        if (noti) localInactiveUnifiedNotis.push(noti);
+      }
+    }
+
+    localInactiveUnifiedNotis = localInactiveUnifiedNotis.filter(noti => {
+      const act = related.find(a => a.activity_id === noti.activity_id);
+      if (!act) return false;
+      return ['เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา', 'ผู้เข้าร่วมไม่ครบ'].includes(act.status);
+    });
+
+    localStorage.setItem('inactiveUnifiedNotifications', JSON.stringify(localInactiveUnifiedNotis));
+
+    notifications = [...notifications.filter(n => n.type !== 'inactive-unified'), ...localInactiveUnifiedNotis];
+    localStorage.setItem('notifications', JSON.stringify(notifications));
+
+    renderNotificationPanel();
+  } catch (e) {
+    // Fail silently
+  }
+}
+
 async function fetchAndCheckStatusChangeNotifications() {
   if (!token || !userId) return;
   try {
@@ -530,21 +602,18 @@ async function fetchAndCheckStatusChangeNotifications() {
           n.prevStatus === previousStatus &&
           n.status === currentStatus
         );
-      
-        // ✅ Only add if not already cleared
+
         if (!alreadyExists && !['เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา', 'ผู้เข้าร่วมไม่ครบ'].includes(currentStatus)) {
           const noti = createStatusChangeNotification(act, previousStatus, currentStatus);
           localStatusChangeNotis.push(noti);
         }
-      
-        // ✅ Allow one-time noti for inactive status, but remove it from prevStatus so it's not re-triggered
+
         if (['เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา', 'ผู้เข้าร่วมไม่ครบ'].includes(currentStatus)) {
           const noti = createStatusChangeNotification(act, previousStatus, currentStatus);
           localStatusChangeNotis.push(noti);
-          delete prevStatus[act.activity_id]; // mark as done
+          delete prevStatus[act.activity_id];
         }
       }
-      
 
       prevStatus[act.activity_id] = currentStatus;
     }
@@ -576,15 +645,86 @@ function isValidStatusTransition(oldStatus, newStatus) {
 }
 
 function setupNotifications() {
-  injectNotificationUI();
-  token = localStorage.getItem('token');
-  userId = parseInt(localStorage.getItem('user_id'));
-  renderNotificationPanel();
-  fetchAndCheckNotifications();
-  fetchAndCheckStatusChangeNotifications();
-  setInterval(fetchAndCheckNotifications, 60000);
-  setInterval(fetchAndCheckStatusChangeNotifications, 60000);
-  setupNotificationEvents();
+    injectNotificationUI();
+    token = localStorage.getItem('token');
+    userId = parseInt(localStorage.getItem('user_id'));
+  
+    renderNotificationPanel();
+    fetchAndCheckNotifications(); // 🔵 Active unified
+    fetchAndCheckInactiveUnifiedNotifications(); // 🟣 Inactive unified (called here ✅)
+    fetchAndCheckStatusChangeNotifications(); // 🟡 Old → New status changes
+  
+    setInterval(fetchAndCheckNotifications, 60000);
+    setInterval(fetchAndCheckInactiveUnifiedNotifications, 60000); // ✅ Auto-check every minute
+    setInterval(fetchAndCheckStatusChangeNotifications, 60000);
+  
+    setupNotificationEvents();
+  }
+  
+
+function setupNotificationEvents() {
+  const bell = document.getElementById('notification-bell');
+  const panel = document.getElementById('notification-panel');
+  const clearBtn = document.getElementById('clear-notifications');
+  const markReadBtn = document.getElementById('mark-read');
+
+  bell.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isHidden = panel.classList.contains('hidden');
+    panel.classList.toggle('hidden', !isHidden);
+    bell.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
+  });
+
+  markReadBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+
+    const activeStatuses = ['กำลังจะเริ่ม', 'กำลังทำกิจกรรม', 'รอผู้ขอยืนยันผล', 'รอการอนุมัติ'];
+
+    statusChangeNotifications = statusChangeNotifications.map(n => ({ ...n, read: true }));
+    inactiveUnifiedNotifications = inactiveUnifiedNotifications.map(n => ({ ...n, read: true }));
+    notifications = notifications.map(n => {
+      const isActive = activeStatuses.includes(n.status);
+      if (!isActive && n.type !== 'inactive-unified') {
+        return { ...n, read: true };
+      }
+      return n;
+    });
+
+    localStorage.setItem('notifications', JSON.stringify(notifications));
+    localStorage.setItem('statusChangeNotifications', JSON.stringify(statusChangeNotifications));
+    localStorage.setItem('inactiveUnifiedNotifications', JSON.stringify(inactiveUnifiedNotifications));
+    renderNotificationPanel();
+  });
+
+  clearBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+
+    statusChangeNotifications = statusChangeNotifications.filter(n => !n.read);
+
+    const toClearInactiveIds = inactiveUnifiedNotifications.filter(n => n.read).map(n => n.id);
+    clearedInactiveUnifiedIds = [...new Set([...clearedInactiveUnifiedIds, ...toClearInactiveIds])];
+    localStorage.setItem('clearedInactiveUnifiedIds', JSON.stringify(clearedInactiveUnifiedIds));
+    inactiveUnifiedNotifications = inactiveUnifiedNotifications.filter(n => !n.read);
+
+    const activeStatuses = ['กำลังจะเริ่ม', 'กำลังทำกิจกรรม', 'รอผู้ขอยืนยันผล', 'รอการอนุมัติ'];
+    notifications = notifications.filter(n => {
+      const isActive = activeStatuses.includes(n.status);
+      if (n.type === 'inactive-unified') return true;
+      return !(n.read && !isActive);
+    });
+
+    localStorage.setItem('notifications', JSON.stringify(notifications));
+    localStorage.setItem('statusChangeNotifications', JSON.stringify(statusChangeNotifications));
+    localStorage.setItem('inactiveUnifiedNotifications', JSON.stringify(inactiveUnifiedNotifications));
+    renderNotificationPanel();
+  });
+
+  document.addEventListener('click', (e) => {
+    if (!panel.contains(e.target) && !bell.contains(e.target)) {
+      panel.classList.add('hidden');
+      bell.setAttribute('aria-expanded', 'false');
+    }
+  });
 }
 
 document.addEventListener('DOMContentLoaded', setupNotifications);
