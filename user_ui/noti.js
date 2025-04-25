@@ -185,25 +185,62 @@ function renderNotificationPanel() {
     notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
     statusChangeNotifications = JSON.parse(localStorage.getItem('statusChangeNotifications') || '[]');
   
-    const combined = [...statusChangeNotifications, ...notifications];
-    combined.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+    const activeStatuses = ['กำลังจะเริ่ม', 'กำลังทำกิจกรรม', 'รอผู้ขอยืนยันผล', 'รอการอนุมัติ'];
   
+    const getStartTimeMs = (n) => {
+      const dateStr = n.start_date || (n.activity && n.activity.start_date);
+      const timeStr = n.start_time || (n.activity && n.activity.start_time);
+      if (!dateStr || !timeStr) return 0;
+      return new Date(`${dateStr}T${timeStr}`).getTime();
+    };
+  
+    // Group unified notifications
+    const unifiedUnreadActive = [];
+    const unifiedUnreadInactive = [];
+    const unifiedReadInactive = [];
+  
+    for (const n of notifications) {
+      const isActive = activeStatuses.includes(n.status);
+      if (!n.read && isActive) unifiedUnreadActive.push(n);
+      else if (!n.read && !isActive) unifiedUnreadInactive.push(n);
+      else if (n.read && !isActive) unifiedReadInactive.push(n);
+    }
+  
+    // Group status change notifications
+    const statusChangeUnread = statusChangeNotifications.filter(n => !n.read);
+    const statusChangeRead = statusChangeNotifications.filter(n => n.read);
+  
+    // Sort each group by start time ascending
+    const sortByStartTime = arr => arr.sort((a, b) => getStartTimeMs(a) - getStartTimeMs(b));
+    sortByStartTime(unifiedUnreadActive);
+    sortByStartTime(unifiedUnreadInactive);
+    sortByStartTime(unifiedReadInactive);
+    sortByStartTime(statusChangeUnread);
+    sortByStartTime(statusChangeRead);
+  
+    // Combine final order
+    const finalList = [
+      ...unifiedUnreadActive,
+      ...unifiedUnreadInactive,
+      ...unifiedReadInactive,
+      ...statusChangeUnread,
+      ...statusChangeRead
+    ];
+  
+    // Render
     list.innerHTML = '';
     let unread = 0;
   
-    const activeStatuses = ['กำลังจะเริ่ม', 'กำลังทำกิจกรรม', 'รอผู้ขอยืนยันผล', 'รอการอนุมัติ'];
-  
-    combined.forEach(n => {
+    finalList.forEach((n, idx) => {
       const li = document.createElement('li');
+      const isRead = n.read;
       const isInactive = !activeStatuses.includes(n.status);
-      const isTransition = n.type === 'statuschange';
-      const isRead = n.read && (isInactive || isTransition);
+      const isStatusChange = n.type === 'statuschange';
   
       li.className = `p-3 cursor-pointer ${isRead ? 'opacity-60' : ''}`;
       li.innerHTML = `${n.message}<div class='text-xs text-gray-400 mt-1'>${formatRelativeTime(n.timestamp)}</div>`;
       li.onclick = () => {
-        // ✅ Mark as read if it's statuschange or inactive unified
-        if (isTransition) {
+        if (isStatusChange) {
           const idx = statusChangeNotifications.findIndex(x => x.id === n.id);
           if (idx !== -1) {
             statusChangeNotifications[idx].read = true;
@@ -216,11 +253,9 @@ function renderNotificationPanel() {
             localStorage.setItem('notifications', JSON.stringify(notifications));
           }
         }
-  
         renderNotificationPanel();
         if (n.link) location.href = n.link;
       };
-  
       list.appendChild(li);
       if (!isRead) unread++;
     });
