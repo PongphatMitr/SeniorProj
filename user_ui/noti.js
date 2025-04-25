@@ -41,26 +41,47 @@ function formatOffset(offsetMs) {
   return '';
 }
 
-function formatDateToThai(date) {
-  const d = date.getDate().toString().padStart(2, '0');
-  const m = (date.getMonth() + 1).toString().padStart(2, '0');
-  const y = date.getFullYear() + 543;
-  const h = date.getHours().toString().padStart(2, '0');
-  const min = date.getMinutes().toString().padStart(2, '0');
-  return `${d}/${m}/${y} (${h}:${min} น.)`;
-}
-
-function formatActivityDuration(startDate, startTime, endDate, endTime) {
-  if (!startDate || !startTime || !endDate || !endTime) return 'เวลาผิดพลาด';
-  const start = new Date(`${startDate}T${startTime}`);
-  const end = new Date(`${endDate}T${endTime}`);
-  if (isNaN(start.getTime()) || isNaN(end.getTime())) return 'เวลาผิดพลาด';
-  return `${formatDateToThai(start)} - ${end.getHours().toString().padStart(2, '0')}:${end.getMinutes().toString().padStart(2, '0')} น.`;
-}
-
-function generateNotificationHTML(activity, status, prevStatus = null, description = '') {
+function formatActivityDuration(startDateRaw, startTime, endDateRaw, endTime) {
+    try {
+      let startDate = new Date(startDateRaw);
+      let endDate = new Date(endDateRaw);
+  
+      // If times are provided separately (like "15:00:00"), override the time part
+      if (startTime && startTime.includes(':')) {
+        const [h, m] = startTime.split(':');
+        startDate.setHours(parseInt(h), parseInt(m));
+      }
+      if (endTime && endTime.includes(':')) {
+        const [h, m] = endTime.split(':');
+        endDate.setHours(parseInt(h), parseInt(m));
+      }
+  
+      const thaiMonths = [
+        'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+        'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+      ];
+  
+      const day = startDate.getDate();
+      const month = thaiMonths[startDate.getMonth()];
+      const year = startDate.getFullYear() + 543;
+  
+      const startHour = startDate.getHours().toString().padStart(2, '0');
+      const startMinute = startDate.getMinutes().toString().padStart(2, '0');
+      const endHour = endDate.getHours().toString().padStart(2, '0');
+      const endMinute = endDate.getMinutes().toString().padStart(2, '0');
+  
+      return `${day} ${month} ${year} เวลา ${startHour}.${startMinute} น.-${endHour}.${endMinute} น.`;
+    } catch (err) {
+      console.error('❌ Invalid date format:', err);
+      return 'เวลาผิดพลาด';
+    }
+  }
+  
+  
+  
+function generateNotificationHTML(activity, status, prevStatus = null, description = '', timeStr = '') {
   const location = activity.location || 'ไม่ระบุ';
-  const timeStr = formatActivityDuration(activity.start_date, activity.start_time, activity.end_date, activity.end_time);
+  const timeDisplay = timeStr || formatActivityDuration(activity.start_date, activity.start_time, activity.end_date, activity.end_time);
   const statusChange = prevStatus && prevStatus !== status;
 
   return `
@@ -68,7 +89,7 @@ function generateNotificationHTML(activity, status, prevStatus = null, descripti
   <div class="font-semibold"><i class='fas fa-clipboard-list text-blue-700 mr-1'></i> ${activity.title}${statusChange ? ` มีการเปลี่ยนสถานะ` : ''}</div>
   <div class="text-xs text-gray-700 mt-2 leading-relaxed">
     <div><i class="fas fa-map-marker-alt mr-1 text-red-500"></i>สถานที่: ${location}</div>
-    <div class="mt-1"><i class="fas fa-calendar-alt mr-1 text-gray-500"></i>${timeStr}</div>
+    <div class="mt-1"><i class="fas fa-calendar-alt mr-1 text-gray-500"></i>${timeDisplay}</div>
     <div class="mt-2 flex items-center gap-2">
       ${statusChange ? `<span class="px-2 py-1 text-white text-xs rounded-full ${statusColor[prevStatus] || 'bg-gray-400'}">${prevStatus}</span><span class="text-xs">→</span>` : ''}
       <span class="px-2 py-1 text-white text-xs rounded-full ${statusColor[status] || 'bg-gray-600'}">${status}</span>
@@ -79,22 +100,15 @@ function generateNotificationHTML(activity, status, prevStatus = null, descripti
 `;
 }
 
-function resolveStatusMapping(oldStatus, newStatus) {
-    if (oldStatus === 'กำลังจะเริ่ม' && newStatus === 'กำลังทำกิจกรรม') return 'กำลังทำกิจกรรม';
-    if (oldStatus === 'กำลังจะเริ่ม' && newStatus === 'ผู้เข้าร่วมไม่ครบ') return 'ผู้เข้าร่วมไม่ครบ';
-    if (oldStatus === 'รอผู้ขอยืนยันผล' && newStatus === 'เกินเวลา') return 'เกินเวลา';
-    if (oldStatus === 'รอผู้ขอยืนยันผล' && newStatus === 'รอการอนุมัติ') return 'รอการอนุมัติ';
-    if (oldStatus === 'กำลังจะเริ่ม' && newStatus === 'ยกเลิก') return 'ยกเลิก';
-    if (oldStatus === 'รอการอนุมัติ' && newStatus === 'เสร็จสิ้น') return 'เสร็จสิ้น';
-    return newStatus;
-  } 
-
 function createUnifiedNotification(activity, prevStatus = null) {
+  // Compose time string as start_date + ' ' + start_time + '-' + end_time (no formatting)
+  const timeStr = formatActivityDuration(activity.start_date, activity.start_time, activity.end_date, activity.end_time);
   const message = generateNotificationHTML(
     activity,
     activity.status,
     prevStatus,
-    prevStatus && prevStatus !== activity.status ? 'โปรดตรวจสอบรายละเอียดกิจกรรม' : `${activity.title} `
+    prevStatus && prevStatus !== activity.status ? 'โปรดตรวจสอบรายละเอียดกิจกรรม' : `${activity.title} `,
+    timeStr
   );
   return {
     id: `unified-${activity.activity_id}-${Date.now()}`,
@@ -112,11 +126,14 @@ function createUnifiedNotification(activity, prevStatus = null) {
 
 function createStatusChangeNotification(activity, oldStatus, newStatus) {
   const resolvedNewStatus = resolveStatusMapping(oldStatus, newStatus);
+  // Compose time string as start_date + ' ' + start_time + '-' + end_time (no formatting)
+  const timeStr = `${activity.start_date || ''} ${activity.start_time || ''}-${activity.end_time || ''}`;
   const message = generateNotificationHTML(
     activity,
     resolvedNewStatus,
     oldStatus,
-    'สถานะกิจกรรมมีการเปลี่ยนแปลง โปรดตรวจสอบ'
+    'สถานะกิจกรรมมีการเปลี่ยนแปลง โปรดตรวจสอบ',
+    timeStr
   );
   return {
     id: `statuschange-${activity.activity_id}-${Date.now()}`,
@@ -207,6 +224,15 @@ function setupNotificationEvents() {
   });
 }
 
+function resolveStatusMapping(oldStatus, newStatus) {
+  if (oldStatus === 'กำลังจะเริ่ม' && newStatus === 'กำลังทำกิจกรรม') return 'กำลังทำกิจกรรม';
+  if (oldStatus === 'กำลังจะเริ่ม' && newStatus === 'ผู้เข้าร่วมไม่ครบ') return 'ผู้เข้าร่วมไม่ครบ';
+  if (oldStatus === 'รอผู้ขอยืนยันผล' && newStatus === 'เกินเวลา') return 'เกินเวลา';
+  if (oldStatus === 'รอผู้ขอยืนยันผล' && newStatus === 'รอการอนุมัติ') return 'รอการอนุมัติ';
+  if (oldStatus === 'กำลังจะเริ่ม' && newStatus === 'ยกเลิก') return 'ยกเลิก';
+  if (oldStatus === 'รอการอนุมัติ' && newStatus === 'เสร็จสิ้น') return 'เสร็จสิ้น';
+  return newStatus;
+}
 
 async function fetchAndCheckNotifications() {
   if (!token || !userId) return;
