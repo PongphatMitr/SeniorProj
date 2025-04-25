@@ -2,6 +2,8 @@ let token = null;
 let userId = null;
 let statusChangeNotifications = [];
 let notifications = [];
+let clearedNotificationIds = JSON.parse(localStorage.getItem('clearedNotificationIds') || '[]');
+
 
 const statusColor = {
   'กำลังจะเริ่ม': 'bg-blue-500',
@@ -25,14 +27,24 @@ function injectNotificationUI() {
     <div id="notification-panel"
     class="hidden absolute right-0 mt-3 w-[30rem] max-h-[32rem] bg-white rounded-xl shadow-2xl overflow-y-auto ring-1 ring-black ring-opacity-5 border border-gray-200"
     role="region" aria-live="polite" aria-label="แผงการแจ้งเตือน">
-        <div class="sticky top-0 z-10 px-5 py-3 bg-white border-b border-gray-200 rounded-t-xl flex justify-between items-center">
-        <h2 class="text-base font-semibold text-blue-700">การแจ้งเตือนกิจกรรม</h2>
-        <button id="clear-notifications"
-            class="text-xs font-medium text-red-500 hover:text-red-600 hover:underline transition"
-            type="button">
-            ล้างทั้งหมด
-        </button>
+    <div class="sticky top-0 z-20 px-5 py-3 bg-white border-b border-gray-200 rounded-t-xl flex justify-between items-center shadow-sm">
+        <div class="flex items-center gap-2 text-blue-700">
+            <i class="fas fa-bell text-lg"></i>
+            <h2 class="text-base font-semibold">การแจ้งเตือนกิจกรรม</h2>
         </div>
+        <div class="flex gap-4 items-center">
+            <button id="mark-read"
+                class="flex items-center gap-1 text-xs font-medium text-gray-500 hover:text-gray-700 hover:underline transition"
+                type="button">
+                <i class="fas fa-eye text-[13px]"></i> อ่านทั้งหมด
+            </button>
+            <button id="clear-notifications"
+                class="flex items-center gap-1 text-xs font-medium text-red-500 hover:text-red-600 hover:underline transition"
+                type="button">
+                <i class="fas fa-trash-alt text-[13px]"></i> ล้างทั้งหมด
+            </button>
+        </div>
+          </div>
       <ul id="notification-list" class="divide-y divide-gray-200"></ul>
       <div id="no-notifications" class="p-4 text-center text-gray-500 italic hidden">ไม่มีการแจ้งเตือนใหม่</div>
     </div>`;
@@ -196,7 +208,8 @@ function createStatusChangeNotification(activity, oldStatus, newStatus) {
       prevStatus: oldStatus,
       type: 'statuschange'
     };
-  }
+}
+
   
 function renderNotificationPanel() {
     const list = document.getElementById('notification-list');
@@ -215,7 +228,6 @@ function renderNotificationPanel() {
       return new Date(`${dateStr}T${timeStr}`).getTime();
     };
   
-    // Group unified notifications
     const unifiedUnreadActive = [];
     const unifiedUnreadInactive = [];
     const unifiedReadInactive = [];
@@ -227,11 +239,9 @@ function renderNotificationPanel() {
       else if (n.read && !isActive) unifiedReadInactive.push(n);
     }
   
-    // Group status change notifications
     const statusChangeUnread = statusChangeNotifications.filter(n => !n.read);
     const statusChangeRead = statusChangeNotifications.filter(n => n.read);
   
-    // Sort each group by start time ascending
     const sortByStartTime = arr => arr.sort((a, b) => getStartTimeMs(a) - getStartTimeMs(b));
     sortByStartTime(unifiedUnreadActive);
     sortByStartTime(unifiedUnreadInactive);
@@ -239,100 +249,185 @@ function renderNotificationPanel() {
     sortByStartTime(statusChangeUnread);
     sortByStartTime(statusChangeRead);
   
-    // Combine final order
-    const finalList = [
-      ...unifiedUnreadActive,
-      ...unifiedUnreadInactive,
-      ...unifiedReadInactive,
-      ...statusChangeUnread,
-      ...statusChangeRead
-    ];
-  
-    // Render
     list.innerHTML = '';
     let unread = 0;
   
-    finalList.forEach((n, idx) => {
-      const li = document.createElement('li');
-      const isRead = n.read;
-      const isInactive = !activeStatuses.includes(n.status);
-      const isStatusChange = n.type === 'statuschange';
+    // ✅ Declare before use
+    let headerElements = [];
   
-      li.className = `p-3 cursor-pointer rounded-md transition transform hover:bg-gray-100 hover:shadow-sm ${isRead ? 'opacity-60' : ''}`;
-      li.innerHTML = `${n.message}<div class='text-xs text-gray-400 mt-1'>${formatRelativeTime(n.timestamp)}</div>`;
-      li.onclick = () => {
-        if (isStatusChange) {
-          const idx = statusChangeNotifications.findIndex(x => x.id === n.id);
-          if (idx !== -1) {
-            statusChangeNotifications[idx].read = true;
-            localStorage.setItem('statusChangeNotifications', JSON.stringify(statusChangeNotifications));
-          }
-        } else if (isInactive) {
-          const idx = notifications.findIndex(x => x.id === n.id);
-          if (idx !== -1) {
-            notifications[idx].read = true;
-            localStorage.setItem('notifications', JSON.stringify(notifications));
-          }
-        }
-        renderNotificationPanel();
-        if (n.link) location.href = n.link;
+    const sectionHeader = (title, id) => {
+      const li = document.createElement('li');
+      li.className = `
+        sticky top-[3.25rem] z-10
+        px-6 py-3
+        bg-white/80 backdrop-blur-md
+        border-b border-gray-200
+        flex items-center gap-3
+        text-base font-semibold text-gray-800
+        shadow-sm
+        transition-all duration-300
+      `;
+      li.dataset.groupId = id;
+  
+      const iconMap = {
+        active: `<i class="fas fa-briefcase text-blue-600 text-lg"></i>`,
+        statuschange: `<i class="fas fa-exchange-alt text-purple-600 text-lg"></i>`,
+        others: `<i class="fas fa-archive text-gray-500 text-lg"></i>`,
       };
-      list.appendChild(li);
-      if (!isRead) unread++;
-    });
+  
+      const labelMap = {
+        active: 'กิจกรรมของฉันที่กำลังดำเนินอยู่',
+        statuschange: 'การเปลี่ยนแปลงของกิจกรรม',
+        others: 'กิจกรรมอื่น ๆ ทั้งหมด',
+      };
+  
+      li.innerHTML = `
+        ${iconMap[id] || ''}
+        <span>${labelMap[id] || title}</span>
+      `;
+  
+      headerElements.push(li);
+      return li;
+    };
+  
+    const renderGroup = (title, notiList, groupId) => {
+      if (notiList.length === 0) return;
+      list.appendChild(sectionHeader(title, groupId));
+  
+      for (const n of notiList) {
+        const isRead = n.read;
+        const isInactive = !activeStatuses.includes(n.status);
+        const isStatusChange = n.type === 'statuschange';
+  
+        const li = document.createElement('li');
+        li.className = `p-3 cursor-pointer rounded-md transition hover:bg-gray-100 ${isRead ? 'opacity-60' : ''}`;
+        li.innerHTML = `${n.message}<div class='text-xs text-gray-400 mt-1'>${formatRelativeTime(n.timestamp)}</div>`;
+  
+        li.onclick = () => {
+          if (isStatusChange) {
+            const idx = statusChangeNotifications.findIndex(x => x.id === n.id);
+            if (idx !== -1) {
+              statusChangeNotifications[idx].read = true;
+              localStorage.setItem('statusChangeNotifications', JSON.stringify(statusChangeNotifications));
+            }
+          } else if (isInactive) {
+            const idx = notifications.findIndex(x => x.id === n.id);
+            if (idx !== -1) {
+              notifications[idx].read = true;
+              localStorage.setItem('notifications', JSON.stringify(notifications));
+            }
+          }
+          renderNotificationPanel();
+          if (n.link) location.href = n.link;
+        };
+  
+        list.appendChild(li);
+        if (!isRead) unread++;
+      }
+    };
+  
+    renderGroup('กิจกรรมของฉันที่กำลังดำเนินอยู่', unifiedUnreadActive, 'active');
+    renderGroup('การเปลี่ยนแปลงของกิจกรรม', [...statusChangeUnread, ...statusChangeRead], 'statuschange');
+    renderGroup('กิจกรรมอื่น ๆ ทั้งหมด', [...unifiedUnreadInactive, ...unifiedReadInactive], 'others');
   
     count.textContent = unread;
     count.classList.toggle('hidden', unread === 0);
     noNotif.classList.toggle('hidden', unread > 0);
+  
+    // Scroll highlight for sticky headers
+    const panel = document.getElementById('notification-panel');
+    panel.addEventListener('scroll', () => {
+      let lastActive = null;
+      for (const header of headerElements) {
+        const rect = header.getBoundingClientRect();
+        const panelRect = panel.getBoundingClientRect();
+        const topOffset = rect.top - panelRect.top;
+  
+        if (topOffset <= 0) {
+          lastActive = header;
+        } else {
+          header.classList.remove('bg-indigo-100', 'text-indigo-700');
+          header.classList.add('bg-white/80', 'text-gray-800');
+        }
+      }
+  
+      if (lastActive) {
+        headerElements.forEach(h => {
+          h.classList.remove('bg-indigo-100', 'text-indigo-700');
+          h.classList.add('bg-white/80', 'text-gray-800');
+        });
+        lastActive.classList.remove('bg-white/80', 'text-gray-800');
+        lastActive.classList.add('bg-indigo-100', 'text-indigo-700');
+      }
+    });
   }
   
-
-function setupNotificationEvents() {
-  const bell = document.getElementById('notification-bell');
-  const panel = document.getElementById('notification-panel');
-  const clearBtn = document.getElementById('clear-notifications');
-
-  bell.addEventListener('click', (e) => {
-    e.stopPropagation();
-    const isHidden = panel.classList.contains('hidden');
-    if (isHidden) {
-      panel.classList.remove('hidden');
-      bell.setAttribute('aria-expanded', 'true');
-    } else {
-      panel.classList.add('hidden');
-      bell.setAttribute('aria-expanded', 'false');
-    }
-  });
-
-  clearBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
   
-    // Only clear statusChangeNotifications that are marked as read
-    statusChangeNotifications = statusChangeNotifications.filter(n => !n.read);
   
-    // Remove unified notifications that are marked as read
-    notifications = notifications.filter(n => {
-      const activeStatuses = ['กำลังจะเริ่ม', 'กำลังทำกิจกรรม', 'รอผู้ขอยืนยันผล', 'รอการอนุมัติ'];
-      if (!activeStatuses.includes(n.status) && n.read) {
-        return false; // remove read inactive notifications
-      }
-      return true; // keep unread or active notifications
+
+  function setupNotificationEvents() {
+    const bell = document.getElementById('notification-bell');
+    const panel = document.getElementById('notification-panel');
+    const clearBtn = document.getElementById('clear-notifications');
+    const markReadBtn = document.getElementById('mark-read');
+  
+    // Toggle visibility
+    bell.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isHidden = panel.classList.contains('hidden');
+      panel.classList.toggle('hidden', !isHidden);
+      bell.setAttribute('aria-expanded', isHidden ? 'true' : 'false');
     });
   
-    localStorage.setItem('statusChangeNotifications', JSON.stringify(statusChangeNotifications));
-    localStorage.setItem('notifications', JSON.stringify(notifications));
-    renderNotificationPanel();
-  });
+    // 📖 อ่านทั้งหมด – mark as read only for specific sections (statuschange + others)
+    markReadBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
   
+      const activeStatuses = ['กำลังจะเริ่ม', 'กำลังทำกิจกรรม', 'รอผู้ขอยืนยันผล', 'รอการอนุมัติ'];
   
-
-  document.addEventListener('click', (e) => {
-    if (!panel.contains(e.target) && !bell.contains(e.target)) {
-      panel.classList.add('hidden');
-      bell.setAttribute('aria-expanded', 'false');
-    }
-  });
-}
+      // ✅ Mark only read for statusChangeNotifications
+      statusChangeNotifications = statusChangeNotifications.map(n => ({ ...n, read: true }));
+  
+      // ✅ Only mark as read for unified inactive notifications
+      notifications = notifications.map(n => {
+        const isActive = activeStatuses.includes(n.status);
+        if (!isActive) {
+          return { ...n, read: true };
+        }
+        return n; // leave active notifications untouched
+      });
+  
+      localStorage.setItem('notifications', JSON.stringify(notifications));
+      localStorage.setItem('statusChangeNotifications', JSON.stringify(statusChangeNotifications));
+      renderNotificationPanel();
+    });
+  
+    // 🗑️ ล้างทั้งหมด – clear only read statuschange + read inactive unified
+    clearBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+  
+      statusChangeNotifications = statusChangeNotifications.filter(n => !n.read);
+  
+      const activeStatuses = ['กำลังจะเริ่ม', 'กำลังทำกิจกรรม', 'รอผู้ขอยืนยันผล', 'รอการอนุมัติ'];
+      notifications = notifications.filter(n => {
+        const isActive = activeStatuses.includes(n.status);
+        return !(n.read && !isActive); // remove only read + inactive
+      });
+  
+      localStorage.setItem('notifications', JSON.stringify(notifications));
+      localStorage.setItem('statusChangeNotifications', JSON.stringify(statusChangeNotifications));
+      renderNotificationPanel();
+    });
+  
+    // Auto-close panel when click outside
+    document.addEventListener('click', (e) => {
+      if (!panel.contains(e.target) && !bell.contains(e.target)) {
+        panel.classList.add('hidden');
+        bell.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }
+  
 
 function resolveStatusMapping(oldStatus, newStatus) {
   if (oldStatus === 'กำลังจะเริ่ม' && newStatus === 'กำลังทำกิจกรรม') return 'กำลังทำกิจกรรม';
