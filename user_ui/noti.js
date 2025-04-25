@@ -22,11 +22,17 @@ function injectNotificationUI() {
       <i class="fas fa-bell text-white text-2xl"></i>
       <span id="notification-count" class="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full px-1 hidden">0</span>
     </button>
-    <div id="notification-panel" class="hidden absolute right-0 mt-2 w-96 bg-white rounded-lg shadow-lg max-h-[24rem] overflow-y-auto ring-1 ring-black ring-opacity-5" role="region" aria-live="polite" aria-label="Notifications panel">
-      <div class="p-4 border-b font-semibold text-gray-700 flex justify-between items-center">
-        <span>การแจ้งเตือน</span>
-        <button id="clear-notifications" class="text-sm text-red-600 hover:underline" type="button">ล้างทั้งหมด</button>
-      </div>
+    <div id="notification-panel"
+    class="hidden absolute right-0 mt-3 w-[30rem] max-h-[32rem] bg-white rounded-xl shadow-2xl overflow-y-auto ring-1 ring-black ring-opacity-5 border border-gray-200"
+    role="region" aria-live="polite" aria-label="แผงการแจ้งเตือน">
+        <div class="sticky top-0 z-10 px-5 py-3 bg-white border-b border-gray-200 rounded-t-xl flex justify-between items-center">
+        <h2 class="text-base font-semibold text-blue-700">การแจ้งเตือนกิจกรรม</h2>
+        <button id="clear-notifications"
+            class="text-xs font-medium text-red-500 hover:text-red-600 hover:underline transition"
+            type="button">
+            ล้างทั้งหมด
+        </button>
+        </div>
       <ul id="notification-list" class="divide-y divide-gray-200"></ul>
       <div id="no-notifications" class="p-4 text-center text-gray-500 italic hidden">ไม่มีการแจ้งเตือนใหม่</div>
     </div>`;
@@ -252,7 +258,7 @@ function renderNotificationPanel() {
       const isInactive = !activeStatuses.includes(n.status);
       const isStatusChange = n.type === 'statuschange';
   
-      li.className = `p-3 cursor-pointer ${isRead ? 'opacity-60' : ''}`;
+      li.className = `p-3 cursor-pointer rounded-md transition transform hover:bg-gray-100 hover:shadow-sm ${isRead ? 'opacity-60' : ''}`;
       li.innerHTML = `${n.message}<div class='text-xs text-gray-400 mt-1'>${formatRelativeTime(n.timestamp)}</div>`;
       li.onclick = () => {
         if (isStatusChange) {
