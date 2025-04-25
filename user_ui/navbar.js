@@ -181,7 +181,7 @@ function setDropdownState(id, state) {
 
 async function checkLoginStatus() {
   const token = localStorage.getItem('token');
-  const isLoginPage = window.location.pathname.endsWith('login.html');
+  const isLoginPage = window.location.pathname.endsWith('log-in.html');
   const isRegisterPage = window.location.pathname.endsWith('register.html');
   if (token) {
     try {

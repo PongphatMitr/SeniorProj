@@ -373,6 +373,10 @@
         </div>
         <!-- Main Content -->
         <div class="w-full md:w-5/6 bg-blue-700 text-white p-6 md:p-10 overflow-auto">
+            <div class="absolute top-5 right-5 flex items-center gap-4">
+                <!-- Notification Placeholder -->
+                <div id="mainNotificationPanel" class="relative"></div>
+            </div>
             <h1 class="text-4xl font-bold mb-5" style="font-family: 'Sarabun', sans-serif;">ความสามารถ</h1>
             <div class="flex flex-col gap-8">
                 <!-- Skill 1 -->
@@ -544,6 +548,8 @@
                 class="mt-8 px-8 py-4 bg-red-600 text-white text-xl font-semibold rounded-lg hover:bg-red-700 transition">ตกลง</button>
         </div>
     </div>
+        <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+        <script src="notification.js"></script>
 </body>
 
 </html>

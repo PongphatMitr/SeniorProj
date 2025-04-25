@@ -18,6 +18,10 @@
         </div>
         <!-- Main Content -->
         <div class="w-full md:w-5/6 bg-blue-700 text-white p-10 flex flex-col justify-center items-center">
+            <div class="absolute top-5 right-5 flex items-center gap-4">
+                <!-- Notification Placeholder -->
+                <div id="mainNotificationPanel" class="relative"></div>
+            </div>
             <!-- Menu List -->
             <div class="w-full max-w-3xl mb-10">
                 <nav class="flex justify-around">
@@ -118,6 +122,8 @@
     </script>
     <script src="navbar.js"></script>
     <script src="selected-language.js"></script>
+        <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+        <script src="notification.js"></script>
 </body>
 
 </html>
