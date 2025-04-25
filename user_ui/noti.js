@@ -301,21 +301,20 @@ function setupNotificationEvents() {
   clearBtn.addEventListener('click', (e) => {
     e.stopPropagation();
   
-    // ✅ Clear only statusChangeNotifications
-    localStorage.setItem('statusChangeNotifications', '[]');
+    // Only clear statusChangeNotifications that are marked as read
+    statusChangeNotifications = statusChangeNotifications.filter(n => !n.read);
   
-    // ✅ Mark all unified (inactive only) as read but do not remove
-    notifications = JSON.parse(localStorage.getItem('notifications') || '[]');
-    notifications = notifications.map(n => {
+    // Remove unified notifications that are marked as read
+    notifications = notifications.filter(n => {
       const activeStatuses = ['กำลังจะเริ่ม', 'กำลังทำกิจกรรม', 'รอผู้ขอยืนยันผล', 'รอการอนุมัติ'];
-      if (!activeStatuses.includes(n.status)) {
-        return { ...n, read: true };
+      if (!activeStatuses.includes(n.status) && n.read) {
+        return false; // remove read inactive notifications
       }
-      return n;
+      return true; // keep unread or active notifications
     });
   
+    localStorage.setItem('statusChangeNotifications', JSON.stringify(statusChangeNotifications));
     localStorage.setItem('notifications', JSON.stringify(notifications));
-    statusChangeNotifications = [];
     renderNotificationPanel();
   });
   
