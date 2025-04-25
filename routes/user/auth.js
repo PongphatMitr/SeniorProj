@@ -21,46 +21,41 @@ const authRoutes = (pool) => {
             address,
             branch
         } = req.body;
-    
+
         try {
             // Validate required fields
             const requiredFields = ['username', 'password', 'role', 'name', 'phone'];
             const missingFields = requiredFields.filter(field => !req.body[field]);
-    
+
             if (missingFields.length > 0) {
                 return res.status(400).json({
                     error: `Missing required fields: ${missingFields.join(', ')}`,
                 });
             }
-    
-            // Validate address must contain "ลพบุรี"
-            if (!address.includes('ลพบุรี')) {
-                return res.status(400).json({ error: 'ที่อยู่ต้องมีคำว่า "ลพบุรี"' });
-            }
-    
+
             // Validate phone format
             const phoneRegex = /^[0-9]{10}$/;
             if (!phoneRegex.test(phone)) {
                 return res.status(400).json({ error: 'หมายเลขโทรศัพท์ต้องมี 10 หลักและขึ้นต้นด้วย 0' });
             }
-    
+
             // Check for existing username (email is optional)
             const userExists = await pool.query(
                 'SELECT * FROM users WHERE username = $1 OR (email = $2 AND email IS NOT NULL)',
                 [username, email]
             );
-    
+
             if (userExists.rows.length > 0) {
                 return res.status(409).json({ error: 'Username or email already exists' });
             }
-    
+
             // Hash password
             const hashedPassword = await bcrypt.hash(password, 10);
-    
+
             // Fetch default time token from community_config
             const configResult = await pool.query('SELECT default_time_token FROM community_config LIMIT 1');
             const defaultTimeToken = configResult.rows[0].default_time_token;
-    
+
             // Fetch branch_id from branches table
             let branchId = null;
             if (branch) {
@@ -75,7 +70,7 @@ const authRoutes = (pool) => {
                     branchId = newBranchResult.rows[0].branch_id;
                 }
             }
-    
+
             // Insert user allowing email to be NULL
             const result = await pool.query(
                 `INSERT INTO users 
@@ -84,23 +79,23 @@ const authRoutes = (pool) => {
                 RETURNING user_id, username, email, role, name, phone, address, branch_id, time_credits, status, created_at`,
                 [username, hashedPassword, email || null, role, name, phone, address, branchId, defaultTimeToken]
             );
-    
+
             res.status(201).json(result.rows[0]);
-    
+
         } catch (err) {
             console.error('Registration Error Details:', err);
-    
+
             if (err.code === '23505') {
                 return res.status(409).json({ error: 'Username or email already exists' });
             }
             if (err.code === '23502') {
                 return res.status(400).json({ error: `Missing required field: ${err.column}` });
             }
-    
+
             res.status(500).json({ error: 'Internal server error. Please try again.' });
         }
     });
-    
+
 
     // Modified login route with status check and logging
     router.post('/login', async (req, res) => {
