@@ -114,9 +114,6 @@ function formatActivityDuration(startDateRaw, startTime, endDateRaw, endTime) {
             <span class="text-xs">→</span>
             <span class="px-2 py-1 text-white text-xs rounded-full ${statusColor[status] || 'bg-gray-600'}">${status}</span>
           </div>
-          <div class="text-xs text-gray-500 mt-1">
-            ${formatActivityDuration(activity.start_date, activity.start_time, activity.end_date, activity.end_time)}
-          </div>
         ` : `
           <span class="px-2 py-1 text-white text-xs rounded-full ${statusColor[status] || 'bg-gray-600'}">${status}</span>
         `}
@@ -128,55 +125,73 @@ function formatActivityDuration(startDateRaw, startTime, endDateRaw, endTime) {
   }
   
 
-function createUnifiedNotification(activity, prevStatus = null) {
-  // Compose time string as start_date + ' ' + start_time + '-' + end_time (no formatting)
-  const timeStr = formatActivityDuration(activity.start_date, activity.start_time, activity.end_date, activity.end_time);
-  const message = generateNotificationHTML(
-    activity,
-    activity.status,
-    prevStatus,
-    prevStatus && prevStatus !== activity.status ? 'โปรดตรวจสอบรายละเอียดกิจกรรม' : `${activity.title} `,
-    timeStr
-  );
-  return {
-    id: `unified-${activity.activity_id}-${Date.now()}`,
-    activity_id: activity.activity_id,
-    title: `กิจกรรม "${activity.title}"`,
-    message,
-    timestamp: new Date().toISOString(),
-    read: false,
-    link: activity.requester_id === userId ? `myactivity-details.html?id=${activity.activity_id}` : `activity-details.html?id=${activity.activity_id}`,
-    status: activity.status,
-    prevStatus: prevStatus || null,
-    type: 'unified' // mark type for separation
-  };
-}
+  function createUnifiedNotification(activity, prevStatus = null) {
+    const timeStr = formatActivityDuration(activity.start_date, activity.start_time, activity.end_date, activity.end_time);
+  
+    const statusDescriptions = {
+      'กำลังจะเริ่ม': 'โปรดเตรียมตัวเข้าร่วมกิจกรรม',
+      'กำลังทำกิจกรรม': 'กิจกรรมกำลังดำเนินอยู่',
+      'รอผู้ขอยืนยันผล': 'โปรดยืนยันการเข้าร่วมกิจกรรมหลังจบกิจกรรม',
+      'รอการอนุมัติ': 'กำลังรออนุมัติ โปรดติดตามผลการอนุมัติ',
+      'เกินเวลา': 'กิจกรรมเลยเวลา โปรดตรวจสอบสถานะของคุณ',
+      'ยกเลิก': 'กิจกรรมนี้ถูกยกเลิก โปรดตรวจสอบรายละเอียด',
+      'เสร็จสิ้น': 'กิจกรรมเสร็จสมบูรณ์ โปรดตรวจสอบเวลาแลกเปลี่ยน',
+      'ผู้เข้าร่วมไม่ครบ': 'ไม่มีผู้เข้าร่วมครบตามที่กำหนด กิจกรรมถูกยกเลิก'
+    };
+  
+    const description = statusDescriptions[activity.status] || 'โปรดตรวจสอบรายละเอียดกิจกรรม';
+  
+    const message = generateNotificationHTML(
+      activity,
+      activity.status,
+      prevStatus,
+      description,
+      timeStr
+    );
+  
+    return {
+      id: `unified-${activity.activity_id}-${Date.now()}`,
+      activity_id: activity.activity_id,
+      title: `กิจกรรม "${activity.title}"`,
+      message,
+      timestamp: new Date().toISOString(),
+      read: false,
+      link: activity.requester_id === userId ? `myactivity-details.html?id=${activity.activity_id}` : `activity-details.html?id=${activity.activity_id}`,
+      status: activity.status,
+      prevStatus: prevStatus || null,
+      type: 'unified'
+    };
+  }
+  
 
 function createStatusChangeNotification(activity, oldStatus, newStatus) {
-  const resolvedNewStatus = resolveStatusMapping(oldStatus, newStatus);
-  // Compose time string as start_date + ' ' + start_time + '-' + end_time (no formatting)
-  const timeStr = `${activity.start_date || ''} ${activity.start_time || ''}-${activity.end_time || ''}`;
-  const message = generateNotificationHTML(
-    activity,
-    resolvedNewStatus,
-    oldStatus,
-    'สถานะกิจกรรมมีการเปลี่ยนแปลง โปรดตรวจสอบ',
-    timeStr
-  );
-  return {
-    id: `statuschange-${activity.activity_id}-${Date.now()}`,
-    activity_id: activity.activity_id,
-    title: `สถานะเปลี่ยนแปลงกิจกรรม "${activity.title}"`,
-    message,
-    timestamp: new Date().toISOString(),
-    read: false,
-    link: activity.requester_id === userId ? `myactivity-details.html?id=${activity.activity_id}` : `activity-details.html?id=${activity.activity_id}`,
-    status: resolvedNewStatus,
-    prevStatus: oldStatus,
-    type: 'statuschange' // mark type for separation
-  };
-}
-
+    const resolvedNewStatus = resolveStatusMapping(oldStatus, newStatus);
+  
+    // ✅ Use the same formatted time string like createUnifiedNotification
+    const timeStr = formatActivityDuration(activity.start_date, activity.start_time, activity.end_date, activity.end_time);
+  
+    const message = generateNotificationHTML(
+      activity,
+      resolvedNewStatus,
+      oldStatus,
+      'สถานะกิจกรรมมีการเปลี่ยนแปลง โปรดตรวจสอบ',
+      timeStr
+    );
+  
+    return {
+      id: `statuschange-${activity.activity_id}-${Date.now()}`,
+      activity_id: activity.activity_id,
+      title: `สถานะเปลี่ยนแปลงกิจกรรม "${activity.title}"`,
+      message,
+      timestamp: new Date().toISOString(),
+      read: false,
+      link: activity.requester_id === userId ? `myactivity-details.html?id=${activity.activity_id}` : `activity-details.html?id=${activity.activity_id}`,
+      status: resolvedNewStatus,
+      prevStatus: oldStatus,
+      type: 'statuschange'
+    };
+  }
+  
 function renderNotificationPanel() {
     const list = document.getElementById('notification-list');
     const count = document.getElementById('notification-count');
