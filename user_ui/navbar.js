@@ -97,6 +97,8 @@ function updateSidebar(isLoggedIn) {
         const member = await response.json();
         const memberId = member.userId || member.user_id;
 
+        localStorage.setItem('user_id', memberId);
+
         navList.innerHTML = `
 ${sidebarHeader}
 <li class="mb-5 flex items-center justify-between">

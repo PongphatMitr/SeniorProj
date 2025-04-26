@@ -176,35 +176,35 @@ function createUnifiedNotification(activity, prevStatus = null) {
 }
 
 function createInactiveUnifiedNotification(activity, prevStatus = null) {
-    const inactiveStatuses = ['เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา', 'ผู้เข้าร่วมไม่ครบ'];
-    if (!inactiveStatuses.includes(activity.status)) return null;
-  
-    const timeStr = formatActivityDuration(activity.start_date, activity.start_time, activity.end_date, activity.end_time);
-  
-    const description = 'กิจกรรมของคุณสิ้นสุดลงแล้ว โปรดตรวจสอบรายละเอียด';
-  
-    const message = generateNotificationHTML(
-      activity,
-      activity.status,
-      prevStatus,
-      description,
-      timeStr
-    );
-  
-    return {
-      id: `inactive-unified-${activity.activity_id}-${Date.now()}`,
-      activity_id: activity.activity_id,
-      title: `สิ้นสุดกิจกรรม "${activity.title}"`,
-      message,
-      timestamp: new Date().toISOString(),
-      read: false,
-      link: activity.requester_id === userId ? `myactivity-details.html?id=${activity.activity_id}` : `activity-details.html?id=${activity.activity_id}`,
-      status: activity.status,
-      prevStatus: prevStatus,
-      type: 'inactive-unified'
-    };
-  }
-  
+  const inactiveStatuses = ['เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา', 'ผู้เข้าร่วมไม่ครบ'];
+  if (!inactiveStatuses.includes(activity.status)) return null;
+
+  const timeStr = formatActivityDuration(activity.start_date, activity.start_time, activity.end_date, activity.end_time);
+
+  const description = 'กิจกรรมของคุณสิ้นสุดลงแล้ว โปรดตรวจสอบรายละเอียด';
+
+  const message = generateNotificationHTML(
+    activity,
+    activity.status,
+    prevStatus,
+    description,
+    timeStr
+  );
+
+  return {
+    id: `inactive-unified-${activity.activity_id}-${Date.now()}`,
+    activity_id: activity.activity_id,
+    title: `สิ้นสุดกิจกรรม "${activity.title}"`,
+    message,
+    timestamp: new Date().toISOString(),
+    read: false,
+    link: activity.requester_id === userId ? `myactivity-details.html?id=${activity.activity_id}` : `activity-details.html?id=${activity.activity_id}`,
+    status: activity.status,
+    prevStatus: prevStatus,
+    type: 'inactive-unified'
+  };
+}
+
 
 function createStatusChangeNotification(activity, oldStatus, newStatus) {
   const resolvedNewStatus = resolveStatusMapping(oldStatus, newStatus);
@@ -251,15 +251,14 @@ function renderNotificationPanel() {
     return new Date(`${dateStr}T${timeStr}`).getTime();
   };
 
-  // Separate notifications by type and read status
+  // 🛠 รวม notifications และ inactiveUnifiedNotifications
+  const allNotifications = [...notifications];
+
   const unifiedUnreadActive = [];
   const unifiedUnreadInactive = [];
   const unifiedReadInactive = [];
 
-  for (const n of notifications) {
-    // Skip inactive-unified notifications so they won't be rendered
-    if (n.type === 'inactive-unified') continue;
-
+  for (const n of allNotifications) {
     const isActive = activeStatuses.includes(n.status);
     if (!n.read && isActive) unifiedUnreadActive.push(n);
     else if (!n.read && !isActive) unifiedUnreadInactive.push(n);
@@ -282,16 +281,7 @@ function renderNotificationPanel() {
   const renderGroup = (title, items, groupId) => {
     if (items.length === 0) return;
     const li = document.createElement('li');
-    li.className = `
-      sticky top-[3.25rem] z-10
-      px-6 py-3
-      bg-white/80 backdrop-blur-md
-      border-b border-gray-200
-      flex items-center gap-3
-      text-base font-semibold text-gray-800
-      shadow-sm
-      transition-all duration-300
-    `;
+    li.className = `sticky top-[3.25rem] z-10 px-6 py-3 bg-white/80 backdrop-blur-md border-b border-gray-200 flex items-center gap-3 text-base font-semibold text-gray-800 shadow-sm transition-all duration-300`;
     li.dataset.groupId = groupId;
 
     const iconMap = {
@@ -315,15 +305,12 @@ function renderNotificationPanel() {
 
     for (const n of items) {
       const isRead = n.read;
-      const isInactive = !activeStatuses.includes(n.status);
-      const isStatusChange = n.type === 'statuschange';
-
       const itemLi = document.createElement('li');
       itemLi.className = `p-3 cursor-pointer rounded-md transition hover:bg-gray-100 ${isRead ? 'opacity-60' : ''}`;
       itemLi.innerHTML = `${n.message}<div class='text-xs text-gray-400 mt-1'>${formatRelativeTime(n.timestamp)}</div>`;
 
       itemLi.onclick = () => {
-        if (isStatusChange) {
+        if (n.type === 'statuschange') {
           const idx = statusChangeNotifications.findIndex(x => x.id === n.id);
           if (idx !== -1) {
             statusChangeNotifications[idx].read = true;
@@ -372,54 +359,75 @@ function setupNotificationEvents() {
 
     const activeStatuses = ['กำลังจะเริ่ม', 'กำลังทำกิจกรรม', 'รอผู้ขอยืนยันผล', 'รอการอนุมัติ'];
 
-    statusChangeNotifications = statusChangeNotifications.map(n => ({ ...n, read: true }));
-    inactiveUnifiedNotifications = inactiveUnifiedNotifications.map(n => ({ ...n, read: true }));
+    // ใส่ array เก็บ id/title ของอันที่อ่านแล้ว
+    const markedAsRead = [];
+
+    statusChangeNotifications = statusChangeNotifications.map(n => {
+      if (!n.read) markedAsRead.push(`[StatusChange] ${n.title}`);
+      return { ...n, read: true };
+    });
+
+    inactiveUnifiedNotifications = inactiveUnifiedNotifications.map(n => {
+      if (!n.read) markedAsRead.push(`[InactiveUnified] ${n.title}`);
+      return { ...n, read: true };
+    });
+
     notifications = notifications.map(n => {
-      const isActive = activeStatuses.includes(n.status);
-      if (!isActive && n.type !== 'inactive-unified') {
+      if (n.type === 'unified') {
+        if (!n.read) markedAsRead.push(`[Unified] ${n.title}`);
         return { ...n, read: true };
       }
       return n;
     });
 
+    // Save ลง localStorage
     localStorage.setItem('notifications', JSON.stringify(notifications));
     localStorage.setItem('statusChangeNotifications', JSON.stringify(statusChangeNotifications));
     localStorage.setItem('inactiveUnifiedNotifications', JSON.stringify(inactiveUnifiedNotifications));
     renderNotificationPanel();
+
+    // 🔥 Console log ออกมา
+    console.log(`✅ Marked ${markedAsRead.length} notifications as read:`);
+    markedAsRead.forEach(item => console.log(item));
   });
 
   clearBtn.addEventListener('click', (e) => {
     e.stopPropagation();
 
-    // Clear only read statusChangeNotifications
+    const inactiveStatuses = ['เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา', 'ผู้เข้าร่วมไม่ครบ'];
+
+    // 🔥 กรอง statusChange เหลือแต่ยังไม่อ่าน
     statusChangeNotifications = statusChangeNotifications.filter(n => !n.read);
 
-    // Clear only read inactive unified notifications and record cleared IDs
-    const toClearInactiveIds = inactiveUnifiedNotifications.filter(n => n.read).map(n => n.id);
-    clearedInactiveUnifiedIds = [...new Set([...clearedInactiveUnifiedIds, ...toClearInactiveIds])];
-    localStorage.setItem('clearedInactiveUnifiedIds', JSON.stringify(clearedInactiveUnifiedIds));
-    inactiveUnifiedNotifications = inactiveUnifiedNotifications.filter(n => !n.read);
+    // 🔥 กรอง inactiveUnified เอาแต่ยังไม่อ่าน
+    const toClearInactiveIds = inactiveUnifiedNotifications
+      .filter(n => n.read && inactiveStatuses.includes(n.status))
+      .map(n => n.id);
 
-    // Clear only read unified inactive notifications (excluding inactiveUnifiedNotifications)
-    const toClearUnifiedIds = notifications
-    .filter(n => n.read && activeStatuses.includes(n.status) && n.type === 'unified')
-    .map(n => n.id);
-  
-    clearedUnifiedIds = [...new Set([...clearedUnifiedIds, ...toClearUnifiedIds])];
-    localStorage.setItem('clearedUnifiedIds', JSON.stringify(clearedUnifiedIds));
-    
-    notifications = notifications.filter(n => {
-        if (n.type === 'inactive-unified') return true;
-        const isActive = activeStatuses.includes(n.status);
-        if (n.read && !isActive) return false; // Clear read inactive
-        if (n.read && isActive && n.type === 'unified') return false; // Clear read active
-        return true;
+    clearedInactiveUnifiedIds = [...new Set([...clearedInactiveUnifiedIds, ...toClearInactiveIds])];
+    inactiveUnifiedNotifications = inactiveUnifiedNotifications.filter(n => {
+      return !(n.read && inactiveStatuses.includes(n.status));
     });
-  
+
+    // 🔥 กรอง unified notifications
+    const toClearUnifiedIds = notifications
+      .filter(n => n.read && inactiveStatuses.includes(n.status) && n.type === 'unified')
+      .map(n => n.id);
+
+    clearedUnifiedIds = [...new Set([...clearedUnifiedIds, ...toClearUnifiedIds])];
+
+    notifications = notifications.filter(n => {
+      if (n.type === 'inactive-unified') return true; // อันนี้เก็บไว้ก่อน
+      if (n.read && inactiveStatuses.includes(n.status) && n.type === 'unified') return false; // ❌ ลบออก
+      return true; // ที่เหลือเก็บไว้
+    });
 
     localStorage.setItem('notifications', JSON.stringify(notifications));
     localStorage.setItem('statusChangeNotifications', JSON.stringify(statusChangeNotifications));
     localStorage.setItem('inactiveUnifiedNotifications', JSON.stringify(inactiveUnifiedNotifications));
+    localStorage.setItem('clearedUnifiedIds', JSON.stringify(clearedUnifiedIds));
+    localStorage.setItem('clearedInactiveUnifiedIds', JSON.stringify(clearedInactiveUnifiedIds));
+
     renderNotificationPanel();
   });
 
@@ -442,17 +450,21 @@ function resolveStatusMapping(oldStatus, newStatus) {
 }
 
 async function fetchAndCheckNotifications() {
-    
+
   if (!token || !userId) return;
 
+  console.log('🔵 [Notification] Fetching ongoing activities for notifications...');
+
   try {
-    const res = await fetch(`http://localhost:3000/api/user/activities`, {
+    const res = await fetch(`http://localhost:3000/api/user/activities/ongoing/${userId}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     if (!res.ok) return;
 
     const data = await res.json();
     let all = data.activities;
+
+    console.log(`🔵 [Notification] Fetched ${all.length} ongoing activities.`);
 
     for (let act of all) {
       const resP = await fetch(`http://localhost:3000/api/user/activities/${act.activity_id}/participants`, {
@@ -472,51 +484,55 @@ async function fetchAndCheckNotifications() {
     let newNotis = [];
 
     for (let act of related) {
-        const currentStatus = act.status;
-        const isActive = activeStatuses.includes(currentStatus);
-      
-        const alreadyStored = notifications.find(n =>
-          n.activity_id === act.activity_id &&
-          n.status === currentStatus &&
-          n.type === 'unified'
-        );
-      
-        const unifiedIdPrefix = `unified-${act.activity_id}`;
-      
-        const wasCleared = clearedUnifiedIds.some(id => id.startsWith(unifiedIdPrefix));
-        if (wasCleared) continue; // ⛔ skip if cleared permanently
-      
-        if (isActive) {
-          const noti = createUnifiedNotification(act);
-          newNotis.push(noti);
-        } else if (!alreadyStored) {
-          const noti = createUnifiedNotification(act);
-          newNotis.push(noti);
-        } else {
-          newNotis.push(alreadyStored);
-        }
+      const currentStatus = act.status;
+      const isActive = activeStatuses.includes(currentStatus);
+
+      const alreadyStored = notifications.find(n =>
+        n.activity_id === act.activity_id &&
+        n.status === currentStatus &&
+        n.type === 'unified'
+      );
+
+      const unifiedIdPrefix = `unified-${act.activity_id}`;
+
+      const wasCleared = clearedUnifiedIds.some(id => id.startsWith(unifiedIdPrefix));
+      if (wasCleared) continue; // ⛔ skip if cleared permanently
+
+      if (isActive) {
+        const noti = createUnifiedNotification(act);
+        newNotis.push(noti);
+      } else if (!alreadyStored) {
+        const noti = createUnifiedNotification(act);
+        newNotis.push(noti);
+      } else {
+        newNotis.push(alreadyStored);
       }
-      
+    }
+
 
     localStorage.setItem('notifications', JSON.stringify(newNotis));
     notifications = newNotis;
     renderNotificationPanel();
   } catch (e) {
-    console.error('⚠️ fetchAndCheckNotifications failed', e);
+    console.error('🔴 [Notification] Failed to fetch ongoing activities:', e);
   }
 }
 
 async function fetchAndCheckInactiveUnifiedNotifications() {
   if (!token || !userId) return;
 
+  console.log('🟣 [Notification] Fetching history activities for inactive notifications...');
+
   try {
-    const res = await fetch(`http://localhost:3000/api/user/activities`, {
+    const res = await fetch(`http://localhost:3000/api/user/activities/history/${userId}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     if (!res.ok) return;
     const data = await res.json();
-
     let all = data.activities;
+
+    console.log(`🟣 [Notification] Fetched ${all.length} historical activities.`);
+
     for (let act of all) {
       const resP = await fetch(`http://localhost:3000/api/user/activities/${act.activity_id}/participants`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -527,54 +543,70 @@ async function fetchAndCheckInactiveUnifiedNotifications() {
     const related = all.filter(a => a.requester_id === userId || a.participants.some(p => p.user_id === userId));
 
     let localInactiveUnifiedNotis = JSON.parse(localStorage.getItem('inactiveUnifiedNotifications') || '[]');
+    let storedNotifications = JSON.parse(localStorage.getItem('notifications') || '[]');
+
+    const inactiveStatuses = ['เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา', 'ผู้เข้าร่วมไม่ครบ'];
+    const activeStatuses = ['กำลังจะเริ่ม', 'กำลังทำกิจกรรม', 'รอผู้ขอยืนยันผล', 'รอการอนุมัติ'];
 
     for (let act of related) {
-      const inactiveStatuses = ['เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา', 'ผู้เข้าร่วมไม่ครบ'];
       if (!inactiveStatuses.includes(act.status)) continue;
 
-      const notiIdPrefix = `inactive-unified-${act.activity_id}-`;
-      const wasCleared = clearedInactiveUnifiedIds.some(id => id.startsWith(notiIdPrefix));
-      if (wasCleared) continue;
+      const unifiedAlreadyExists = storedNotifications.some(n =>
+        n.activity_id === act.activity_id &&
+        n.status === act.status &&
+        n.type === 'unified'
+      );
 
-      const alreadyExists = localInactiveUnifiedNotis.some(n =>
+      // 🛠 [เพิ่มตรงนี้] เช็กด้วยว่าเคย clear หรือยัง
+      const unifiedIdPrefix = `unified-${act.activity_id}`;
+      const wasCleared = clearedUnifiedIds.some(id => id.startsWith(unifiedIdPrefix));
+      if (wasCleared) continue; // ⛔ ข้ามไปถ้าเคยกดล้างแล้ว
+
+      if (!unifiedAlreadyExists) {
+        const newUnified = createUnifiedNotification(act);
+        storedNotifications.push(newUnified);
+      }
+
+      const alreadyInactive = localInactiveUnifiedNotis.some(n =>
         n.activity_id === act.activity_id &&
         n.status === act.status &&
         n.type === 'inactive-unified'
       );
 
-      if (!alreadyExists) {
-        const noti = createInactiveUnifiedNotification(act);
-        if (noti) localInactiveUnifiedNotis.push(noti);
+      if (!alreadyInactive) {
+        const newInactive = createInactiveUnifiedNotification(act);
+        if (newInactive) localInactiveUnifiedNotis.push(newInactive);
       }
     }
 
-    localInactiveUnifiedNotis = localInactiveUnifiedNotis.filter(noti => {
-      const act = related.find(a => a.activity_id === noti.activity_id);
-      if (!act) return false;
-      return ['เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา', 'ผู้เข้าร่วมไม่ครบ'].includes(act.status);
-    });
-
+    localStorage.setItem('notifications', JSON.stringify(storedNotifications));
     localStorage.setItem('inactiveUnifiedNotifications', JSON.stringify(localInactiveUnifiedNotis));
 
-    notifications = [...notifications.filter(n => n.type !== 'inactive-unified'), ...localInactiveUnifiedNotis];
-    localStorage.setItem('notifications', JSON.stringify(notifications));
-
+    notifications = storedNotifications;
+    inactiveUnifiedNotifications = localInactiveUnifiedNotis;
     renderNotificationPanel();
   } catch (e) {
-    // Fail silently
+    console.error('🔴 [Notification] Failed to fetch historical activities:', e);
   }
 }
 
+
 async function fetchAndCheckStatusChangeNotifications() {
   if (!token || !userId) return;
+
+  console.log('🟡 [Notification] Fetching ongoing activities for status change checks...');
+
   try {
-    const res = await fetch(`http://localhost:3000/api/user/activities`, {
+    const res = await fetch(`http://localhost:3000/api/user/activities/ongoing/${userId}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     if (!res.ok) return;
     const data = await res.json();
 
     let all = data.activities;
+
+    console.log(`🟡 [Notification] Fetched ${all.length} activities for status change check.`);
+
     for (let act of all) {
       const resP = await fetch(`http://localhost:3000/api/user/activities/${act.activity_id}/participants`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -624,7 +656,7 @@ async function fetchAndCheckStatusChangeNotifications() {
     statusChangeNotifications = localStatusChangeNotis;
     renderNotificationPanel();
   } catch (e) {
-    // Fail silently
+    console.error('🔴 [Notification] Failed to fetch activities for status change check:', e);
   }
 }
 
@@ -638,23 +670,22 @@ function isValidStatusTransition(oldStatus, newStatus) {
   return validTransitions[oldStatus]?.includes(newStatus);
 }
 
-function setupNotifications() {
-    injectNotificationUI();
-    token = localStorage.getItem('token');
-    userId = parseInt(localStorage.getItem('user_id'));
-  
-    renderNotificationPanel();
-    fetchAndCheckNotifications(); // 🔵 Active unified
-    fetchAndCheckInactiveUnifiedNotifications(); // 🟣 Inactive unified (called here ✅)
-    fetchAndCheckStatusChangeNotifications(); // 🟡 Old → New status changes
-  
-    setInterval(fetchAndCheckNotifications, 60000);
-    setInterval(fetchAndCheckInactiveUnifiedNotifications, 60000); // ✅ Auto-check every minute
-    setInterval(fetchAndCheckStatusChangeNotifications, 60000);
-  
-    setupNotificationEvents();
-  }
-  
+function setupNotifications(tokenFromLogin, userIdFromProfile) {
+  token = tokenFromLogin;
+  userId = userIdFromProfile;
+
+  injectNotificationUI();
+  renderNotificationPanel();
+  fetchAndCheckNotifications();
+  fetchAndCheckInactiveUnifiedNotifications();
+  fetchAndCheckStatusChangeNotifications();
+
+  setInterval(fetchAndCheckNotifications, 60000);
+  setInterval(fetchAndCheckInactiveUnifiedNotifications, 60000);
+  setInterval(fetchAndCheckStatusChangeNotifications, 60000);
+
+  setupNotificationEvents();
+}
 
 function setupNotificationEvents() {
   const bell = document.getElementById('notification-bell');
@@ -693,23 +724,40 @@ function setupNotificationEvents() {
   clearBtn.addEventListener('click', (e) => {
     e.stopPropagation();
 
+    const inactiveStatuses = ['เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา', 'ผู้เข้าร่วมไม่ครบ'];
+
+    // 🔥 กรอง statusChange เหลือแต่ยังไม่อ่าน
     statusChangeNotifications = statusChangeNotifications.filter(n => !n.read);
 
-    const toClearInactiveIds = inactiveUnifiedNotifications.filter(n => n.read).map(n => n.id);
-    clearedInactiveUnifiedIds = [...new Set([...clearedInactiveUnifiedIds, ...toClearInactiveIds])];
-    localStorage.setItem('clearedInactiveUnifiedIds', JSON.stringify(clearedInactiveUnifiedIds));
-    inactiveUnifiedNotifications = inactiveUnifiedNotifications.filter(n => !n.read);
+    // 🔥 กรอง inactiveUnified เอาแต่ยังไม่อ่าน
+    const toClearInactiveIds = inactiveUnifiedNotifications
+      .filter(n => n.read && inactiveStatuses.includes(n.status))
+      .map(n => n.id);
 
-    const activeStatuses = ['กำลังจะเริ่ม', 'กำลังทำกิจกรรม', 'รอผู้ขอยืนยันผล', 'รอการอนุมัติ'];
+    clearedInactiveUnifiedIds = [...new Set([...clearedInactiveUnifiedIds, ...toClearInactiveIds])];
+    inactiveUnifiedNotifications = inactiveUnifiedNotifications.filter(n => {
+      return !(n.read && inactiveStatuses.includes(n.status));
+    });
+
+    // 🔥 กรอง unified notifications
+    const toClearUnifiedIds = notifications
+      .filter(n => n.read && inactiveStatuses.includes(n.status) && n.type === 'unified')
+      .map(n => n.id);
+
+    clearedUnifiedIds = [...new Set([...clearedUnifiedIds, ...toClearUnifiedIds])];
+
     notifications = notifications.filter(n => {
-      const isActive = activeStatuses.includes(n.status);
-      if (n.type === 'inactive-unified') return true;
-      return !(n.read && !isActive);
+      if (n.type === 'inactive-unified') return true; // อันนี้เก็บไว้ก่อน
+      if (n.read && inactiveStatuses.includes(n.status) && n.type === 'unified') return false; // ❌ ลบออก
+      return true; // ที่เหลือเก็บไว้
     });
 
     localStorage.setItem('notifications', JSON.stringify(notifications));
     localStorage.setItem('statusChangeNotifications', JSON.stringify(statusChangeNotifications));
     localStorage.setItem('inactiveUnifiedNotifications', JSON.stringify(inactiveUnifiedNotifications));
+    localStorage.setItem('clearedUnifiedIds', JSON.stringify(clearedUnifiedIds));
+    localStorage.setItem('clearedInactiveUnifiedIds', JSON.stringify(clearedInactiveUnifiedIds));
+
     renderNotificationPanel();
   });
 
@@ -721,4 +769,23 @@ function setupNotificationEvents() {
   });
 }
 
-document.addEventListener('DOMContentLoaded', setupNotifications);
+document.addEventListener('DOMContentLoaded', async () => {
+  const token = localStorage.getItem('token');
+  if (!token) return;  // ถ้าไม่มี token เลยไม่ต้องทำอะไร
+
+  try {
+    const res = await fetch(`http://localhost:3000/api/user/auth/profile/`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) throw new Error('Failed to fetch profile');
+
+    const profile = await res.json();
+    const userId = profile.user_id;
+    localStorage.setItem('user_id', userId); // เผื่อใช้ต่อที่อื่น
+
+    setupNotifications(token, userId);  // 🛠️ ส่ง token, userId เข้าไปด้วย
+
+  } catch (error) {
+    console.error('Error loading profile for notifications:', error);
+  }
+});
