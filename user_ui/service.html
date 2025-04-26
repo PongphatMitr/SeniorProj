@@ -188,27 +188,27 @@
                 row.className = 'hover:bg-gray-100 align-middle';
         
                 row.innerHTML = `
-                <td class="py-2 px-4 border-b border-gray-200 font-semibold text-center align-middle">
-                    <span class="${activity.activity_type === 'exchange' ? 'text-lime-500' : 'text-gray-400'} font-semibold">
-                        ${activity.activity_type === 'exchange' ? 'มีเครดิต' : 'ไม่มีเครดิต'}
-                    </span>
-                </td>
-                <td class="py-2 px-4 border-b border-gray-200 align-middle">${activity.title}</td>
-                <td class="py-2 px-4 border-b border-gray-200 align-middle">${activity.required_skill_name || '-'}</td>
-                <td class="py-2 px-4 border-b border-gray-200">
-                <div class="text-gray-800 leading-snug">
-                    <div>${formatDate(activity.start_date)}</div>
-                    <div class="text-gray-600 text-[15px]">${formatTime(activity.start_time)} - ${formatTime(activity.end_time)}</div>
-                </div>
-                </td>
-                <td class="py-2 px-4 border-b border-gray-200 text-center text-center">
-                    <span class="inline-block px-3 py-1 rounded-md text-white font-medium text-base ${statusColor}">
-                        ${activity.status}
-                    </span>
-                </td>
-                <td class="py-2.5 px-4 border-b border-gray-200 text-center text-[16px] font-medium">
-                ${activity.current_participants} / ${activity.max_participants}
-                </td>
+                    <td class="py-2 px-4 border-b border-gray-200 font-semibold text-center align-middle">
+                        <span class="${activity.activity_type === 'exchange' ? 'text-lime-500' : 'text-gray-400'} font-semibold">
+                            ${activity.activity_type === 'exchange' ? 'มีเครดิต' : 'ไม่มีเครดิต'}
+                        </span>
+                    </td>
+                    <td class="py-2 px-4 border-b border-gray-200 align-middle">${activity.title}</td>
+                    <td class="py-2 px-4 border-b border-gray-200 align-middle">${activity.required_skill_name || '-'}</td>
+                    <td class="py-2 px-4 border-b border-gray-200">
+                    <div class="text-gray-800 leading-snug">
+                        <div>${formatDate(activity.start_date)}</div>
+                        <div class="text-gray-600 text-[15px]">${formatTime(activity.start_time)} - ${formatTime(activity.end_time)}</div>
+                    </div>
+                    </td>
+                    <td class="py-2 px-4 border-b border-gray-200 text-center text-center">
+                        <span class="inline-block px-3 py-1 rounded-md text-white font-medium text-base ${statusColor}">
+                            ${activity.status}
+                        </span>
+                    </td>
+                    <td class="py-2.5 px-4 border-b border-gray-200 text-center text-[16px] font-medium">
+                    ${activity.current_participants} / ${activity.max_participants}
+                    </td>
                 <td class="py-2 px-4 border-b border-gray-200 text-center text-center">
                     <a href="${isRequester ? 'myactivity-details.html' : 'activity-details.html'}?id=${activity.activity_id}"
                        class="inline-block w-full bg-blue-500 text-white font-bold py-1 px-2 rounded text-center whitespace-nowrap">

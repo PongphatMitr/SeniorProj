@@ -1,5 +1,6 @@
 const express = require('express');
 const dotenv = require('dotenv');
+const authMiddleware = require('../../middleware/authMiddleware'); // ต้องล็อคอิน
 
 dotenv.config();
 
@@ -53,6 +54,36 @@ const transactionRoutes = (pool) => {
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
+
+    // ✅ Get all transactions (for admin / tbm)
+    router.get('/all', authMiddleware, async (req, res) => {
+        try {
+            const result = await pool.query(`
+                SELECT 
+                    t.transaction_id,
+                    t.date,
+                    t.time,
+                    t.time_credits,
+                    t.transaction_type,
+                    a.title AS activity_title,
+                    r.name AS requester_name,
+                    p.name AS participant_name,
+                    t.activity_id
+                FROM transactions t
+                LEFT JOIN activities a ON t.activity_id = a.activity_id
+                LEFT JOIN users r ON t.requester_id = r.user_id
+                LEFT JOIN users p ON t.participant_id = p.user_id
+                ORDER BY t.date DESC, t.time DESC
+            `);
+
+            res.json({ transactions: result.rows });
+        } catch (error) {
+            console.error('❌ Error fetching all transactions:', error.message);
+            res.status(500).json({ error: 'An error occurred.' });
+        }
+    });
+
+
 
     return router;
 };

@@ -3,162 +3,142 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>ธุรกรรมทั้งหมด - Time Bank</title>
+    <title>ประวัติธุรกรรมทั้งหมด - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
     <style>
-        .dropdown-content {
-            display: none;
-            position: absolute;
-            background-color: white;
-            min-width: 160px;
-            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
-            z-index: 1;
-            border-radius: 0.5rem;
-            overflow: hidden;
-        }
-
-        .dropdown-content.show {
-            display: block;
-        }
-
-        .dropdown-item {
-            padding: 0.5rem 1rem;
-            cursor: pointer;
-            transition: background-color 0.3s ease;
-        }
-
-        .dropdown-item:hover {
-            background-color: #f1f1f1;
-        }
-
-        .dropdown-item b {
-            color: rgb(0, 123, 255);
-            transition: color 0.3s ease;
-        }
-
-        .dropdown-item:hover b {
-            color: rgb(0, 86, 179);
-        }
-
-        .dropdown-item b.red {
-            color: red;
-        }
-
-        .dropdown-item:hover b.red {
-            color: darkred;
-        }
-
         th.sortable:hover {
             cursor: pointer;
             background-color: #f1f1f1;
         }
     </style>
     <script>
-        let activities = [];
+        let transactions = [];
         let currentPage = 1;
         const pageSize = 10;
-        let totalActivities = 0;
+        let totalTransactions = 0;
         let sortColumn = '';
         let sortDirection = 'asc';
 
-        async function fetchActivities(page) {
+        async function fetchAllTransactions(page = 1) {
             try {
-                const response = await fetch(`http://localhost:3000/api/tbm/activities?page=${page}&pageSize=${pageSize}`, {
+                const response = await fetch(`http://localhost:3000/api/tbm/transactions/all`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-
+                
                 if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    const errorText = await response.text();
+                    console.error(`❌ Error ${response.status}: ${errorText}`);
+                    throw new Error('ไม่สามารถดึงข้อมูลธุรกรรมทั้งหมดได้');
                 }
 
                 const data = await response.json();
-                if (data.activities && typeof data.activities === 'object') {
-                    activities = Object.values(data.activities).flat();
-                    totalActivities = data.total;
-                    renderTable(activities);
-                    renderPagination();
-                } else {
-                    console.error('Expected an object but got:', data);
-                    alert('เกิดข้อผิดพลาดในการดึงข้อมูลกิจกรรม');
-                }
+                transactions = data.transactions;
+                totalTransactions = data.total;
+
+                renderTable(transactions);
+                renderPagination();
             } catch (error) {
-                console.error('Error fetching activities:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลกิจกรรม');
+                console.error('❌ Error fetching all transactions:', error);
+                alert('เกิดข้อผิดพลาดในการโหลดธุรกรรมทั้งหมด');
             }
         }
 
         function renderTable(data) {
-            const tbody = document.getElementById('activity-tbody');
+            const tbody = document.getElementById('transaction-tbody');
             tbody.innerHTML = '';
-            data.forEach((activity, index) => {
+        
+            if (data.length === 0) {
                 const row = document.createElement('tr');
-                row.id = `row-${index + 1}`;
-                row.className = 'hover:bg-gray-100';
                 row.innerHTML = `
-                    <td aria-colindex="1" data-label="รหัสกิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${activity.activity_id}
-                    </td>
-                    <td aria-colindex="2" data-label="ชื่อกิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${activity.title}
-                    </td>
-                    <td aria-colindex="3" data-label="รายละเอียด" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${activity.description}
-                    </td>
-                    <td aria-colindex="4" data-label="วันที่เริ่ม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${new Date(activity.start_date).toLocaleDateString()}
-                    </td>
-                    <td aria-colindex="5" data-label="วันที่สิ้นสุด" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${new Date(activity.end_date).toLocaleDateString()}
-                    </td>
-                    <td aria-colindex="6" data-label="สถานะ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        <span class="py-1 px-2 rounded ${activity.status === 'กำลังจะเริ่ม' ? 'bg-blue-500' : activity.status === 'เสร็จสิ้น' ? 'bg-green-500' : activity.status === 'เกินเวลา' ? 'bg-orange-500' : 'bg-red-500'} text-white">${activity.status}</span>
-                    </td>
-                    <td aria-colindex="7" data-label="ชื่อผู้ขอ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        <a href="member-profile.html?memberId=${activity.requester_id}" class="text-blue-500 hover:underline">
-                            ${activity.requester_name}
-                        </a>
+                    <td colspan="9" class="text-center text-gray-500 py-6 text-base font-medium">
+                        ไม่มีประวัติธุรกรรมในระบบ
                     </td>
                 `;
                 tbody.appendChild(row);
+                return;
+            }
+        
+            data.forEach(tx => {
+                const isEarn = tx.transaction_type === 'earn';
+                const isSpend = tx.transaction_type === 'spend';
+                const isZero = tx.time_credits === 0;
+                const sign = isZero ? '' : (isEarn ? '+' : '−');
+                const creditColor = isZero ? 'text-black' : (isEarn ? 'text-green-600' : 'text-red-600');
+                const typeLabel = isEarn ? 'โอนเข้า' : isSpend ? 'โอนออก' : tx.transaction_type;
+        
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition text-base text-gray-800 text-center';
+        
+                row.innerHTML = `
+                    <td class="px-4 py-3 font-medium">${tx.transaction_id}</td>
+                    <td class="px-4 py-3">${new Date(tx.date).toLocaleDateString('th-TH')}</td>
+                    <td class="px-4 py-3">${tx.time}</td>
+                    <td class="px-4 py-3">${tx.requester_name || '—'}</td>
+                    <td class="px-4 py-3">${typeLabel}</td>
+                    <td class="px-4 py-3 ${creditColor} font-semibold">${sign}${tx.time_credits} ชั่วโมง</td>
+                    <td class="px-4 py-3">${tx.participant_name || '—'}</td>
+                    <td class="px-4 py-3">${tx.activity_title || '—'}</td>
+                    <td class="px-4 py-3 text-center">
+                        ${tx.activity_id ? `
+                            <a href="activity-details.html?id=${tx.activity_id}"
+                               class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1 px-3 rounded shadow focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                ดูรายละเอียด
+                            </a>` : '—'}
+                    </td>
+                `;
+        
+                tbody.appendChild(row);
             });
         }
-
+        
         function renderPagination() {
             const paginationContainer = document.getElementById('pagination');
             paginationContainer.innerHTML = '';
 
-            const totalPages = Math.ceil(totalActivities / pageSize);
+            const totalPages = Math.ceil(totalTransactions / pageSize);
 
             const firstButton = document.createElement('button');
             firstButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1';
             firstButton.textContent = 'First';
+            firstButton.disabled = currentPage === 1;
             firstButton.onclick = () => {
                 currentPage = 1;
-                fetchActivities(currentPage);
+                fetchAllTransactions(currentPage);
             };
             paginationContainer.appendChild(firstButton);
 
             const prevButton = document.createElement('button');
             prevButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1';
             prevButton.textContent = 'Prev';
+            prevButton.disabled = currentPage === 1;
             prevButton.onclick = () => {
                 if (currentPage > 1) {
                     currentPage--;
-                    fetchActivities(currentPage);
+                    fetchAllTransactions(currentPage);
                 }
             };
             paginationContainer.appendChild(prevButton);
 
-            for (let i = 1; i <= totalPages; i++) {
+            // Show max 5 page buttons centered around current page
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+            if (currentPage <= 2) {
+                endPage = Math.min(5, totalPages);
+            }
+            if (currentPage >= totalPages - 1) {
+                startPage = Math.max(1, totalPages - 4);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
                 const pageButton = document.createElement('button');
                 pageButton.className = `bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1 ${i === currentPage ? 'bg-blue-700' : ''}`;
                 pageButton.textContent = i;
                 pageButton.onclick = () => {
                     currentPage = i;
-                    fetchActivities(currentPage);
+                    fetchAllTransactions(currentPage);
                 };
                 paginationContainer.appendChild(pageButton);
             }
@@ -166,10 +146,11 @@
             const nextButton = document.createElement('button');
             nextButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1';
             nextButton.textContent = 'Next';
+            nextButton.disabled = currentPage === totalPages;
             nextButton.onclick = () => {
                 if (currentPage < totalPages) {
                     currentPage++;
-                    fetchActivities(currentPage);
+                    fetchAllTransactions(currentPage);
                 }
             };
             paginationContainer.appendChild(nextButton);
@@ -177,71 +158,52 @@
             const lastButton = document.createElement('button');
             lastButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1';
             lastButton.textContent = 'Last';
+            lastButton.disabled = currentPage === totalPages;
             lastButton.onclick = () => {
                 currentPage = totalPages;
-                fetchActivities(currentPage);
+                fetchAllTransactions(currentPage);
             };
             paginationContainer.appendChild(lastButton);
         }
 
         function sortTable(column) {
-            if (sortColumn === column) {
-                sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-            } else {
-                sortColumn = column;
-                sortDirection = 'asc';
-            }
+            const direction = sortColumn === column && sortDirection === 'asc' ? 'desc' : 'asc';
+            sortColumn = column;
+            sortDirection = direction;
 
-            activities.sort((a, b) => {
-                let aValue = a[column];
-                let bValue = b[column];
+            transactions.sort((a, b) => {
+                let aVal = a[column];
+                let bVal = b[column];
 
-                // Convert date strings to Date objects for comparison
-                if (column === 'start_date' || column === 'end_date') {
-                    aValue = new Date(aValue);
-                    bValue = new Date(bValue);
+                // For date column, convert to Date for comparison
+                if (column === 'date') {
+                    aVal = new Date(aVal);
+                    bVal = new Date(bVal);
                 }
 
-                if (aValue < bValue) {
-                    return sortDirection === 'asc' ? -1 : 1;
-                }
-                if (aValue > bValue) {
-                    return sortDirection === 'asc' ? 1 : -1;
-                }
+                if (aVal < bVal) return direction === 'asc' ? -1 : 1;
+                if (aVal > bVal) return direction === 'asc' ? 1 : -1;
                 return 0;
             });
 
-            renderTable(activities);
-
-            // Update the sort icon
-            document.querySelectorAll('th.sortable i').forEach(icon => {
-                icon.classList.remove('fa-sort-up', 'fa-sort-down');
-                icon.classList.add('fa-sort');
-            });
-            const currentHeader = document.querySelector(`th[data-column="${column}"] i`);
-            if (currentHeader) {
-                if (sortDirection === 'asc') {
-                    currentHeader.classList.remove('fa-sort');
-                    currentHeader.classList.add('fa-sort-up');
-                } else {
-                    currentHeader.classList.remove('fa-sort');
-                    currentHeader.classList.add('fa-sort-down');
-                }
-            }
+            renderTable(transactions);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            fetchActivities(currentPage);
-
             document.querySelectorAll('th.sortable').forEach(header => {
                 header.addEventListener('click', () => {
                     const column = header.getAttribute('data-column');
                     sortTable(column);
                 });
             });
-        });
 
+            fetchAllTransactions(currentPage);
+        });
     </script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="notification.js"></script>
+    <script src="selected-language.js"></script>
+    <script src="navbar.js"></script>
 </head>
 
 <body class="bg-gray-100">
@@ -259,54 +221,35 @@
                 <div id="mainNotificationPanel" class="relative"></div>
             </div>
 
-            <h1 class="text-4xl font-bold mb-5">ธุรกรรมทั้งหมด</h1>
             <div class="bg-white text-black p-8 rounded-lg shadow-lg">
-                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">รายการกิจกรรมทั้งหมด</h2>
+                <!-- Header Section -->
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-extrabold text-blue-700 tracking-tight mb-2 leading-snug">
+                        ธุรกรรมเวลาทั้งหมด
+                    </h2>
+                    <p class="text-red-600 text-lg font-medium leading-relaxed max-w-2xl mx-auto">
+                        แสดงข้อมูลการให้และรับความช่วยเหลือผ่านกิจกรรมต่าง ๆ ที่ได้ดำเนินการเสร็จสิ้นแล้ว
+                    </p>
+                </div>
+
                 <div class="overflow-x-auto">
                     <div class="table-responsive-sm">
-                        <table aria-busy="false" aria-colcount="7" class="table b-table b-table-stacked-md w-full"
-                            role="table">
-                            <thead class="bg-gray-100" role="rowgroup">
-                                <tr role="row">
-                                    <th aria-colindex="1"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
-                                        data-column="activity_id" role="columnheader" scope="col">
-                                        รหัสกิจกรรม <i class="fas fa-sort"></i>
-                                    </th>
-                                    <th aria-colindex="2"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
-                                        data-column="title" role="columnheader" scope="col">
-                                        ชื่อกิจกรรม <i class="fas fa-sort"></i>
-                                    </th>
-                                    <th aria-colindex="3"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
-                                        data-column="description" role="columnheader" scope="col">
-                                        รายละเอียด <i class="fas fa-sort"></i>
-                                    </th>
-                                    <th aria-colindex="4"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
-                                        data-column="start_date" role="columnheader" scope="col">
-                                        วันที่เริ่ม <i class="fas fa-sort"></i>
-                                    </th>
-                                    <th aria-colindex="5"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
-                                        data-column="end_date" role="columnheader" scope="col">
-                                        วันที่สิ้นสุด <i class="fas fa-sort"></i>
-                                    </th>
-                                    <th aria-colindex="6"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
-                                        data-column="status" role="columnheader" scope="col">
-                                        สถานะ <i class="fas fa-sort"></i>
-                                    </th>
-                                    <th aria-colindex="7"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 sortable"
-                                        data-column="requester_name" role="columnheader" scope="col">
-                                        ชื่อผู้ขอ <i class="fas fa-sort"></i>
-                                    </th>
+                        <table class="min-w-full text-sm text-gray-800 border border-gray-300 rounded-lg shadow-sm overflow-hidden">
+                            <thead class="bg-gray-50 border-b border-gray-300">
+                                <tr>
+                                    <th class="px-4 py-3 text-center text-base font-semibold text-gray-700 uppercase tracking-wide sortable" data-column="transaction_id">รหัสธุรกรรม</th>
+                                    <th class="px-4 py-3 text-center text-base font-semibold text-gray-700 uppercase tracking-wide sortable" data-column="date">วันที่</th>
+                                    <th class="px-4 py-3 text-center text-base font-semibold text-gray-700 uppercase tracking-wide sortable" data-column="time">เวลา</th>
+                                    <th class="px-4 py-3 text-center text-base font-semibold text-gray-700 uppercase tracking-wide sortable" data-column="requester_name">ผู้ขอ</th>
+                                    <th class="px-4 py-3 text-center text-base font-semibold text-gray-700 uppercase tracking-wide sortable" data-column="transaction_type">ประเภทธุรกรรม</th>
+                                    <th class="px-4 py-3 text-center text-base font-semibold text-gray-700 uppercase tracking-wide sortable" data-column="time_credits">เครดิตเวลา</th>
+                                    <th class="px-4 py-3 text-center text-base font-semibold text-gray-700 uppercase tracking-wide sortable" data-column="participant_name">ผู้เข้าร่วม</th>
+                                    <th class="px-4 py-3 text-center text-base font-semibold text-gray-700 uppercase tracking-wide sortable" data-column="activity_title">ชื่อกิจกรรม</th>
+                                    <th class="px-4 py-3 text-center text-base font-semibold text-gray-700 uppercase tracking-wide">รายละเอียด</th>
                                 </tr>
-                            </thead>
-                            <tbody id="activity-tbody" role="rowgroup">
-                                <!-- Activities will be dynamically inserted here -->
+                            </thead>                            
+                            <tbody id="transaction-tbody" class="divide-y divide-gray-200 bg-white">
+                                <!-- Dynamic rows from renderTable() go here -->
                             </tbody>
                         </table>
                     </div>
@@ -314,231 +257,9 @@
                 <div class="flex items-center justify-center mt-5" id="pagination">
                     <!-- Pagination buttons will be dynamically inserted here -->
                 </div>
-                <div class="flex justify-center mt-4">
-                    <button
-                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                        onclick="window.history.back()">
-                        ย้อนกลับ
-                    </button>
-                </div>
             </div>
         </div>
     </div>
+</body>
 
-    <style>
-        /* Toggle container */
-        .toggle-container {
-            display: flex;
-            background-color: #E5E7EB;
-            border-radius: 20px;
-            padding: 6px;
-            align-items: center;
-            justify-content: space-between;
-            width: 180px;
-        }
-
-        /* Labels */
-        .toggle-label {
-            flex: 1;
-            text-align: center;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: gray;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border-radius: 9999px;
-            padding: 5px;
-        }
-
-        .toggle-label.active {
-            background-color: white;
-            color: #1D4ED8;
-            font-weight: bold;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Disabled Label */
-        .toggle-label.disabled {
-            pointer-events: none;
-            background-color: white;
-            color: #6B7280;
-            font-weight: bold;
-        }
-    </style>
-    
-    <script src="selected-language.js"></script>
-    <script src="navbar.js"></script>
-    
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            // Language toggle setup
-            const langThai = document.getElementById('lang-th');
-            const langEnglish = document.getElementById('lang-en');
-            const mainHeading = document.querySelector('h1');
-            const subHeading = document.querySelector('.text-3xl.font-bold.mb-6.text-center.text-blue-700');
-            const tableHeaders = document.querySelectorAll('thead th');
-            const backButton = document.querySelector('button[onclick="window.history.back()"]');
-            const navItems = document.querySelectorAll('#navList li a');
-
-            // Translations
-            const translations = {
-                thai: {
-                    pageTitle: 'ธุรกรรมทั้งหมด - Time Bank',
-                    mainHeading: 'ธุรกรรมทั้งหมด',
-                    subHeading: 'รายการกิจกรรมทั้งหมด',
-                    tableHeaders: ['รหัสกิจกรรม', 'ชื่อกิจกรรม', 'รายละเอียด', 'วันที่เริ่ม', 'วันที่สิ้นสุด', 'สถานะ', 'ชื่อผู้ขอ'],
-                    backButton: 'ย้อนกลับ',
-                    nav: [
-                        'โปรไฟล์',
-                        'หน้าหลัก',
-                        'รายงาน',
-                        'จัดการกิจกรรม',
-                        'จัดการสมาชิก',
-                        'จัดการหมวดหมู่ทักษะ',
-                        'จัดการกองทุนชุมชน',
-                        'จัดการชุมชน',
-                        'ธุรกรรมทั้งหมด'
-                    ],
-                    toggleLabels: ['ภาษาไทย', 'English']
-                },
-                english: {
-                    pageTitle: 'All Transactions - Time Bank',
-                    mainHeading: 'All Transactions',
-                    subHeading: 'All Activities',
-                    tableHeaders: ['Activity ID', 'Activity Title', 'Description', 'Start Date', 'End Date', 'Status', 'Requester Name'],
-                    backButton: 'Go Back',
-                    nav: [
-                        'Profile', 'Homepage',
-                        'Reports Overview',
-                        'Activities Management',
-                        'Members Management',
-                        'Skills Management',
-                        'Fund Management',
-                        'Community Management',
-                        'Transactions'
-                    ],
-                    toggleLabels: ['ภาษาไทย', 'English']
-                }
-            };
-
-            // Current language
-            let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
-
-            // Function to update language content
-            const updateContent = (lang) => {
-                const langData = translations[lang];
-
-                document.title = langData.pageTitle;
-                mainHeading.textContent = langData.mainHeading;
-                subHeading.textContent = langData.subHeading;
-
-                // Update table headers
-                tableHeaders.forEach((header, index) => {
-                    header.textContent = langData.tableHeaders[index];
-                });
-
-                // Update back button
-                backButton.textContent = langData.backButton;
-
-                // Update navigation items
-                const navLinks = document.querySelectorAll('nav ul li a');
-                langData.nav.forEach((text, index) => {
-                    if (navLinks[index]) {
-                        const icon = navLinks[index].querySelector('i');
-                        navLinks[index].innerHTML = '';
-                        if (icon) navLinks[index].appendChild(icon);
-                        navLinks[index].appendChild(document.createTextNode(text));
-                    }
-                });
-
-                // Update toggle labels
-                langThai.textContent = langData.toggleLabels[0];
-                langEnglish.textContent = langData.toggleLabels[1];
-
-                // Highlight active language
-                if (lang === 'thai') {
-                    langThai.classList.add('active');
-                    langEnglish.classList.remove('active');
-                } else {
-                    langEnglish.classList.add('active');
-                    langThai.classList.remove('active');
-                }
-
-                // Save language
-                localStorage.setItem('selectedLanguage', lang);
-            };
-
-            // Event listeners for language toggles
-            langThai.addEventListener('click', () => {
-                currentLang = 'thai';
-                updateContent(currentLang);
-            });
-
-            langEnglish.addEventListener('click', () => {
-                currentLang = 'english';
-                updateContent(currentLang);
-            });
-
-            // Initialize language
-            updateContent(currentLang);
-
-            // Sorting table functionality
-            function sortTable(column) {
-                if (sortColumn === column) {
-                    sortDirection = sortDirection === 'asc' ? 'desc' : 'asc';
-                } else {
-                    sortColumn = column;
-                    sortDirection = 'asc';
-                }
-
-                activities.sort((a, b) => {
-                    let aValue = a[column];
-                    let bValue = b[column];
-
-                    // Convert date strings to Date objects for comparison
-                    if (column === 'start_date' || column === 'end_date') {
-                        aValue = new Date(aValue);
-                        bValue = new Date(bValue);
-                    }
-
-                    if (aValue < bValue) {
-                        return sortDirection === 'asc' ? -1 : 1;
-                    }
-                    if (aValue > bValue) {
-                        return sortDirection === 'asc' ? 1 : -1;
-                    }
-                    return 0;
-                });
-
-                renderTable(activities);
-
-                // Update the sort icon
-                document.querySelectorAll('th.sortable i').forEach(icon => {
-                    icon.classList.remove('fa-sort-up', 'fa-sort-down');
-                    icon.classList.add('fa-sort');
-                });
-                const currentHeader = document.querySelector(`th[data-column="${column}"] i`);
-                if (currentHeader) {
-                    if (sortDirection === 'asc') {
-                        currentHeader.classList.remove('fa-sort');
-                        currentHeader.classList.add('fa-sort-up');
-                    } else {
-                        currentHeader.classList.remove('fa-sort');
-                        currentHeader.classList.add('fa-sort-down');
-                    }
-                }
-            }
-
-            document.querySelectorAll('th.sortable').forEach(header => {
-                header.addEventListener('click', () => {
-                    const column = header.getAttribute('data-column');
-                    sortTable(column);
-                });
-            });
-        });
-    </script>
-        <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-        <script src="notification.js"></script>
-    </body>
-    
-    </html>
+</html>
