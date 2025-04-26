@@ -133,9 +133,14 @@ const activityRoutes = (pool, io) => {
         }
 
         let whereClause = `
-            (a.requester_id = $1 OR ap.user_id = $1)
-            AND a.status != 'กำลังจะเริ่ม'
-        `;
+    (a.requester_id = $1 OR EXISTS (
+      SELECT 1 FROM activity_participants ap2 
+      WHERE ap2.activity_id = a.activity_id AND ap2.user_id = $1
+    ))
+    AND a.status IN ('เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา', 'ผู้เข้าร่วมไม่ครบ')
+`;
+
+
         const values = [userId];
         let idx = 2;
 
@@ -251,11 +256,11 @@ const activityRoutes = (pool, io) => {
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
-    
+
 
     // Create a new activity
     router.post('/', async (req, res) => {
-        const { 
+        const {
             title,
             description,
             location,
@@ -326,7 +331,7 @@ const activityRoutes = (pool, io) => {
         }
     });
 
-    
+
 
     // Update an activity
     router.put('/:id', async (req, res) => {
@@ -345,9 +350,9 @@ const activityRoutes = (pool, io) => {
                      requester_phone = $10, status = $11, time_tokens_required = $12, 
                      time_tokens_per_participant = $13, required_skills = $14
                  WHERE activity_id = $15 RETURNING *`,
-                [title, description, location, start_date, start_time, end_date, end_time, 
-                 max_participants, requester_id, requester_phone, status, 
-                 time_tokens_required, time_tokens_per_participant, required_skills, id]
+                [title, description, location, start_date, start_time, end_date, end_time,
+                    max_participants, requester_id, requester_phone, status,
+                    time_tokens_required, time_tokens_per_participant, required_skills, id]
             );
 
             res.json(result.rows[0]);
@@ -391,7 +396,7 @@ const activityRoutes = (pool, io) => {
     // Fetch participants for a given activity
     router.get('/:activityId/participants', async (req, res) => {
         const { activityId } = req.params;
-    
+
         try {
             const participants = await pool.query(`
                 SELECT u.user_id, u.name, u.phone,
@@ -406,15 +411,15 @@ const activityRoutes = (pool, io) => {
                 LEFT JOIN member_skills ms ON u.user_id = ms.user_id
                 WHERE ap.activity_id = $1
             `, [activityId]);
-    
+
             res.json(participants.rows);
         } catch (error) {
             console.error('Error fetching participants:', error);
             res.status(500).json({ error: 'Failed to fetch participants' });
         }
     });
-    
-    
+
+
 
     // Approve an activity
     router.post('/:activityId/approve', async (req, res) => {
@@ -493,7 +498,7 @@ const activityRoutes = (pool, io) => {
 
             await client.query('COMMIT');
             io.emit('activityUpdated', { activityId: Number(activityId) }); // ✅ emit after commit
-            res.json({ message: 'Activity approved successfully', activityId });            
+            res.json({ message: 'Activity approved successfully', activityId });
         } catch (err) {
             await client.query('ROLLBACK');
             console.error('Error approving activity:', err);
@@ -521,7 +526,7 @@ const activityRoutes = (pool, io) => {
         }
     });
 
-        // Cancel an activity by updating its status
+    // Cancel an activity by updating its status
     router.put('/:id/cancel', async (req, res) => {
         const { id } = req.params;
 
@@ -682,8 +687,10 @@ const activityRoutes = (pool, io) => {
                     ON a.activity_id = ap.activity_id AND ap.user_id = $1
                 LEFT JOIN skills s 
                     ON a.required_skills = s.skill_id
-                WHERE (a.requester_id = $1 OR ap.user_id = $1) 
-                AND a.status IN ('กำลังจะเริ่ม', 'กำลังทำกิจกรรม', 'รอผู้ขอยืนยันผล', 'รอการอนุมัติ')
+                WHERE (a.requester_id = $1 OR EXISTS (
+  SELECT 1 FROM activity_participants ap2 WHERE ap2.activity_id = a.activity_id AND ap2.user_id = $1
+))
+AND a.status IN ('กำลังทำกิจกรรม', 'รอผู้ขอยืนยันผล', 'รอการอนุมัติ', 'กำลังจะเริ่ม')
                 ORDER BY a.start_date DESC, a.start_time DESC
             `;
 
@@ -695,20 +702,59 @@ const activityRoutes = (pool, io) => {
         }
     });
 
-    
+    // New route: Get activities related to a user (requester or participant)
+    router.get('/related/:userId', async (req, res) => {
+        const { userId } = req.params;
+
+        if (isNaN(userId)) {
+            return res.status(400).json({ error: 'Invalid user ID' });
+        }
+
+        try {
+            const query = `
+SELECT 
+    a.*, 
+    COALESCE(r.name, '') AS requester_name,
+    s.name AS required_skill_name,
+    (
+        SELECT COUNT(*) 
+        FROM activity_participants ap2
+        WHERE ap2.activity_id = a.activity_id
+    ) AS current_participants,
+    CASE 
+        WHEN a.requester_id = $1 THEN 'requester'
+        WHEN ap.user_id IS NOT NULL THEN 'participant'
+        ELSE NULL
+    END AS role_in_activity
+FROM activities a
+LEFT JOIN users r ON a.requester_id = r.user_id
+LEFT JOIN skills s ON a.required_skills = s.skill_id
+LEFT JOIN activity_participants ap ON ap.activity_id = a.activity_id AND ap.user_id = $1
+WHERE (a.requester_id = $1 OR ap.user_id = $1)
+ORDER BY a.start_date DESC, a.start_time DESC
+`;
+
+
+            const result = await pool.query(query, [userId]);
+            res.json({ activities: result.rows });
+        } catch (err) {
+            console.error('Error fetching related activities:', err.message);
+            res.status(500).json({ error: 'An error occurred. Please try again.' });
+        }
+    });
 
     router.post('/:activityId/confirm-completion', async (req, res) => {
         const { activityId } = req.params;
         const { attendedUserIds } = req.body;
-    
+
         if (!Array.isArray(attendedUserIds) || attendedUserIds.length === 0) {
             return res.status(400).json({ error: 'ต้องเลือกผู้เข้าร่วมอย่างน้อย 1 คน' });
         }
-    
+
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
-    
+
             // Update activity status to 'รอการอนุมัติ' only if current status is 'รอผู้ขอยืนยันผล'
             const updateResult = await client.query(`
                 UPDATE activities 
@@ -716,12 +762,12 @@ const activityRoutes = (pool, io) => {
                 WHERE activity_id = $1 AND status = 'รอผู้ขอยืนยันผล'
                 RETURNING *
             `, [activityId]);
-    
+
             if (updateResult.rowCount === 0) {
                 await client.query('ROLLBACK');
                 return res.status(400).json({ error: 'ไม่สามารถยืนยันผลได้ เนื่องจากสถานะกิจกรรมไม่ถูกต้อง' });
             }
-    
+
             // Mark attended participants
             for (let userId of attendedUserIds) {
                 await client.query(`
@@ -730,7 +776,7 @@ const activityRoutes = (pool, io) => {
                     WHERE activity_id = $1 AND user_id = $2
                 `, [activityId, userId]);
             }
-    
+
             await client.query('COMMIT');
             res.status(200).json({ message: 'กิจกรรมถูกยืนยันผลเรียบร้อยแล้ว และรอการอนุมัติ' });
         } catch (err) {
@@ -745,26 +791,26 @@ const activityRoutes = (pool, io) => {
     // Route: manager approves confirmed activity
     router.post('/:activityId/manager-approve', async (req, res) => {
         const { activityId } = req.params;
-    
+
         const client = await pool.connect();
         try {
             await client.query('BEGIN');
-    
+
             const activityRes = await client.query(
                 `SELECT * FROM activities WHERE activity_id = $1`,
                 [activityId]
             );
-    
+
             if (activityRes.rowCount === 0) {
                 throw new Error('Activity not found');
             }
-    
+
             const activity = activityRes.rows[0];
-    
+
             if (!activity.confirmation_pending || new Date() > new Date(activity.confirmation_deadline)) {
                 return res.status(400).json({ error: 'Confirmation deadline has passed or activity is not pending approval.' });
             }
-    
+
             await client.query(
                 `UPDATE activities 
                  SET status = 'เสร็จสิ้น',
@@ -773,7 +819,7 @@ const activityRoutes = (pool, io) => {
                  WHERE activity_id = $1`,
                 [activityId]
             );
-    
+
             await client.query('COMMIT');
             res.json({ message: 'Activity approved by manager and marked as เสร็จสิ้น.' });
         } catch (err) {
@@ -814,7 +860,7 @@ const activityRoutes = (pool, io) => {
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
-        
+
 
 
     return router;

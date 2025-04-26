@@ -51,7 +51,7 @@
         }
 
         async function fetchActivityHistory(role = '') {
-            const userId = parseInt(localStorage.getItem('user_id'));
+            const userId = userProfile?.user_id;
 
             if (!userId) {
                 alert('User ID not found. Please log in again.');
@@ -370,11 +370,37 @@
             document.getElementById('end-minutes').innerHTML = minuteOptions;
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
-            fetchSkillsAndCategories();
-            populateTimeDropdowns();
-            fetchActivityHistory();
-        });
+        let userProfile = null;
+
+            async function fetchUserProfile() {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/user/auth/profile/`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    if (!response.ok) throw new Error('Failed to fetch user profile');
+                    userProfile = await response.json();
+                    console.log('User Profile fetched:', userProfile);
+
+                    // เซฟ user_id ลง localStorage ตรงนี้
+                    if (userProfile && userProfile.user_id) {
+                        localStorage.setItem('user_id', userProfile.user_id);
+                    }
+
+                } catch (error) {
+                    console.error('Error fetching user profile:', error);
+                    alert('Error fetching user profile. Please login again.');
+                }
+            }
+
+        window.addEventListener('DOMContentLoaded', async () => {
+                await fetchUserProfile();    // << ต้องรอ fetch profile ให้เสร็จก่อน
+                fetchSkillsAndCategories();
+                populateTimeDropdowns();
+                fetchActivityHistory();      // << ค่อย fetchActivityHistory หลัง profile พร้อม
+            });
+
     </script>
 </head>
 
@@ -591,6 +617,33 @@
             </div>
         </div>
     </div>
+    <script src="noti.js"></script>
+    
+    <style>
+        #notification-bell:hover i {
+            color: #ffcc00;
+        }
+    
+        #notification-panel {
+            right: 0;
+        }
+    
+        @keyframes slide-in {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+    
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    
+        .animate-slide-in {
+            animation: slide-in 0.3s ease-out;
+        }
+    </style>
 </body>
 
 </html>
