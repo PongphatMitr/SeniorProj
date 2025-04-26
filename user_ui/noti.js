@@ -6,6 +6,16 @@ let inactiveUnifiedNotifications = [];
 let clearedInactiveUnifiedIds = JSON.parse(localStorage.getItem('clearedInactiveUnifiedIds') || '[]');
 let clearedUnifiedIds = JSON.parse(localStorage.getItem('clearedUnifiedIds') || '[]');
 
+// 🛠 เพิ่มตรงนี้
+const socket = io('http://localhost:3000');
+
+socket.on('new-notification', (data) => {
+  console.log('📥 New notification received:', data);
+  // จากนั้นค่อย fetch ข้อมูลใหม่ หรือ update notification panel ก็ได้
+  fetchAndCheckNotifications();
+  fetchAndCheckInactiveUnifiedNotifications();
+  fetchAndCheckStatusChangeNotifications();
+});
 
 const statusColor = {
   'กำลังจะเริ่ม': 'bg-blue-500',
@@ -332,9 +342,15 @@ function renderNotificationPanel() {
     }
   };
 
+  // หมวด 1: กิจกรรมของฉันที่กำลังดำเนินอยู่
   renderGroup('กิจกรรมของฉันที่กำลังดำเนินอยู่', unifiedUnreadActive, 'active');
+
+  // 🛠 แก้แบบนี้
   renderGroup('การเปลี่ยนแปลงของกิจกรรม', [...statusChangeUnread, ...statusChangeRead], 'statuschange');
+
+  // ส่วนหมวดอื่น ๆ (others) เอาแค่ unified เท่านั้น
   renderGroup('กิจกรรมอื่น ๆ ทั้งหมด', [...unifiedUnreadInactive, ...unifiedReadInactive], 'others');
+
 
   count.textContent = unread;
   count.classList.toggle('hidden', unread === 0);
@@ -594,19 +610,27 @@ async function fetchAndCheckInactiveUnifiedNotifications() {
 async function fetchAndCheckStatusChangeNotifications() {
   if (!token || !userId) return;
 
-  console.log('🟡 [Notification] Fetching ongoing activities for status change checks...');
+  console.log('🟡 [Notification] Fetching activities (ongoing + history) for status change checks...');
 
   try {
-    const res = await fetch(`http://localhost:3000/api/user/activities/ongoing/${userId}`, {
+    // ดึง ongoing
+    const resOngoing = await fetch(`http://localhost:3000/api/user/activities/ongoing/${userId}`, {
       headers: { Authorization: `Bearer ${token}` }
     });
-    if (!res.ok) return;
-    const data = await res.json();
+    if (!resOngoing.ok) return;
+    const dataOngoing = await resOngoing.json();
 
-    let all = data.activities;
+    // ดึง history
+    const resHistory = await fetch(`http://localhost:3000/api/user/activities/history/${userId}`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!resHistory.ok) return;
+    const dataHistory = await resHistory.json();
 
-    console.log(`🟡 [Notification] Fetched ${all.length} activities for status change check.`);
+    let all = [...dataOngoing.activities, ...dataHistory.activities];
+    console.log(`🟡 [Notification] Fetched ${all.length} activities total for status change check.`);
 
+    // ดึงข้อมูล participants ให้ครบ
     for (let act of all) {
       const resP = await fetch(`http://localhost:3000/api/user/activities/${act.activity_id}/participants`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -622,33 +646,20 @@ async function fetchAndCheckStatusChangeNotifications() {
       const currentStatus = act.status;
       const previousStatus = prevStatus[act.activity_id];
 
-      if (previousStatus && previousStatus !== currentStatus && isValidStatusTransition(previousStatus, currentStatus)) {
+      if (previousStatus && previousStatus !== currentStatus) {
         const alreadyExists = localStatusChangeNotis.some(n =>
           n.activity_id === act.activity_id &&
           n.prevStatus === previousStatus &&
           n.status === currentStatus
         );
 
-        if (!alreadyExists && !['เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา', 'ผู้เข้าร่วมไม่ครบ'].includes(currentStatus)) {
+        if (!alreadyExists) {
           const noti = createStatusChangeNotification(act, previousStatus, currentStatus);
           localStatusChangeNotis.push(noti);
-        }
-
-        if (['เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา', 'ผู้เข้าร่วมไม่ครบ'].includes(currentStatus)) {
-          const noti = createStatusChangeNotification(act, previousStatus, currentStatus);
-          localStatusChangeNotis.push(noti);
-          delete prevStatus[act.activity_id];
         }
       }
 
       prevStatus[act.activity_id] = currentStatus;
-    }
-
-    const inactiveStatuses = ['เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา', 'ผู้เข้าร่วมไม่ครบ'];
-    for (const act of related) {
-      if (inactiveStatuses.includes(act.status)) {
-        delete prevStatus[act.activity_id];
-      }
     }
 
     localStorage.setItem('statusChangeNotifications', JSON.stringify(localStatusChangeNotis));
@@ -771,21 +782,41 @@ function setupNotificationEvents() {
 
 document.addEventListener('DOMContentLoaded', async () => {
   const token = localStorage.getItem('token');
-  if (!token) return;  // ถ้าไม่มี token เลยไม่ต้องทำอะไร
+  if (!token) return;
 
   try {
-    const res = await fetch(`http://localhost:3000/api/user/auth/profile/`, {
+    const res = await fetch(`http://localhost:3000/api/server-info`);
+    const { bootTimestamp } = await res.json();
+
+    const savedBootTimestamp = localStorage.getItem('server_boot_timestamp');
+
+    if (!savedBootTimestamp || parseInt(savedBootTimestamp) !== bootTimestamp) {
+      console.log('🔄 Detected server restart. Clearing localStorage related to notifications...');
+
+      // ✅ เคลียร์เฉพาะพวกที่เกี่ยวข้อง
+      localStorage.removeItem('notifications');
+      localStorage.removeItem('statusChangeNotifications');
+      localStorage.removeItem('inactiveUnifiedNotifications');
+      localStorage.removeItem('clearedUnifiedIds');
+      localStorage.removeItem('clearedInactiveUnifiedIds');
+      localStorage.removeItem('activityPrevStatuses');
+
+      // เซฟ bootTimestamp ใหม่
+      localStorage.setItem('server_boot_timestamp', bootTimestamp);
+    }
+
+    const profileRes = await fetch(`http://localhost:3000/api/user/auth/profile/`, {
       headers: { Authorization: `Bearer ${token}` }
     });
-    if (!res.ok) throw new Error('Failed to fetch profile');
+    if (!profileRes.ok) throw new Error('Failed to fetch profile');
 
-    const profile = await res.json();
+    const profile = await profileRes.json();
     const userId = profile.user_id;
-    localStorage.setItem('user_id', userId); // เผื่อใช้ต่อที่อื่น
+    localStorage.setItem('user_id', userId);
 
-    setupNotifications(token, userId);  // 🛠️ ส่ง token, userId เข้าไปด้วย
+    setupNotifications(token, userId);
 
   } catch (error) {
-    console.error('Error loading profile for notifications:', error);
+    console.error('Error during server boot check or loading profile:', error);
   }
 });

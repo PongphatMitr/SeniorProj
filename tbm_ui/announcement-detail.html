@@ -59,9 +59,6 @@
                             อาสาเพื่อนรับฟังเยี่ยมเยียนยาย เพื่อผู้สูงอายุในชุมชนยามไร้ วันที่ 16 พ.ย. 2567 ที่
                             ชุมชนภูมิใจ
                         </h2>
-                        <p class="text-gray-600 mb-2" id="announcementProject">
-                            โครงการพลเมืองอาสามูลนิธิอาสาสมัครเพื่อสังคม
-                        </p>
                         <p class="mb-2" id="announcementDate">
                             <i class="fas fa-calendar-alt">
                             </i>
@@ -196,7 +193,6 @@
             const announcementDescription = document.getElementById('announcementDescription');
             const announcementImage = document.getElementById('announcementImage');
             const announcementTitleDetail = document.getElementById('announcementTitleDetail');
-            const announcementProject = document.getElementById('announcementProject');
             const announcementDate = document.getElementById('announcementDate');
             const announcementBranch = document.getElementById('announcementBranch');
 
@@ -257,7 +253,6 @@
                         if (announcementTitle) announcementTitle.textContent = data.title || '';
                         if (announcementDescription) announcementDescription.textContent = data.description || '';
                         if (announcementTitleDetail) announcementTitleDetail.textContent = data.title || '';
-                        if (announcementProject) announcementProject.textContent = data.project_name || '';
                         if (announcementBranch) announcementBranch.textContent = data.branch_name || '';
                         if (announcementDate) announcementDate.innerHTML = `<i class="fas fa-calendar-alt"></i> ${new Date(data.date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}`;
 

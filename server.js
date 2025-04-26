@@ -11,6 +11,29 @@ const cron = require('node-cron');
 const http = require('http');
 const { Server } = require('socket.io');
 
+dotenv.config();
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: '*', // Allow all origins or restrict to your frontend
+        methods: ['GET', 'POST', 'PUT', 'DELETE']
+    }
+});
+
+const serverBootTimestamp = Date.now();
+
+// Enable CORS
+app.use(cors());
+
+// Middleware to parse JSON bodies
+app.use(express.json());
+
+app.get('/api/server-info', cors(), (req, res) => {
+    res.json({ bootTimestamp: serverBootTimestamp });
+});
+
 cron.schedule('* * * * *', async () => {
     console.log("🔄 Checking and updating activity statuses...");
     const client = await pool.connect();
@@ -56,7 +79,10 @@ cron.schedule('* * * * *', async () => {
 
 
         await client.query('COMMIT');
+
         console.log("✅ Updated all relevant activity statuses.");
+        io.emit('new-notification', { message: 'Activity updated' });
+
     } catch (err) {
         await client.query('ROLLBACK');
         console.error("❌ Error during CRON job:", err.message);
@@ -65,17 +91,6 @@ cron.schedule('* * * * *', async () => {
     }
 });
 
-
-dotenv.config();
-
-const app = express();
-const server = http.createServer(app);
-const io = new Server(server, {
-    cors: {
-        origin: '*', // Allow all origins or restrict to your frontend
-        methods: ['GET', 'POST', 'PUT', 'DELETE']
-    }
-});
 app.set('io', io); // So routes can use it like req.app.get('io')
 
 const port = process.env.PORT || 3000;
@@ -93,12 +108,6 @@ pool.on('error', (err) => {
     console.error('Unexpected error on idle client', err);
     process.exit(-1);
 });
-
-// Middleware to parse JSON bodies
-app.use(express.json());
-
-// Enable CORS
-app.use(cors());
 
 // Use the TBM and User routes
 app.use('/api/tbm', tbmRoutes(pool, io));
