@@ -10,8 +10,19 @@
         let globalUserId = null; // Global variable to store user_id
 
         document.addEventListener('DOMContentLoaded', () => {
-            fetchMemberProfile();
+            fetchMemberProfile(); // โหลดโปรไฟล์
+        
+            // ย้ายมาไว้ตรงนี้
+            const confirmSuccessBtn = document.getElementById('confirm-success-btn');
+            if (confirmSuccessBtn) {
+                confirmSuccessBtn.addEventListener('click', function () {
+                    const modal = document.getElementById('success-modal');
+                    modal.classList.remove('opacity-100', 'scale-100');
+                    setTimeout(() => modal.classList.add('hidden'), 300);
+                });
+            }
         });
+        
 
         async function fetchMemberProfile() {
             try {
@@ -67,11 +78,15 @@
             document.getElementById('member-name').textContent = member.name || 'N/A';
             document.getElementById('member-phone').textContent = member.phone || 'N/A';
             document.getElementById('member-address').textContent = member.address || 'N/A';
-            document.getElementById('member-branch').textContent = member.branch || 'N/A'; // ใช้ค่าที่ได้จาก fetchBranchName
+            document.getElementById('member-branch').textContent = member.branch || 'N/A';
             document.getElementById('member-time-credits').textContent = member.time_credits || 'N/A';
             document.getElementById('member-status').textContent = member.status === 'active' ? 'ปกติ' : 'ไม่ปกติ';
+            
+            // 🆕 Safe check for Role & Email
+            document.getElementById('member-role').textContent = member.role || 'N/A';
+            document.getElementById('member-email').textContent = (member.email && member.email.trim() !== '') ? member.email : 'N/A';
         }
-
+        
         let originalData = {}; // To store the old data
 
         function enableEditing() {
@@ -79,42 +94,40 @@
                 alert('User ID not available. Please refresh the page.');
                 return;
             }
-
-            const fields = ['member-name', 'member-phone', 'member-address'];
+        
+            const fields = ['member-name', 'member-phone', 'member-address', 'member-email']; // 🆙 เพิ่ม member-email เข้าไป
             originalData = {}; // Clear previous data
-
+        
             fields.forEach(field => {
                 const element = document.getElementById(field);
                 originalData[field] = element.textContent;
-
+        
                 let input;
                 if (field === 'member-address') {
-                    // Use textarea for address to support multiple lines
                     input = document.createElement('textarea');
-                    input.rows = 4; // Adjust height of the textarea
+                    input.rows = 4;
                     input.className = 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline resize-none';
                 } else {
-                    // Keep using input for name and phone
                     input = document.createElement('input');
                     input.type = 'text';
                     input.className = 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
                 }
-
-                input.value = element.textContent;
+        
+                input.value = element.textContent === 'N/A' ? '' : element.textContent;
                 element.parentNode.replaceChild(input, element);
                 input.id = field;
             });
-
+        
             const editButton = document.getElementById('edit-button');
             const backButton = document.getElementById('back-button');
-
+        
             editButton.textContent = 'บันทึก';
             editButton.onclick = saveChanges;
-
+        
             backButton.style.display = 'inline-block';
             backButton.onclick = () => revertChanges(fields);
         }
-
+        
 
         function revertChanges(fields) {
             fields.forEach(field => {
@@ -137,44 +150,47 @@
             backButton.style.display = 'none';
         }
 
-        function saveChanges() {
+        async function saveChanges() {
             const fullName = document.getElementById('member-name').value.trim();
             const phone = document.getElementById('member-phone').value.trim();
             const address = document.getElementById('member-address').value.trim();
-
-            // Validate name (must include at least two words)
+            const emailInput = document.getElementById('member-email').value.trim();
+            const email = emailInput === '' ? null : emailInput;
+        
             if (fullName.split(' ').length < 2) {
                 showErrorMessage('กรุณากรอกชื่อและนามสกุลให้ครบถ้วน');
                 return;
             }
-
-            // Validate Thai phone number (must start with 0 and be 10 digits)
+        
             const phoneRegex = /^0[0-9]{9}$/;
             if (!phoneRegex.test(phone)) {
                 showErrorMessage('กรุณากรอกหมายเลขโทรศัพท์ให้ถูกต้อง (10 หลักและขึ้นต้นด้วย 0)');
                 return;
             }
-
-            // Validate address: must contain "ลพบุรี"
+        
             const addressRegex = /ลพบุรี/;
             if (!addressRegex.test(address)) {
-                showErrorMessage('กรุณากรอกที่อยู่โดยต้องมีคำว่า "ลพบุรี" อยู่ในที่อยู่');
+                showErrorMessage('กรุณากรอกที่อยู่โดยต้องมีคำว่า "ลพบุรี"');
                 return;
             }
-
-            // เปิด Modal ยืนยันการเปลี่ยนแปลง
+        
+            if (email !== null && !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
+                showErrorMessage('กรุณากรอกอีเมลให้ถูกต้อง');
+                return;
+            }
+        
             document.getElementById('confirm-change-modal').classList.remove('hidden');
-
-            // ถ้าผู้ใช้กด "ตกลง"
+        
             document.getElementById('confirm-save-btn').onclick = async function () {
                 document.getElementById('confirm-change-modal').classList.add('hidden');
-
-                const member = {
+        
+                const updatedData = {
                     name: fullName,
                     phone: phone,
-                    address: address
+                    address: address,
+                    email: email
                 };
-
+        
                 try {
                     const response = await fetch('http://localhost:3000/api/user/auth/profile', {
                         method: 'PUT',
@@ -182,28 +198,23 @@
                             'Content-Type': 'application/json',
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
                         },
-                        body: JSON.stringify(member)
+                        body: JSON.stringify(updatedData)
                     });
-
+        
                     if (response.ok) {
+                        const updatedMember = await response.json();
                         showSuccessMessage('บันทึกข้อมูลโปรไฟล์สำเร็จแล้ว!');
-                        renderMemberProfile(member);
-
-                        const fields = ['member-name', 'member-phone', 'member-address'];
-                        fields.forEach(field => {
-                            const element = document.getElementById(field);
-                            const p = document.createElement('p');
-                            p.textContent = element.value;
-                            p.className = 'text-gray-700 text-lg';
-                            element.parentNode.replaceChild(p, element);
-                            p.id = field;
-                        });
-
-                        document.getElementById('edit-button').textContent = 'แก้ไข';
-                        document.getElementById('edit-button').onclick = enableEditing;
-                        document.getElementById('back-button').style.display = 'none';
-
-                        fetchMemberProfile();
+        
+                        resetToNormalView(); // 🛠 ต้อง reset ก่อน
+                        renderMemberProfile(updatedMember); // 🛠 แล้วค่อย render ค่าใหม่
+        
+                        const editButton = document.getElementById('edit-button');
+                        const backButton = document.getElementById('back-button');
+        
+                        editButton.textContent = 'แก้ไข';
+                        editButton.onclick = enableEditing;
+                        backButton.style.display = 'none';
+        
                     } else {
                         const errorData = await response.json();
                         showErrorMessage(`เกิดข้อผิดพลาดในการบันทึกข้อมูล: ${errorData.error || 'ไม่ทราบสาเหตุ'}`);
@@ -212,30 +223,58 @@
                     showErrorMessage('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
                 }
             };
-
-            // ถ้าผู้ใช้กด "ยกเลิก"
+        
             document.getElementById('cancel-save-btn').onclick = function () {
                 document.getElementById('confirm-change-modal').classList.add('hidden');
             };
         }
-
-
+        
         function showSuccessMessage(message) {
             document.getElementById('success-message').textContent = message;
             const modal = document.getElementById('success-modal');
             modal.classList.remove('hidden');
-            setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
+        
+            // Animate opening
+            setTimeout(() => {
+                modal.classList.add('opacity-100', 'scale-100');
+            }, 50);
+        
+            const confirmSuccessBtn = document.getElementById('confirm-success-btn');
+            if (confirmSuccessBtn) {
+                // Reset previous event first (ป้องกัน double click หลายครั้ง)
+                confirmSuccessBtn.onclick = function () {
+                    modal.classList.remove('opacity-100', 'scale-100');
+                    setTimeout(() => modal.classList.add('hidden'), 300);
+                };
+            }
+        
+            // Auto close after 3s (optional)
+            setTimeout(() => {
+                modal.classList.remove('opacity-100', 'scale-100');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+            }, 3000);
         }
-
+        
         function showErrorMessage(message) {
             alert(message); // สามารถเปลี่ยนเป็น Modal error ได้ถ้าต้องการ
         }
 
-        document.getElementById('confirm-success-btn').addEventListener('click', function () {
-            const modal = document.getElementById('success-modal');
-            modal.classList.remove('opacity-100', 'scale-100');
-            setTimeout(() => modal.classList.add('hidden'), 300);
-        });
+        function resetToNormalView() {
+            const fields = ['member-name', 'member-phone', 'member-address', 'member-email'];
+            fields.forEach(field => {
+                const element = document.getElementById(field);
+                if (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA') {
+                    const p = document.createElement('p');
+                    p.textContent = element.value.trim() === '' ? 'N/A' : element.value.trim();
+                    p.className = 'text-gray-700 text-lg';
+                    element.parentNode.replaceChild(p, element);
+                    p.id = field;
+                }
+            });
+        }
+
     </script>
     <script src="navbar.js"></script>
 </head>
@@ -273,6 +312,14 @@
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="member-phone">เบอร์โทร:</label>
                         <p class="text-gray-700 text-lg" id="member-phone"></p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="member-email">อีเมล:</label>
+                        <p class="text-gray-700 text-lg" id="member-email"></p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="member-role">บทบาท:</label>
+                        <p class="text-gray-700 text-lg" id="member-role"></p>
                     </div>
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="member-address">ที่อยู่:</label>
