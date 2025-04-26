@@ -264,10 +264,11 @@
             });
         });
 
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchMemberProfile(); // ← Add this
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchProfile();  // ✅ เรียกชื่อให้ตรงกับที่เขียน
             fetchTransactions();
         });
+        
         
     </script>
 </head>
@@ -354,32 +355,31 @@
         </div>
     </div>
     <script>
-        async function fetchMemberProfile() {
+        async function fetchProfile() {
             try {
+                const token = localStorage.getItem('token');
                 const response = await fetch('http://localhost:3000/api/user/auth/profile', {
-                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    headers: { 'Authorization': `Bearer ${token}` }
                 });
+                if (!response.ok) {
+                    throw new Error('Failed to fetch profile');
+                }
+                const profileData = await response.json();
+                localStorage.setItem('profileData', JSON.stringify(profileData));
         
-                if (!response.ok) throw new Error('Failed to fetch user profile');
+                // ✅ เพิ่มบรรทัดนี้ เพื่อเก็บ user_id แยกด้วย
+                localStorage.setItem('user_id', profileData.user_id);
         
-                const data = await response.json();
-                globalUserId = data.user_id;
-        
-                document.getElementById('userName').innerText = data.name;
-                document.getElementById('userBalance').innerText = `${data.time_credits} ชั่วโมง`;
-                document.getElementById('userId').innerText = `เลขที่บัญชี: ${data.user_id}`;
-        
-                const balanceElement = document.getElementById('userBalance');
-                balanceElement.style.color = data.time_credits > 0 ? "#32CD32" :
-                    data.time_credits < 0 ? "red" : "gray";
-        
+                return profileData;
             } catch (error) {
-                console.error('Error fetching member profile:', error);
+                console.error('Error fetching profile:', error);
+                return null;
             }
         }
         
         
     </script>
+    
 </body>
 
 </html>

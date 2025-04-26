@@ -141,45 +141,74 @@
                 row.id = `row-${index + 1}`;
                 row.className = 'hover:bg-gray-100';
                 row.innerHTML = `
-                    <td aria-colindex="1" data-label="กิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${activity.title}
-                    </td>
-                    <td aria-colindex="2" data-label="วันที่" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${formatDate(activity.start_date)}
-                    </td>
-                    <td aria-colindex="3" data-label="สถานะ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        <span class="py-1 px-2 rounded ${statusColor} text-white">${activity.status}</span>
-                    </td>
-                    <td aria-colindex="4" data-label="จำนวนผู้เข้าร่วม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${activity.current_participants} / ${activity.max_participants}
-                    </td>
-                    <td aria-colindex="5" data-label="การจัดการ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        <a href="activity-details.html?id=${activity.activity_id}" class="bg-blue-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline">รายละเอียด</a>
+                <td class="py-2 px-4 border-b border-gray-200 font-semibold text-center align-middle">
+                    <span class="${activity.activity_type === 'exchange' ? 'text-lime-500' : 'text-gray-400'} font-semibold">
+                        ${activity.activity_type === 'exchange' ? 'มีเครดิต' : 'ไม่มีเครดิต'}
+                    </span>
+                </td>
+                <td class="py-2 px-4 border-b border-gray-200 align-middle">${activity.title}</td>
+                <td class="py-2 px-4 border-b border-gray-200 align-middle">${activity.required_skill_name || '-'}</td>
+                <td class="py-2 px-4 border-b border-gray-200">
+                <div class="text-gray-800 leading-snug">
+                    <div>${formatDate(activity.start_date)}</div>
+                    <div class="text-gray-600 text-[15px]">${formatTime(activity.start_time)} - ${formatTime(activity.end_time)}</div>
+                </div>
+                </td>
+                <td class="py-2 px-2 border-b border-gray-200 text-left">
+                <div class="flex justify-start">
+                    <span class="inline-block px-3 py-1 rounded-md text-white font-medium text-base ${statusColor}">
+                    ${activity.status}
+                    </span>
+                </div>
+                </td>
+                <td class="py-2.5 px-4 border-b border-gray-200 text-center text-[16px] font-medium">
+                ${activity.current_participants} / ${activity.max_participants}
+                </td>
+                <td class="py-2 px-4 border-b border-gray-200 text-center text-center">
+                    <div class="flex justify-center items-center gap-2 whitespace-nowrap">
+                        <a href="activity-details.html?id=${activity.activity_id}"
+                        class="bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-1.5 px-4 rounded-full whitespace-nowrap">
+                        รายละเอียด
+                        </a>
                         ${
-                            activity.status === 'รอการอนุมัติ'
-                                ? `<button class="bg-green-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
-                                    onclick="window.location.href='activity-approval.html?id=${activity.activity_id}'">อนุมัติ</button>`
-                                : (activity.status === 'รอผู้ขอยืนยันผล'
-                                    ? `<span class="text-yellow-600 font-semibold">รอการยืนยันจากผู้ขอ</span>`
-                                    : '')
-                        }   
-                        <button class="bg-red-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
-                            onclick="confirmAndRemove(event, 'row-${index + 1}', ${activity.activity_id})">ลบ</button>
+                        activity.status === 'รอการอนุมัติ'
+                        ? `<a href="activity-approval.html?id=${activity.activity_id}"
+                            class="bg-yellow-400 hover:bg-yellow-500 text-white text-sm font-semibold py-1.5 px-4 rounded-full whitespace-nowrap">
+                            รอการอนุมัติ
+                            </a>`
+                        : activity.status === 'รอผู้ขอยืนยันผล'
+                            ? `<span class="text-yellow-500 text-sm font-semibold whitespace-nowrap">รอการยืนยันจากผู้ขอ</span>`
+                            : ``
+                        }
+                        <button onclick="confirmAndRemove(event, 'row-${index + 1}', ${activity.activity_id})"
+                        class="bg-red-500 hover:bg-red-600 text-white text-sm font-semibold py-1.5 px-4 rounded-full whitespace-nowrap">
+                        ลบ
+                        </button>
+                    </div>
                     </td>
-                `;
-        
+
+              `;
+              
                 tbody.appendChild(row);
             });
         }
 
         function formatDate(dateString) {
             const date = new Date(dateString);
-            const year = date.getFullYear() + 543; // Convert to Buddhist year
+            const year = date.getFullYear() + 543; // พ.ศ.
             const monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
             const month = monthNames[date.getMonth()];
             const day = date.getDate();
-            return `<span class="day-part">${day}</span> <span class="month-year-part">${month}</span> <span class="month-year-part">${year}</span>`;
+            return `${day} ${month} ${year}`;
         }
+        
+        function formatTime(timeString) {
+            if (!timeString) return '';
+            const [hour, minute] = timeString.split(':');
+            return `${hour}.${minute} น.`;
+        }
+        
+          
 
         function sortTable(column, type) {
             const order = sortOrder[column] === 'asc' ? 'desc' : 'asc';
@@ -325,33 +354,19 @@
                     <div class="table-responsive-sm">
                         <table role="table" aria-busy="false" aria-colcount="5"
                             class="table b-table b-table-stacked-md w-full">
-                            <thead role="rowgroup" class="bg-gray-100">
-                                <tr role="row">
-                                    <th role="columnheader" scope="col" aria-colindex="1"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
-                                        onclick="sortTable('title', 'string')">
-                                        กิจกรรม <i class="fas fa-sort"></i>
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="2"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
-                                        onclick="sortTable('start_date', 'date')">
-                                        วันที่ <i class="fas fa-sort"></i>
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="3"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600 cursor-pointer"
-                                        onclick="sortTable('status', 'string')">
+                            <thead class="bg-gray-100">
+                                <tr class="h-16 text-gray-600 text-sm font-semibold">
+                                    <th class="px-4 py-2 text-center w-[10%]">ประเภท</th>
+                                    <th class="px-4 py-2 text-left w-[30%] cursor-pointer" onclick="sortTable('title', 'string')">กิจกรรม <i class="fas fa-sort"></i></th>
+                                    <th class="px-4 py-2 text-left w-[18%]">ทักษะที่ต้องการ</th>
+                                    <th class="px-4 py-2 text-left w-[20%] cursor-pointer" onclick="sortTable('start_date', 'date')">ช่วงเวลา <i class="fas fa-sort"></i></th>
+                                    <th class="pl-4 pr-2 py-2 text-left font-semibold text-gray-600 w-[16%] cursor-pointer" onclick="sortTable('status', 'string')">
                                         สถานะ <i class="fas fa-sort"></i>
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="4"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                        จำนวนผู้เข้าร่วม
-                                    </th>
-                                    <th role="columnheader" scope="col" aria-colindex="5"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600">
-                                        การจัดการ
-                                    </th>
+                                    </th>                                                                      
+                                    <th class="px-2 py-2 text-center w-[10%]">ผู้เข้าร่วม</th>
+                                    <th class="px-4 py-2 text-center w-[20%]">การจัดการ</th>
                                 </tr>
-                            </thead>
+                            </thead>                                                     
                             <tbody id="activity-tbody" role="rowgroup">
                                 <!-- Activities will be dynamically inserted here -->
                             </tbody>

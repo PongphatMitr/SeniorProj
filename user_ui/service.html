@@ -117,21 +117,6 @@
             });
         }
 
-        function formatDateShort(dateString) {
-            const date = new Date(dateString);
-            const day = date.getDate().toString().padStart(2, '0');
-            const month = (date.getMonth() + 1).toString().padStart(2, '0');
-            const year = (date.getFullYear() + 543).toString(); // Buddhist year
-            return `${day}/${month}/${year}`;
-        }
-        
-        function formatTimeShort(timeString) {
-            if (!timeString) return '-';
-            const [hour, minute] = timeString.split(':');
-            return `${hour.padStart(2, '0')}:${minute.padStart(2, '0')} น.`;
-        }
-         
-
         function renderTable(data) {
             const tbody = document.getElementById('activity-tbody');
             tbody.innerHTML = '';
@@ -211,18 +196,18 @@
                 <td class="py-2 px-4 border-b border-gray-200 align-middle">${activity.title}</td>
                 <td class="py-2 px-4 border-b border-gray-200 align-middle">${activity.required_skill_name || '-'}</td>
                 <td class="py-2 px-4 border-b border-gray-200">
-                    <div class="text-sm leading-snug text-gray-800">
-                        <div>${formatDateShort(activity.start_date)}</div>
-                        <div class="text-gray-500">(${formatTimeShort(activity.start_time)} - ${formatTimeShort(activity.end_time)})</div>
-                    </div>
+                <div class="text-gray-800 leading-snug">
+                    <div>${formatDate(activity.start_date)}</div>
+                    <div class="text-gray-600 text-[15px]">${formatTime(activity.start_time)} - ${formatTime(activity.end_time)}</div>
+                </div>
                 </td>
                 <td class="py-2 px-4 border-b border-gray-200 text-center text-center">
                     <span class="inline-block px-3 py-1 rounded-md text-white font-medium text-base ${statusColor}">
                         ${activity.status}
                     </span>
                 </td>
-                <td class="py-2 px-4 border-b border-gray-200 text-center text-center">
-                    <span id="participants-${index}">${activity.current_participants}</span> / ${activity.max_participants}
+                <td class="py-2.5 px-4 border-b border-gray-200 text-center text-[16px] font-medium">
+                ${activity.current_participants} / ${activity.max_participants}
                 </td>
                 <td class="py-2 px-4 border-b border-gray-200 text-center text-center">
                     <a href="${isRequester ? 'myactivity-details.html' : 'activity-details.html'}?id=${activity.activity_id}"
@@ -250,12 +235,19 @@
         
         function formatDate(dateString) {
             const date = new Date(dateString);
-            const year = date.getFullYear() + 543; // Convert to Buddhist year
+            const year = date.getFullYear() + 543; // พ.ศ.
             const monthNames = ["มกราคม", "กุมภาพันธ์", "มีนาคม", "เมษายน", "พฤษภาคม", "มิถุนายน", "กรกฎาคม", "สิงหาคม", "กันยายน", "ตุลาคม", "พฤศจิกายน", "ธันวาคม"];
             const month = monthNames[date.getMonth()];
             const day = date.getDate();
-            return `<span class="day-part">${day}</span> <span class="month-year-part">${month}</span> <span class="month-year-part">${year}</span>`;
+            return `${day} ${month} ${year}`;
         }
+        
+        function formatTime(timeString) {
+            if (!timeString) return '';
+            const [hour, minute] = timeString.split(':');
+            return `${hour}.${minute} น.`;
+        }
+          
 
         function sortTable(column, type) {
             const order = sortOrder[column] === 'asc' ? 'desc' : 'asc';
