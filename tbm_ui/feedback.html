@@ -122,11 +122,11 @@
                     renderPagination();
                 } else {
                     console.error('Expected an array but got:', data);
-                    alert('Error fetching feedback data');
+                    showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลฟีดแบค');
                 }
             } catch (error) {
                 console.error('Error fetching feedbacks:', error);
-                alert('Error fetching feedback data');
+                showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลฟีดแบค');
             }
         }
 
@@ -284,11 +284,11 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
-                alert('Feedback deleted successfully');
+                showSuccessModal('ลบฟีดแบคสำเร็จแล้ว');
                 fetchFeedbacks(currentPage);
             } catch (error) {
                 console.error('Error deleting feedback:', error);
-                alert('Error deleting feedback');
+                showErrorModal('เกิดข้อผิดพลาดในการลบฟีดแบค');
             }
         }
 
@@ -393,10 +393,64 @@
         </div>
     </div>
 
+    <!-- Success Message Modal -->
+    <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <div class="flex justify-center">
+                <div class="w-20 h-20 flex items-center justify-center rounded-full bg-green-100 border-4 border-green-500">
+                    <svg class="w-12 h-12 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-green-600 mt-6">สำเร็จ!</h2>
+            <p class="text-gray-700 text-lg mt-4" id="success-message">ดำเนินการเรียบร้อยแล้ว</p>
+            <button id="success-confirm-btn"
+                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ยืนยัน
+            </button>
+        </div>
+    </div>
+
+    <!-- Error Message Modal -->
+    <div id="error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <h2 class="text-3xl font-bold text-red-600 mt-6">เกิดข้อผิดพลาด</h2>
+            <p class="text-gray-700 text-lg mt-4" id="error-message">ข้อความผิดพลาด</p>
+            <div class="mt-6 flex justify-center">
+                <button id="error-confirm-btn"
+                    class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300">
+                    ตกลง
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="selected-language.js"></script>
     <script src="navbar.js"></script>
 
     <script>
+        function showSuccessModal(message) {
+                document.getElementById('success-message').textContent = message;
+                const modal = document.getElementById('success-modal');
+                modal.classList.remove('hidden');
+
+                document.getElementById('success-confirm-btn').onclick = () => {
+                    modal.classList.add('hidden');
+                };
+            }
+
+            function showErrorModal(message) {
+                    document.getElementById('error-message').textContent = message;
+                    const modal = document.getElementById('error-modal');
+                    modal.classList.remove('hidden');
+
+                    document.getElementById('error-confirm-btn').onclick = () => {
+                        modal.classList.add('hidden');
+                    };
+                }
+
         document.addEventListener('DOMContentLoaded', () => {
             // Language toggle setup
             const langThai = document.getElementById('lang-th');

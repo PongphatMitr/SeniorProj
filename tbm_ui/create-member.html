@@ -194,33 +194,44 @@
                     </div>
                 </fieldset>
             </div>
-            <!-- Success Message Modal -->
-            <div id="success-modal"
-                class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-                <div class="bg-white p-6 rounded shadow-lg text-center max-w-sm mx-4">
-                    <h2 class="text-2xl font-bold text-green-500 mb-4">สำเร็จ!</h2>
-                    <p id="success-message" class="text-gray-700 whitespace-pre-line"></p>
-                    <button onclick="closeMessage('success-modal')"
-                        class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">
-                        ตกลง
+            <!-- Success Modal แบบใหม่ -->
+            <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+                    <div class="flex justify-center">
+                        <div class="w-20 h-20 flex items-center justify-center rounded-full bg-green-100 border-4 border-green-500">
+                            <svg class="w-12 h-12 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                    </div>
+                    <h2 class="text-3xl font-bold text-green-600 mt-6">ลงทะเบียนสำเร็จ!</h2>
+                    <p class="text-gray-700 text-lg mt-4" id="success-message">สำเร็จ</p>
+                    <button id="success-confirm-btn"
+                        class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                        ยืนยัน
                     </button>
                 </div>
             </div>
 
-            <!-- Failure Message Modal -->
-            <div id="failure-modal"
-                class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-                <div class="bg-white p-6 rounded shadow-lg text-center max-w-sm mx-4">
-                    <h2 class="text-2xl font-bold text-red-500 mb-4">ล้มเหลว!</h2>
-                    <p id="failure-message" class="text-gray-700 whitespace-pre-line"></p>
-                    <button onclick="closeMessage('failure-modal')"
-                        class="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700">
-                        ลองใหม่
-                    </button>
+            <!-- Failure Modal (ใช้ confirm-cancel แบบ delete modal) -->
+            <div id="failure-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+                    <h2 class="text-3xl font-bold text-red-600 mt-6">ลงทะเบียนล้มเหลว</h2>
+                    <p class="text-gray-700 text-lg mt-4" id="failure-message">ล้มเหลว</p>
+                    <div class="mt-6 flex justify-center">
+                        <button id="failure-retry-btn"
+                            class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300 mr-4">
+                            ลองใหม่
+                        </button>
+                        <button id="failure-cancel-btn"
+                            class="px-6 py-3 bg-gray-600 text-white text-lg font-semibold rounded-lg hover:bg-gray-700 transition duration-300">
+                            ยกเลิก
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
-    </div>
+
 
     <script>
         // Data arrays for dropdowns
@@ -474,23 +485,39 @@
                 sessionStorage.setItem('registerPassword', formData.password);
                 sessionStorage.setItem('registerUserId', data.user_id); // 💾 save user_id from response
 
-                showSuccessMessage('ลงทะเบียนสำเร็จ! กรุณาเพิ่มทักษะของคุณ');
-                setTimeout(() => window.location.href = 'create-member-skill.html', 2000);
+                showSuccessMessage('ลงทะเบียนสำเร็จ! กรุณาเพิ่มทักษะของคุณ', 'create-member-skill.html');
             } catch (error) {
                 console.error('Registration Error:', error);
                 showFailureMessage(error.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
             }
         });
 
-        function showSuccessMessage(message) {
-            document.getElementById('success-message').textContent = message;
-            document.getElementById('success-modal').classList.remove('hidden');
-        }
+        function showSuccessMessage(message, nextPage = null) {
+                document.getElementById('success-message').textContent = message;
+                const modal = document.getElementById('success-modal');
+                modal.classList.remove('hidden');
+
+                const confirmBtn = document.getElementById('success-confirm-btn');
+                confirmBtn.onclick = () => {
+                    modal.classList.add('hidden');
+                    if (nextPage) {
+                        window.location.href = nextPage;
+                    }
+                };
+            }
 
         function showFailureMessage(message) {
-            document.getElementById('failure-message').textContent = message;
-            document.getElementById('failure-modal').classList.remove('hidden');
-        }
+                document.getElementById('failure-message').textContent = message;
+                const modal = document.getElementById('failure-modal');
+                modal.classList.remove('hidden');
+
+                document.getElementById('failure-retry-btn').onclick = () => {
+                    modal.classList.add('hidden');
+                };
+                document.getElementById('failure-cancel-btn').onclick = () => {
+                    modal.classList.add('hidden');
+                };
+            }
 
         function closeMessage(modalId) {
             document.getElementById(modalId).classList.add('hidden');
