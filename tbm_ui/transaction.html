@@ -20,6 +20,20 @@
         let sortColumn = '';
         let sortDirection = 'asc';
 
+        function showErrorModal(message) {
+                document.getElementById('error-message').textContent = message || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง';
+                document.getElementById('error-modal').classList.remove('hidden');
+            }
+
+            function setupErrorModal() {
+                const errorConfirmBtn = document.getElementById('error-confirm-btn');
+                if (errorConfirmBtn) {
+                    errorConfirmBtn.addEventListener('click', () => {
+                        document.getElementById('error-modal').classList.add('hidden');
+                    });
+                }
+            }
+
         async function fetchAllTransactions(page = 1) {
             try {
                 const response = await fetch(`http://localhost:3000/api/tbm/transactions/all`, {
@@ -42,7 +56,7 @@
                 renderPagination();
             } catch (error) {
                 console.error('❌ Error fetching all transactions:', error);
-                alert('เกิดข้อผิดพลาดในการโหลดธุรกรรมทั้งหมด');
+                showErrorModal('เกิดข้อผิดพลาดในการโหลดธุรกรรมทั้งหมด');
             }
         }
 
@@ -197,6 +211,7 @@
                 });
             });
 
+            setupErrorModal(); // ✅ เรียกตรงนี้
             fetchAllTransactions(currentPage);
         });
     </script>
@@ -260,6 +275,26 @@
             </div>
         </div>
     </div>
+    <!-- Error Modal -->
+    <div id="error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <div class="flex justify-center">
+                <div class="w-20 h-20 flex items-center justify-center rounded-full bg-red-100 border-4 border-red-500">
+                    <svg class="w-12 h-12 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-red-600 mt-6">เกิดข้อผิดพลาด!</h2>
+            <p id="error-message" class="text-gray-700 text-lg mt-4">เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง</p>
+            <button id="error-confirm-btn"
+                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ยืนยัน
+            </button>
+        </div>
+    </div>
+
 </body>
 
 </html>
