@@ -19,102 +19,75 @@
             </nav>
         </div>
         <!-- Main Content -->
-        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10 relative">
-            <!-- Language Toggle Switch -->
-            <div class="absolute top-5 right-5">
-                <div class="toggle-container" id="languageToggle">
-                    <span class="toggle-label active" data-lang="th" id="lang-th">
-                        ภาษาไทย
-                    </span>
-                    <span class="toggle-label" data-lang="en" id="lang-en">
-                        English
-                    </span>
+        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10 relative flex justify-center">
+            <div class="bg-white text-black rounded-lg p-8 w-full max-w-3xl max-h-[650px] overflow-auto">
                 </div>
-            </div>
-            <h1 class="text-4xl font-bold mb-5">
-                เพิ่มประกาศข่าวสาร
-            </h1>
-            <form class="bg-white p-5 rounded-lg text-black" id="announcementForm">
-                <div class="mb-4">
-                    <label class="block text-gray-700" for="announcementDate">
-                        วันที่ประกาศ
-                    </label>
-                    <input class="w-full p-2 border border-gray-300 rounded" id="announcementDate" required=""
-                        type="date" />
-                </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700" for="announcementTitle">
-                        ชื่อหัวข้อ
-                    </label>
-                    <input class="w-full p-2 border border-gray-300 rounded" id="announcementTitle" required=""
-                        type="text" />
-                </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700" for="announcementDescription">
-                        รายละเอียด
-                    </label>
-                    <textarea class="w-full p-2 border border-gray-300 rounded" id="announcementDescription"
-                        required=""></textarea>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700" for="announcementImage">
-                        รูปภาพประกอบ
-                    </label>
-                    <input accept="image/*" class="w-full p-2 border border-gray-300 rounded" id="announcementImage"
-                        required="" type="file" />
-                </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700" for="announcementBranch">
-                        สาขา/ชุมชน
-                    </label>
-                    <div class="flex">
-                        <select class="w-full p-2 border border-gray-300 rounded" id="announcementBranch" required="">
-                        </select>
-                        <button class="ml-2 bg-blue-600 text-white px-4 py-2 rounded" id="addBranchButton"
+                <h1 class="text-4xl font-bold mb-5">
+                    เพิ่มประกาศข่าวสาร
+                </h1>
+                <form class="text-black" id="announcementForm">
+                    <div class="mb-4">
+                        <label class="block text-gray-700" for="announcementDate">
+                            วันที่ประกาศ
+                        </label>
+                        <input class="w-full p-2 border border-gray-300 rounded" id="announcementDate" required=""
+                            type="date" />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700" for="announcementTitle">
+                            ชื่อหัวข้อ
+                        </label>
+                        <input class="w-full p-2 border border-gray-300 rounded" id="announcementTitle" required=""
+                            type="text" />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700" for="announcementDescription">
+                            รายละเอียด
+                        </label>
+                        <textarea class="w-full p-2 border border-gray-300 rounded" id="announcementDescription"
+                            required=""></textarea>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700" for="announcementImage">
+                            รูปภาพประกอบ
+                        </label>
+                        <input accept="image/*" class="w-full p-2 border border-gray-300 rounded" id="announcementImage"
+                            required="" type="file" />
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700" for="announcementBranch">
+                            สาขา/ชุมชน
+                        </label>
+                        <div class="flex">
+                            <select class="w-full p-2 border border-gray-300 rounded" id="announcementBranch"
+                                required="">
+                            </select>
+                            <button class="ml-2 bg-blue-600 text-white px-4 py-2 rounded" id="addBranchButton"
+                                type="button">
+                                เพิ่ม
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-4 hidden" id="newBranchContainer">
+                        <label class="block text-gray-700" for="newBranchName">
+                            ชื่อสาขาใหม่
+                        </label>
+                        <input class="w-full p-2 border border-gray-300 rounded" id="newBranchName" type="text" />
+                        <button class="mt-2 bg-blue-600 text-white px-4 py-2 rounded" id="saveBranchButton"
                             type="button">
-                            เพิ่ม
+                            บันทึก
                         </button>
                     </div>
-                </div>
-                <div class="mb-4 hidden" id="newBranchContainer">
-                    <label class="block text-gray-700" for="newBranchName">
-                        ชื่อสาขาใหม่
-                    </label>
-                    <input class="w-full p-2 border border-gray-300 rounded" id="newBranchName" type="text" />
-                    <button class="mt-2 bg-blue-600 text-white px-4 py-2 rounded" id="saveBranchButton" type="button">
-                        บันทึก
-                    </button>
-                </div>
-                <div class="mb-4">
-                    <label class="block text-gray-700" for="announcementProject">
-                        โครงการ
-                    </label>
-                    <div class="flex">
-                        <select class="w-full p-2 border border-gray-300 rounded" id="announcementProject" required="">
-                        </select>
-                        <button class="ml-2 bg-blue-600 text-white px-4 py-2 rounded" id="addProjectButton"
-                            type="button">
-                            เพิ่ม
+                    <div class="flex items-center space-x-4 mt-6">
+                        <a class="bg-blue-600 text-white px-4 py-2 rounded whitespace-nowrap" href="HomePage.html">
+                            กลับ
+                        </a>
+                        <button class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded whitespace-nowrap"
+                            type="submit">
+                            เพิ่มประกาศ
                         </button>
                     </div>
-                </div>
-                <div class="mb-4 hidden" id="newProjectContainer">
-                    <label class="block text-gray-700" for="newProjectName">
-                        ชื่อโครงการใหม่
-                    </label>
-                    <input class="w-full p-2 border border-gray-300 rounded" id="newProjectName" type="text" />
-                    <button class="mt-2 bg-blue-600 text-white px-4 py-2 rounded" id="saveProjectButton" type="button">
-                        บันทึก
-                    </button>
-                </div>
-                <button class="bg-blue-600 text-white px-4 py-2 rounded" type="submit">
-                    เพิ่มประกาศ
-                </button>
-            </form>
-            <div class="mt-10">
-                <a class="bg-blue-600 text-white px-4 py-2 rounded" href="homepage.html">
-                    กลับ
-                </a>
+                </form>
             </div>
         </div>
     </div>
@@ -156,6 +129,27 @@
             <h2 class="text-3xl font-bold text-green-600 mt-6">เพิ่มสำเร็จ!</h2>
             <p class="text-gray-700 text-lg mt-4" id="announcement-success-message">เพิ่มประกาศสำเร็จ</p>
             <button id="announcement-success-confirm-btn"
+                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ยืนยัน
+            </button>
+        </div>
+    </div>
+
+    <!-- Error Message Modal -->
+    <div id="error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <div class="flex justify-center">
+                <div class="w-20 h-20 flex items-center justify-center rounded-full bg-red-100 border-4 border-red-500">
+                    <svg class="w-12 h-12 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-red-600 mt-6">เกิดข้อผิดพลาด!</h2>
+            <p class="text-gray-700 text-lg mt-4" id="error-message"></p>
+            <button id="error-confirm-btn"
                 class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
                 ยืนยัน
             </button>
@@ -205,6 +199,15 @@
     <script src="navbar.js"></script>
     <script src="selected-language.js"></script>
     <script>
+        function showErrorModal(message) {
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('error-modal').classList.remove('hidden');
+        }
+
+        document.getElementById('error-confirm-btn').addEventListener('click', () => {
+            document.getElementById('error-modal').classList.add('hidden');
+        });
+
         function getToken() {
             return localStorage.getItem('token');
         }
@@ -212,8 +215,8 @@
         document.addEventListener('DOMContentLoaded', async () => {
             const token = getToken();
             if (!token) {
-                alert('You are not logged in!');
-                window.location.href = 'login.html';
+                showErrorModal('คุณยังไม่ได้เข้าสู่ระบบ!');
+                window.location.href = 'log-in.html';
                 return;
             }
 
@@ -234,25 +237,8 @@
                     option.textContent = branch.branch_name;
                     branchesSelect.appendChild(option);
                 });
-
-                const projectsResponse = await fetch('http://localhost:3000/api/user/projects', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                if (!projectsResponse.ok) {
-                    throw new Error(`HTTP error! status: ${projectsResponse.status}`);
-                }
-                const projects = await projectsResponse.json();
-                const projectsSelect = document.getElementById('announcementProject');
-                projects.forEach(project => {
-                    const option = document.createElement('option');
-                    option.value = project.project_id;
-                    option.textContent = project.project_name;
-                    projectsSelect.appendChild(option);
-                });
             } catch (error) {
-                console.error('Error fetching branches or projects:', error);
+                showErrorModal('เกิดข้อผิดพลาดในการโหลดข้อมูลสาขา');
             }
         });
 
@@ -285,49 +271,11 @@
                         document.getElementById('newBranchName').value = '';
                         showSuccessModal('Branch created successfully.');
                     } else {
-                        alert('Failed to add branch');
+                        showErrorModal('ไม่สามารถเพิ่มสาขาใหม่ได้');
                     }
                 } catch (error) {
                     console.error('Error adding branch:', error);
-                    alert('An error occurred while adding the branch');
-                }
-            }
-        });
-
-        document.getElementById('addProjectButton').addEventListener('click', () => {
-            document.getElementById('newProjectContainer').classList.toggle('hidden');
-        });
-
-        document.getElementById('saveProjectButton').addEventListener('click', async () => {
-            const newProjectName = document.getElementById('newProjectName').value;
-            const token = getToken();
-            if (newProjectName) {
-                try {
-                    const response = await fetch('http://localhost:3000/api/user/projects', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ project_name: newProjectName })
-                    });
-
-                    if (response.ok) {
-                        const newProject = await response.json();
-                        const projectsSelect = document.getElementById('announcementProject');
-                        const option = document.createElement('option');
-                        option.value = newProject.project_id;
-                        option.textContent = newProject.project_name;
-                        projectsSelect.appendChild(option);
-                        document.getElementById('newProjectContainer').classList.add('hidden');
-                        document.getElementById('newProjectName').value = '';
-                        showSuccessModal('Project created successfully.');
-                    } else {
-                        alert('Failed to add project');
-                    }
-                } catch (error) {
-                    console.error('Error adding project:', error);
-                    alert('An error occurred while adding the project');
+                    showErrorModal('เกิดข้อผิดพลาดในการเพิ่มสาขาใหม่');
                 }
             }
         });
@@ -341,7 +289,6 @@
             formData.append('description', document.getElementById('announcementDescription').value);
             formData.append('image', document.getElementById('announcementImage').files[0]);
             formData.append('branch_id', document.getElementById('announcementBranch').value);
-            formData.append('project_id', document.getElementById('announcementProject').value);
 
             const token = getToken();
 
@@ -357,11 +304,11 @@
                 if (response.ok) {
                     showAnnouncementSuccessModal('Announcement added successfully.');
                 } else {
-                    alert('Failed to add announcement');
+                    showErrorModal('ไม่สามารถเพิ่มประกาศได้');
                 }
             } catch (error) {
                 console.error('Error adding announcement:', error);
-                alert('An error occurred while adding the announcement');
+                showErrorModal('เกิดข้อผิดพลาดในการเพิ่มประกาศ');
             }
         });
 
@@ -381,9 +328,10 @@
 
         document.getElementById('announcement-success-confirm-btn').addEventListener('click', () => {
             document.getElementById('announcement-success-modal').classList.add('hidden');
-            window.location.href = 'homepage.html';
+            window.location.href = 'HomePage.html';
         });
     </script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 </body>
 
 </html>

@@ -6,7 +6,8 @@
     <title>
         Announcement Detail - Time Bank
     </title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.tailwindcss.com">
+    </script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
 </head>
 
@@ -15,35 +16,33 @@
         <!-- Sidebar -->
         <div class="w-full md:w-1/6 bg-white h-screen p-5 sticky top-0 flex flex-col">
             <nav class="flex-grow">
-                <ul id="navList" class="space-y-4"></ul>
+                <ul class="space-y-4" id="navList">
+                </ul>
             </nav>
         </div>
         <!-- Main Content -->
         <div class="w-5/6 bg-blue-700 text-white p-10 relative">
             <!-- Back Button -->
             <div class="absolute top-5 left-5">
-                <button id="backButton"
-                    class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition duration-300">
-                    <i class="fas fa-arrow-left"></i> กลับ
+                <button class="bg-gray-600 text-white px-4 py-2 rounded hover:bg-gray-700 transition duration-300"
+                    id="backButton">
+                    <i class="fas fa-arrow-left">
+                    </i>
+                    กลับ
                 </button>
             </div>
             <!-- Language Toggle Switch -->
-            <div class="absolute top-5 right-5 flex items-center space-x-4">
-                <button id="modifyButton"
-                    class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition duration-300 hidden">
+            <div class="absolute top-5 right-5 flex items-center gap-4">
+                <button class="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 transition duration-300"
+                    id="modifyButton">
                     แก้ไข
                 </button>
-                <button id="deleteButton"
-                    class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition duration-300 hidden">
+                <button class="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700 transition duration-300"
+                    id="deleteButton">
                     ลบ
                 </button>
-                <div class="toggle-container" id="languageToggle">
-                    <span class="toggle-label active" data-lang="th" id="lang-th">
-                        ภาษาไทย
-                    </span>
-                    <span class="toggle-label" data-lang="en" id="lang-en">
-                        English
-                    </span>
+                <!-- Notification Placeholder -->
+                <div class="relative" id="mainNotificationPanel">
                 </div>
             </div>
             <div class="mt-16">
@@ -53,21 +52,20 @@
                 <div class="bg-white text-black p-6 rounded-lg shadow-md flex">
                     <img alt="Announcement image placeholder" class="h-60 w-1/3 object-cover mb-5 rounded" height="400"
                         id="announcementImage"
-                        src="https://oaidalleapiprodscus.blob.core.windows.net/private/org-LmQ09WWGIGwOeeA4ArnRw0x5/user-uJPET5fjNenSso8wCETWVNOp/img-vyCW2WMdIBrMnOVoyg1FUl8v.png?st=2025-04-16T11%3A12%3A12Z&amp;se=2025-04-16T13%3A12%3A12Z&amp;sp=r&amp;sv=2024-08-04&amp;sr=b&amp;rscd=inline&amp;rsct=image/png&amp;skoid=cc612491-d948-4d2e-9821-2683df3719f5&amp;sktid=a48cca56-e6da-484e-a814-9c849652bcb3&amp;skt=2025-04-16T05%3A30%3A42Z&amp;ske=2025-04-17T05%3A30%3A42Z&amp;sks=b&amp;skv=2024-08-04&amp;sig=BkiqcE5vWBnmqnEr91bY3Nuk/l06QA2bkeUxJysaKto%3D"
+                        src="https://storage.googleapis.com/a1aa/image/de7d387a-6fc8-4a17-5692-7621331660ae.jpg"
                         width="600" />
                     <div class="ml-6 w-2/3">
                         <h2 class="text-xl font-bold mb-2" id="announcementTitleDetail">
                             อาสาเพื่อนรับฟังเยี่ยมเยียนยาย เพื่อผู้สูงอายุในชุมชนยามไร้ วันที่ 16 พ.ย. 2567 ที่
                             ชุมชนภูมิใจ
                         </h2>
-                        <p class="text-gray-600 mb-2" id="announcementProject">
-                            โครงการพลเมืองอาสามูลนิธิอาสาสมัครเพื่อสังคม
-                        </p>
                         <p class="mb-2" id="announcementDate">
-                            <i class="fas fa-calendar-alt"></i>
+                            <i class="fas fa-calendar-alt">
+                            </i>
                         </p>
                         <p class="mb-2">
-                            <i class="fas fa-building"></i>
+                            <i class="fas fa-building">
+                            </i>
                             ชุมชน :
                             <span id="announcementBranch">
                                 โคกสลุง
@@ -76,47 +74,79 @@
                     </div>
                 </div>
                 <div class="bg-white text-black p-6 rounded-lg shadow-md mt-4">
-                    <p id="announcementDescription"></p>
+                    <p id="announcementDescription">
+                    </p>
                 </div>
             </div>
         </div>
     </div>
-
     <!-- Delete Confirmation Modal -->
-    <div id="delete-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+    <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden" id="delete-modal">
         <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
-            <h2 class="text-3xl font-bold text-red-600 mt-6">ยืนยันการลบประกาศ</h2>
-            <p class="text-gray-700 text-lg mt-4">ต้องการลบประกาศหรือไม่?</p>
+            <h2 class="text-3xl font-bold text-red-600 mt-6">
+                ยืนยันการลบประกาศ
+            </h2>
+            <p class="text-gray-700 text-lg mt-4">
+                ต้องการลบประกาศหรือไม่?
+            </p>
             <div class="mt-6 flex justify-center">
-                <button id="confirm-delete-btn"
-                    class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300 mr-4">
+                <button
+                    class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300 mr-4"
+                    id="confirm-delete-btn">
                     ยืนยัน
                 </button>
-                <button id="cancel-delete-btn"
-                    class="px-6 py-3 bg-gray-600 text-white text-lg font-semibold rounded-lg hover:bg-gray-700 transition duration-300">
+                <button
+                    class="px-6 py-3 bg-gray-600 text-white text-lg font-semibold rounded-lg hover:bg-gray-700 transition duration-300"
+                    id="cancel-delete-btn">
                     ยกเลิก
                 </button>
             </div>
         </div>
     </div>
-
     <!-- Success Message Modal -->
-    <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+    <div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden" id="success-modal">
         <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
             <div class="flex justify-center">
                 <div
                     class="w-20 h-20 flex items-center justify-center rounded-full bg-green-100 border-4 border-green-500">
-                    <svg class="w-12 h-12 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    <svg class="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewbox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                        </path>
                     </svg>
                 </div>
             </div>
-            <h2 class="text-3xl font-bold text-green-600 mt-6">ลบสำเร็จ!</h2>
-            <p class="text-gray-700 text-lg mt-4" id="success-message">ลบประกาศ</p>
-            <button id="success-confirm-btn"
-                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+            <h2 class="text-3xl font-bold text-green-600 mt-6">
+                ลบสำเร็จ!
+            </h2>
+            <p class="text-gray-700 text-lg mt-4" id="success-message">
+                ลบประกาศ
+            </p>
+            <button
+                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300"
+                id="success-confirm-btn">
                 OK
+            </button>
+        </div>
+    </div>
+
+    <!-- Error Message Modal -->
+    <div id="error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <div class="flex justify-center">
+                <div class="w-20 h-20 flex items-center justify-center rounded-full bg-red-100 border-4 border-red-500">
+                    <svg class="w-12 h-12 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-red-600 mt-6">เกิดข้อผิดพลาด!</h2>
+            <p class="text-gray-700 text-lg mt-4" id="error-message"></p>
+            <button onclick="closeModal('error-modal')"
+                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ยืนยัน
             </button>
         </div>
     </div>
@@ -162,13 +192,27 @@
         }
     </style>
     <script>
+        let userRole = null;
+
+        // Function สำหรับแสดง Modal Error
+        function showErrorModal(message) {
+            const errorMessage = document.getElementById('error-message');
+            if (errorMessage) errorMessage.textContent = message;
+            const errorModal = document.getElementById('error-modal');
+            if (errorModal) errorModal.classList.remove('hidden');
+        }
+
+        // Function ปิด Modal ทั่วไป
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.classList.add('hidden');
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             console.log('🚀 announcement-detail.js loaded and DOM ready!');
 
             const langThai = document.getElementById('lang-th');
             const langEnglish = document.getElementById('lang-en');
-            const modifyButton = document.getElementById('modifyButton');
-            const deleteButton = document.getElementById('deleteButton');
 
             const translations = {
                 thai: {
@@ -182,13 +226,14 @@
                     description: 'Announcement Description',
                 }
             };
+
             const announcementTitle = document.getElementById('announcementTitle');
             const announcementDescription = document.getElementById('announcementDescription');
             const announcementImage = document.getElementById('announcementImage');
             const announcementTitleDetail = document.getElementById('announcementTitleDetail');
-            const announcementProject = document.getElementById('announcementProject');
             const announcementDate = document.getElementById('announcementDate');
             const announcementBranch = document.getElementById('announcementBranch');
+
             let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
 
             function updateContent(lang) {
@@ -206,14 +251,16 @@
                 localStorage.setItem('selectedLanguage', lang);
             }
 
-            langThai.addEventListener('click', () => {
-                currentLang = 'thai';
-                updateContent(currentLang);
-            });
-            langEnglish.addEventListener('click', () => {
-                currentLang = 'english';
-                updateContent(currentLang);
-            });
+            if (langThai && langEnglish) {
+                langThai.addEventListener('click', () => {
+                    currentLang = 'thai';
+                    updateContent(currentLang);
+                });
+                langEnglish.addEventListener('click', () => {
+                    currentLang = 'english';
+                    updateContent(currentLang);
+                });
+            }
 
             // Initialize content
             updateContent(currentLang);
@@ -233,10 +280,6 @@
                     return;
                 }
                 console.log(`🔄 Fetching details for announcement ID: ${announcementId}`);
-
-                // Check user role to toggle modify/delete buttons
-                checkUserRoleAndToggleButtons();
-
                 fetch(`http://localhost:3000/api/user/announcements/${announcementId}`)
                     .then(res => {
                         console.log('📡 API Response:', res);
@@ -245,12 +288,12 @@
                     })
                     .then(data => {
                         console.log('📦 Data:', data);
-                        announcementTitle.textContent = data.title;
-                        announcementDescription.textContent = data.description;
-                        announcementTitleDetail.textContent = data.title;
-                        announcementProject.textContent = data.project_name;
-                        announcementBranch.textContent = data.branch_name;
-                        announcementDate.innerHTML = `<i class="fas fa-calendar-alt"></i> ${new Date(data.date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+                        if (announcementTitle) announcementTitle.textContent = data.title || '';
+                        if (announcementDescription) announcementDescription.textContent = data.description || '';
+                        if (announcementTitleDetail) announcementTitleDetail.textContent = data.title || '';
+                        if (announcementBranch) announcementBranch.textContent = data.branch_name || '';
+                        if (announcementDate) announcementDate.innerHTML = `<i class="fas fa-calendar-alt"></i> ${new Date(data.date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short', year: 'numeric' })}`;
+
                         let imageUrl = 'https://placehold.co/600x400?text=No+Image';
                         if (data.image?.data && Array.isArray(data.image.data)) {
                             try {
@@ -260,106 +303,118 @@
                                 console.warn(`⚠️ Image conversion failed for announcement ID: ${announcementId}`, e);
                             }
                         }
-                        announcementImage.src = imageUrl;
+                        if (announcementImage) announcementImage.src = imageUrl;
                     })
                     .catch(err => {
                         console.error('🚨 Error fetching announcement details:', err);
                     });
             }
 
-            // Function to check user role and toggle modify/delete buttons
-            function checkUserRoleAndToggleButtons() {
-                const token = localStorage.getItem('token');
-                if (!token) {
-                    modifyButton.classList.add('hidden');
-                    deleteButton.classList.add('hidden');
-                    return;
+            // Load user role
+            const profileData = JSON.parse(localStorage.getItem('profileData'));
+            if (profileData && profileData.role) {
+                userRole = profileData.role;
+                console.log('🔑 Loaded user role:', userRole);
+
+                if (userRole === 'User' || userRole === 'Member') {
+                    const modifyButton = document.getElementById('modifyButton');
+                    const deleteButton = document.getElementById('deleteButton');
+                    if (modifyButton) modifyButton.style.display = 'none';
+                    if (deleteButton) deleteButton.style.display = 'none';
                 }
-                try {
-                    const payloadBase64 = token.split('.')[1];
-                    const payloadJson = atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'));
-                    const payload = JSON.parse(payloadJson);
-                    const role = payload.role;
-                    if (role === 'Admin' || role === 'TimeBankManager') {
-                        modifyButton.classList.remove('hidden');
-                        deleteButton.classList.remove('hidden');
-                    } else {
-                        modifyButton.classList.add('hidden');
-                        deleteButton.classList.add('hidden');
-                    }
-                } catch (e) {
-                    console.warn('⚠️ Failed to decode token payload', e);
-                    modifyButton.classList.add('hidden');
-                    deleteButton.classList.add('hidden');
-                }
+            } else {
+                console.warn('⚠️ No profileData found or missing role.');
             }
 
             fetchAnnouncementDetails();
 
-            // Redirect to modify page
-            modifyButton.addEventListener('click', () => {
-                const urlParams = new URLSearchParams(window.location.search);
-                const announcementId = urlParams.get('id');
-                if (announcementId) {
-                    window.location.href = `announcement-modify.html?id=${announcementId}`;
-                } else {
-                    console.error('❌ No announcement ID found in URL');
-                }
-            });
-
-            // Show delete confirmation modal
-            deleteButton.addEventListener('click', () => {
-                document.getElementById('delete-modal').classList.remove('hidden');
-            });
-
-            // Handle delete confirmation
-            document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
-                const urlParams = new URLSearchParams(window.location.search);
-                const announcementId = urlParams.get('id');
-                const token = localStorage.getItem('token');
-
-                try {
-                    const response = await fetch(`http://localhost:3000/api/user/announcements/${announcementId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Authorization': `Bearer ${token}`
-                        }
-                    });
-
-                    if (response.ok) {
-                        document.getElementById('delete-modal').classList.add('hidden');
-                        showSuccessModal('Announcement deleted successfully.');
+            // Add event listeners only if elements exist
+            const modifyButton = document.getElementById('modifyButton');
+            if (modifyButton) {
+                modifyButton.addEventListener('click', () => {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const announcementId = urlParams.get('id');
+                    if (announcementId) {
+                        window.location.href = `announcement-modify.html?id=${announcementId}`;
                     } else {
-                        alert('Failed to delete announcement.');
+                        console.error('❌ No announcement ID found in URL');
                     }
-                } catch (error) {
-                    console.error('Error deleting announcement:', error);
-                    alert('An error occurred while deleting the announcement.');
-                }
-            });
-
-            // Handle delete cancellation
-            document.getElementById('cancel-delete-btn').addEventListener('click', () => {
-                document.getElementById('delete-modal').classList.add('hidden');
-            });
-
-            // Handle back button
-            document.getElementById('backButton').addEventListener('click', () => {
-                window.history.back();
-            });
-
-            function showSuccessModal(message) {
-                document.getElementById('success-message').textContent = message;
-                document.getElementById('success-modal').classList.remove('hidden');
+                });
             }
 
-            document.getElementById('success-confirm-btn').addEventListener('click', () => {
-                document.getElementById('success-modal').classList.add('hidden');
-                window.location.href = 'homepage.html';
-            });
+            const deleteButton = document.getElementById('deleteButton');
+            if (deleteButton) {
+                deleteButton.addEventListener('click', () => {
+                    const deleteModal = document.getElementById('delete-modal');
+                    if (deleteModal) deleteModal.classList.remove('hidden');
+                });
+            }
+
+            const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+            if (confirmDeleteBtn) {
+                confirmDeleteBtn.addEventListener('click', async () => {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const announcementId = urlParams.get('id');
+                    const token = localStorage.getItem('token');
+
+                    try {
+                        const response = await fetch(`http://localhost:3000/api/user/announcements/${announcementId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+
+                        if (response.ok) {
+                            const deleteModal = document.getElementById('delete-modal');
+                            if (deleteModal) deleteModal.classList.add('hidden');
+                            showSuccessModal('ลบประกาศสำเร็จ');
+                        } else {
+                            showErrorModal('ลบประกาศไม่สำเร็จ');
+                        }
+                    } catch (error) {
+                        console.error('Error deleting announcement:', error);
+                        showErrorModal('เกิดข้อผิดพลาดในการลบประกาศ');
+                    }
+                });
+            }
+
+            const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+            if (cancelDeleteBtn) {
+                cancelDeleteBtn.addEventListener('click', () => {
+                    const deleteModal = document.getElementById('delete-modal');
+                    if (deleteModal) deleteModal.classList.add('hidden');
+                });
+            }
+
+            const backButton = document.getElementById('backButton');
+            if (backButton) {
+                backButton.addEventListener('click', () => {
+                    window.history.back();
+                });
+            }
+
+            const successConfirmBtn = document.getElementById('success-confirm-btn');
+            if (successConfirmBtn) {
+                successConfirmBtn.addEventListener('click', () => {
+                    const successModal = document.getElementById('success-modal');
+                    if (successModal) successModal.classList.add('hidden');
+                    window.location.href = 'HomePage.html';
+                });
+            }
+
+            function showSuccessModal(message) {
+                const successMessage = document.getElementById('success-message');
+                if (successMessage) successMessage.textContent = message;
+                const successModal = document.getElementById('success-modal');
+                if (successModal) successModal.classList.remove('hidden');
+            }
         });
     </script>
-    <script src="navbar.js"></script>
+    <script src="navbar.js">
+    </script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js">
+    </script>
 </body>
 
 </html>

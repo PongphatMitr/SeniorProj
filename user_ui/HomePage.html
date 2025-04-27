@@ -3,31 +3,13 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>
-        Homepage
-    </title>
+    <title>Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
-    <style>
-        /* Delete Confirmation Modal Styles */
-        #delete-modal {
-            position: fixed;
-            inset: 0;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            background-color: rgba(0, 0, 0, 0.5);
-            z-index: 50;
-        }
-
-        #delete-modal.active {
-            display: flex;
-        }
-    </style>
 </head>
 
 <body class="bg-gray-100">
-    <div class="flex flex-col md:flex-row">
+    <div class="flex">
         <!-- Sidebar -->
         <div class="w-full md:w-1/6 bg-white h-screen p-5 sticky top-0 flex flex-col">
             <nav class="flex-grow">
@@ -35,23 +17,21 @@
             </nav>
         </div>
         <!-- Main Content -->
-        <div class="w-5/6 bg-blue-700 text-white p-10">
-            <h1 class="text-4xl font-bold mb-5">
-                TIME BANK
-            </h1>
-            <h2 class="text-3xl font-bold mb-5">
-                ธนาคารเวลา คืออะไร ?
-            </h2>
+        <div class="w-5/6 bg-blue-700 text-white p-10 relative">
+
+            <h1 class="text-4xl font-bold mb-5">TIME BANK</h1>
+            <h2 class="text-3xl font-bold mb-5">ธนาคารเวลา คืออะไร ?</h2>
             <p class="mb-10">
                 เป็นรูปแบบกิจกรรม ที่ช่วยส่งเสริมให้ชุมชนดูแลซึ่งกันและกัน ด้วยการแลกเปลี่ยนทักษะ ประสบการณ์
                 บริการขั้นพื้นฐาน และสามารถสะสมเวลาไว้ เสมือนเราออมเงิน
             </p>
             <div class="flex items-center mb-5">
                 <h2 class="text-3xl font-bold mr-4">ข่าวสารประชาสัมพันธ์</h2>
-                <a id="addAnnouncementBtn" class="bg-white text-blue-600 px-4 py-2 rounded hidden"
+                <a class="bg-white font-bold text-lg text-blue-600 px-4 py-3 rounded-3xl"
                     href="announcement.html">เพิ่ม</a>
             </div>
-            <div class="grid grid-cols-2 gap-5" id="newsContainer">
+            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5" id="newsContainer">
+                <!-- News items will be dynamically inserted here -->
             </div>
         </div>
     </div>
@@ -74,14 +54,167 @@
         </div>
     </div>
 
+    <!-- Success Message Modal -->
+    <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <div class="flex justify-center">
+                <div
+                    class="w-20 h-20 flex items-center justify-center rounded-full bg-green-100 border-4 border-green-500">
+                    <svg class="w-12 h-12 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-green-600 mt-6">สำเร็จ!</h2>
+            <p class="text-gray-700 text-lg mt-4" id="success-message">ข้อความสำเร็จ</p>
+            <button id="success-confirm-btn"
+                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ยืนยัน
+            </button>
+        </div>
+    </div>
+
+    <!-- Error Message Modal -->
+    <div id="error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <h2 class="text-3xl font-bold text-red-600 mt-6">เกิดข้อผิดพลาด</h2>
+            <p class="text-gray-700 text-lg mt-4" id="error-message">ข้อความผิดพลาด</p>
+            <div class="mt-6 flex justify-center">
+                <button id="error-confirm-btn"
+                    class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300">
+                    ตกลง
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        /* Toggle container */
+        .toggle-container {
+            display: flex;
+            background-color: #E5E7EB;
+            border-radius: 20px;
+            padding: 6px;
+            align-items: center;
+            justify-content: space-between;
+            width: 180px;
+        }
+
+        /* Labels */
+        .toggle-label {
+            flex: 1;
+            text-align: center;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: gray;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border-radius: 9999px;
+            padding: 5px;
+            user-select: none;
+        }
+
+        .toggle-label.active {
+            background-color: white;
+            color: #1D4ED8;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Disabled Label */
+        .toggle-label.disabled {
+            pointer-events: none;
+            background-color: white;
+            color: #6B7280;
+            font-weight: bold;
+        }
+    </style>
     <script>
-        document.addEventListener('DOMContentLoaded', () => {
+        let userRole = null;
+        function showSuccessModal(message) {
+            document.getElementById('success-message').textContent = message;
+            document.getElementById('success-modal').classList.remove('hidden');
+            document.getElementById('success-confirm-btn').onclick = function () {
+                document.getElementById('success-modal').classList.add('hidden');
+            };
+        }
+
+        function showErrorModal(message) {
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('error-modal').classList.remove('hidden');
+            document.getElementById('error-confirm-btn').onclick = function () {
+                document.getElementById('error-modal').classList.add('hidden');
+            };
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
             console.log('🚀 homepage.js loaded and DOM ready!');
+            await loadUserRole();
+            fetchAnnouncements();
 
+            
+
+            const langThai = document.getElementById('lang-th');
+            const langEnglish = document.getElementById('lang-en');
+
+            const translations = {
+                thai: {
+                    mainHeading: 'ธนาคารเวลา',
+                    subHeading: 'ธนาคารเวลา คืออะไร ?',
+                    description: 'เป็นรูปแบบกิจกรรม ที่ช่วยส่งเสริมให้ชุมชนดูแลซึ่งกันและกัน ด้วยการแลกเปลี่ยนทักษะ ประสบการณ์ บริการขั้นพื้นฐาน และสามารถสะสมเวลาไว้ เสมือนเราออมเงิน',
+                    newsHeader: 'ข่าวสารประชาสัมพันธ์',
+                },
+                english: {
+                    mainHeading: 'TIME BANK',
+                    subHeading: 'What is a Time Bank?',
+                    description: 'A Time Bank is an activity model that helps communities support each other by exchanging skills, experiences, and basic services, allowing participants to save time as if saving money.',
+                    newsHeader: 'News and Announcements',
+                }
+            };
+
+            const mainHeading = document.querySelector('h1');
+            const subHeading = document.querySelector('h2:nth-of-type(1)');
+            const description = document.querySelector('p.mb-10');
+            const newsHeader = document.querySelector('h2:nth-of-type(2)');
             const newsContainer = document.getElementById('newsContainer');
-            const addAnnouncementBtn = document.getElementById('addAnnouncementBtn');
 
-            let userRole = null;
+            let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
+
+            function updateContent(lang) {
+                const langData = translations[lang];
+
+                if (mainHeading) mainHeading.textContent = langData.mainHeading;
+                if (subHeading) subHeading.textContent = langData.subHeading;
+                if (description) description.textContent = langData.description;
+                if (newsHeader) newsHeader.textContent = langData.newsHeader;
+
+                // Toggle active state
+                if (lang === 'thai') {
+                    langThai?.classList.add('active');
+                    langEnglish?.classList.remove('active');
+                } else {
+                    langEnglish?.classList.add('active');
+                    langThai?.classList.remove('active');
+                }
+
+                localStorage.setItem('selectedLanguage', lang);
+            }
+
+            if (langThai && langEnglish) {
+                langThai.addEventListener('click', () => {
+                    currentLang = 'thai';
+                    updateContent(currentLang);
+                });
+
+                langEnglish.addEventListener('click', () => {
+                    currentLang = 'english';
+                    updateContent(currentLang);
+                });
+            }
+
+            // Initialize content
+            updateContent(currentLang);
 
             function arrayBufferToBase64(buffer) {
                 if (!buffer || !buffer.length) return '';
@@ -89,33 +222,47 @@
                 return window.btoa(binary);
             }
 
-            // Function to check user role and show/hide add button
-            function checkUserRoleAndToggleAddButton() {
+            async function loadUserRole() {
                 const token = localStorage.getItem('token');
                 if (!token) {
-                    addAnnouncementBtn.classList.add('hidden');
-                    userRole = null;
+                    console.warn('⚠️ No token found. Redirecting to login...');
+                    window.location.href = 'log-in.html';
                     return;
                 }
-                // Decode JWT token payload
-                try {
-                    const payloadBase64 = token.split('.')[1];
-                    const payloadJson = atob(payloadBase64.replace(/-/g, '+').replace(/_/g, '/'));
-                    const payload = JSON.parse(payloadJson);
-                    userRole = payload.role;
-                    if (userRole === 'Admin' || userRole === 'TimeBankManager') {
-                        addAnnouncementBtn.classList.remove('hidden');
-                    } else {
-                        addAnnouncementBtn.classList.add('hidden');
+
+                let profileData = JSON.parse(localStorage.getItem('profileData'));
+
+                if (!profileData || !profileData.role) {
+                    try {
+                        const res = await fetch('http://localhost:3000/api/user/auth/profile', {
+                            headers: { 'Authorization': `Bearer ${token}` }
+                        });
+                        if (!res.ok) throw new Error('Failed to fetch profile');
+                        profileData = await res.json();
+                        localStorage.setItem('profileData', JSON.stringify(profileData));
+                        console.log('📥 Fetched and saved profileData');
+                    } catch (err) {
+                        console.error('🚨 Error loading profile:', err);
+                        showErrorModal('ไม่สามารถโหลดข้อมูลผู้ใช้ได้ กรุณาเข้าสู่ระบบใหม่');
+                        return;
                     }
-                } catch (e) {
-                    console.warn('⚠️ Failed to decode token payload', e);
-                    addAnnouncementBtn.classList.add('hidden');
-                    userRole = null;
+                }
+
+                userRole = profileData.role;
+                console.log('🔑 Loaded user role:', userRole);
+
+                const addButton = document.querySelector('a[href="announcement.html"]');
+                if (addButton && (userRole === 'User' || userRole === 'Member')) {
+                    addButton.style.display = 'none';
                 }
             }
 
-            // Fetch and render announcements with detailed logging
+            const addButton = document.querySelector('a[href="announcement.html"]');
+            if (addButton && (userRole === 'User' || userRole === 'Member')) {
+                addButton.style.display = 'none';
+            }
+
+            // ✅ Fetch and render announcements with detailed logging
             function fetchAnnouncements() {
                 console.log('🔄 Connecting to database to fetch announcements...');
 
@@ -146,21 +293,20 @@
                                 }
                             }
 
-                            // Determine if modify and delete buttons should be shown
-                            const showButtons = (userRole === 'Admin' || userRole === 'TimeBankManager');
-
                             newsElement.innerHTML = `
-                            ${showButtons ? `<button class="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 rounded delete-btn" data-id="${announcement.announcement_id}">
-                                <i class="fas fa-trash-alt"></i>
-                            </button>` : ''}
-                            ${showButtons ? `<button class="absolute top-2 right-14 bg-yellow-500 text-white px-2 py-1 rounded modify-btn" data-id="${announcement.announcement_id}">
-                                <i class="fas fa-edit"></i>
-                            </button>` : ''}
-                            <img src="${imageUrl}" class="h-40 w-full object-cover mb-5 rounded" alt="Announcement image showing a community event with people exchanging skills and services in a friendly environment">
-                            <p class="text-gray-500 mb-2">${new Date(announcement.date).toLocaleDateString()}</p>
-                            <p class="font-bold text-lg">${announcement.title}</p>
-                            <p>${announcement.description}</p>
-                        `;
+    ${userRole !== 'User' && userRole !== 'Member' ? `
+    <button class="absolute top-2 right-2 bg-red-600 text-white px-2 py-2 rounded-md delete-btn" data-id="${announcement.announcement_id}" aria-label="Delete announcement">
+        <i class="fas fa-trash-alt"></i>
+    </button>
+    <button class="absolute top-2 right-12 bg-yellow-500 text-white px-2 py-2 rounded-md modify-btn" data-id="${announcement.announcement_id}" aria-label="Modify announcement">
+        <i class="fas fa-edit"></i>
+    </button>
+    ` : ''}
+    <img src="${imageUrl}" class="h-40 w-full object-cover mb-5 rounded" alt="Announcement image showing ${announcement.title}">
+    <p class="text-gray-500 mb-2">${new Date(announcement.date).toLocaleDateString()}</p>
+    <p class="font-bold text-lg">${announcement.title}</p>
+    <p>${announcement.description}</p>
+`;
 
                             newsContainer.appendChild(newsElement);
                             console.log(`✅ Rendered #${index + 1}`);
@@ -170,72 +316,76 @@
                             console.log('📭 No announcements in DB');
                         }
 
-                        if (userRole === 'Admin' || userRole === 'TimeBankManager') {
-                            // Add event listeners to delete buttons
-                            document.querySelectorAll('.delete-btn').forEach(button => {
-                                button.addEventListener('click', (e) => {
-                                    e.stopPropagation(); // Prevent the click event from propagating to the parent element
-                                    const announcementId = button.getAttribute('data-id');
-                                    const token = localStorage.getItem('token');
+                        // Add event listeners to delete buttons
+                        document.querySelectorAll('.delete-btn').forEach(button => {
+                            button.addEventListener('click', (e) => {
+                                e.stopPropagation(); // Prevent the click event from propagating to the parent element
+                                const announcementId = button.getAttribute('data-id');
+                                const token = localStorage.getItem('token');
 
-                                    // Show delete confirmation modal
-                                    const deleteModal = document.getElementById('delete-modal');
-                                    deleteModal.classList.remove('hidden');
-                                    document.getElementById('confirm-delete-btn').setAttribute('data-id', announcementId);
-                                });
+                                // Show delete confirmation modal
+                                document.getElementById('delete-modal').classList.remove('hidden');
+                                document.getElementById('confirm-delete-btn').setAttribute('data-id', announcementId);
                             });
+                        });
 
-                            // Add event listeners to modify buttons
-                            document.querySelectorAll('.modify-btn').forEach(button => {
-                                button.addEventListener('click', (e) => {
-                                    e.stopPropagation(); // Prevent the click event from propagating to the parent element
-                                    const announcementId = button.getAttribute('data-id');
-                                    window.location.href = `announcement-modify.html?id=${announcementId}`;
-                                });
+                        // Add event listeners to modify buttons
+                        document.querySelectorAll('.modify-btn').forEach(button => {
+                            button.addEventListener('click', (e) => {
+                                e.stopPropagation(); // Prevent the click event from propagating to the parent element
+                                const announcementId = button.getAttribute('data-id');
+                                window.location.href = `announcement-modify.html?id=${announcementId}`;
                             });
-                        }
+                        });
                     })
                     .catch(err => {
                         console.error('🚨 Error fetching announcements:', err);
+                        showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลประกาศ');
                     });
             }
 
-            checkUserRoleAndToggleAddButton();
             fetchAnnouncements();
 
             // Handle delete confirmation
-            document.getElementById('confirm-delete-btn').addEventListener('click', async () => {
-                const announcementId = document.getElementById('confirm-delete-btn').getAttribute('data-id');
-                const token = localStorage.getItem('token');
+            const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+            if (confirmDeleteBtn) {
+                confirmDeleteBtn.addEventListener('click', async () => {
+                    const announcementId = confirmDeleteBtn.getAttribute('data-id');
+                    const token = localStorage.getItem('token');
 
-                try {
-                    const response = await fetch(`http://localhost:3000/api/user/announcements/${announcementId}`, {
-                        method: 'DELETE',
-                        headers: {
-                            'Authorization': `Bearer ${token}`
+                    try {
+                        const response = await fetch(`http://localhost:3000/api/user/announcements/${announcementId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+
+                        if (response.ok) {
+                            showSuccessModal('ลบประกาศสำเร็จแล้ว');
+                            document.getElementById('delete-modal').classList.add('hidden');
+                            fetchAnnouncements();
+                        } else {
+                            showErrorModal('ลบประกาศไม่สำเร็จ กรุณาลองใหม่');
                         }
-                    });
-
-                    if (response.ok) {
-                        alert('Announcement deleted successfully.');
-                        document.getElementById('delete-modal').classList.add('hidden');
-                        fetchAnnouncements(); // Refresh the announcements list
-                    } else {
-                        alert('Failed to delete announcement.');
+                    } catch (error) {
+                        console.error('Error deleting announcement:', error);
+                        showErrorModal('เกิดข้อผิดพลาดขณะลบประกาศ');
                     }
-                } catch (error) {
-                    console.error('Error deleting announcement:', error);
-                    alert('An error occurred while deleting the announcement.');
-                }
-            });
+                });
+            }
 
             // Handle delete cancellation
-            document.getElementById('cancel-delete-btn').addEventListener('click', () => {
-                document.getElementById('delete-modal').classList.add('hidden');
-            });
+            const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+            if (cancelDeleteBtn) {
+                cancelDeleteBtn.addEventListener('click', () => {
+                    document.getElementById('delete-modal').classList.add('hidden');
+                });
+            }
         });
     </script>
     <script src="navbar.js"></script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
 </body>
 
 </html>
