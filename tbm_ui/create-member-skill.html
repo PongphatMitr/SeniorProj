@@ -217,6 +217,24 @@
         </main>
     </div>
 
+    <!-- Delete Confirmation Modal (ใหม่) -->
+    <div id="delete-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <h2 class="text-3xl font-bold text-red-600 mt-6">ยืนยันการลบประกาศ</h2>
+            <p class="text-gray-700 text-lg mt-4">ต้องการลบประกาศหรือไม่?</p>
+            <div class="mt-6 flex justify-center">
+                <button id="confirm-delete-btn"
+                    class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300 mr-4">
+                    ยืนยัน
+                </button>
+                <button id="cancel-delete-btn"
+                    class="px-6 py-3 bg-gray-600 text-white text-lg font-semibold rounded-lg hover:bg-gray-700 transition duration-300">
+                    ยกเลิก
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Confirmation Modal -->
     <div id="confirm-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
         <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-xl text-center">
@@ -231,13 +249,23 @@
         </div>
     </div>
 
-    <!-- Success Modal -->
-    <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
-        <div class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-2xl text-center">
-            <h2 class="text-4xl font-bold text-green-600 mt-6">✅ สำเร็จ!</h2>
-            <p id="success-message" class="text-gray-700 text-xl mt-4"></p>
-            <button id="confirm-success-btn"
-                class="mt-8 px-8 py-4 bg-blue-600 text-white text-xl font-semibold rounded-lg hover:bg-blue-700 transition">ตกลง</button>
+    <!-- Success Modal (ใหม่) -->
+    <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <div class="flex justify-center">
+                <div class="w-20 h-20 flex items-center justify-center rounded-full bg-green-100 border-4 border-green-500">
+                    <svg class="w-12 h-12 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-green-600 mt-6">แก้ไขสำเร็จ!</h2>
+            <p class="text-gray-700 text-lg mt-4" id="success-message">แก้ไขประกาศสำเร็จ</p>
+            <button id="success-confirm-btn"
+                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ยืนยัน
+            </button>
         </div>
     </div>
 
@@ -248,6 +276,24 @@
             <p id="error-message" class="text-gray-700 text-xl mt-4"></p>
             <button id="confirm-error-btn"
                 class="mt-8 px-8 py-4 bg-red-600 text-white text-xl font-semibold rounded-lg hover:bg-red-700 transition">ตกลง</button>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <h2 class="text-3xl font-bold text-red-600 mt-6">ยืนยันการลบประกาศ</h2>
+            <p class="text-gray-700 text-lg mt-4">ต้องการลบประกาศหรือไม่?</p>
+            <div class="mt-6 flex justify-center">
+                <button id="confirm-delete-btn"
+                    class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300 mr-4">
+                    ยืนยัน
+                </button>
+                <button id="cancel-delete-btn"
+                    class="px-6 py-3 bg-gray-600 text-white text-lg font-semibold rounded-lg hover:bg-gray-700 transition duration-300">
+                    ยกเลิก
+                </button>
+            </div>
         </div>
     </div>
 
@@ -264,10 +310,9 @@
 
         // Get user_id from sessionStorage (set in register.html)
         const userId = sessionStorage.getItem('registerUserId');
-        if (!userId) {
-            alert('ไม่พบข้อมูลผู้ใช้ กรุณาลงทะเบียนใหม่');
-            window.location.href = 'register.html';
-        }
+            if (!userId) {
+                showErrorMessage('ไม่พบข้อมูลผู้ใช้ กรุณาลงทะเบียนใหม่', 'member.html');
+            }
 
         // Fetch all skills and categories on load
         async function fetchSkillsAndCategories() {
@@ -720,35 +765,37 @@
             window.location.href = 'log-in.html';
         }
 
-        // Show success modal
         function showSuccessMessage(message, redirectUrl = null) {
-            const modal = document.getElementById('success-modal');
-            document.getElementById('success-message').textContent = message;
-            modal.classList.remove('hidden');
-            setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
+                const modal = document.getElementById('success-modal');
+                document.getElementById('success-message').textContent = message;
+                modal.classList.remove('hidden');
+                setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
 
-            setTimeout(() => {
-                closeModal('success-modal');
-                if (redirectUrl) {
-                    window.location.href = redirectUrl;
-                }
-            }, 3000);
-        }
+                // ฟังชั่นนี้ไม่ทำ redirect อัตโนมัติแล้ว
+                // เราจะให้ปุ่ม "ยืนยัน" ทำแทน
+                const confirmSuccessBtn = document.getElementById('success-confirm-btn');
+                confirmSuccessBtn.onclick = () => {
+                    closeModal('success-modal');
+                    if (redirectUrl) {
+                        window.location.href = redirectUrl;
+                    }
+                };
+            }
 
-        // Show error modal
         function showErrorMessage(message, redirectUrl = null) {
-            const modal = document.getElementById('error-modal');
-            document.getElementById('error-message').textContent = message;
-            modal.classList.remove('hidden');
-            setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
+                const modal = document.getElementById('error-modal');
+                document.getElementById('error-message').textContent = message;
+                modal.classList.remove('hidden');
+                setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
 
-            setTimeout(() => {
-                closeModal('error-modal');
-                if (redirectUrl) {
-                    window.location.href = redirectUrl;
-                }
-            }, 3000);
-        }
+                const confirmButton = document.getElementById('confirm-error-btn');
+                confirmButton.onclick = () => {
+                    closeModal('error-modal');
+                    if (redirectUrl) {
+                        window.location.href = redirectUrl;
+                    }
+                };
+            }
 
         // Confirm action modal
         function confirmAction(message, onConfirm) {
@@ -777,6 +824,13 @@
         // Close modals on button click
         document.getElementById('confirm-success-btn').addEventListener('click', () => closeModal('success-modal'));
         document.getElementById('confirm-error-btn').addEventListener('click', () => closeModal('error-modal'));
+
+        document.getElementById('confirm-delete-btn').addEventListener('click', () => {
+                // ใส่ action ลบที่คุณอยากทำตรงนี้
+                closeModal('delete-modal');
+            });
+
+            document.getElementById('cancel-delete-btn').addEventListener('click', () => closeModal('delete-modal'));
 
         // Close suggestions on blur with delay to allow click
         ['search-bar-1', 'search-bar-2', 'search-bar-3'].forEach(id => {
