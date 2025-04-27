@@ -218,6 +218,173 @@
                     </div>
                 </fieldset>
             </div>
+<<<<<<< HEAD
+
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    const form = document.getElementById('registerForm');
+                
+                  form.addEventListener('submit', function (event) {
+                    // ดึงเฉพาะช่องที่ required
+                    const requiredFields = [
+                      'provinceSelect',
+                      'districtSelect',
+                      'subdistrictSelect',
+                      'postalCode',
+                      'houseNumber'
+                    ];
+                
+                    let isValid = true;
+                    let firstInvalidField = null;
+                
+                    // เช็กทีละช่อง
+                    for (let id of requiredFields) {
+                      const field = document.getElementById(id);
+                      if (!field || field.value.trim() === '') {
+                        isValid = false;
+                        if (!firstInvalidField) {
+                          firstInvalidField = field;
+                        }
+                        field.classList.add('border-red-500'); // ใส่เส้นขอบแดง
+                      } else {
+                        field.classList.remove('border-red-500'); // ลบเส้นแดงถ้าแก้ไขถูก
+                      }
+                    }
+                
+                    // ถ้าไม่ valid
+                    if (!isValid) {
+                      event.preventDefault(); // กันไม่ให้ส่งฟอร์ม
+                      alert('กรุณากรอกข้อมูลที่มีเครื่องหมาย * ให้ครบถ้วน');
+                      if (firstInvalidField) {
+                        firstInvalidField.focus(); // เลื่อน focus ไปช่องแรกที่ผิด
+                      }
+                    }
+                  });
+                });
+                </script>
+                
+
+            <script>
+                let addressData = {};
+                let selectedProvince = '';
+                let selectedDistrict = '';
+                
+                let provinceSelectInstance;
+                let districtSelectInstance;
+                let subdistrictSelectInstance;
+                
+                async function loadAddressData() {
+                    try {
+                        const response = await fetch('address-thailand.json');
+                        addressData = await response.json();
+                        setupInitialDropdowns();
+                        populateProvinceSelect();
+                    } catch (error) {
+                        console.error('Error loading address data:', error);
+                    }
+                }
+                
+                function setupInitialDropdowns() {
+                    // เตรียม select เขต/อำเภอ
+                    const districtSelect = document.getElementById('districtSelect');
+                    districtSelect.innerHTML = '<option value="">เลือกเขต/อำเภอ</option>';
+                    districtSelect.disabled = true;
+                    districtSelectInstance = new TomSelect('#districtSelect', {
+                        create: false,
+                        sortField: 'text',
+                        onChange: handleDistrictChange
+                    });
+                
+                    // เตรียม select แขวง/ตำบล
+                    const subdistrictSelect = document.getElementById('subdistrictSelect');
+                    subdistrictSelect.innerHTML = '<option value="">เลือกแขวง/ตำบล</option>';
+                    subdistrictSelect.disabled = true;
+                    subdistrictSelectInstance = new TomSelect('#subdistrictSelect', {
+                        create: false,
+                        sortField: 'text',
+                        onChange: handleSubdistrictChange
+                    });
+                }
+                
+                function populateProvinceSelect() {
+                    const provinceSelect = document.getElementById('provinceSelect');
+                    provinceSelect.innerHTML = '<option value="">เลือกจังหวัด</option>';
+                    Object.keys(addressData).forEach(province => {
+                        const option = document.createElement('option');
+                        option.value = province;
+                        option.textContent = province;
+                        provinceSelect.appendChild(option);
+                    });
+                
+                    provinceSelectInstance = new TomSelect('#provinceSelect', {
+                        create: false,
+                        sortField: 'text',
+                        onChange: handleProvinceChange
+                    });
+                }
+                
+                function handleProvinceChange(value) {
+                    selectedProvince = value;
+                    selectedDistrict = '';
+                
+                    districtSelectInstance.clearOptions();
+                    districtSelectInstance.addOption({ value: '', text: 'เลือกเขต/อำเภอ' });
+                    districtSelectInstance.setValue('');
+                
+                    subdistrictSelectInstance.clearOptions();
+                    subdistrictSelectInstance.addOption({ value: '', text: 'เลือกแขวง/ตำบล' });
+                    subdistrictSelectInstance.setValue('');
+                
+                    document.getElementById('postalCode').value = '';
+                
+                    if (selectedProvince && addressData[selectedProvince]) {
+                        const districts = Object.keys(addressData[selectedProvince]).map(d => ({ value: d, text: d }));
+                        districtSelectInstance.addOptions(districts);
+                        districtSelectInstance.enable();
+                    } else {
+                        districtSelectInstance.disable();
+                        subdistrictSelectInstance.disable();
+                    }
+                }
+                
+                function handleDistrictChange(value) {
+                    selectedDistrict = value;
+                
+                    subdistrictSelectInstance.clearOptions();
+                    subdistrictSelectInstance.addOption({ value: '', text: 'เลือกแขวง/ตำบล' });
+                    subdistrictSelectInstance.setValue('');
+                
+                    document.getElementById('postalCode').value = '';
+                
+                    if (selectedProvince && selectedDistrict && addressData[selectedProvince][selectedDistrict]) {
+                        const subdistricts = Object.keys(addressData[selectedProvince][selectedDistrict]).map(s => ({ value: s, text: s }));
+                        subdistrictSelectInstance.addOptions(subdistricts);
+                        subdistrictSelectInstance.enable();
+                    } else {
+                        subdistrictSelectInstance.disable();
+                    }
+                }
+                
+                function handleSubdistrictChange(value) {
+                    const postalCodeInput = document.getElementById('postalCode');
+                    
+                    if (selectedProvince && selectedDistrict && value &&
+                        addressData[selectedProvince] &&
+                        addressData[selectedProvince][selectedDistrict] &&
+                        addressData[selectedProvince][selectedDistrict][value]) {
+                        
+                        const postcode = addressData[selectedProvince][selectedDistrict][value];
+                        postalCodeInput.value = postcode;
+                    } 
+                    // remove 'else { postalCodeInput.value = ""; }' 
+                }
+                
+                
+                
+                document.addEventListener('DOMContentLoaded', () => {
+                    loadAddressData();
+                });
+                </script>
             <!-- Success Message Modal -->
             <div id="success-modal"
                 class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
@@ -227,6 +394,24 @@
                     <button onclick="closeMessage('success-modal')"
                         class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">
                         ตกลง
+=======
+            <!-- Success Modal แบบใหม่ -->
+            <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+                    <div class="flex justify-center">
+                        <div class="w-20 h-20 flex items-center justify-center rounded-full bg-green-100 border-4 border-green-500">
+                            <svg class="w-12 h-12 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                            </svg>
+                        </div>
+                    </div>
+                    <h2 class="text-3xl font-bold text-green-600 mt-6">ลงทะเบียนสำเร็จ!</h2>
+                    <p class="text-gray-700 text-lg mt-4" id="success-message">สำเร็จ</p>
+                    <button id="success-confirm-btn"
+                        class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                        ยืนยัน
+>>>>>>> cec65bde78258c5b8918050d786417807ced8a24
                     </button>
                 </div>
             </div>
@@ -411,6 +596,14 @@
                 if (!response.ok) {
                     throw new Error(data.error || 'การลงทะเบียนล้มเหลว กรุณาลองใหม่');
                 }
+<<<<<<< HEAD
+        
+                // Success
+                sessionStorage.setItem('registerUserId', data.user_id);
+                showSuccessMessage('ลงทะเบียนสำเร็จ! กำลังพาไปหน้าเพิ่มทักษะ...');
+                setTimeout(() => window.location.href = 'create-member-skill.html', 2000);
+        
+=======
 
                 // Save formData without password fields to sessionStorage for next step
                 const formDataForSkills = { ...formData };
@@ -419,8 +612,8 @@
                 sessionStorage.setItem('registerPassword', formData.password);
                 sessionStorage.setItem('registerUserId', data.user_id); // 💾 save user_id from response
 
-                showSuccessMessage('ลงทะเบียนสำเร็จ! กรุณาเพิ่มทักษะของคุณ');
-                setTimeout(() => window.location.href = 'create-member-skill.html', 2000);
+                showSuccessMessage('ลงทะเบียนสำเร็จ! กรุณาเพิ่มทักษะของคุณ', 'create-member-skill.html');
+>>>>>>> cec65bde78258c5b8918050d786417807ced8a24
             } catch (error) {
                 console.error('Registration Error:', error);
                 showFailureMessage(error.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
