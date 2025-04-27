@@ -226,59 +226,61 @@ const authRoutes = (pool) => {
 
     // Save changes to profile
     router.put('/profile', authMiddleware, async (req, res) => {
-        const { name, phone, address } = req.body;
-
+        const { name, phone, email, address } = req.body;
+    
         try {
-            // Validate phone format
-            const phoneRegex = /^[0-9]{10}$/;
+            const phoneRegex = /^0[0-9]{9}$/;
             if (phone && !phoneRegex.test(phone)) {
-                return res.status(400).json({
-                    error: 'Phone number must be 10 digits'
-                });
+                return res.status(400).json({ error: 'Phone number must be 10 digits and start with 0' });
             }
-
-            // Build the update query dynamically based on provided fields
+    
+            if (email && !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
+                return res.status(400).json({ error: 'Invalid email format' });
+            }
+    
             const fieldsToUpdate = [];
             const values = [];
             let query = 'UPDATE users SET ';
-
+    
             if (name) {
                 fieldsToUpdate.push('name = $' + (fieldsToUpdate.length + 1));
-                values.push(name);
+                values.push(name.trim());
             }
             if (phone) {
                 fieldsToUpdate.push('phone = $' + (fieldsToUpdate.length + 1));
-                values.push(phone);
+                values.push(phone.trim());
             }
-            if (address) {
+            if (email !== undefined) {
+                fieldsToUpdate.push('email = $' + (fieldsToUpdate.length + 1));
+                values.push(email ? email.trim() : null);
+            }
+            if (address !== undefined) { // ✅ address รองรับด้วย
                 fieldsToUpdate.push('address = $' + (fieldsToUpdate.length + 1));
-                values.push(address);
+                values.push(address ? address.trim() : null);
             }
-
+    
             if (fieldsToUpdate.length === 0) {
                 return res.status(400).json({ error: 'No fields to update' });
             }
-
-            query += fieldsToUpdate.join(', ') + ' WHERE user_id = $' + (fieldsToUpdate.length + 1) + ' RETURNING user_id, username, email, role, name, phone, address, branch_id, time_credits, status, created_at';
+    
+            query += fieldsToUpdate.join(', ') + ' WHERE user_id = $' + (fieldsToUpdate.length + 1) + ' RETURNING *';
             values.push(req.user.userId);
-
+    
             const result = await pool.query(query, values);
-
+    
             const updatedUser = result.rows[0];
-
             if (!updatedUser) {
                 return res.status(404).json({ error: 'User not found' });
             }
-
+    
             res.json(updatedUser);
-
+    
         } catch (err) {
             console.error('Profile Update Error:', err.message);
-            res.status(500).json({
-                error: 'Internal server error. Please try again.'
-            });
+            res.status(500).json({ error: 'Internal server error. Please try again.' });
         }
     });
+    
 
     // Add to authRoutes
     router.patch('/users/:id/status', authMiddleware, async (req, res) => {
