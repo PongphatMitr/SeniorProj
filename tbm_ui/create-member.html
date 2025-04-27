@@ -6,6 +6,12 @@
     <title>ลงทะเบียน</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <!-- TomSelect CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/css/tom-select.css" rel="stylesheet">
+
+    <!-- TomSelect JS -->
+    <script src="https://cdn.jsdelivr.net/npm/tom-select@2.2.2/dist/js/tom-select.complete.min.js"></script>
+
     <style>
         /* Custom styles for searchable dropdown */
         .dropdown-container {
@@ -140,60 +146,244 @@
                 <fieldset class="border border-gray-300 rounded p-4 w-full md:w-96 flex-shrink-0" autocomplete="off">
                     <legend class="text-gray-700 text-sm font-bold mb-2 px-2">ที่อยู่ (Address)</legend>
                     <div class="grid grid-cols-1 gap-4">
-                        <div>
-                            <label for="houseNumber"
-                                class="block text-gray-700 text-sm font-bold mb-1">บ้านเลขที่</label>
-                            <input type="text" id="houseNumber" placeholder="บ้านเลขที่"
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                required />
-                        </div>
-                        <div>
-                            <label for="soi" class="block text-gray-700 text-sm font-bold mb-1">ซอย</label>
-                            <input type="text" id="soi" placeholder="ซอย"
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
-                        </div>
-
-                        <div class="dropdown-container">
-                            <label for="roadInput" class="block text-gray-700 text-sm font-bold mb-1">ถนน</label>
-                            <input type="text" id="roadInput" placeholder="ค้นหาถนน" class="dropdown-input"
-                                autocomplete="off" required />
-                            <div id="roadDropdown" class="dropdown-list"></div>
-                        </div>
-
-                        <div class="dropdown-container">
-                            <label for="subdistrictInput"
-                                class="block text-gray-700 text-sm font-bold mb-1">แขวง/ตำบล</label>
-                            <input type="text" id="subdistrictInput" placeholder="ค้นหาแขวง/ตำบล" class="dropdown-input"
-                                autocomplete="off" required />
-                            <div id="subdistrictDropdown" class="dropdown-list"></div>
-                        </div>
-
-                        <div class="dropdown-container">
-                            <label for="districtInput"
-                                class="block text-gray-700 text-sm font-bold mb-1">เขต/อำเภอ</label>
-                            <input type="text" id="districtInput" placeholder="ค้นหาเขต/อำเภอ" class="dropdown-input"
-                                autocomplete="off" required />
-                            <div id="districtDropdown" class="dropdown-list"></div>
-                        </div>
-
-                        <div class="dropdown-container">
-                            <label for="provinceInput"
-                                class="block text-gray-700 text-sm font-bold mb-1">จังหวัด</label>
-                            <input type="text" id="provinceInput" placeholder="ค้นหาจังหวัด" class="dropdown-input"
-                                autocomplete="off" required />
-                            <div id="provinceDropdown" class="dropdown-list"></div>
-                        </div>
-
-                        <div>
-                            <label for="postalCode"
-                                class="block text-gray-700 text-sm font-bold mb-1">รหัสไปรษณีย์</label>
-                            <input type="text" id="postalCode" placeholder="รหัสไปรษณีย์"
-                                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                pattern="\d{5}" title="รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก" required />
-                        </div>
+                
+                    <!-- จังหวัด -->
+                    <div>
+                        <label for="provinceSelect" class="block text-gray-700 text-sm font-bold mb-1">
+                        จังหวัด <span class="text-red-500">*</span>
+                        </label>
+                        <select id="provinceSelect" placeholder="เลือกจังหวัด..." required></select>
+                    </div>
+                    
+                    <!-- เขต/อำเภอ -->
+                    <div>
+                        <label for="districtSelect" class="block text-gray-700 text-sm font-bold mb-1">
+                        เขต/อำเภอ <span class="text-red-500">*</span>
+                        </label>
+                        <select id="districtSelect" placeholder="เลือกเขต/อำเภอ..." disabled required></select>
+                    </div>
+                    
+                    <!-- แขวง/ตำบล -->
+                    <div>
+                        <label for="subdistrictSelect" class="block text-gray-700 text-sm font-bold mb-1">
+                        แขวง/ตำบล <span class="text-red-500">*</span>
+                        </label>
+                        <select id="subdistrictSelect" placeholder="เลือกแขวง/ตำบล..." disabled required></select>
+                    </div>
+                    
+                    <!-- รหัสไปรษณีย์ -->
+                    <div>
+                        <label for="postalCode" class="block text-gray-700 text-sm font-bold mb-1">
+                        รหัสไปรษณีย์ <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="postalCode"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        required>
+                    </div>
+                    
+                    <!-- บ้านเลขที่ -->
+                    <div>
+                        <label for="houseNumber" class="block text-gray-700 text-sm font-bold mb-1">
+                        บ้านเลขที่ <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="houseNumber" placeholder="บ้านเลขที่"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                        required />
+                    </div>
+                    
+                    <!-- ซอย -->
+                    <div>
+                        <label for="soi" class="block text-gray-700 text-sm font-bold mb-1">ซอย<span class="text-gray-400 text-sm font-normal">*(ถ้าไม่มีให้เว้นว่าง)</span></label>
+                        <input type="text" id="soi" placeholder="ซอย"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                    </div>
+                    
+                    <!-- หมู่ -->
+                    <div>
+                        <label for="moo" class="block text-gray-700 text-sm font-bold mb-1">
+                        หมู่ <span class="text-gray-400 text-sm font-normal">*(ถ้าไม่มีให้เว้นว่าง)</span>
+                        </label>
+                        <input type="text" id="moo" placeholder="หมู่"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                    </div>
+                    
+                    <!-- ถนน -->
+                    <div>
+                        <label for="road" class="block text-gray-700 text-sm font-bold mb-1">ถนน<span class="text-gray-400 text-sm font-normal">*(ถ้าไม่มีให้เว้นว่าง)</span></label>
+                        <input type="text" id="road" placeholder="ถนน"
+                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" />
+                    </div>
+  
+                
                     </div>
                 </fieldset>
             </div>
+
+            <script>
+                document.addEventListener('DOMContentLoaded', () => {
+                    const form = document.getElementById('registerForm');
+                
+                  form.addEventListener('submit', function (event) {
+                    // ดึงเฉพาะช่องที่ required
+                    const requiredFields = [
+                      'provinceSelect',
+                      'districtSelect',
+                      'subdistrictSelect',
+                      'postalCode',
+                      'houseNumber'
+                    ];
+                
+                    let isValid = true;
+                    let firstInvalidField = null;
+                
+                    // เช็กทีละช่อง
+                    for (let id of requiredFields) {
+                      const field = document.getElementById(id);
+                      if (!field || field.value.trim() === '') {
+                        isValid = false;
+                        if (!firstInvalidField) {
+                          firstInvalidField = field;
+                        }
+                        field.classList.add('border-red-500'); // ใส่เส้นขอบแดง
+                      } else {
+                        field.classList.remove('border-red-500'); // ลบเส้นแดงถ้าแก้ไขถูก
+                      }
+                    }
+                
+                    // ถ้าไม่ valid
+                    if (!isValid) {
+                      event.preventDefault(); // กันไม่ให้ส่งฟอร์ม
+                      alert('กรุณากรอกข้อมูลที่มีเครื่องหมาย * ให้ครบถ้วน');
+                      if (firstInvalidField) {
+                        firstInvalidField.focus(); // เลื่อน focus ไปช่องแรกที่ผิด
+                      }
+                    }
+                  });
+                });
+                </script>
+                
+
+            <script>
+                let addressData = {};
+                let selectedProvince = '';
+                let selectedDistrict = '';
+                
+                let provinceSelectInstance;
+                let districtSelectInstance;
+                let subdistrictSelectInstance;
+                
+                async function loadAddressData() {
+                    try {
+                        const response = await fetch('address-thailand.json');
+                        addressData = await response.json();
+                        setupInitialDropdowns();
+                        populateProvinceSelect();
+                    } catch (error) {
+                        console.error('Error loading address data:', error);
+                    }
+                }
+                
+                function setupInitialDropdowns() {
+                    // เตรียม select เขต/อำเภอ
+                    const districtSelect = document.getElementById('districtSelect');
+                    districtSelect.innerHTML = '<option value="">เลือกเขต/อำเภอ</option>';
+                    districtSelect.disabled = true;
+                    districtSelectInstance = new TomSelect('#districtSelect', {
+                        create: false,
+                        sortField: 'text',
+                        onChange: handleDistrictChange
+                    });
+                
+                    // เตรียม select แขวง/ตำบล
+                    const subdistrictSelect = document.getElementById('subdistrictSelect');
+                    subdistrictSelect.innerHTML = '<option value="">เลือกแขวง/ตำบล</option>';
+                    subdistrictSelect.disabled = true;
+                    subdistrictSelectInstance = new TomSelect('#subdistrictSelect', {
+                        create: false,
+                        sortField: 'text',
+                        onChange: handleSubdistrictChange
+                    });
+                }
+                
+                function populateProvinceSelect() {
+                    const provinceSelect = document.getElementById('provinceSelect');
+                    provinceSelect.innerHTML = '<option value="">เลือกจังหวัด</option>';
+                    Object.keys(addressData).forEach(province => {
+                        const option = document.createElement('option');
+                        option.value = province;
+                        option.textContent = province;
+                        provinceSelect.appendChild(option);
+                    });
+                
+                    provinceSelectInstance = new TomSelect('#provinceSelect', {
+                        create: false,
+                        sortField: 'text',
+                        onChange: handleProvinceChange
+                    });
+                }
+                
+                function handleProvinceChange(value) {
+                    selectedProvince = value;
+                    selectedDistrict = '';
+                
+                    districtSelectInstance.clearOptions();
+                    districtSelectInstance.addOption({ value: '', text: 'เลือกเขต/อำเภอ' });
+                    districtSelectInstance.setValue('');
+                
+                    subdistrictSelectInstance.clearOptions();
+                    subdistrictSelectInstance.addOption({ value: '', text: 'เลือกแขวง/ตำบล' });
+                    subdistrictSelectInstance.setValue('');
+                
+                    document.getElementById('postalCode').value = '';
+                
+                    if (selectedProvince && addressData[selectedProvince]) {
+                        const districts = Object.keys(addressData[selectedProvince]).map(d => ({ value: d, text: d }));
+                        districtSelectInstance.addOptions(districts);
+                        districtSelectInstance.enable();
+                    } else {
+                        districtSelectInstance.disable();
+                        subdistrictSelectInstance.disable();
+                    }
+                }
+                
+                function handleDistrictChange(value) {
+                    selectedDistrict = value;
+                
+                    subdistrictSelectInstance.clearOptions();
+                    subdistrictSelectInstance.addOption({ value: '', text: 'เลือกแขวง/ตำบล' });
+                    subdistrictSelectInstance.setValue('');
+                
+                    document.getElementById('postalCode').value = '';
+                
+                    if (selectedProvince && selectedDistrict && addressData[selectedProvince][selectedDistrict]) {
+                        const subdistricts = Object.keys(addressData[selectedProvince][selectedDistrict]).map(s => ({ value: s, text: s }));
+                        subdistrictSelectInstance.addOptions(subdistricts);
+                        subdistrictSelectInstance.enable();
+                    } else {
+                        subdistrictSelectInstance.disable();
+                    }
+                }
+                
+                function handleSubdistrictChange(value) {
+                    const postalCodeInput = document.getElementById('postalCode');
+                    
+                    if (selectedProvince && selectedDistrict && value &&
+                        addressData[selectedProvince] &&
+                        addressData[selectedProvince][selectedDistrict] &&
+                        addressData[selectedProvince][selectedDistrict][value]) {
+                        
+                        const postcode = addressData[selectedProvince][selectedDistrict][value];
+                        postalCodeInput.value = postcode;
+                    } 
+                    // remove 'else { postalCodeInput.value = ""; }' 
+                }
+                
+                
+                
+                document.addEventListener('DOMContentLoaded', () => {
+                    loadAddressData();
+                });
+                </script>
             <!-- Success Message Modal -->
             <div id="success-modal"
                 class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
@@ -223,235 +413,152 @@
     </div>
 
     <script>
-        // Data arrays for dropdowns
-        const roads = [
-            "ถนนพระราม 1", "ถนนพระราม 2", "ถนนพระราม 3", "ถนนพระราม 4", "ถนนพระราม 5",
-            "ถนนสุขุมวิท", "ถนนพหลโยธิน", "ถนนลาดพร้าว", "ถนนรัชดาภิเษก", "ถนนวิภาวดีรังสิต",
-            "ถนนแจ้งวัฒนะ", "ถนนศรีนครินทร์", "ถนนสีลม", "ถนนสาทร", "ถนนเจริญกรุง",
-            "ถนนราชดำเนิน", "ถนนลาดกระบัง", "ถนนบางนา-ตราด", "ถนนพระราม 9", "ถนนรามคำแหง",
-            "ถนนรามอินทรา", "ถนนพญาไท"
-        ];
 
-        const subdistricts = [
-            "แขวงวังใหม่", "แขวงคลองมหานาค", "แขวงดุสิต", "แขวงสามเสนใน", "แขวงบางซื่อ",
-            "แขวงบางพลัด", "แขวงบางยี่ขัน", "แขวงบางขุนนนท์", "แขวงบางกอกน้อย", "แขวงบางกอกใหญ่",
-            "แขวงบางคอแหลม", "แขวงบางโคล่", "แขวงบางค้อ", "แขวงบางมด", "แขวงบางขุนเทียน",
-            "แขวงบางบอน", "แขวงบางนา", "แขวงบางจาก", "แขวงพระโขนง", "แขวงคลองตัน"
-        ];
-
-        const districts = [
-            "เขตพระนคร", "เขตดุสิต", "เขตหนองจอก", "เขตบางรัก", "เขตบางเขน",
-            "เขตบางกะปิ", "เขตปทุมวัน", "เขตป้อมปราบศัตรูพ่าย", "เขตพระโขนง", "เขตมีนบุรี",
-            "เขตลาดกระบัง", "เขตยานนาวา", "เขตสัมพันธวงศ์", "เขตพญาไท", "เขตธนบุรี",
-            "เขตบางกอกใหญ่", "เขตห้วยขวาง", "เขตคลองสาน", "เขตตลิ่งชัน", "เขตบางกอกน้อย",
-            "เขตบางขุนเทียน", "เขตภาษีเจริญ", "เขตหนองแขม", "เขตราษฎร์บูรณะ", "เขตบางพลัด",
-            "เขตดินแดง", "เขตบางซื่อ", "เขตจตุจักร", "เขตหลักสี่", "เขตสายไหม",
-            "เขตคันนายาว", "เขตลาดกระบัง", "เขตสะพานสูง", "เขตวังทองหลาง", "เขตคลองสามวา",
-            "เขตบางนา", "เขตทวีวัฒนา", "เขตทุ่งครุ", "เขตบางบอน"
-        ];
-
-        const provinces = [
-            "กรุงเทพมหานคร", "กระบี่", "กาญจนบุรี", "กาฬสินธุ์", "กำแพงเพชร",
-            "ขอนแก่น", "จันทบุรี", "ฉะเชิงเทรา", "ชลบุรี", "ชัยนาท",
-            "ชัยภูมิ", "ชุมพร", "เชียงใหม่", "เชียงราย", "ตรัง",
-            "ตราด", "ตาก", "นครนายก", "นครปฐม", "นครพนม",
-            "นครราชสีมา", "นครศรีธรรมราช", "นครสวรรค์", "นนทบุรี", "นราธิวาส",
-            "น่าน", "บึงกาฬ", "บุรีรัมย์", "ปทุมธานี", "ประจวบคีรีขันธ์",
-            "ปราจีนบุรี", "ปัตตานี", "พระนครศรีอยุธยา", "พะเยา", "พังงา",
-            "พัทลุง", "พิจิตร", "พิษณุโลก", "เพชรบุรี", "เพชรบูรณ์",
-            "แพร่", "ภูเก็ต", "มหาสารคาม", "มุกดาหาร", "แม่ฮ่องสอน",
-            "ยโสธร", "ยะลา", "ร้อยเอ็ด", "ระนอง", "ระยอง",
-            "ราชบุรี", "ลพบุรี", "ลำปาง", "ลำพูน", "เลย",
-            "ศรีสะเกษ", "สกลนคร", "สงขลา", "สมุทรสาคร", "สมุทรปราการ",
-            "สมุทรสงคราม", "สระแก้ว", "สระบุรี", "สิงห์บุรี", "สุโขทัย",
-            "สุพรรณบุรี", "สุราษฎร์ธานี", "สุรินทร์", "หนองคาย", "หนองบัวลำภู",
-            "อำนาจเจริญ", "อุดรธานี", "อุตรดิตถ์", "อุทัยธานี", "อุบลราชธานี",
-            "อ่างทอง"
-        ];
-
-        // Generic function to create searchable dropdown
-        function setupSearchableDropdown(inputId, dropdownId, dataArray) {
+        function setupSearchableDropdown(inputId, dropdownId, dataList) {
             const input = document.getElementById(inputId);
             const dropdown = document.getElementById(dropdownId);
-
-            function filterList(value) {
-                dropdown.innerHTML = '';
-                const filtered = dataArray.filter(item => item.toLowerCase().includes(value.toLowerCase()));
-                if (filtered.length === 0) {
-                    const noItem = document.createElement('div');
-                    noItem.textContent = 'ไม่พบข้อมูล';
-                    noItem.className = 'text-gray-500 cursor-default select-none px-3 py-1';
-                    dropdown.appendChild(noItem);
-                } else {
-                    filtered.forEach(item => {
-                        const div = document.createElement('div');
-                        div.textContent = item;
-                        div.tabIndex = 0;
-                        div.className = '';
-                        div.addEventListener('click', () => {
-                            input.value = item;
-                            dropdown.classList.remove('active');
-                        });
-                        div.addEventListener('keydown', e => {
-                            if (e.key === 'Enter' || e.key === ' ') {
-                                e.preventDefault();
-                                input.value = item;
-                                dropdown.classList.remove('active');
-                                input.focus();
-                            }
-                        });
-                        dropdown.appendChild(div);
-                    });
-                }
+        
+            if (!input || !dropdown) {
+                console.error(`Input or Dropdown not found: ${inputId}, ${dropdownId}`);
+                return;
             }
-
-            input.addEventListener('input', () => {
-                const val = input.value.trim();
-                if (val.length > 0) {
-                    filterList(val);
+        
+            input.addEventListener('input', function () {
+                const searchTerm = input.value.toLowerCase();
+                dropdown.innerHTML = '';
+        
+                const filteredItems = dataList.filter(item => item.toLowerCase().includes(searchTerm));
+        
+                filteredItems.forEach(item => {
+                    const div = document.createElement('div');
+                    div.textContent = item;
+                    div.classList.add('dropdown-item');
+                    div.addEventListener('click', function () {
+                        input.value = item;
+                        dropdown.classList.remove('active');
+                    });
+                    dropdown.appendChild(div);
+                });
+        
+                if (filteredItems.length > 0) {
                     dropdown.classList.add('active');
                 } else {
                     dropdown.classList.remove('active');
                 }
             });
-
-            input.addEventListener('focus', () => {
-                if (input.value.trim().length > 0) {
-                    filterList(input.value.trim());
-                    dropdown.classList.add('active');
-                }
-            });
-
-            input.addEventListener('blur', () => {
-                // Delay hiding to allow click event on dropdown items
-                setTimeout(() => {
+        
+            // Hide dropdown if click outside
+            document.addEventListener('click', function (event) {
+                if (!input.contains(event.target) && !dropdown.contains(event.target)) {
                     dropdown.classList.remove('active');
-                }, 150);
+                }
             });
         }
 
-        // Setup all searchable dropdowns
-        setupSearchableDropdown('roadInput', 'roadDropdown', roads);
-        setupSearchableDropdown('subdistrictInput', 'subdistrictDropdown', subdistricts);
-        setupSearchableDropdown('districtInput', 'districtDropdown', districts);
-        setupSearchableDropdown('provinceInput', 'provinceDropdown', provinces);
-        setupSearchableDropdown('branchInput', 'branchDropdown', []);
+        let branchData = []; // <<<< ✅ ย้ายมาไว้บนสุดก่อน
 
-        // Fetch branches dynamically and update branchDropdown data
+        // Generic function to create searchable dropdown
+        function safeSetupDropdown(idInput, idDropdown, arrayData) {
+            const input = document.getElementById(idInput);
+            const dropdown = document.getElementById(idDropdown);
+            if (input && dropdown) {
+                setupSearchableDropdown(idInput, idDropdown, arrayData);
+            }
+        }
+        
+        // Setup only branch dropdown
+        safeSetupDropdown('branchInput', 'branchDropdown', branchData);
+
+        // Fetch branches dynamically
         async function fetchBranches() {
             try {
                 const response = await fetch('http://localhost:3000/api/tbm/branches');
                 if (!response.ok) throw new Error('Failed to fetch branches');
                 const branches = await response.json();
-                const branchNames = branches.map(b => b.branch_name);
-                // Update branch dropdown data
-                branchData = branchNames;
-                // Re-setup branch dropdown with new data
+                branchData = branches.map(b => b.branch_name);
                 setupSearchableDropdown('branchInput', 'branchDropdown', branchData);
             } catch (error) {
                 console.error('Error fetching branches:', error);
             }
         }
 
-        let branchData = [];
         fetchBranches();
+
 
         document.getElementById('registerForm').addEventListener('submit', async function (event) {
             event.preventDefault();
-
-            // Collect form data
+        
+            // Collect form inputs
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value.trim();
+            const confirmPassword = document.getElementById('confirmPassword').value.trim();
+            const email = document.getElementById('email').value.trim() || null; // optional
             const firstName = document.getElementById('firstName').value.trim();
             const lastName = document.getElementById('lastName').value.trim();
-
-            const formData = {
-                username: document.getElementById('username').value.trim(),
-                email: document.getElementById('email').value.trim(),
-                password: document.getElementById('password').value.trim(),
-                confirmPassword: document.getElementById('confirmPassword').value.trim(),
-                name: firstName + ' ' + lastName, // Concatenate first and last name with space
-                phone: document.getElementById('phone').value.trim(),
-                branch: document.getElementById('branchInput').value.trim(),
-                role: 'User', // Default role
-                // Address fields combined into one string for backend
-                address: '',
-            };
-
-            // Compose full address string in Thai format:
-            // บ้านเลขที่, ซอย, ถนน, แขวง/ตำบล, เขต/อำเภอ, จังหวัด, รหัสไปรษณีย์
+            const phone = document.getElementById('phone').value.trim();
+            const branch = document.getElementById('branchInput').value.trim() || null;
+        
+            // Address fields
             const houseNumber = document.getElementById('houseNumber').value.trim();
             const soi = document.getElementById('soi').value.trim();
-            const road = document.getElementById('roadInput').value.trim();
-            const subdistrict = document.getElementById('subdistrictInput').value.trim();
-            const district = document.getElementById('districtInput').value.trim();
-            const province = document.getElementById('provinceInput').value.trim();
+            const moo = document.getElementById('moo').value.trim();
+            const road = document.getElementById('road').value.trim();
+            const province = provinceSelectInstance.getValue();
+            const district = districtSelectInstance.getValue();
+            const subdistrict = subdistrictSelectInstance.getValue();
             const postalCode = document.getElementById('postalCode').value.trim();
-
-            // Validate required address fields
-            const addressErrors = [];
-            if (!houseNumber) addressErrors.push('กรุณากรอก บ้านเลขที่');
-            if (!subdistrict) addressErrors.push('กรุณากรอก แขวง/ตำบล');
-            if (!district) addressErrors.push('กรุณากรอก เขต/อำเภอ');
-            if (!province) addressErrors.push('กรุณาเลือก จังหวัด');
-            if (!postalCode) addressErrors.push('กรุณากรอก รหัสไปรษณีย์');
-
-            if (addressErrors.length > 0) {
-                showFailureMessage(addressErrors.join('\n'));
-                return;
-            }
-
-            // Compose address string
-            let addressParts = [];
-            addressParts.push(`บ้านเลขที่ ${houseNumber}`);
-            if (soi) addressParts.push(`ซอย ${soi}`);
-            if (road) addressParts.push(`ถนน ${road}`);
-            addressParts.push(`แขวง/ตำบล ${subdistrict}`);
-            addressParts.push(`เขต/อำเภอ ${district}`);
-            addressParts.push(`จังหวัด ${province}`);
-            addressParts.push(`รหัสไปรษณีย์ ${postalCode}`);
-
-            formData.address = addressParts.join(' ');
-
-            // Client-side validation
+        
+            // Validate basic required fields
             const errors = [];
-
-            // Validate first and last name: both required
-            if (!firstName) {
-                errors.push('กรุณากรอกชื่อ');
-            }
-            if (!lastName) {
-                errors.push('กรุณากรอกนามสกุล');
-            }
-
-            // Validate email: allow empty but must be a valid format if provided
-            if (formData.email && !/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(formData.email)) {
-                errors.push('อีเมลไม่ถูกต้อง กรุณากรอกอีเมลให้ถูกต้องหรือเว้นว่างไว้');
-            }
-
-            // Validate phone: must be exactly 10 digits and start with 0
-            if (!/^0[0-9]{9}$/.test(formData.phone)) {
-                errors.push('หมายเลขโทรศัพท์ไม่ถูกต้อง ต้องมี 10 หลักและขึ้นต้นด้วยเลข 0');
-            }
-
-            // Validate postal code: 5 digits
-            if (!/^\d{5}$/.test(postalCode)) {
-                errors.push('รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก');
-            }
-
-            // Password validations
-            if (formData.password !== formData.confirmPassword) {
-                errors.push('รหัสผ่านไม่ตรงกัน');
-            }
-            if (formData.password.length < 8) {
-                errors.push('รหัสผ่านต้องมีความยาวอย่างน้อย 8 ตัวอักษร');
-            }
-
-            // Display errors if any
+        
+            if (!username) errors.push('กรุณากรอก Username');
+            if (!password) errors.push('กรุณากรอกรหัสผ่าน');
+            if (!confirmPassword) errors.push('กรุณากรอกยืนยันรหัสผ่าน');
+            if (password !== confirmPassword) errors.push('รหัสผ่านไม่ตรงกัน');
+            if (password.length < 8) errors.push('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร');
+            if (!firstName) errors.push('กรุณากรอกชื่อ');
+            if (!lastName) errors.push('กรุณากรอกนามสกุล');
+            if (!phone.match(/^0\d{9}$/)) errors.push('เบอร์โทรศัพท์ต้องมี 10 หลักและขึ้นต้นด้วย 0');
+        
+            // Validate address fields
+            if (!houseNumber) errors.push('กรุณากรอก บ้านเลขที่');
+            if (!subdistrict) errors.push('กรุณาเลือก แขวง/ตำบล');
+            if (!district) errors.push('กรุณาเลือก เขต/อำเภอ');
+            if (!province) errors.push('กรุณาเลือก จังหวัด');
+            if (!postalCode.match(/^\d{5}$/)) errors.push('รหัสไปรษณีย์ต้องเป็นตัวเลข 5 หลัก');
+        
             if (errors.length > 0) {
                 showFailureMessage(errors.join('\n'));
                 return;
             }
-
-            // Submit data if validation passes
+        
+            let addressFirstPart = houseNumber.trim();
+            if (soi.trim()) addressFirstPart += ' ' + soi.trim();
+            if (moo.trim()) addressFirstPart += ' ' + moo.trim();
+            if (road.trim()) addressFirstPart += ' ' + road.trim();
+            
+            let addressSecondPart = '';
+            if (subdistrict.trim()) addressSecondPart += subdistrict.trim() + ' ';
+            if (district.trim()) addressSecondPart += district.trim() + ' ';
+            if (province.trim()) addressSecondPart += province.trim() + ' ';
+            if (postalCode.trim()) addressSecondPart += postalCode.trim();            
+            
+            // Final Full Address
+            const fullAddress = `${addressFirstPart}, ${addressSecondPart.trim()}`;
+            
+        
+            // Prepare final payload
+            const formData = {
+                username,
+                password,
+                email,
+                role: 'User', // default
+                name: `${firstName} ${lastName}`, // รวมชื่อ+นามสกุล
+                phone,
+                address: fullAddress,
+                branch
+            };
+        
             try {
                 const response = await fetch('http://localhost:3000/api/tbm/auth/register', {
                     method: 'POST',
@@ -460,27 +567,24 @@
                     },
                     body: JSON.stringify(formData)
                 });
-
+        
                 const data = await response.json();
-
+        
                 if (!response.ok) {
                     throw new Error(data.error || 'การลงทะเบียนล้มเหลว กรุณาลองใหม่');
                 }
-
-                // Save formData without password fields to sessionStorage for next step
-                const formDataForSkills = { ...formData };
-                sessionStorage.setItem('registerFormData', JSON.stringify(formDataForSkills));
-                sessionStorage.setItem('registerUserId', data.user_id); // <-- this line is missing!
-                sessionStorage.setItem('registerPassword', formData.password);
-                sessionStorage.setItem('registerUserId', data.user_id); // 💾 save user_id from response
-
-                showSuccessMessage('ลงทะเบียนสำเร็จ! กรุณาเพิ่มทักษะของคุณ');
+        
+                // Success
+                sessionStorage.setItem('registerUserId', data.user_id);
+                showSuccessMessage('ลงทะเบียนสำเร็จ! กำลังพาไปหน้าเพิ่มทักษะ...');
                 setTimeout(() => window.location.href = 'create-member-skill.html', 2000);
+        
             } catch (error) {
                 console.error('Registration Error:', error);
                 showFailureMessage(error.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
             }
         });
+        
 
         function showSuccessMessage(message) {
             document.getElementById('success-message').textContent = message;

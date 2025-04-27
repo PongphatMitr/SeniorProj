@@ -10,121 +10,91 @@ const authRoutes = (pool) => {
     const router = express.Router();
 
     // Register a new user
-    router.post('/register', async (req, res) => {
-        const {
-            username,
-            password,
-            email,
-            role = 'User', // Default role to 'User'
-            name,
-            phone,
-            address,
-            branch,
-            skills // Add skills to the request body
-        } = req.body;
-
-        try {
-            // Validate required fields
-            const requiredFields = ['username', 'password', 'email', 'role', 'name', 'phone'];
-            const missingFields = requiredFields.filter(field => !req.body[field]);
-
-            if (missingFields.length > 0) {
-                return res.status(400).json({
-                    error: `Missing required fields: ${missingFields.join(', ')}`
-                });
-            }
-
-            // Validate role
-            const allowedRoles = ['User', 'Member', 'TimeBankManager', 'Admin'];
-            if (!allowedRoles.includes(role)) {
-                return res.status(400).json({ error: 'Invalid role' });
-            }
-
-            // Validate phone format
-            const phoneRegex = /^[0-9]{10}$/;
-            if (!phoneRegex.test(phone)) {
-                return res.status(400).json({
-                    error: 'Phone number must be 10 digits'
-                });
-            }
-
-            // Check for existing user
-            const userExists = await pool.query(
-                'SELECT * FROM users WHERE username = $1 OR email = $2',
-                [username, email]
-            );
-
-            if (userExists.rows.length > 0) {
-                return res.status(409).json({
-                    error: 'Username or email already exists'
-                });
-            }
-
-            // Hash password
-            const hashedPassword = await bcrypt.hash(password, 10);
-
-            // Fetch default time token from community_config
-            const configResult = await pool.query('SELECT default_time_token FROM community_config LIMIT 1');
-            const defaultTimeToken = configResult.rows[0].default_time_token;
-
-            // Fetch branch_id from branches table
-            let branchId = null;
-            if (branch) {
-                const branchResult = await pool.query('SELECT branch_id FROM branches WHERE branch_name = $1', [branch]);
-                if (branchResult.rows.length > 0) {
-                    branchId = branchResult.rows[0].branch_id;
-                } else {
-                    // Insert new branch if it doesn't exist
-                    const newBranchResult = await pool.query(
-                        'INSERT INTO branches (branch_name) VALUES ($1) RETURNING branch_id',
-                        [branch]
-                    );
-                    branchId = newBranchResult.rows[0].branch_id;
+        router.post('/register', async (req, res) => {
+            const {
+                username,
+                password,
+                email = null, // Default to null if empty
+                role = 'User',
+                name,
+                phone,
+                address,
+                branch
+            } = req.body;
+    
+            try {
+                // Validate required fields
+                const requiredFields = ['username', 'password', 'role', 'name', 'phone'];
+                const missingFields = requiredFields.filter(field => !req.body[field]);
+    
+                if (missingFields.length > 0) {
+                    return res.status(400).json({
+                        error: `Missing required fields: ${missingFields.join(', ')}`,
+                    });
                 }
+    
+                // Validate phone format
+                const phoneRegex = /^[0-9]{10}$/;
+                if (!phoneRegex.test(phone)) {
+                    return res.status(400).json({ error: 'หมายเลขโทรศัพท์ต้องมี 10 หลักและขึ้นต้นด้วย 0' });
+                }
+    
+                // Check for existing username (email is optional)
+                const userExists = await pool.query(
+                    'SELECT * FROM users WHERE username = $1 OR (email = $2 AND email IS NOT NULL)',
+                    [username, email]
+                );
+    
+                if (userExists.rows.length > 0) {
+                    return res.status(409).json({ error: 'Username or email already exists' });
+                }
+    
+                // Hash password
+                const hashedPassword = await bcrypt.hash(password, 10);
+    
+                // Fetch default time token from community_config
+                const configResult = await pool.query('SELECT default_time_token FROM community_config LIMIT 1');
+                const defaultTimeToken = configResult.rows[0].default_time_token;
+    
+                // Fetch branch_id from branches table
+                let branchId = null;
+                if (branch) {
+                    const branchResult = await pool.query('SELECT branch_id FROM branches WHERE branch_name = $1', [branch]);
+                    if (branchResult.rows.length > 0) {
+                        branchId = branchResult.rows[0].branch_id;
+                    } else {
+                        const newBranchResult = await pool.query(
+                            'INSERT INTO branches (branch_name) VALUES ($1) RETURNING branch_id',
+                            [branch]
+                        );
+                        branchId = newBranchResult.rows[0].branch_id;
+                    }
+                }
+    
+                // Insert user allowing email to be NULL
+                const result = await pool.query(
+                    `INSERT INTO users 
+                    (username, password, email, role, name, phone, address, branch_id, time_credits, status) 
+                    VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, DEFAULT) 
+                    RETURNING user_id, username, email, role, name, phone, address, branch_id, time_credits, status, created_at`,
+                    [username, hashedPassword, email || null, role, name, phone, address, branchId, defaultTimeToken]
+                );
+    
+                res.status(201).json(result.rows[0]);
+    
+            } catch (err) {
+                console.error('Registration Error Details:', err);
+    
+                if (err.code === '23505') {
+                    return res.status(409).json({ error: 'Username or email already exists' });
+                }
+                if (err.code === '23502') {
+                    return res.status(400).json({ error: `Missing required field: ${err.column}` });
+                }
+    
+                res.status(500).json({ error: 'Internal server error. Please try again.' });
             }
-
-            // Insert the new user
-            const result = await pool.query(
-                `INSERT INTO users 
-                (username, password, email, role, name, phone, address, branch_id, time_credits, status) 
-                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, DEFAULT) 
-                RETURNING user_id, username, email, role, name, phone, address, branch_id, time_credits, status, created_at`,
-                [username, hashedPassword, email, role, name, phone, address, branchId, defaultTimeToken]
-            );
-
-            const newUser = result.rows[0];
-
-            // Insert skills for the new user
-            if (skills && skills.length > 0) {
-                const skillInsertPromises = skills.map(skillId => {
-                    return pool.query(
-                        'INSERT INTO member_skills (user_id, skill_id) VALUES ($1, $2)',
-                        [newUser.user_id, skillId]
-                    );
-                });
-                await Promise.all(skillInsertPromises);
-            }
-
-            res.status(201).json(newUser);
-
-        } catch (err) {
-            console.error('Registration Error Details:', {
-                message: err.message,
-                code: err.code,
-                detail: err.detail
-            });
-
-            // Handle database errors
-            if (err.code === '23505') {
-                return res.status(409).json({ error: 'Username or email already exists' });
-            }
-            if (err.code === '23502') {
-                return res.status(400).json({ error: `Missing required field: ${err.column}` });
-            }
-
-            res.status(500).json({ error: 'Internal server error. Please try again.' });
-        }
-    });
+        });
 
     // Modified login route with status check and logging
     router.post('/login', async (req, res) => {
