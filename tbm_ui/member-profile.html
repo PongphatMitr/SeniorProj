@@ -9,6 +9,44 @@
     <script>
         let globalUserId = null; // Global variable to store user_id
 
+        // เพิ่มฟังก์ชันแสดง modal ข้อผิดพลาด
+            function showErrorModal(message) {
+                document.getElementById('error-message').textContent = message;
+                document.getElementById('error-modal').classList.remove('hidden');
+                document.getElementById('error-confirm-btn').onclick = function () {
+                    document.getElementById('error-modal').classList.add('hidden');
+                };
+            }
+
+            // เพิ่มฟังก์ชันแสดง modal ยืนยันการบันทึก (Promise-based)
+            function showConfirmSaveModal() {
+                return new Promise((resolve) => {
+                    const modal = document.getElementById('confirm-save-modal');
+                    modal.classList.remove('hidden');
+
+                    const confirmBtn = document.getElementById('confirm-save-btn');
+                    const cancelBtn = document.getElementById('cancel-save-btn');
+
+                    const cleanup = () => {
+                        modal.classList.add('hidden');
+                        confirmBtn.onclick = null;
+                        cancelBtn.onclick = null;
+                    };
+
+                    confirmBtn.onclick = () => { cleanup(); resolve(true); };
+                    cancelBtn.onclick = () => { cleanup(); resolve(false); };
+                });
+            }
+
+        function showSuccessModal(message, callback) {
+                document.getElementById('success-message').textContent = message;
+                document.getElementById('success-modal').classList.remove('hidden');
+                document.getElementById('success-confirm-btn').onclick = function () {
+                    document.getElementById('success-modal').classList.add('hidden');
+                    if (typeof callback === 'function') callback();
+                };
+            }
+
         document.addEventListener('DOMContentLoaded', () => {
             fetchMemberProfile();
         });
@@ -41,7 +79,7 @@
                 renderMemberProfile(member);
             } catch (error) {
                 console.error('❌ Error fetching member profile:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์สมาชิก');
+                showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์สมาชิก');
             }
         }
 
@@ -59,6 +97,7 @@
                 return branch ? branch.branch_name : 'N/A';
             } catch (error) {
                 console.error('Error fetching branch name:', error);
+                showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลสาขา');
                 return 'N/A';
             }
         }
@@ -76,7 +115,7 @@
 
         function enableEditing() {
             if (!globalUserId) {
-                alert('User ID not available. Please refresh the page.');
+                showErrorModal('ไม่พบ User ID กรุณารีเฟรชหน้าเว็บใหม่');
                 return;
             }
 
@@ -144,28 +183,27 @@
 
             // Validate name (must include at least two words)
             if (fullName.split(' ').length < 2) {
-                alert('กรุณากรอกชื่อและนามสกุลให้ครบถ้วน');
+                showErrorModal('กรุณากรอกชื่อและนามสกุลให้ครบถ้วน');
                 return;
             }
 
             // Validate Thai phone number (must start with 0 and be 10 digits)
             const phoneRegex = /^0[0-9]{9}$/;
             if (!phoneRegex.test(phone)) {
-                alert('กรุณากรอกหมายเลขโทรศัพท์ให้ถูกต้อง (10 หลักและขึ้นต้นด้วย 0)');
+                showErrorModal('กรุณากรอกหมายเลขโทรศัพท์ให้ถูกต้อง (10 หลักและขึ้นต้นด้วย 0)');
                 return;
             }
 
             // Advanced address validation: must contain house number and keywords like เขต/อำเภอ/ตำบล/จังหวัด
             const addressRegex = /\d+.*(เขต|อำเภอ|ตำบล|จังหวัด)/;
             if (!addressRegex.test(address)) {
-                alert('กรุณากรอกที่อยู่ให้ครบถ้วน รวมถึงเลขที่บ้าน เขต/อำเภอ และจังหวัด');
+                showErrorModal('กรุณากรอกที่อยู่ให้ครบถ้วน รวมถึงเลขที่บ้าน เขต/อำเภอ และจังหวัด');
                 return;
             }
 
-            // Ask for confirmation before saving
-            if (!confirm('คุณต้องการบันทึกการเปลี่ยนแปลงหรือไม่?')) {
-                return;  // Stop if the user cancels
-            }
+            // แสดง modal ยืนยันการบันทึก
+            const userConfirmed = await showConfirmSaveModal();
+            if (!userConfirmed) return;
 
             const member = {
                 name: fullName,
@@ -184,7 +222,7 @@
                 });
 
                 if (response.ok) {
-                    showSuccessMessage('บันทึกข้อมูลโปรไฟล์สำเร็จแล้ว!');
+                    showSuccessModal('บันทึกข้อมูลโปรไฟล์สำเร็จแล้ว!');
                     renderMemberProfile(member);
 
                     const fields = ['member-name', 'member-phone', 'member-address'];
@@ -204,21 +242,12 @@
                     fetchMemberProfile();  // Refresh profile after saving
                 } else {
                     const errorData = await response.json();
-                    alert(`เกิดข้อผิดพลาดในการบันทึกข้อมูล: ${errorData.error || 'ไม่ทราบสาเหตุ'}`);
+                    showErrorModal(`เกิดข้อผิดพลาดในการบันทึกข้อมูล: ${errorData.error || 'ไม่ทราบสาเหตุ'}`);
                 }
             } catch (error) {
                 console.error('Error saving member profile:', error);
-                alert('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+                showErrorModal('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
             }
-        }
-
-        function showSuccessMessage(message) {
-            document.getElementById('success-message').textContent = message;
-            document.getElementById('success-modal').classList.remove('hidden');
-        }
-
-        function closeSuccessMessage() {
-            document.getElementById('success-modal').classList.add('hidden');
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -282,22 +311,86 @@
                         ย้อนกลับ
                     </button>
                 </div>
-                
-                <!-- Success Message Modal -->
-                <div id="success-modal"
-                    class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-                    <div class="bg-white p-6 rounded shadow-lg text-center">
-                        <h2 class="text-2xl font-bold text-green-500 mb-4">สำเร็จ!</h2>
-                        <p id="success-message" class="text-gray-700"></p>
-                        <button onclick="closeSuccessMessage()"
-                            class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">
-                            ตกลง
-                        </button>
-                    </div>
-                </div>
             </div>
         </div>
     </div>
+    <!-- Success Message Modal -->
+    <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <div class="flex justify-center">
+                <div class="w-20 h-20 flex items-center justify-center rounded-full bg-green-100 border-4 border-green-500">
+                    <svg class="w-12 h-12 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-green-600 mt-6">แก้ไขสำเร็จ!</h2>
+            <p class="text-gray-700 text-lg mt-4" id="success-message">แก้ไขประกาศสำเร็จ</p>
+            <button id="success-confirm-btn"
+                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ยืนยัน
+            </button>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <h2 class="text-3xl font-bold text-red-600 mt-6">ยืนยันการลบประกาศ</h2>
+            <p class="text-gray-700 text-lg mt-4">ต้องการลบประกาศหรือไม่?</p>
+            <div class="mt-6 flex justify-center">
+                <button id="confirm-delete-btn"
+                    class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300 mr-4">
+                    ยืนยัน
+                </button>
+                <button id="cancel-delete-btn"
+                    class="px-6 py-3 bg-gray-600 text-white text-lg font-semibold rounded-lg hover:bg-gray-700 transition duration-300">
+                    ยกเลิก
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Error Modal -->
+    <div id="error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <div class="flex justify-center">
+                <div class="w-20 h-20 flex items-center justify-center rounded-full bg-red-100 border-4 border-red-500">
+                    <svg class="w-12 h-12 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-red-600 mt-6">เกิดข้อผิดพลาด!</h2>
+            <p class="text-gray-700 text-lg mt-4" id="error-message"></p>
+            <button id="error-confirm-btn"
+                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ตกลง
+            </button>
+        </div>
+    </div>
+    
+    <!-- Save Confirmation Modal -->
+    <div id="confirm-save-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <h2 class="text-3xl font-bold text-blue-600 mt-6">ยืนยันการบันทึก</h2>
+            <p class="text-gray-700 text-lg mt-4">คุณต้องการบันทึกการเปลี่ยนแปลงหรือไม่?</p>
+            <div class="mt-6 flex justify-center">
+                <button id="confirm-save-btn"
+                    class="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300 mr-4">
+                    ยืนยัน
+                </button>
+                <button id="cancel-save-btn"
+                    class="px-6 py-3 bg-gray-600 text-white text-lg font-semibold rounded-lg hover:bg-gray-700 transition duration-300">
+                    ยกเลิก
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script src="navbar.js"></script>
         <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
         <script src="notification.js"></script>

@@ -56,7 +56,65 @@
         </div>
     </div>
 
+    <!-- Success Message Modal -->
+    <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <div class="flex justify-center">
+                <div class="w-20 h-20 flex items-center justify-center rounded-full bg-green-100 border-4 border-green-500">
+                    <svg class="w-12 h-12 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-green-600 mt-6">เพิ่มทักษะสำเร็จ!</h2>
+            <p class="text-gray-700 text-lg mt-4" id="success-message">ข้อความ</p>
+            <button id="success-confirm-btn"
+                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ยืนยัน
+            </button>
+        </div>
+    </div>
+
+    <!-- Error Modal (styled like Delete Confirm) -->
+    <div id="error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <h2 class="text-3xl font-bold text-red-600 mt-6">เกิดข้อผิดพลาด</h2>
+            <p class="text-gray-700 text-lg mt-4" id="error-message">ข้อความ</p>
+            <div class="mt-6 flex justify-center">
+                <button id="error-confirm-btn"
+                    class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300">
+                    ตกลง
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        function showSuccessModal(message, redirectUrl = null) {
+                document.getElementById('success-message').textContent = message;
+                const modal = document.getElementById('success-modal');
+                modal.classList.remove('hidden');
+
+                const confirmBtn = document.getElementById('success-confirm-btn');
+                confirmBtn.onclick = () => {
+                    modal.classList.add('hidden');
+                    if (redirectUrl) {
+                        window.location.href = redirectUrl;
+                    }
+                };
+            }
+
+            function showErrorModal(message) {
+                    document.getElementById('error-message').textContent = message;
+                    const modal = document.getElementById('error-modal');
+                    modal.classList.remove('hidden');
+
+                    document.getElementById('error-confirm-btn').onclick = () => {
+                        modal.classList.add('hidden');
+                    };
+                }
+
         async function fetchCategories() {
             const token = localStorage.getItem('token');
             console.log('Token:', token);  // ตรวจสอบว่า token ถูกส่งหรือไม่
@@ -87,11 +145,11 @@
                     });
                 } else {
                     console.error('Expected an array but received:', categories);
-                    alert('ไม่สามารถโหลดหมวดหมู่ได้');
+                    showErrorModal('ไม่สามารถโหลดหมวดหมู่ได้');
                 }
             } catch (error) {
                 console.error('Error fetching categories:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลหมวดหมู่');
+                showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลหมวดหมู่');
             }
         }
 
@@ -117,11 +175,13 @@
                         select.add(option);
                         select.value = category.category_id;
                     } else {
-                        alert('เกิดข้อผิดพลาดในการเพิ่มหมวดหมู่');
+                        showErrorModal('เกิดข้อผิดพลาดในการเพิ่มหมวดหมู่');
+
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    alert('เกิดข้อผิดพลาดในการเพิ่มหมวดหมู่');
+                    showErrorModal('เกิดข้อผิดพลาดในการเพิ่มหมวดหมู่');
+
                 }
             }
         }
@@ -147,14 +207,13 @@
                 });
 
                 if (response.ok) {
-                    alert('ทักษะถูกเพิ่มเรียบร้อยแล้ว');
-                    window.location.href = 'skillconf.html';
+                    showSuccessModal('ทักษะถูกเพิ่มเรียบร้อยแล้ว', 'skillconf.html');
                 } else {
-                    alert('เกิดข้อผิดพลาดในการเพิ่มทักษะ');
+                    showErrorModal('เกิดข้อผิดพลาดในการเพิ่มทักษะ');
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('เกิดข้อผิดพลาดในการเพิ่มทักษะ');
+                showErrorModal('เกิดข้อผิดพลาดในการเพิ่มทักษะ');
             }
         }
 

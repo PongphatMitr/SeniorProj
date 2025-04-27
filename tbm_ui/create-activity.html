@@ -15,6 +15,17 @@
         let categories = [];
         let selectedSkills = [];
 
+        // แสดง Modal ข้อผิดพลาด
+            function showErrorModal(message) {
+                document.getElementById('error-message').textContent = message;
+                document.getElementById('error-modal').classList.remove('hidden');
+            }
+
+            // ปิด Modal ข้อผิดพลาด
+            document.getElementById('error-confirm-btn').addEventListener('click', () => {
+                document.getElementById('error-modal').classList.add('hidden');
+            });
+
         async function fetchMembers() {
             try {
                 const response = await fetch('http://localhost:3000/api/tbm/members', {
@@ -29,7 +40,7 @@
                 members = data.members;
             } catch (error) {
                 console.error('Error fetching members:', error);
-                alert('เกิดข้อผิดพลาดในการดึงรายชื่อผู้ขอ');
+                showErrorModal('เกิดข้อผิดพลาดในการดึงรายชื่อผู้ขอ');
             }
         }
 
@@ -52,7 +63,7 @@
                 document.getElementById('minimum-time-token').innerText = `ใช้เวลาขั้นต่ำ ${minimumTimeTokenHours} ชั่วโมง ${minimumTimeTokenMinutes} นาที เพื่อแลกเปลี่ยนโทเคนของกิจกรรมที่ร้องขอ`;
             } catch (error) {
                 console.error('Error fetching community config:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
+                showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
             }
         }
 
@@ -102,11 +113,11 @@
                     populateCategoryDropdown();
                 } else {
                     console.error('Expected an array but got:', data);
-                    alert('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะ');
+                    showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะ');
                 }
             } catch (error) {
                 console.error('Error fetching skills:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะ');
+                showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะ');
             }
         }
 
@@ -147,7 +158,7 @@
             const selectedSkillId = skillDropdown.value;
             if (!selectedSkillId) return;
             if (selectedSkills.length > 0) {
-                alert('คุณสามารถเลือกได้เพียง 1 ทักษะเท่านั้น');
+                showErrorModal('คุณสามารถเลือกได้เพียง 1 ทักษะเท่านั้น');
                 return;
             }
             const skill = skills.find(s => s.skill_id == selectedSkillId);
@@ -198,7 +209,7 @@
                 calculateTimeTokens();
             } catch (error) {
                 console.error('Error fetching community config:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
+                showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
             }
         }
 
@@ -253,7 +264,7 @@
             const status = document.getElementById('status').value;
             const activityType = document.getElementById('activity-type').value;
             if (!activityType) {
-                alert('กรุณาเลือกประเภทของกิจกรรม');
+                showErrorModal('กรุณาเลือกประเภทของกิจกรรม');
                 return;
             }
             const timeTokensRequired = parseFloat(document.getElementById('time-tokens-required').value);
@@ -263,13 +274,13 @@
             const endHours = document.getElementById('end-hours').value;
             const endMinutes = document.getElementById('end-minutes').value;
             if (!startHours || !startMinutes || !endHours || !endMinutes) {
-                alert('กรุณาเลือกเวลาเริ่มต้นและเวลาสิ้นสุดให้ครบ');
+                showErrorModal('กรุณาเลือกเวลาเริ่มต้นและเวลาสิ้นสุดให้ครบ');
                 return;
             }
             const startTime = `${startHours}:${startMinutes}`;
             const endTime = `${endHours}:${endMinutes}`;
             if (selectedSkills.length === 0) {
-                alert('กรุณาเลือก 1 ทักษะสำหรับกิจกรรม');
+                showErrorModal('กรุณาเลือก 1 ทักษะสำหรับกิจกรรม');
                 return;
             }
             const required_skill = selectedSkills[0].skill_id;
@@ -294,7 +305,7 @@
                 showSuccessModal();
             } catch (error) {
                 console.error('Error:', error);
-                alert('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+                showErrorModal('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
             }
         }
 
@@ -672,6 +683,26 @@
                 ตกลง
             </button>
 
+        </div>
+    </div>
+
+    <!-- Error Message Modal -->
+    <div id="error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <div class="flex justify-center">
+                <div class="w-20 h-20 flex items-center justify-center rounded-full bg-red-100 border-4 border-red-500">
+                    <svg class="w-12 h-12 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-red-600 mt-6">เกิดข้อผิดพลาด!</h2>
+            <p class="text-gray-700 text-lg mt-4" id="error-message"></p>
+            <button id="error-confirm-btn"
+                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ตกลง
+            </button>
         </div>
     </div>
 
