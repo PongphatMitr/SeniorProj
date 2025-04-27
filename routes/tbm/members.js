@@ -1,10 +1,17 @@
 const express = require('express');
 const dotenv = require('dotenv');
+const authMiddleware = require('../../middleware/authMiddleware');
 
 dotenv.config();
 
 const memberRoutes = (pool) => {
     const router = express.Router();
+
+    async function isAdmin(pool, userId) {
+        const result = await pool.query('SELECT role FROM users WHERE user_id = $1', [userId]);
+        if (result.rows.length === 0) return false;
+        return result.rows[0].role === 'Admin';
+    }
 
     // Create a new member (actually a user with role 'Member')
     router.post('/', async (req, res) => {
@@ -362,6 +369,7 @@ const memberRoutes = (pool) => {
     router.put('/:id/promote', async (req, res) => {
         const { id } = req.params;
         const { newRole } = req.body;
+        const requesterId = req.user.userId;
 
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid member ID' });
@@ -373,6 +381,11 @@ const memberRoutes = (pool) => {
         }
 
         try {
+            const isRequesterAdmin = await isAdmin(pool, requesterId);
+            if (!isRequesterAdmin) {
+                return res.status(403).json({ error: 'Only Admins are allowed to promote users' });
+            }
+
             const result = await pool.query(
                 'UPDATE users SET role = $1 WHERE user_id = $2 RETURNING *',
                 [newRole, id]
@@ -382,7 +395,7 @@ const memberRoutes = (pool) => {
             }
             res.status(200).json({ message: `Member promoted to ${newRole} successfully` });
         } catch (err) {
-            console.error('Error:', err.message);
+            console.error('Error promoting member:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
@@ -390,12 +403,18 @@ const memberRoutes = (pool) => {
     // Demote a member by ID (kick out of community)
     router.put('/:id/demote', async (req, res) => {
         const { id } = req.params;
+        const requesterId = req.user.id;
 
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid member ID' });
         }
 
         try {
+            const isRequesterAdmin = await isAdmin(pool, requesterId);
+            if (!isRequesterAdmin) {
+                return res.status(403).json({ error: 'Only Admins are allowed to perform this action' });
+            }
+
             const result = await pool.query(
                 'UPDATE users SET role = $1 WHERE user_id = $2 AND role != $3 RETURNING *',
                 ['User', id, 'User']
@@ -405,7 +424,7 @@ const memberRoutes = (pool) => {
             }
             res.status(200).json({ message: 'Member demoted to user successfully' });
         } catch (err) {
-            console.error('Error:', err.message);
+            console.error('Error demoting member:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
@@ -413,12 +432,18 @@ const memberRoutes = (pool) => {
     // Demote a TimeBankManager by ID
     router.put('/:id/demote-timebankmanager', async (req, res) => {
         const { id } = req.params;
+        const requesterId = req.user.id;
 
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid member ID' });
         }
 
         try {
+            const isRequesterAdmin = await isAdmin(pool, requesterId);
+            if (!isRequesterAdmin) {
+                return res.status(403).json({ error: 'Only Admins are allowed to perform this action' });
+            }
+
             const result = await pool.query(
                 'UPDATE users SET role = $1 WHERE user_id = $2 AND role = $3 RETURNING *',
                 ['Member', id, 'TimeBankManager']
@@ -428,7 +453,7 @@ const memberRoutes = (pool) => {
             }
             res.status(200).json({ message: 'TimeBankManager demoted to member successfully' });
         } catch (err) {
-            console.error('Error:', err.message);
+            console.error('Error demoting TimeBankManager:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
@@ -436,12 +461,18 @@ const memberRoutes = (pool) => {
     // Demote an Admin by ID
     router.put('/:id/demote-admin', async (req, res) => {
         const { id } = req.params;
+        const requesterId = req.user.id;
 
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid member ID' });
         }
 
         try {
+            const isRequesterAdmin = await isAdmin(pool, requesterId);
+            if (!isRequesterAdmin) {
+                return res.status(403).json({ error: 'Only Admins are allowed to perform this action' });
+            }
+
             const result = await pool.query(
                 'UPDATE users SET role = $1 WHERE user_id = $2 AND role = $3 RETURNING *',
                 ['TimeBankManager', id, 'Admin']
@@ -451,15 +482,15 @@ const memberRoutes = (pool) => {
             }
             res.status(200).json({ message: 'Admin demoted to TimeBankManager successfully' });
         } catch (err) {
-            console.error('Error:', err.message);
+            console.error('Error demoting Admin:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });
         }
     });
 
     // Get user information
-    router.get('/user', async (req, res) => {
+    router.get('/user', authMiddleware, async (req, res) => {
         try {
-            const userId = req.user.id; // Assuming you have user information in req.user
+            const userId = req.user.userId; // Assuming you have user information in req.user
             const result = await pool.query('SELECT u.*, b.branch_name FROM users u JOIN branches b ON u.branch_id = b.branch_id WHERE u.user_id = $1', [userId]);
             if (result.rows.length > 0) {
                 res.json(result.rows[0]);
@@ -473,9 +504,9 @@ const memberRoutes = (pool) => {
     });
 
     // Get user role
-    router.get('/user-role', async (req, res) => {
+    router.get('/user-role', authMiddleware, async (req, res) => {
         try {
-            const userId = req.user.id; // Assuming you have user information in req.user
+            const userId = req.user.userId; // Assuming you have user information in req.user
             const result = await pool.query('SELECT role FROM users WHERE user_id = $1', [userId]);
             if (result.rows.length > 0) {
                 res.json({ role: result.rows[0].role });

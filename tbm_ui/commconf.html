@@ -89,6 +89,46 @@
         </div>
     </div>
 
+    <!-- Success Message Modal -->
+    <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <div class="flex justify-center">
+                <div class="w-20 h-20 flex items-center justify-center rounded-full bg-green-100 border-4 border-green-500">
+                    <svg class="w-12 h-12 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-green-600 mt-6">แก้ไขสำเร็จ!</h2>
+            <p class="text-gray-700 text-lg mt-4" id="success-message">แก้ไขประกาศสำเร็จ</p>
+            <button id="success-confirm-btn"
+                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ยืนยัน
+            </button>
+        </div>
+    </div>
+    
+    <!-- Error Message Modal -->
+    <div id="error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <div class="flex justify-center">
+                <div class="w-20 h-20 flex items-center justify-center rounded-full bg-red-100 border-4 border-red-500">
+                    <svg class="w-12 h-12 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-red-600 mt-6">เกิดข้อผิดพลาด!</h2>
+            <p class="text-gray-700 text-lg mt-4" id="error-message"></p>
+            <button id="error-confirm-btn"
+                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ยืนยัน
+            </button>
+        </div>
+    </div>
+
     <style>
         /* Toggle container */
         .toggle-container {
@@ -141,6 +181,25 @@
         let minimumTimeTokenHours = 0;
         let minimumTimeTokenMinutes = 0;
 
+        function showSuccessModal(message) {
+                document.getElementById('success-message').textContent = message;
+                document.getElementById('success-modal').classList.remove('hidden');
+            }
+
+            function showErrorModal(message) {
+                document.getElementById('error-message').textContent = message;
+                document.getElementById('error-modal').classList.remove('hidden');
+            }
+
+            // ปิด Modal เมื่อคลิกปุ่มยืนยัน
+            document.getElementById('success-confirm-btn').addEventListener('click', () => {
+                document.getElementById('success-modal').classList.add('hidden');
+            });
+
+            document.getElementById('error-confirm-btn').addEventListener('click', () => {
+                document.getElementById('error-modal').classList.add('hidden');
+            });
+
         async function fetchCommunityConfig() {
             try {
                 const response = await fetch('http://localhost:3000/api/tbm/community-config', {
@@ -159,11 +218,11 @@
                     renderConfig();
                 } else {
                     console.error('Expected data but got:', data);
-                    alert('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
+                    showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
                 }
             } catch (error) {
                 console.error('Error fetching community config:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
+                showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
             }
         }
 
@@ -178,7 +237,7 @@
                 exchangeRates = data;
             } catch (error) {
                 console.error('Error fetching exchange rates:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลอัตราแลกเปลี่ยน');
+                showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลอัตราแลกเปลี่ยน');
             }
         }
 
@@ -193,7 +252,7 @@
                 branches = data;
             } catch (error) {
                 console.error('Error fetching branches:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลสาขา');
+                showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลสาขา');
             }
         }
 
@@ -296,19 +355,19 @@
                     } else {
                         const errorData = await response.json();
                         console.error('Error response from server:', errorData);
-                        alert('เกิดข้อผิดพลาดในการเพิ่มอัตราแลกเปลี่ยนใหม่');
+                        showErrorModal('เกิดข้อผิดพลาดในการเพิ่มอัตราแลกเปลี่ยนใหม่');
                         return;
                     }
                 } catch (error) {
                     console.error('Error adding new exchange rate:', error);
-                    alert('เกิดข้อผิดพลาดในการเพิ่มอัตราแลกเปลี่ยนใหม่');
+                    showErrorModal('เกิดข้อผิดพลาดในการเพิ่มอัตราแลกเปลี่ยนใหม่');
                     return;
                 }
             }
 
             if (newBranch === 'new' && newBranchName) {
                 if (userRole !== 'Admin') {
-                    alert('คุณไม่มีสิทธิ์เพิ่มสาขาใหม่');
+                    showErrorModal('คุณไม่มีสิทธิ์เพิ่มสาขาใหม่');
                     return;
                 }
                 try {
@@ -327,12 +386,12 @@
                     } else {
                         const errorData = await response.json();
                         console.error('Error response from server:', errorData);
-                        alert('เกิดข้อผิดพลาดในการเพิ่มสาขาใหม่');
+                        showErrorModal('เกิดข้อผิดพลาดในการเพิ่มสาขาใหม่');
                         return;
                     }
                 } catch (error) {
                     console.error('Error adding new branch:', error);
-                    alert('เกิดข้อผิดพลาดในการเพิ่มสาขาใหม่');
+                    showErrorModal('เกิดข้อผิดพลาดในการเพิ่มสาขาใหม่');
                     return;
                 }
             }
@@ -355,17 +414,17 @@
                 });
 
                 if (response.ok) {
-                    alert('การตั้งค่าชุมชนถูกบันทึกเรียบร้อยแล้ว');
+                    showSuccessModal('การตั้งค่าชุมชนถูกบันทึกเรียบร้อยแล้ว');
                     window.dispatchNotificationRefresh?.();
                     fetchCommunityConfig();
                 } else {
                     const errorData = await response.json();
                     console.error('Error response from server:', errorData);
-                    alert('เกิดข้อผิดพลาดในการบันทึกการตั้งค่าชุมชน');
+                    showErrorModal('เกิดข้อผิดพลาดในการบันทึกการตั้งค่าชุมชน');
                 }
             } catch (error) {
                 console.error('Error saving community config:', error);
-                alert('เกิดข้อผิดพลาดในการบันทึกการตั้งค่าชุมชน');
+                showErrorModal('เกิดข้อผิดพลาดในการบันทึกการตั้งค่าชุมชน');
             }
         }
 
@@ -397,7 +456,7 @@
                 })
                 .catch(error => {
                     console.error('Error:', error);
-                    alert('An error occurred. Please try again.');
+                    showErrorModal('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
                 });
 
             // Initialize the sidebar

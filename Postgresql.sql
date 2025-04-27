@@ -241,11 +241,9 @@ CREATE TABLE announcements (
     description TEXT NOT NULL, -- Added description column
     image BYTEA NOT NULL,
     branch_id INT NOT NULL,
-    project_id INT NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP DEFAULT NOW(),
-    FOREIGN KEY (branch_id) REFERENCES branches(branch_id),
-    FOREIGN KEY (project_id) REFERENCES projects(project_id)
+    FOREIGN KEY (branch_id) REFERENCES branches(branch_id)
 );
 
 -- Insert initial data into branches
@@ -255,8 +253,8 @@ INSERT INTO branches (branch_name) VALUES ('Test Branch'), ('โคกสลุ�
 INSERT INTO projects (project_name, description) VALUES ('โครงการพลเมืองอาสามูลนิธิอาสาสมัครเพื่อสังคม', 'A volunteer project for community service.');
 
 -- Insert initial data into announcements
-INSERT INTO announcements (date, title, description, image, branch_id, project_id) VALUES 
-('2023-01-01', 'Community Cleanup Activity', 'Join us for a community cleanup event to keep our neighborhood clean and green.', decode('89504e470d0a1a0a0000000d494844520000000100000001080200000090770d0b0000000a49444154789c6360000000020001ff', 'hex'), 1, 1);
+INSERT INTO announcements (date, title, description, image, branch_id) VALUES 
+('2023-01-01', 'Community Cleanup Activity', 'Join us for a community cleanup event to keep our neighborhood clean and green.', decode('89504e470d0a1a0a0000000d494844520000000100000001080200000090770d0b0000000a49444154789c6360000000020001ff', 'hex'), 1);
 
 -- Insert initial data into exchange_rates
 INSERT INTO exchange_rates (description) VALUES ('1 โทเคนเวลา ต่อ 1 ชั่วโมง'), ('1 โทเคนเวลา ต่อ 1 กิจกรรม');
@@ -270,7 +268,8 @@ INSERT INTO users (username, password, email, role, name, phone, address, branch
 ('earth', '$2a$10$1YbqGWj36sZXoKaXWvV/p.XaSkLSjBy.Xqiw41OPh9NeVTsp4qPpG', 'testuser@example.com', 'Member', 'กฤชนพัต จุลจู', '0822544153', '123 Test St, Test City ลพบุรี', 1, 10, 'active'),
 ('moji', '$2a$10$AfvWwUB3xPrYByh4UEpSSeptvKp07aIACEyzVJB4TJVRUM8aDNwWm', 'testuser@example.com', 'Member', 'ณิชาภา เกษมวงศ์', '0811111111', '123 Test St, Test City ลพบุรี', 1, 10, 'active'),
 ('save001', '$2a$10$4tEtE.kQJrXrM2G5w.8Fs.PWVcMz/WeE0iZSfPPdxz0DTY82mVOTy', 'savewaris001@gmail.com', 'Admin', 'save admin', '0950457333', '123 Test St, Test City', 1, 10, 'active'),
-('save002', '$2a$10$4tEtE.kQJrXrM2G5w.8Fs.PWVcMz/WeE0iZSfPPdxz0DTY82mVOTy', 'savewaris001@gmail.com', 'Member', 'save member', '0950457333', '123 Test St, Test City', 1, 10, 'active');
+('save002', '$2a$10$4tEtE.kQJrXrM2G5w.8Fs.PWVcMz/WeE0iZSfPPdxz0DTY82mVOTy', 'savewaris001@gmail.com', 'Member', 'save member', '0950457333', '123 Test St, Test City', 1, 10, 'active'),
+('save003', '$2a$10$4tEtE.kQJrXrM2G5w.8Fs.PWVcMz/WeE0iZSfPPdxz0DTY82mVOTy', 'savewaris001@gmail.com', 'TimeBankManager', 'save tbm', '0950457333', '123 Test St, Test City', 1, 10, 'active');
 
 -- Insert initial data into activities (with required_skills)
 INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, requester_phone, status, time_tokens_required, time_tokens_per_participant, required_skills, activity_type) VALUES 

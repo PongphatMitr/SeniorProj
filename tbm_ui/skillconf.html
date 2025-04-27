@@ -23,11 +23,11 @@
                     renderCategoryButtons();
                 } else {
                     console.error('Expected an array but got:', data);
-                    alert('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะ');
+                    showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะ');
                 }
             } catch (error) {
                 console.error('Error fetching skills:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะ');
+                showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะ');
             }
         }
 
@@ -38,7 +38,18 @@
         function renderSkills(data) {
             const skillContainer = document.getElementById('skill-container');
             skillContainer.innerHTML = '';
-            const categories = [...new Set(data.map(skill => skill.category))];
+            // เก็บเวลาของหมวดหมู่ตามข้อมูลใน skills
+const categoryMap = {};
+data.forEach(skill => {
+    if (!categoryMap[skill.category] || new Date(skill.updated_at) > new Date(categoryMap[skill.category])) {
+        categoryMap[skill.category] = skill.updated_at;
+    }
+});
+
+// เอาหมวดหมู่ทั้งหมดมาเรียงใหม่ตาม updated_at ล่าสุด
+const categories = Object.keys(categoryMap)
+    .sort((a, b) => new Date(categoryMap[b]) - new Date(categoryMap[a]));
+
 
             categories.forEach(category => {
                 const escapedCategory = escapeSelector(category);
@@ -126,7 +137,8 @@
             const categoryInput = document.createElement('input');
             categoryInput.type = 'text';
             categoryInput.value = category;
-            categoryInput.className = 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
+            categoryInput.className = 'shadow appearance-none border rounded w-full py-3 px-4 text-gray-700 text-xl leading-tight focus:outline-none focus:shadow-outline';
+            // ✅ เพิ่ม padding และ font-size ให้ใหญ่กว่าปกติ
             categoryInputContainer.appendChild(categoryInput);
             categoryNameElement.replaceWith(categoryInputContainer);
 
@@ -156,25 +168,18 @@
             };
             categoryDiv.appendChild(addSkillButton);
 
-            // Add confirm button
-            const confirmButton = document.createElement('button');
-            confirmButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-1 px-2 mt-2 rounded focus:outline-none focus:shadow-outline';
-            confirmButton.textContent = 'ยืนยัน';
-            confirmButton.type = 'button';
-            confirmButton.onclick = async () => {
+            const modifyButton = categoryDiv.querySelector('button.bg-yellow-500');
+            modifyButton.textContent = 'บันทึก';
+            modifyButton.onclick = async () => {
                 const newSkills = [];
                 const inputs = categoryDiv.querySelectorAll('input');
                 const newCategory = categoryInput.value;
 
                 inputs.forEach((input, index) => {
-                    if (index > 0) { // Skip the first input which is the category input
+                    if (index > 0) {
                         newSkills.push({ name: input.value, skill_id: skills.find(skill => skill.name === skillNames[index - 1]?.textContent)?.skill_id || null });
                     }
                 });
-
-                console.log('Sending update request for category:', category);
-                console.log('New category name:', newCategory);
-                console.log('New skills data:', newSkills);
 
                 try {
                     const response = await fetch(`http://localhost:3000/api/tbm/skills/category/${encodeURIComponent(category)}`, {
@@ -187,28 +192,22 @@
                     });
 
                     if (response.ok) {
-                        alert('หมวดหมู่ถูกแก้ไขเรียบร้อยแล้ว');
+                        showSuccessModal('หมวดหมู่ถูกแก้ไขเรียบร้อยแล้ว');
                         fetchSkills();
                     } else {
                         const errorText = await response.text();
                         console.error('Error response:', errorText);
-                        alert('เกิดข้อผิดพลาดในการแก้ไขหมวดหมู่');
+                        showErrorModal('เกิดข้อผิดพลาดในการแก้ไขหมวดหมู่');
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    alert('เกิดข้อผิดพลาดในการแก้ไขหมวดหมู่');
+                    showErrorModal('เกิดข้อผิดพลาดในการแก้ไขหมวดหมู่');
                 }
             };
-            categoryDiv.appendChild(confirmButton);
-
-            const modifyButton = categoryDiv.querySelector('button.bg-yellow-500');
-            modifyButton.textContent = 'บันทึก';
-            modifyButton.onclick = confirmButton.onclick;
         }
 
         async function removeSkill(skillId) {
-            const confirmation = confirm('คุณแน่ใจหรือไม่ว่าต้องการลบทักษะนี้?');
-            if (confirmation) {
+            showConfirmModal('คุณแน่ใจหรือไม่ว่าต้องการลบทักษะนี้?', async () => {
                 try {
                     const response = await fetch(`http://localhost:3000/api/tbm/skills/${skillId}`, {
                         method: 'DELETE',
@@ -218,16 +217,16 @@
                     });
 
                     if (response.ok) {
-                        alert('ทักษะถูกลบเรียบร้อยแล้ว');
+                        showSuccessModal('ทักษะถูกลบเรียบร้อยแล้ว');
                         fetchSkills();
                     } else {
-                        alert('เกิดข้อผิดพลาดในการลบทักษะ');
+                        showErrorModal('เกิดข้อผิดพลาดในการลบทักษะ');
                     }
                 } catch (error) {
                     console.error('Error:', error);
-                    alert('เกิดข้อผิดพลาดในการลบทักษะ');
+                    showErrorModal('เกิดข้อผิดพลาดในการลบทักษะ');
                 }
-            }
+            });
         }
 
         async function searchSkills() {
@@ -244,11 +243,11 @@
                     renderSkills(data);
                 } else {
                     console.error('Expected an array but got:', data);
-                    alert('เกิดข้อผิดพลาดในการค้นหาทักษะ');
+                    showErrorModal('เกิดข้อผิดพลาดในการค้นหาทักษะ');
                 }
             } catch (error) {
                 console.error('Error searching skills:', error);
-                alert('เกิดข้อผิดพลาดในการค้นหาทักษะ');
+                showErrorModal('เกิดข้อผิดพลาดในการค้นหาทักษะ');
             }
         }
 
@@ -294,6 +293,60 @@
             </div>
         </div>
     </div>
+<!-- Success Modal -->
+<div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden" id="success-modal">
+    <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+        <div class="flex justify-center">
+            <div class="w-20 h-20 flex items-center justify-center rounded-full bg-green-100 border-4 border-green-500">
+                <svg class="w-12 h-12 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+                </svg>
+            </div>
+        </div>
+        <h2 class="text-3xl font-bold text-green-600 mt-6">สำเร็จ!</h2>
+        <p class="text-gray-700 text-lg mt-4" id="success-message">ทำรายการเรียบร้อยแล้ว</p>
+        <button id="success-confirm-btn"
+            class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+            ตกลง
+        </button>
+    </div>
+</div>
+
+<!-- Error Modal -->
+<div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden" id="error-modal">
+    <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+        <div class="flex justify-center">
+            <div class="w-20 h-20 flex items-center justify-center rounded-full bg-red-100 border-4 border-red-500">
+                <svg class="w-12 h-12 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    xmlns="http://www.w3.org/2000/svg">
+                    <path d="M6 18L18 6M6 6l12 12" stroke-linecap="round" stroke-linejoin="round" stroke-width="2">
+                    </path>
+                </svg>
+            </div>
+        </div>
+        <h2 class="text-3xl font-bold text-red-600 mt-6">เกิดข้อผิดพลาด</h2>
+        <p class="text-gray-700 text-lg mt-4" id="error-message">มีบางอย่างผิดพลาด</p>
+        <button id="error-confirm-btn"
+            class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+            ตกลง
+        </button>
+    </div>
+</div>
+
+<!-- Confirm Modal -->
+<div class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden" id="confirm-modal">
+    <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+        <h2 class="text-3xl font-bold text-yellow-500" id="confirm-title">ยืนยัน</h2>
+        <p class="text-gray-700 text-lg mt-4" id="confirm-message">คุณแน่ใจหรือไม่?</p>
+        <div class="mt-6 flex justify-center gap-4">
+            <button id="confirm-yes-btn"
+                class="px-6 py-3 bg-green-600 text-white text-lg font-semibold rounded-lg hover:bg-green-700 transition duration-300">ตกลง</button>
+            <button id="confirm-no-btn"
+                class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300">ยกเลิก</button>
+        </div>
+    </div>
+</div>
 
     <style>
         /* Toggle container */
@@ -345,6 +398,35 @@
     <script src="navbar.js"></script>
 
     <script>
+        function showConfirmModal(message, onConfirm) {
+                const modal = document.getElementById('confirm-modal');
+                document.getElementById('confirm-message').textContent = message;
+                modal.classList.remove('hidden');
+
+                document.getElementById('confirm-yes-btn').onclick = () => {
+                    modal.classList.add('hidden');
+                    onConfirm(); // ถ้ากดตกลง ให้ทำสิ่งที่สั่ง
+                };
+
+                document.getElementById('confirm-no-btn').onclick = () => {
+                    modal.classList.add('hidden'); // ถ้ากดยกเลิก แค่ปิด modal
+                };
+            }
+
+        function showSuccessModal(message) {
+                const modal = document.getElementById('success-modal');
+                document.getElementById('success-message').textContent = message;
+                modal.classList.remove('hidden');
+                document.getElementById('success-confirm-btn').onclick = () => modal.classList.add('hidden');
+            }
+
+            function showErrorModal(message) {
+                const modal = document.getElementById('error-modal');
+                document.getElementById('error-message').textContent = message;
+                modal.classList.remove('hidden');
+                document.getElementById('error-confirm-btn').onclick = () => modal.classList.add('hidden');
+            }
+
         document.addEventListener('DOMContentLoaded', () => {
             const langThai = document.getElementById('lang-th');
             const langEnglish = document.getElementById('lang-en');
@@ -395,32 +477,7 @@
                         navLinks[index].appendChild(document.createTextNode(text));
                     }
                 });
-
-                // Update active toggle state
-                if (lang === 'thai') {
-                    langThai.classList.add('active');
-                    langEnglish.classList.remove('active');
-                } else {
-                    langEnglish.classList.add('active');
-                    langThai.classList.remove('active');
-                }
             };
-
-            // Language toggle event listeners
-            langThai.addEventListener('click', () => {
-                currentLang = 'thai';
-                localStorage.setItem('selectedLanguage', currentLang);
-                updateContent(currentLang);
-            });
-
-            langEnglish.addEventListener('click', () => {
-                currentLang = 'english';
-                localStorage.setItem('selectedLanguage', currentLang);
-                updateContent(currentLang);
-            });
-
-            // Initialize content on page load
-            updateContent(currentLang);
         });
         </script>
             <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>

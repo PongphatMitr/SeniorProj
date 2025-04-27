@@ -3,15 +3,42 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>
-        จัดการทักษะของสมาชิก - Time Bank
-    </title>
+    <title>ลงทะเบียนทักษะ - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;700&display=swap" rel="stylesheet" />
+    <style>
+        /* Custom styles for searchable dropdown */
+        .suggestions-container {
+            position: absolute;
+            z-index: 50;
+            width: 100%;
+            max-height: 200px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #d1d5db;
+            border-radius: 0 0 0.375rem 0.375rem;
+            box-shadow: 0 4px 6px rgb(0 0 0 / 0.1);
+            display: none;
+        }
+
+        .suggestions-container.visible {
+            display: block;
+        }
+
+        .suggestion-item {
+            padding: 0.5rem 0.75rem;
+            cursor: pointer;
+        }
+
+        .suggestion-item:hover {
+            background-color: #e5e7eb;
+        }
+    </style>
 </head>
 
-<body class="bg-gray-100">
-    <div class="flex flex-col md:flex-row">
+<body class="bg-gray-100 font-sarabun">
+    <div class="flex flex-col md:flex-row min-h-screen">
         <!-- Sidebar -->
         <div class="w-full md:w-1/6 bg-white h-screen p-5 sticky top-0 flex flex-col">
             <nav class="flex-grow">
@@ -19,313 +46,766 @@
             </nav>
         </div>
         <!-- Main Content -->
-        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10">
-            <!-- Language Toggle Switch -->
-            <div class="absolute top-5 right-5 flex items-center gap-4">
-                <!-- Notification Placeholder -->
-                <div id="mainNotificationPanel" class="relative"></div>
-            </div>
+        <main
+            class="w-full md:w-5/6 bg-blue-700 text-white p-10 pt-[50px] flex flex-col justify-center items-center overflow-auto">
+            <div class="w-full max-w-4xl bg-white text-black rounded-lg shadow-lg p-8">
+                <h1 class="text-4xl font-bold mb-8 text-center">ลงทะเบียนทักษะ</h1>
+                <p class="mb-6 text-center text-gray-700 text-lg">กรุณาเลือกทักษะของคุณสูงสุด 3 ทักษะ</p>
+                <div class="flex flex-col gap-8">
+                    <!-- Skill 1 -->
+                    <section class="bg-white text-black p-8 rounded-lg shadow-lg">
+                        <div id="skill-container-1" class="flex justify-between items-center mb-4">
+                            <h3 class="text-2xl font-semibold text-gray-800"
+                                style="font-family: 'Sarabun', sans-serif;">ทักษะที่ 1</h3>
+                        </div>
+                        <div id="skill-display-1"></div>
+                        <div id="edit-container-1" class="hidden">
+                            <div class="mb-4 flex items-center relative">
+                                <input
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    id="search-bar-1" oninput="searchSkills(event, 1)"
+                                    placeholder="ค้นหาทักษะหรือหมวดหมู่" type="text" autocomplete="off" />
+                                <div id="suggestions-1"
+                                    class="absolute top-full left-0 w-full bg-white border border-gray-300 rounded shadow-lg z-10 hidden max-h-48 overflow-y-auto">
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="category-dropdown-1"
+                                    class="block text-gray-700 text-sm font-bold mb-2">เลือกหมวดหมู่:</label>
+                                <select id="category-dropdown-1"
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    onchange="filterSkillsByCategory(event, 1)">
+                                    <option value="all">เลือกหมวดหมู่</option>
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label for="skill-dropdown-1"
+                                    class="block text-gray-700 text-sm font-bold mb-2">เลือกทักษะ:</label>
+                                <select id="skill-dropdown-1"
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    onchange="validateNoDuplicateSkills(1)">
+                                </select>
+                            </div>
+                            <div class="flex items-center mt-2">
+                                <div class="flex gap-5 justify-center flex-grow">
+                                    <button
+                                        class="bg-green-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-green-600 hover:scale-105"
+                                        onclick="saveSkill(1)">บันทึก</button>
+                                    <button
+                                        class="bg-gray-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-gray-600 hover:scale-105"
+                                        onclick="cancelEdit(1)">ยกเลิก</button>
+                                </div>
+                                <button
+                                    class="bg-red-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-red-600 hover:scale-105"
+                                    onclick="clearSkill(1)">ล้างข้อมูล</button>
+                            </div>
+                        </div>
+                    </section>
 
-            <h1 class="text-4xl font-bold mb-5">
-                จัดการทักษะของสมาชิก
-            </h1>
-            <div class="bg-white text-black p-5 rounded-lg">
-                <div class="mb-4 flex items-center">
-                    <input
-                        class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                        id="search-bar" oninput="searchSkills()" placeholder="ค้นหาทักษะหรือหมวดหมู่" type="text" />
+                    <!-- Skill 2 -->
+                    <section class="bg-white text-black p-8 rounded-lg shadow-lg">
+                        <div id="skill-container-2" class="flex justify-between items-center mb-4">
+                            <h3 class="text-2xl font-semibold text-gray-800"
+                                style="font-family: 'Sarabun', sans-serif;">ทักษะที่ 2</h3>
+                        </div>
+                        <div id="skill-display-2"></div>
+                        <div id="edit-container-2" class="hidden">
+                            <div class="mb-4 flex items-center relative">
+                                <input
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    id="search-bar-2" oninput="searchSkills(event, 2)"
+                                    placeholder="ค้นหาทักษะหรือหมวดหมู่" type="text" autocomplete="off" />
+                                <div id="suggestions-2"
+                                    class="absolute top-full left-0 w-full bg-white border border-gray-300 rounded shadow-lg z-10 hidden max-h-48 overflow-y-auto">
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="category-dropdown-2"
+                                    class="block text-gray-700 text-sm font-bold mb-2">เลือกหมวดหมู่:</label>
+                                <select id="category-dropdown-2"
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    onchange="filterSkillsByCategory(event, 2)">
+                                    <option value="all">เลือกหมวดหมู่</option>
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label for="skill-dropdown-2"
+                                    class="block text-gray-700 text-sm font-bold mb-2">เลือกทักษะ:</label>
+                                <select id="skill-dropdown-2"
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    onchange="validateNoDuplicateSkills(2)">
+                                </select>
+                            </div>
+                            <div class="flex items-center mt-2">
+                                <div class="flex gap-5 justify-center flex-grow">
+                                    <button
+                                        class="bg-green-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-green-600 hover:scale-105"
+                                        onclick="saveSkill(2)">บันทึก</button>
+                                    <button
+                                        class="bg-gray-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-gray-600 hover:scale-105"
+                                        onclick="cancelEdit(2)">ยกเลิก</button>
+                                </div>
+                                <button
+                                    class="bg-red-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-red-600 hover:scale-105"
+                                    onclick="clearSkill(2)">ล้างข้อมูล</button>
+                            </div>
+                        </div>
+                    </section>
+
+                    <!-- Skill 3 -->
+                    <section class="bg-white text-black p-8 rounded-lg shadow-lg">
+                        <div id="skill-container-3" class="flex justify-between items-center mb-4">
+                            <h3 class="text-2xl font-semibold text-gray-800"
+                                style="font-family: 'Sarabun', sans-serif;">ทักษะที่ 3</h3>
+                        </div>
+                        <div id="skill-display-3"></div>
+                        <div id="edit-container-3" class="hidden">
+                            <div class="mb-4 flex items-center relative">
+                                <input
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    id="search-bar-3" oninput="searchSkills(event, 3)"
+                                    placeholder="ค้นหาทักษะหรือหมวดหมู่" type="text" autocomplete="off" />
+                                <div id="suggestions-3"
+                                    class="absolute top-full left-0 w-full bg-white border border-gray-300 rounded shadow-lg z-10 hidden max-h-48 overflow-y-auto">
+                                </div>
+                            </div>
+                            <div class="mb-4">
+                                <label for="category-dropdown-3"
+                                    class="block text-gray-700 text-sm font-bold mb-2">เลือกหมวดหมู่:</label>
+                                <select id="category-dropdown-3"
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    onchange="filterSkillsByCategory(event, 3)">
+                                    <option value="all">เลือกหมวดหมู่</option>
+                                </select>
+                            </div>
+                            <div class="mb-4">
+                                <label for="skill-dropdown-3"
+                                    class="block text-gray-700 text-sm font-bold mb-2">เลือกทักษะ:</label>
+                                <select id="skill-dropdown-3"
+                                    class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                                    onchange="validateNoDuplicateSkills(3)">
+                                </select>
+                            </div>
+                            <div class="flex items-center mt-2">
+                                <div class="flex gap-5 justify-center flex-grow">
+                                    <button
+                                        class="bg-green-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-green-600 hover:scale-105"
+                                        onclick="saveSkill(3)">บันทึก</button>
+                                    <button
+                                        class="bg-gray-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-gray-600 hover:scale-105"
+                                        onclick="cancelEdit(3)">ยกเลิก</button>
+                                </div>
+                                <button
+                                    class="bg-red-500 text-white px-5 py-3 rounded transition duration-300 hover:bg-red-600 hover:scale-105"
+                                    onclick="clearSkill(3)">ล้างข้อมูล</button>
+                            </div>
+                        </div>
+                    </section>
                 </div>
-                <div class="flex justify-center mb-5" id="category-buttons">
-                    <!-- Category buttons will be dynamically inserted here -->
+
+                <div class="mt-8 flex justify-center gap-6">
+                    <button id="saveSkillsBtn"
+                        class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded transition duration-300">
+                        บันทึกทักษะทั้งหมด
+                    </button>
+                    <button id="skipSkillsBtn"
+                        class="bg-gray-500 hover:bg-gray-600 text-white font-bold py-3 px-8 rounded transition duration-300">
+                        ข้ามไปยังหน้าเข้าสู่ระบบ
+                    </button>
                 </div>
-                <form onsubmit="saveMemberSkills(event)">
-                    <div class="grid grid-cols-1 gap-5 justify-center" id="skill-container">
-                        <!-- Skills will be dynamically inserted here -->
-                    </div>
-                    <div class="flex items-center justify-center mt-5">
-                        <button
-                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                            type="submit">
-                            บันทึก
-                        </button>
-                    </div>
-                </form>
+            </div>
+        </main>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-xl text-center">
+            <h2 class="text-3xl font-bold text-gray-900">ยืนยันการกระทำ</h2>
+            <p id="confirm-message" class="text-gray-700 text-lg mt-4"></p>
+            <div class="flex justify-center mt-6 space-x-4">
+                <button id="confirm-btn"
+                    class="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition">ตกลง</button>
+                <button id="cancel-btn"
+                    class="bg-gray-400 text-white px-6 py-3 rounded-lg font-semibold hover:bg-gray-500 transition">ยกเลิก</button>
             </div>
         </div>
     </div>
 
-    <style>
-        /* Toggle container */
-        .toggle-container {
-            display: flex;
-            background-color: #E5E7EB;
-            border-radius: 20px;
-            /* Increase border radius for larger container */
-            padding: 6px;
-            /* Larger padding for better spacing */
-            align-items: center;
-            justify-content: space-between;
-            width: 180px;
-            /* Increase width for a larger toggle */
-        }
+    <!-- Success Modal -->
+    <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+        <div class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-2xl text-center">
+            <h2 class="text-4xl font-bold text-green-600 mt-6">✅ สำเร็จ!</h2>
+            <p id="success-message" class="text-gray-700 text-xl mt-4"></p>
+            <button id="confirm-success-btn"
+                class="mt-8 px-8 py-4 bg-blue-600 text-white text-xl font-semibold rounded-lg hover:bg-blue-700 transition">ตกลง</button>
+        </div>
+    </div>
 
-        /* Labels */
-        .toggle-label {
-            flex: 1;
-            text-align: center;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: gray;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border-radius: 9999px;
-            padding: 5px;
-        }
-
-        .toggle-label.active {
-            background-color: white;
-            color: #1D4ED8;
-            /* Blue for active text */
-            font-weight: bold;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Disabled Label */
-        .toggle-label.disabled {
-            pointer-events: none;
-            /* Make it unclickable */
-            background-color: white;
-            color: #6B7280;
-            /* Light gray text */
-            font-weight: bold;
-        }
-    </style>
-
-    <script src="selected-language.js"></script>
+    <!-- Error Modal -->
+    <div id="error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+        <div class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-2xl text-center">
+            <h2 class="text-4xl font-bold text-red-600 mt-6">❌ เกิดข้อผิดพลาด</h2>
+            <p id="error-message" class="text-gray-700 text-xl mt-4"></p>
+            <button id="confirm-error-btn"
+                class="mt-8 px-8 py-4 bg-red-600 text-white text-xl font-semibold rounded-lg hover:bg-red-700 transition">ตกลง</button>
+        </div>
+    </div>
 
     <script>
+        // Global variables
         let skills = [];
+        let categories = [];
+        let memberSkills = [
+            { skill_id: null, name: "ไม่ลงทะเบียนทักษะ", category: "ไม่ระบุหมวดหมู่" },
+            { skill_id: null, name: "ไม่ลงทะเบียนทักษะ", category: "ไม่ระบุหมวดหมู่" },
+            { skill_id: null, name: "ไม่ลงทะเบียนทักษะ", category: "ไม่ระบุหมวดหมู่" }
+        ];
+        let originalSkills = [];
 
-        async function fetchSkills() {
+        // Get user_id from sessionStorage (set in register.html)
+        const userId = sessionStorage.getItem('registerUserId');
+        if (!userId) {
+            alert('ไม่พบข้อมูลผู้ใช้ กรุณาลงทะเบียนใหม่');
+            window.location.href = 'register.html';
+        }
+
+        // Fetch all skills and categories on load
+        async function fetchSkillsAndCategories() {
             try {
-                const response = await fetch('http://localhost:3000/api/tbm/skills', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
+                const response = await fetch('http://localhost:3000/api/user/skills');
+                if (!response.ok) throw new Error('ไม่สามารถดึงข้อมูลทักษะได้');
                 const data = await response.json();
-                if (Array.isArray(data)) {
-                    skills = data;
-                    renderSkills(skills);
-                } else {
-                    console.error('Expected an array but got:', data);
-                    alert('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะ');
-                }
+                if (!Array.isArray(data)) throw new Error('ข้อมูลทักษะไม่ถูกต้อง');
+
+                skills = data.map(s => ({
+                    skill_id: s.skill_id,
+                    name: s.name,
+                    category: s.category
+                }));
+
+                // Extract unique categories
+                categories = [...new Set(skills.map(s => s.category))].sort();
+
+                populateCategoryDropdowns();
+                populateSkillDropdowns();
+
             } catch (error) {
-                console.error('Error fetching skills:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะ');
+                console.error(error);
+                showErrorMessage('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะ กรุณาลองใหม่อีกครั้ง');
             }
         }
 
-        function renderSkills(data) {
-            const skillContainer = document.getElementById('skill-container');
-            skillContainer.innerHTML = '';
-            const categories = [...new Set(data.map(skill => skill.category))];
+        // Fetch member's existing skills (if any)
+        async function fetchMemberSkills() {
+            try {
+                const response = await fetch(`http://localhost:3000/api/user/members/${userId}/skills`);
+                if (!response.ok) throw new Error('ไม่สามารถดึงข้อมูลทักษะของสมาชิกได้');
+                const data = await response.json();
 
-            function renderCategoryTree(categories, parentElement) {
-                if (categories.length === 0) return;
+                if (data.skills && Array.isArray(data.skills)) {
+                    memberSkills = data.skills.map(skill => ({
+                        skill_id: skill.skill_id || null,
+                        name: skill.name || "ไม่ลงทะเบียนทักษะ",
+                        category: skill.category || "ไม่ระบุหมวดหมู่"
+                    }));
+                } else {
+                    memberSkills = [
+                        { skill_id: null, name: "ไม่ลงทะเบียนทักษะ", category: "ไม่ระบุหมวดหมู่" },
+                        { skill_id: null, name: "ไม่ลงทะเบียนทักษะ", category: "ไม่ระบุหมวดหมู่" },
+                        { skill_id: null, name: "ไม่ลงทะเบียนทักษะ", category: "ไม่ระบุหมวดหมู่" }
+                    ];
+                }
 
-                const midIndex = Math.floor(categories.length / 2);
-                const leftCategories = categories.slice(0, midIndex);
-                const rightCategories = categories.slice(midIndex + 1);
-                const currentCategory = categories[midIndex];
+                renderSkills();
+                populateCategoryDropdowns();
+                populateSkillDropdowns();
 
-                const categoryDiv = document.createElement('div');
-                categoryDiv.className = `bg-gray-100 p-6 rounded-lg category category-${currentCategory} w-3/4 mx-auto mb-5`;
-                categoryDiv.innerHTML = `
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-bold category-name">${currentCategory}</h3>
+            } catch (error) {
+                console.error(error);
+                showErrorMessage('เกิดข้อผิดพลาดในการดึงข้อมูลทักษะของสมาชิก กรุณาลองใหม่อีกครั้ง');
+            }
+        }
+
+        // Render skill display sections
+        function renderSkills() {
+            for (let i = 1; i <= 3; i++) {
+                const skillContainer = document.getElementById(`skill-display-${i}`);
+                const skill = memberSkills[i - 1];
+                skillContainer.innerHTML = `
+                    <div>
+                        <h3 class="text-xl font-semibold text-gray-700">หมวดหมู่: 
+                            <span class="text-2xl font-bold text-blue-600">${skill?.category || 'ไม่ระบุหมวดหมู่'}</span>
+                        </h3>
+                        <h3 class="text-xl font-semibold text-gray-700 mt-1">ทักษะ: 
+                            <span class="text-2xl font-bold text-green-600">${skill?.name || 'ยังไม่มีทักษะที่ลงทะเบียน'}</span>
+                        </h3>
+                        <div class="flex justify-center mt-3">
+                            <button class="bg-blue-500 text-white px-4 py-2 rounded transition duration-300 hover:bg-blue-600 hover:scale-105" onclick="toggleEdit(${i})">แก้ไข</button>
+                        </div>
                     </div>
                 `;
-
-                data.filter(skill => skill.category === currentCategory).forEach(skill => {
-                    const skillP = document.createElement('p');
-                    skillP.className = 'mb-2 flex items-center';
-                    skillP.innerHTML = `
-                        <input type="checkbox" class="mr-2" id="skill-${skill.skill_id}" />
-                        <span class="skill-name">${skill.name}</span>
-                    `;
-                    categoryDiv.appendChild(skillP);
-                });
-
-                parentElement.appendChild(categoryDiv);
-
-                const leftDiv = document.createElement('div');
-                leftDiv.className = 'w-full';
-                parentElement.appendChild(leftDiv);
-                renderCategoryTree(leftCategories, leftDiv);
-
-                const rightDiv = document.createElement('div');
-                rightDiv.className = 'w-full';
-                parentElement.appendChild(rightDiv);
-                renderCategoryTree(rightCategories, rightDiv);
             }
-
-            renderCategoryTree(categories, skillContainer);
         }
 
-        async function saveMemberSkills(event) {
-            event.preventDefault();
-            const memberId = new URLSearchParams(window.location.search).get('memberId');
-            const selectedSkills = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(checkbox => parseInt(checkbox.id.replace('skill-', '')));
-
-            try {
-                const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/skills`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify({ skills: selectedSkills })
+        // Populate category dropdowns
+        function populateCategoryDropdowns() {
+            for (let i = 1; i <= 3; i++) {
+                const categoryDropdown = document.getElementById(`category-dropdown-${i}`);
+                categoryDropdown.innerHTML = '<option value="all">เลือกหมวดหมู่</option>';
+                categories.forEach(cat => {
+                    const option = document.createElement('option');
+                    option.value = cat;
+                    option.textContent = cat;
+                    categoryDropdown.appendChild(option);
                 });
+            }
+        }
 
-                if (response.ok) {
-                    alert('ทักษะของสมาชิกถูกบันทึกเรียบร้อยแล้ว');
-                    window.location.href = 'member.html';
-                } else {
-                    alert('เกิดข้อผิดพลาดในการบันทึกทักษะของสมาชิก');
+        // Populate skill dropdowns with default state
+        function populateSkillDropdowns() {
+            for (let i = 1; i <= 3; i++) {
+                const skillDropdown = document.getElementById(`skill-dropdown-${i}`);
+                skillDropdown.innerHTML = '<option value="">กรุณาเลือกหมวดหมู่ก่อน</option>';
+                skillDropdown.disabled = true;
+            }
+        }
+
+        // Populate skill dropdown for editing with filtering and no duplicates
+        function populateSkillDropdown(index) {
+            const dropdown = document.getElementById(`skill-dropdown-${index}`);
+            dropdown.innerHTML = ''; // Clear existing options
+
+            // Add the "ไม่ลงทะเบียนทักษะ" option
+            const defaultOption = document.createElement('option');
+            defaultOption.value = "";
+            defaultOption.textContent = "ไม่ลงทะเบียนทักษะ";
+            dropdown.appendChild(defaultOption);
+
+            // Get all selected skill IDs (excluding current slot)
+            const selectedSkillIds = memberSkills.map((skill, i) => i + 1 !== index ? skill.skill_id : null).filter(id => id);
+
+            skills.forEach(skill => {
+                const skillIdStr = String(skill.skill_id);
+                const currentSkillId = String(memberSkills[index - 1]?.skill_id);
+                if (!selectedSkillIds.includes(skillIdStr) || skillIdStr === currentSkillId) {
+                    const option = document.createElement('option');
+                    option.value = skill.skill_id;
+                    option.textContent = skill.name;
+                    dropdown.appendChild(option);
                 }
-            } catch (error) {
-                console.error('Error:', error);
-                alert('เกิดข้อผิดพลาดในการบันทึกทักษะของสมาชิก');
+            });
+
+
+            // Set current selection
+            dropdown.value = memberSkills[index - 1]?.skill_id || '';
+            dropdown.disabled = false;
+        }
+
+        // Filter skills by category for a specific dropdown index
+        function filterSkillsByCategory(event, index) {
+            const selectedCategory = event.target.value;
+            const skillDropdown = document.getElementById(`skill-dropdown-${index}`);
+
+            skillDropdown.innerHTML = '';
+
+            if (!selectedCategory || selectedCategory === "all") {
+                skillDropdown.innerHTML = '<option value="">กรุณาเลือกทักษะ</option>';
+                skillDropdown.disabled = true;
+                return;
+            }
+
+            // Get skill IDs already selected in other slots to prevent duplicates
+            const selectedSkillIds = memberSkills.map((s, i) => i + 1 !== index ? String(s.skill_id) : null).filter(id => id);
+            for (let i = 1; i <= 3; i++) {
+                if (i !== index) {
+                    const val = document.getElementById(`skill-dropdown-${i}`).value;
+                    if (val) selectedSkillIds.push(val);
+                }
+            }
+
+            // Filter skills by category and exclude already selected skills
+            const filteredSkills = skills.filter(s => s.category === selectedCategory && !selectedSkillIds.includes(String(s.skill_id)));
+
+            if (filteredSkills.length === 0) {
+                skillDropdown.innerHTML = '<option value="">ไม่มีทักษะในหมวดหมู่นี้</option>';
+                skillDropdown.disabled = true;
+                return;
+            }
+
+            skillDropdown.disabled = false;
+            skillDropdown.innerHTML = '<option value="">กรุณาเลือกทักษะ</option>';
+            filteredSkills.forEach(skill => {
+                const option = document.createElement('option');
+                option.value = skill.skill_id;
+                option.textContent = skill.name;
+                skillDropdown.appendChild(option);
+            });
+
+            // If memberSkills has a skill in this slot and matches category, preselect it
+            const currentSkill = memberSkills[index - 1];
+            if (currentSkill && currentSkill.category === selectedCategory && currentSkill.skill_id) {
+                skillDropdown.value = currentSkill.skill_id;
+            } else {
+                skillDropdown.value = '';
             }
         }
 
-        async function searchSkills() {
-            const searchTerm = document.getElementById('search-bar').value.toLowerCase();
+        async function searchSkills(event, index) {
+            const searchTerm = event.target.value.toLowerCase();
+            const suggestionsContainer = document.getElementById(`suggestions-${index}`);
+
+            // Clear previous suggestions
+            suggestionsContainer.innerHTML = '';
+            suggestionsContainer.classList.add('hidden');
+
+            if (!searchTerm.trim()) {
+                return; // Do nothing if search term is empty
+            }
 
             try {
-                const response = await fetch(`http://localhost:3000/api/tbm/skills/search?term=${encodeURIComponent(searchTerm)}`, {
+                const response = await fetch(`http://localhost:3000/api/user/skills/search?term=${encodeURIComponent(searchTerm)}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
+
                 const data = await response.json();
-                if (Array.isArray(data)) {
-                    renderSkills(data);
-                } else {
+
+                if (!Array.isArray(data)) {
                     console.error('Expected an array but got:', data);
-                    alert('เกิดข้อผิดพลาดในการค้นหาทักษะ');
+                    showErrorMessage('เกิดข้อผิดพลาดในการค้นหาทักษะ');
+                    return;
                 }
+
+                // Get already registered skills to prevent duplicates
+                const registeredSkillIds = memberSkills.map(skill => skill.skill_id).filter(id => id !== null);
+
+                // Filter out already selected skills
+                const filteredSkills = data.filter(skill => !registeredSkillIds.includes(skill.skill_id));
+
+                // Populate suggestions container with search results
+                filteredSkills.forEach(skill => {
+                    const suggestionItem = document.createElement('div');
+                    suggestionItem.className = 'px-4 py-2 cursor-pointer hover:bg-gray-200';
+                    suggestionItem.textContent = `${skill.name} (${skill.category})`;
+                    suggestionItem.onclick = () => selectSkill(skill, index);
+                    suggestionsContainer.appendChild(suggestionItem);
+                });
+
+                // Show suggestions container if skills are found
+                if (filteredSkills.length > 0) {
+                    suggestionsContainer.classList.remove('hidden');
+                }
+
             } catch (error) {
                 console.error('Error searching skills:', error);
-                alert('เกิดข้อผิดพลาดในการค้นหาทักษะ');
+                showErrorMessage('เกิดข้อผิดพลาดในการค้นหาทักษะ');
             }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            const langThai = document.getElementById('lang-th');
-            const langEnglish = document.getElementById('lang-en');
+        // Select skill from search suggestions
+        function selectSkill(skill, index) {
+            const skillDropdown = document.getElementById(`skill-dropdown-${index}`);
+            const categoryDropdown = document.getElementById(`category-dropdown-${index}`);
+            const suggestionsContainer = document.getElementById(`suggestions-${index}`);
+            const searchInput = document.getElementById(`search-bar-${index}`);
 
-            const translations = {
-                thai: {
-                    pageTitle: 'จัดการทักษะของสมาชิก - Time Bank',
-                    mainHeading: 'จัดการทักษะของสมาชิก',
-                    searchPlaceholder: 'ค้นหาทักษะหรือหมวดหมู่',
-                    saveButton: 'บันทึก',
-                    nav: [
-                        'โปรไฟล์',
-                        'หน้าหลัก',
-                        'รายงาน',
-                        'จัดการกิจกรรม',
-                        'จัดการสมาชิก',
-                        'จัดการหมวดหมู่ทักษะ',
-                        'จัดการกองทุนชุมชน',
-                        'จัดการชุมชน',
-                        'ธุรกรรมทั้งหมด'
-                    ]
-                },
-                english: {
-                    pageTitle: 'Manage Member Skills - Time Bank',
-                    mainHeading: 'Manage Member Skills',
-                    searchPlaceholder: 'Search skills or categories',
-                    saveButton: 'Save',
-                    nav: [
-                        'Profile',
-                        'Homepage',
-                        'Reports',
-                        'Activity Management',
-                        'Member Management',
-                        'Skill Categories',
-                        'Fund Management',
-                        'Community Settings',
-                        'Transactions'
-                    ]
-                }
+            // Set category in dropdown and manually trigger change to populate skills
+            categoryDropdown.value = skill.category;
+            filterSkillsByCategory({ target: categoryDropdown }, index);
+
+            // Wait a tick to ensure dropdowns are populated, then set selected skill
+            setTimeout(() => {
+                skillDropdown.value = skill.skill_id;
+                validateNoDuplicateSkills(index);
+            }, 0);
+
+            // Update local state immediately (to match what will be saved)
+            memberSkills[index - 1] = {
+                skill_id: skill.skill_id,
+                name: skill.name,
+                category: skill.category
             };
 
-            let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
+            // Clear the search bar
+            if (searchInput) searchInput.value = '';
 
-            const updateContent = (lang) => {
-                const langData = translations[lang];
+            // Hide suggestion container properly
+            suggestionsContainer.innerHTML = '';
+            suggestionsContainer.classList.add('hidden');
+        }
 
-                // Update page title
-                document.title = langData.pageTitle;
 
-                // Update main heading
-                document.querySelector('h1').textContent = langData.mainHeading;
+        // Toggle edit mode for a skill slot
+        function toggleEdit(index) {
+            const displaySection = document.getElementById(`skill-display-${index}`);
+            const editSection = document.getElementById(`edit-container-${index}`);
 
-                // Update search bar placeholder
-                document.getElementById('search-bar').placeholder = langData.searchPlaceholder;
+            displaySection.classList.add('hidden');
+            editSection.classList.remove('hidden');
 
-                // Update Save button text
-                document.querySelector('button[type="submit"]').textContent = langData.saveButton;
+            originalSkills[index] = { ...memberSkills[index - 1] };
 
-                // Update navigation bar items (Icons remain unchanged)
-                const navLinks = document.querySelectorAll('nav ul li a');
-                langData.nav.forEach((text, index) => {
-                    if (navLinks[index]) {
-                        const icon = navLinks[index].querySelector('i'); // Preserve existing icon
-                        navLinks[index].innerHTML = ''; // Clear content
-                        if (icon) {
-                            navLinks[index].appendChild(icon); // Re-add icon
-                        }
-                        navLinks[index].appendChild(document.createTextNode(text)); // Add translated text
+            populateSkillDropdown(index);
+        }
+
+        // Cancel edit mode and revert changes
+        function cancelEdit(index) {
+            document.getElementById(`skill-display-${index}`).classList.remove('hidden');
+            document.getElementById(`edit-container-${index}`).classList.add('hidden');
+
+            memberSkills[index - 1] = { ...originalSkills[index] };
+            renderSkills();
+        }
+
+        // Clear skill selection in edit mode
+        function clearSkill(index) {
+            const skillDropdown = document.getElementById(`skill-dropdown-${index}`);
+            const categoryDropdown = document.getElementById(`category-dropdown-${index}`);
+
+            if (skillDropdown) skillDropdown.value = "";
+            if (categoryDropdown) categoryDropdown.value = "all";
+
+            memberSkills[index - 1] = { skill_id: null, name: "ไม่ลงทะเบียนทักษะ", category: "ไม่ระบุหมวดหมู่" };
+            renderSkills();
+        }
+
+        // Validate no duplicate skills selected across all dropdowns
+        function validateNoDuplicateSkills(changedIndex) {
+            const selectedSkills = [];
+            let duplicateFound = false;
+
+            for (let i = 1; i <= 3; i++) {
+                const dropdown = document.getElementById(`skill-dropdown-${i}`);
+                if (!dropdown) continue;
+                const val = dropdown.value;
+                if (val && val !== "") {
+                    if (selectedSkills.includes(val)) {
+                        duplicateFound = true;
+                        break;
                     }
-                });
-
-                // Update active language toggle
-                if (lang === 'thai') {
-                    langThai.classList.add('active');
-                    langEnglish.classList.remove('active');
-                } else {
-                    langEnglish.classList.add('active');
-                    langThai.classList.remove('active');
+                    selectedSkills.push(val);
                 }
+            }
+
+            if (duplicateFound) {
+                showErrorMessage('ไม่สามารถเลือกทักษะซ้ำกันได้ กรุณาเลือกทักษะใหม่');
+                // Reset the changed dropdown to empty
+                const changedDropdown = document.getElementById(`skill-dropdown-${changedIndex}`);
+                if (changedDropdown) changedDropdown.value = "";
+            }
+        }
+
+        // Save individual skill after confirmation
+        async function saveSkill(index) {
+            const dropdown = document.getElementById(`skill-dropdown-${index}`);
+            const selectedSkillId = dropdown.value || null;
+
+            // Before saving, validate no duplicates
+            const selectedSkills = [];
+            for (let i = 1; i <= 3; i++) {
+                const val = document.getElementById(`skill-dropdown-${i}`).value;
+                if (val && val !== "") {
+                    selectedSkills.push(val);
+                }
+            }
+            const uniqueSkills = new Set(selectedSkills);
+            if (uniqueSkills.size !== selectedSkills.length) {
+                showErrorMessage('ไม่สามารถเลือกทักษะซ้ำกันได้ กรุณาเลือกทักษะใหม่');
+                return;
+            }
+
+            confirmAction("คุณต้องการบันทึกการเปลี่ยนแปลงหรือไม่?", async function () {
+                const payload = {
+                    skill_1: memberSkills[0]?.skill_id || null,
+                    skill_2: memberSkills[1]?.skill_id || null,
+                    skill_3: memberSkills[2]?.skill_id || null,
+                };
+
+                payload[`skill_${index}`] = selectedSkillId;
+
+                try {
+                    const response = await fetch(`http://localhost:3000/api/user/members/${userId}/skills`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const responseData = await response.json();
+
+                    if (response.ok) {
+                        // Update local memberSkills with new selection
+                        const selectedSkill = skills.find(s => String(s.skill_id) === String(selectedSkillId));
+                        if (selectedSkill) {
+                            memberSkills[index - 1] = {
+                                skill_id: selectedSkill.skill_id,
+                                name: selectedSkill.name,
+                                category: selectedSkill.category
+                            };
+                        } else {
+                            memberSkills[index - 1] = { skill_id: null, name: "ไม่ลงทะเบียนทักษะ", category: "ไม่ระบุหมวดหมู่" };
+                        }
+                        renderSkills();
+                        cancelEdit(index);
+                        showSuccessMessage(`✅ บันทึกทักษะที่ ${index} สำเร็จ!`, "create-member-skill.html");
+                    } else {
+                        showErrorMessage(responseData.error || '❌ เกิดข้อผิดพลาดในการบันทึกทักษะ');
+                    }
+                } catch (error) {
+                    showErrorMessage('❌ เกิดข้อผิดพลาดในการบันทึกทักษะ');
+                }
+                // After memberSkills[index - 1] update and renderSkills()
+                for (let i = 1; i <= 3; i++) {
+                    if (i !== index) {
+                        populateSkillDropdown(i);
+                    }
+                }
+            });
+        }
+
+        // Save all skills at once
+        async function saveAllSkills() {
+            // Collect selected skill IDs or null if empty
+            const skill_1 = memberSkills[0]?.skill_id || null;
+            const skill_2 = memberSkills[1]?.skill_id || null;
+            const skill_3 = memberSkills[2]?.skill_id || null;
+
+            // Validate no duplicate skills selected
+            const selectedSkills = [skill_1, skill_2, skill_3].filter(s => s !== null && s !== '');
+            const uniqueSkills = new Set(selectedSkills);
+            if (uniqueSkills.size !== selectedSkills.length) {
+                showErrorMessage('ไม่สามารถเลือกทักษะซ้ำกันได้ กรุณาเลือกทักษะใหม่');
+                return;
+            }
+
+            const payload = { skill_1, skill_2, skill_3 };
+
+            confirmAction("คุณต้องการบันทึกทักษะทั้งหมดหรือไม่?", async function () {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/user/members/${userId}/skills`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        showSuccessMessage('บันทึกทักษะสำเร็จ!');
+                        setTimeout(() => {
+                            sessionStorage.removeItem('registerFormData');
+                            sessionStorage.removeItem('registerUserId');
+                            sessionStorage.removeItem('registerPassword');
+                            window.location.href = 'member.html';
+                        }, 3000);
+                    } else {
+                        showErrorMessage(data.error || 'เกิดข้อผิดพลาดในการบันทึกทักษะ กรุณาลองใหม่อีกครั้ง');
+                    }
+                } catch (error) {
+                    console.error(error);
+                    showErrorMessage('เกิดข้อผิดพลาดในการบันทึกทักษะ กรุณาลองใหม่อีกครั้ง');
+                }
+            });
+        }
+
+        // Skip skill registration and go to login
+        function skipSkills() {
+            sessionStorage.removeItem('registerFormData');
+            sessionStorage.removeItem('registerUserId');
+            sessionStorage.removeItem('registerPassword');
+            window.location.href = 'log-in.html';
+        }
+
+        // Show success modal
+        function showSuccessMessage(message, redirectUrl = null) {
+            const modal = document.getElementById('success-modal');
+            document.getElementById('success-message').textContent = message;
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
+
+            setTimeout(() => {
+                closeModal('success-modal');
+                if (redirectUrl) {
+                    window.location.href = redirectUrl;
+                }
+            }, 3000);
+        }
+
+        // Show error modal
+        function showErrorMessage(message, redirectUrl = null) {
+            const modal = document.getElementById('error-modal');
+            document.getElementById('error-message').textContent = message;
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
+
+            setTimeout(() => {
+                closeModal('error-modal');
+                if (redirectUrl) {
+                    window.location.href = redirectUrl;
+                }
+            }, 3000);
+        }
+
+        // Confirm action modal
+        function confirmAction(message, onConfirm) {
+            document.getElementById('confirm-message').textContent = message;
+            const modal = document.getElementById('confirm-modal');
+            modal.classList.remove('hidden');
+            setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
+
+            document.getElementById('confirm-btn').onclick = function () {
+                closeModal('confirm-modal');
+                onConfirm();
             };
 
-            // Event listeners for language toggle
-            langThai.addEventListener('click', () => {
-                currentLang = 'thai';
-                localStorage.setItem('selectedLanguage', currentLang);
-                updateContent(currentLang);
-            });
+            document.getElementById('cancel-btn').onclick = function () {
+                closeModal('confirm-modal');
+            };
+        }
 
-            langEnglish.addEventListener('click', () => {
-                currentLang = 'english';
-                localStorage.setItem('selectedLanguage', currentLang);
-                updateContent(currentLang);
-            });
+        // Close modal helper
+        function closeModal(modalId) {
+            const modal = document.getElementById(modalId);
+            modal.classList.remove('opacity-100', 'scale-100');
+            setTimeout(() => modal.classList.add('hidden'), 300);
+        }
 
-            // Initialize content on page load
-            updateContent(currentLang);
-            fetchSkills();
+        // Close modals on button click
+        document.getElementById('confirm-success-btn').addEventListener('click', () => closeModal('success-modal'));
+        document.getElementById('confirm-error-btn').addEventListener('click', () => closeModal('error-modal'));
+
+        // Close suggestions on blur with delay to allow click
+        ['search-bar-1', 'search-bar-2', 'search-bar-3'].forEach(id => {
+            const input = document.getElementById(id);
+            const index = id.split('-')[2];
+            const suggestions = document.getElementById(`suggestions-${index}`);
+            input.addEventListener('blur', () => {
+                setTimeout(() => {
+                    suggestions.classList.remove('visible');
+                }, 150);
+            });
         });
-        
+
+        // Attach event listeners for category dropdowns to filter skills
+        document.getElementById('category-dropdown-1').addEventListener('change', (e) => filterSkillsByCategory(e, 1));
+        document.getElementById('category-dropdown-2').addEventListener('change', (e) => filterSkillsByCategory(e, 2));
+        document.getElementById('category-dropdown-3').addEventListener('change', (e) => filterSkillsByCategory(e, 3));
+
+        // Attach event listeners for save all and skip buttons
+        document.getElementById('saveSkillsBtn').addEventListener('click', saveAllSkills);
+        document.getElementById('skipSkillsBtn').addEventListener('click', skipSkills);
+
+        // Initialize page
+        (async () => {
+            await fetchSkillsAndCategories();
+            await fetchMemberSkills();
+        })();
     </script>
     <script src="navbar.js"></script>
-        <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-        <script src="notification.js"></script>
 </body>
 
 </html>

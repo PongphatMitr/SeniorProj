@@ -106,8 +106,13 @@
                 localStorage.setItem('token', data.token);
                 localStorage.setItem('user', JSON.stringify(data.user));
 
-                // Redirect immediately after storing token and user
-                window.location.href = 'report.html?login=success';
+                // 🔥 เช็ก role ตรงนี้
+                const role = data.user.role;
+                if (role === 'Admin' || role === 'TimeBankManager') {
+                    window.location.href = 'report.html?login=success';
+                } else {
+                    window.location.href = '../user_ui/HomePage.html';
+                }
 
             } catch (error) {
                 console.error('Login Error:', error);

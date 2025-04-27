@@ -12,12 +12,11 @@ module.exports = (pool) => {
     router.get('/', async (req, res) => {
         try {
             const result = await pool.query(`
-                SELECT a.*, b.branch_name, p.project_name
-                FROM announcements a
-                JOIN branches b ON a.branch_id = b.branch_id
-                JOIN projects p ON a.project_id = p.project_id
-                ORDER BY a.date DESC
-            `);
+    SELECT a.*, b.branch_name
+    FROM announcements a
+    JOIN branches b ON a.branch_id = b.branch_id
+    ORDER BY a.date DESC
+`);
             res.json(result.rows);
         } catch (error) {
             console.error('Error fetching announcements:', error);
@@ -30,12 +29,11 @@ module.exports = (pool) => {
         const { id } = req.params;
         try {
             const result = await pool.query(`
-                SELECT a.*, b.branch_name, p.project_name
-                FROM announcements a
-                JOIN branches b ON a.branch_id = b.branch_id
-                JOIN projects p ON a.project_id = p.project_id
-                WHERE a.announcement_id = $1
-            `, [id]);
+    SELECT a.*, b.branch_name
+    FROM announcements a
+    JOIN branches b ON a.branch_id = b.branch_id
+    WHERE a.announcement_id = $1
+`, [id]);
             if (result.rows.length === 0) {
                 return res.status(404).json({ error: 'Announcement not found' });
             }
@@ -48,12 +46,13 @@ module.exports = (pool) => {
 
     // Add a new announcement
     router.post('/', upload.single('image'), async (req, res) => {
-        const { date, title, description, branch_id, project_id } = req.body;
+        const { date, title, description, branch_id } = req.body;
         const image = req.file ? req.file.buffer : null;
+
         try {
             await pool.query(
-                'INSERT INTO announcements (date, title, description, image, branch_id, project_id) VALUES ($1, $2, $3, $4, $5, $6)',
-                [date, title, description, image, branch_id, project_id]
+                'INSERT INTO announcements (date, title, description, image, branch_id) VALUES ($1, $2, $3, $4, $5)',
+                [date, title, description, image, branch_id]
             );
             res.status(201).json({ message: 'Announcement added successfully' });
         } catch (error) {
@@ -65,12 +64,13 @@ module.exports = (pool) => {
     // Update an existing announcement
     router.put('/:id', upload.single('image'), async (req, res) => {
         const { id } = req.params;
-        const { date, title, description, branch_id, project_id } = req.body;
+        const { date, title, description, branch_id } = req.body;
         const image = req.file ? req.file.buffer : null;
+
         try {
             const result = await pool.query(
-                'UPDATE announcements SET date = $1, title = $2, description = $3, image = COALESCE($4, image), branch_id = $5, project_id = $6 WHERE announcement_id = $7',
-                [date, title, description, image, branch_id, project_id, id]
+                'UPDATE announcements SET date = $1, title = $2, description = $3, image = COALESCE($4, image), branch_id = $5 WHERE announcement_id = $6',
+                [date, title, description, image, branch_id, id]
             );
             if (result.rowCount === 0) {
                 return res.status(404).json({ error: 'Announcement not found' });

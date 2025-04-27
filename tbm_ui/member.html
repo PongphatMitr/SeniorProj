@@ -146,6 +146,43 @@
             </div>
         </div>
     </div>
+<!-- Success Modal -->
+<div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+    <div class="bg-white p-6 rounded shadow-lg text-center max-w-sm mx-4">
+        <h2 class="text-2xl font-bold text-green-500 mb-4">สำเร็จ!</h2>
+        <p id="success-message" class="text-gray-700 whitespace-pre-line"></p>
+        <button onclick="closeModal('success-modal')"
+            class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700">
+            ตกลง
+        </button>
+    </div>
+</div>
+
+<!-- Error Modal -->
+<div id="error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+    <div class="bg-white p-6 rounded shadow-lg text-center max-w-sm mx-4">
+        <h2 class="text-2xl font-bold text-red-500 mb-4">เกิดข้อผิดพลาด!</h2>
+        <p id="error-message" class="text-gray-700 whitespace-pre-line"></p>
+        <button onclick="closeModal('error-modal')"
+            class="mt-4 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700">
+            ลองใหม่
+        </button>
+    </div>
+</div>
+
+<!-- Confirm Modal -->
+<div id="confirm-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+    <div class="bg-white p-6 rounded shadow-lg text-center max-w-sm mx-4">
+        <h2 class="text-2xl font-bold text-blue-500 mb-4">ยืนยันการทำรายการ</h2>
+        <p id="confirm-message" class="text-gray-700 whitespace-pre-line"></p>
+        <div class="mt-6 flex justify-center gap-4">
+            <button id="confirm-yes-btn"
+                class="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-700">ตกลง</button>
+            <button onclick="closeModal('confirm-modal')"
+                class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700">ยกเลิก</button>
+        </div>
+    </div>
+</div>
 
     <script src="navbar.js"></script>
     <script>
@@ -157,6 +194,49 @@
         let sortField = '';
         let sortOrder = 'asc';
 
+        let confirmCallback = null;
+    let currentUser = {}; // ไว้เก็บข้อมูล user ตัวเอง
+
+    async function fetchCurrentUser() {
+        try {
+            const response = await fetch('http://localhost:3000/api/tbm/members/user', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            const data = await response.json();
+            currentUser = data; // เก็บข้อมูล user
+        } catch (error) {
+            console.error('Error fetching current user:', error);
+        }
+    }
+
+            function showConfirmModal(message, onConfirm) {
+                document.getElementById('confirm-message').textContent = message;
+                document.getElementById('confirm-modal').classList.remove('hidden');
+                confirmCallback = onConfirm;
+            }
+
+            document.getElementById('confirm-yes-btn').addEventListener('click', () => {
+                if (confirmCallback) {
+                    confirmCallback();
+                }
+                closeModal('confirm-modal');
+            });
+
+        function showSuccessModal(message) {
+                document.getElementById('success-message').textContent = message;
+                document.getElementById('success-modal').classList.remove('hidden');
+            }
+
+            function showErrorModal(message) {
+                document.getElementById('error-message').textContent = message;
+                document.getElementById('error-modal').classList.remove('hidden');
+            }
+
+            function closeModal(modalId) {
+                document.getElementById(modalId).classList.add('hidden');
+            }
         async function fetchCommunityConfig() {
             try {
                 const response = await fetch('http://localhost:3000/api/tbm/community-config', {
@@ -169,11 +249,11 @@
                     defaultTimeToken = data.default_time_token || defaultTimeToken;
                 } else {
                     console.error('Expected data but got:', data);
-                    alert('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
+                    showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
                 }
             } catch (error) {
                 console.error('Error fetching community config:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
+                showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
             }
         }
 
@@ -192,11 +272,11 @@
                     renderPagination();
                 } else {
                     console.error('Expected an array but got:', data);
-                    alert('เกิดข้อผิดพลาดในการดึงข้อมูลสมาชิก');
+                    showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลสมาชิก');
                 }
             } catch (error) {
                 console.error('Error fetching members:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลสมาชิก');
+                showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลสมาชิก');
             }
         }
 
@@ -370,42 +450,38 @@
                             renderPagination();
                         } else {
                             console.error('Expected an array but got:', data);
-                            alert('เกิดข้อผิดพลาดในการค้นหาสมาชิก');
+                            showErrorModal('เกิดข้อผิดพลาดในการค้นหาสมาชิก');
                         }
                     } catch (error) {
                         console.error('Error searching members:', error);
-                        alert('เกิดข้อผิดพลาดในการค้นหาสมาชิก');
+                        showErrorModal('เกิดข้อผิดพลาดในการค้นหาสมาชิก');
                     }
                 }
 
                 async function confirmAndRemove(event, rowId, memberId) {
-                    event.preventDefault();
-                    const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลบสมาชิกนี้?");
-                    if (confirmation) {
-                        try {
-                            const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}`, {
-                                method: 'DELETE',
-                                headers: {
-                                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        event.preventDefault();
+                        showConfirmModal("คุณแน่ใจหรือไม่ว่าต้องการลบสมาชิกนี้?", async () => {
+                            try {
+                                const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}`, {
+                                    method: 'DELETE',
+                                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                                });
+                                if (response.ok) {
+                                    document.getElementById(rowId).remove();
+                                    showSuccessModal("สมาชิกถูกลบเรียบร้อยแล้ว");
+                                } else {
+                                    showErrorModal("เกิดข้อผิดพลาดในการลบสมาชิก");
                                 }
-                            });
-                            if (response.ok) {
-                                document.getElementById(rowId).remove();
-                                alert("สมาชิกถูกลบเรียบร้อยแล้ว");
-                            } else {
-                                alert("เกิดข้อผิดพลาดในการลบสมาชิก");
+                            } catch (error) {
+                                console.error('Error deleting member:', error);
+                                showErrorModal("เกิดข้อผิดพลาดในการลบสมาชิก");
                             }
-                        } catch (error) {
-                            console.error('Error deleting member:', error);
-                            alert("เกิดข้อผิดพลาดในการลบสมาชิก");
-                        }
+                        });
                     }
-                }
 
                 async function confirmAndRestore(event, rowId, memberId) {
                     event.preventDefault();
-                    const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการกู้คืนสมาชิกนี้?");
-                    if (confirmation) {
+                    showConfirmModal("คุณแน่ใจหรือไม่ว่าต้องการกู้คืนสมาชิกนี้?", async () => {
                         try {
                             const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/restore`, {
                                 method: 'PUT',
@@ -415,21 +491,20 @@
                             });
                             if (response.ok) {
                                 fetchMembers(currentPage, '', sortField, sortOrder);
-                                alert("สมาชิกถูกกู้คืนเรียบร้อยแล้ว");
+                                showSuccessModal("สมาชิกถูกกู้คืนเรียบร้อยแล้ว");
                             } else {
-                                alert("เกิดข้อผิดพลาดในการกู้คืนสมาชิก");
+                                showErrorModal("เกิดข้อผิดพลาดในการกู้คืนสมาชิก");
                             }
                         } catch (error) {
                             console.error('Error restoring member:', error);
-                            alert("เกิดข้อผิดพลาดในการกู้คืนสมาชิก");
+                            showErrorModal("เกิดข้อผิดพลาดในการกู้คืนสมาชิก");
                         }
-                    }
+                    });
                 }
 
                 async function approveUser(event, memberId) {
                     event.preventDefault();
-                    const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการอนุมัติสมาชิกนี้?");
-                    if (confirmation) {
+                    showConfirmModal("คุณแน่ใจหรือไม่ว่าต้องการอนุมัติสมาชิกนี้?", async () => {
                         try {
                             const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/approve`, {
                                 method: 'PUT',
@@ -440,22 +515,21 @@
                             });
                             if (response.ok) {
                                 fetchMembers(currentPage, '', sortField, sortOrder);
-                                alert("สมาชิกถูกอนุมัติเรียบร้อยแล้ว");
+                                showSuccessModal("สมาชิกถูกอนุมัติเรียบร้อยแล้ว");
                             } else {
                                 const errorData = await response.json();
-                                alert(`เกิดข้อผิดพลาดในการอนุมัติสมาชิก: ${errorData.error}`);
+                                showErrorModal(`เกิดข้อผิดพลาดในการอนุมัติสมาชิก: ${errorData.error}`);
                             }
                         } catch (error) {
                             console.error('Error approving member:', error);
-                            alert("เกิดข้อผิดพลาดในการอนุมัติสมาชิก");
+                            showErrorModal("เกิดข้อผิดพลาดในการอนุมัติสมาชิก");
                         }
-                    }
+                    });
                 }
 
                 async function promoteRole(event, memberId, newRole) {
                     event.preventDefault();
-                    const confirmation = confirm(`คุณแน่ใจหรือไม่ว่าต้องการเลื่อนขั้นสมาชิกนี้เป็น ${newRole}?`);
-                    if (confirmation) {
+                    showConfirmModal(`คุณแน่ใจหรือไม่ว่าต้องการเลื่อนขั้นสมาชิกนี้เป็น ${newRole}?`, async () => {
                         try {
                             const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/promote`, {
                                 method: 'PUT',
@@ -467,22 +541,21 @@
                             });
                             if (response.ok) {
                                 fetchMembers(currentPage, '', sortField, sortOrder);
-                                alert(`สมาชิกถูกเลื่อนขั้นเป็น ${newRole} เรียบร้อยแล้ว`);
+                                showSuccessModal(`สมาชิกถูกเลื่อนขั้นเป็น ${newRole} เรียบร้อยแล้ว`);
                             } else {
                                 const errorData = await response.json();
-                                alert(`เกิดข้อผิดพลาดในการเลื่อนขั้นสมาชิก: ${errorData.error}`);
+                                showErrorModal(`เกิดข้อผิดพลาดในการเลื่อนขั้นสมาชิก: ${errorData.error}`);
                             }
                         } catch (error) {
                             console.error('Error promoting member:', error);
-                            alert("เกิดข้อผิดพลาดในการเลื่อนขั้นสมาชิก");
+                            showErrorModal("เกิดข้อผิดพลาดในการเลื่อนขั้นสมาชิก");
                         }
-                    }
+                    });
                 }
 
                 async function demoteToUser(event, memberId) {
                     event.preventDefault();
-                    const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการไล่ออกจากชุมชน?");
-                    if (confirmation) {
+                    showConfirmModal("คุณแน่ใจหรือไม่ว่าต้องการไล่ออกจากชุมชน?", async () => {
                         try {
                             const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/demote`, {
                                 method: 'PUT',
@@ -492,21 +565,20 @@
                             });
                             if (response.ok) {
                                 fetchMembers(currentPage, '', sortField, sortOrder);
-                                alert("สมาชิกถูกไล่ออกจากชุมชนเรียบร้อยแล้ว");
+                                showSuccessModal("สมาชิกถูกไล่ออกจากชุมชนเรียบร้อยแล้ว");
                             } else {
-                                alert("เกิดข้อผิดพลาดในการไล่ออกจากชุมชน");
+                                showErrorModal("เกิดข้อผิดพลาดในการไล่ออกจากชุมชน");
                             }
                         } catch (error) {
                             console.error('Error demoting member:', error);
-                            alert("เกิดข้อผิดพลาดในการไล่ออกจากชุมชน");
+                            showErrorModal("เกิดข้อผิดพลาดในการไล่ออกจากชุมชน");
                         }
-                    }
+                    });
                 }
 
                 async function demoteTimeBankManager(event, memberId) {
                     event.preventDefault();
-                    const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลดขั้น TimeBankManager นี้?");
-                    if (confirmation) {
+                    showConfirmModal("คุณแน่ใจหรือไม่ว่าต้องการลดขั้น TimeBankManager นี้?", async () => {
                         try {
                             const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/demote-timebankmanager`, {
                                 method: 'PUT',
@@ -516,21 +588,20 @@
                             });
                             if (response.ok) {
                                 fetchMembers(currentPage, '', sortField, sortOrder);
-                                alert("TimeBankManager ถูกลดขั้นเรียบร้อยแล้ว");
+                                showSuccessModal("TimeBankManager ถูกลดขั้นเรียบร้อยแล้ว");
                             } else {
-                                alert("เกิดข้อผิดพลาดในการลดขั้น TimeBankManager");
+                                showErrorModal("เกิดข้อผิดพลาดในการลดขั้น TimeBankManager");
                             }
                         } catch (error) {
                             console.error('Error demoting TimeBankManager:', error);
-                            alert("เกิดข้อผิดพลาดในการลดขั้น TimeBankManager");
+                            showErrorModal("เกิดข้อผิดพลาดในการลดขั้น TimeBankManager");
                         }
-                    }
+                    });
                 }
 
                 async function demoteAdmin(event, memberId) {
                     event.preventDefault();
-                    const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลดขั้น Admin นี้?");
-                    if (confirmation) {
+                    showConfirmModal("คุณแน่ใจหรือไม่ว่าต้องการลดขั้น Admin นี้?", async () => {
                         try {
                             const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/demote-admin`, {
                                 method: 'PUT',
@@ -540,15 +611,15 @@
                             });
                             if (response.ok) {
                                 fetchMembers(currentPage, '', sortField, sortOrder);
-                                alert("Admin ถูกลดขั้นเรียบร้อยแล้ว");
+                                showSuccessModal("Admin ถูกลดขั้นเรียบร้อยแล้ว");
                             } else {
-                                alert("เกิดข้อผิดพลาดในการลดขั้น Admin");
+                                showErrorModal("เกิดข้อผิดพลาดในการลดขั้น Admin");
                             }
                         } catch (error) {
                             console.error('Error demoting Admin:', error);
-                            alert("เกิดข้อผิดพลาดในการลดขั้น Admin");
+                            showErrorModal("เกิดข้อผิดพลาดในการลดขั้น Admin");
                         }
-                    }
+                    });
                 }
 
                 function sortTable(field) {
@@ -561,10 +632,12 @@
                     fetchMembers(currentPage, '', sortField, sortOrder);
                 }
 
-                document.addEventListener('DOMContentLoaded', () => {
-                    fetchCommunityConfig();
-                    fetchMembers(currentPage);
-                });
+                document.addEventListener('DOMContentLoaded', async () => {
+                        await fetchCurrentUser(); // ดึงข้อมูล user ก่อน
+                        fetchCommunityConfig();
+                        fetchMembers(currentPage);
+                    });
+
             </script>
     
     <style>

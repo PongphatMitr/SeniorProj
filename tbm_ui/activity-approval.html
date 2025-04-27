@@ -17,7 +17,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             activityId = urlParams.get('id');
             if (!activityId) {
-                alert('ไม่พบรหัสกิจกรรม');
+                showMessage('ไม่พบรหัสกิจกรรม', true);
                 return;
             }
             try {
@@ -30,11 +30,11 @@
                     const errorText = await response.text();
                     console.error(`HTTP error! status: ${response.status}, response: ${errorText}`);
                     if (response.status === 404) {
-                        alert('ไม่พบกิจกรรมที่ระบุ');
+                        showMessage('ไม่พบกิจกรรมที่ระบุ', true);
                     } else if (response.status === 400 && errorText.includes('Invalid token')) {
-                        alert('Invalid token. Redirecting to login page.');
+                        showMessage('Invalid token. กำลังกลับไปหน้าเข้าสู่ระบบ', true);
                         localStorage.removeItem('token');
-                        window.location.href = 'login.html';
+                        setTimeout(() => window.location.href = 'login.html', 2000);
                     }
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
@@ -72,11 +72,11 @@
                     // Calculate and display time difference
                     calculateTimeDifference();
                 } else {
-                    alert('ไม่พบรายละเอียดกิจกรรม');
+                    showMessage('ไม่พบรายละเอียดกิจกรรม', true);
                 }
             } catch (error) {
                 console.error('Error fetching activity details:', error);
-                alert('เกิดข้อผิดพลาดในการดึงรายละเอียดกิจกรรม');
+                showMessage('เกิดข้อผิดพลาดในการดึงรายละเอียดกิจกรรม', true);
             }
         }
 
@@ -137,7 +137,7 @@
                 console.log('Minimum Time Token:', minimumTimeTokenHours, minimumTimeTokenMinutes);
             } catch (error) {
                 console.error('Error fetching community config:', error);
-                alert('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
+                showMessage('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน', true);
             }
         }
 
@@ -471,7 +471,8 @@
                 iconSvg.classList.add('text-green-500');
                 iconPath.setAttribute("d", "M5 13l4 4L19 7");
             }
-        
+
+            document.getElementById('confirm-message-btn').style.display = '';
             setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
         
             document.getElementById('confirm-message-btn').onclick = () => {
