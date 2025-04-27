@@ -322,11 +322,15 @@
         }
 
         function showSuccessMessage(message) {
-            document.getElementById('success-message').textContent = message;
-            const modal = document.getElementById('success-modal');
-            modal.classList.remove('hidden');
-            setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
-        }
+                document.getElementById('success-message').textContent = message;
+                document.getElementById('success-modal').classList.remove('hidden');
+                const confirmBtn = document.getElementById('success-confirm-btn');
+                if (confirmBtn) {
+                    confirmBtn.onclick = function () {
+                        document.getElementById('success-modal').classList.add('hidden');
+                    };
+                }
+            }
 
         function showErrorMessage(message) {
             alert(message);
@@ -354,7 +358,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchMemberId();
-            const confirmSuccessBtn = document.getElementById('confirm-success-btn');
+            const confirmSuccessBtn = document.getElementById('success-confirm-btn');
             const confirmErrorBtn = document.getElementById('confirm-error-btn');
             if (confirmSuccessBtn) {
                 confirmSuccessBtn.addEventListener('click', function () {
@@ -548,15 +552,26 @@
             </div>
         </div>
     </div>
-    <!-- Success Modal -->
+    <!-- Success Message Modal -->
     <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-2xl text-center">
-            <h2 class="text-4xl font-bold text-green-600 mt-6">✅ สำเร็จ!</h2>
-            <p id="success-message" class="text-gray-700 text-xl mt-4"></p>
-            <button id="confirm-success-btn"
-                class="mt-8 px-8 py-4 bg-blue-600 text-white text-xl font-semibold rounded-lg hover:bg-blue-700 transition">ตกลง</button>
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <div class="flex justify-center">
+                <div class="w-20 h-20 flex items-center justify-center rounded-full bg-green-100 border-4 border-green-500">
+                    <svg class="w-12 h-12 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-green-600 mt-6">แก้ไขสำเร็จ!</h2>
+            <p class="text-gray-700 text-xl mt-4" id="success-message">แก้ไขประกาศสำเร็จ</p>
+            <button id="success-confirm-btn"
+                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ยืนยัน
+            </button>
         </div>
     </div>
+
     <!-- Error Modal -->
     <div id="error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
         <div class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-2xl text-center">
@@ -566,6 +581,25 @@
                 class="mt-8 px-8 py-4 bg-red-600 text-white text-xl font-semibold rounded-lg hover:bg-red-700 transition">ตกลง</button>
         </div>
     </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <h2 class="text-3xl font-bold text-red-600 mt-6">ยืนยันการลบประกาศ</h2>
+            <p class="text-gray-700 text-lg mt-4">ต้องการลบประกาศหรือไม่?</p>
+            <div class="mt-6 flex justify-center">
+                <button id="confirm-delete-btn"
+                    class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300 mr-4">
+                    ยืนยัน
+                </button>
+                <button id="cancel-delete-btn"
+                    class="px-6 py-3 bg-gray-600 text-white text-lg font-semibold rounded-lg hover:bg-gray-700 transition duration-300">
+                    ยกเลิก
+                </button>
+            </div>
+        </div>
+    </div>
+
         <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
         <script src="notification.js"></script>
 </body>
