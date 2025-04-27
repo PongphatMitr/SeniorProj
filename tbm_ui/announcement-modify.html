@@ -84,20 +84,6 @@
                             บันทึก
                         </button>
                     </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700" for="announcementProject">
-                            โครงการ
-                        </label>
-                        <div class="flex">
-                            <select class="w-full p-2 border border-gray-300 rounded" id="announcementProject"
-                                required="">
-                            </select>
-                            <button class="ml-2 bg-blue-600 text-white px-4 py-2 rounded" id="addProjectButton"
-                                type="button">
-                                เพิ่ม
-                            </button>
-                        </div>
-                    </div>
                     <div class="flex items-center space-x-4 mt-6">
                         <a class="bg-blue-600 text-white px-4 py-2 rounded whitespace-nowrap" href="homepage.html">
                             กลับ
@@ -112,6 +98,26 @@
                     </div>
                 </form>
             </div>
+        </div>
+    </div>
+
+    <!-- Error Message Modal -->
+    <div id="error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <div class="flex justify-center">
+                <div class="w-20 h-20 flex items-center justify-center rounded-full bg-red-100 border-4 border-red-500">
+                    <svg class="w-12 h-12 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-red-600 mt-6">เกิดข้อผิดพลาด!</h2>
+            <p class="text-gray-700 text-lg mt-4" id="error-message"></p>
+            <button id="error-confirm-btn"
+                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ยืนยัน
+            </button>
         </div>
     </div>
 
@@ -195,6 +201,15 @@
         }
     </style>
     <script>
+        function showErrorModal(message) {
+                document.getElementById('error-message').textContent = message;
+                document.getElementById('error-modal').classList.remove('hidden');
+            }
+
+            document.getElementById('error-confirm-btn').addEventListener('click', () => {
+                document.getElementById('error-modal').classList.add('hidden');
+            });
+
         function getToken() {
             return localStorage.getItem('token');
         }
@@ -212,7 +227,7 @@
         document.addEventListener('DOMContentLoaded', async () => {
             const token = getToken();
             if (!token) {
-                alert('You are not logged in!');
+                showErrorModal('คุณยังไม่ได้เข้าสู่ระบบ!');
                 window.location.href = 'login.html';
                 return;
             }
@@ -220,7 +235,7 @@
             const urlParams = new URLSearchParams(window.location.search);
             const announcementId = urlParams.get('id');
             if (!announcementId) {
-                alert('No announcement ID found!');
+                showErrorModal('ไม่พบรหัสประกาศ!');
                 window.location.href = 'homepage.html';
                 return;
             }
@@ -243,23 +258,6 @@
                     branchesSelect.appendChild(option);
                 });
 
-                const projectsResponse = await fetch('http://localhost:3000/api/tbm/projects', {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-                if (!projectsResponse.ok) {
-                    throw new Error(`HTTP error! status: ${projectsResponse.status}`);
-                }
-                const projects = await projectsResponse.json();
-                const projectsSelect = document.getElementById('announcementProject');
-                projects.forEach(project => {
-                    const option = document.createElement('option');
-                    option.value = project.project_id;
-                    option.textContent = project.project_name;
-                    projectsSelect.appendChild(option);
-                });
-
                 const announcementResponse = await fetch(`http://localhost:3000/api/tbm/announcements/${announcementId}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
@@ -273,7 +271,6 @@
                 document.getElementById('announcementTitle').value = announcement.title;
                 document.getElementById('announcementDescription').value = announcement.description;
                 document.getElementById('announcementBranch').value = announcement.branch_id;
-                document.getElementById('announcementProject').value = announcement.project_id;
 
                 if (announcement.image) {
                     const imageUrl = `data:image/jpeg;base64,${arrayBufferToBase64(announcement.image.data)}`;
@@ -315,49 +312,11 @@
                         document.getElementById('newBranchName').value = '';
                         showSuccessModal('Branch created successfully.');
                     } else {
-                        alert('Failed to add branch');
+                        showErrorModal('ไม่สามารถเพิ่มสาขาใหม่ได้');
                     }
                 } catch (error) {
                     console.error('Error adding branch:', error);
-                    alert('An error occurred while adding the branch');
-                }
-            }
-        });
-
-        document.getElementById('addProjectButton').addEventListener('click', () => {
-            document.getElementById('newProjectContainer').classList.toggle('hidden');
-        });
-
-        document.getElementById('saveProjectButton').addEventListener('click', async () => {
-            const newProjectName = document.getElementById('newProjectName').value;
-            const token = getToken();
-            if (newProjectName) {
-                try {
-                    const response = await fetch('http://localhost:3000/api/tbm/projects', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${token}`
-                        },
-                        body: JSON.stringify({ project_name: newProjectName })
-                    });
-
-                    if (response.ok) {
-                        const newProject = await response.json();
-                        const projectsSelect = document.getElementById('announcementProject');
-                        const option = document.createElement('option');
-                        option.value = newProject.project_id;
-                        option.textContent = newProject.project_name;
-                        projectsSelect.appendChild(option);
-                        document.getElementById('newProjectContainer').classList.add('hidden');
-                        document.getElementById('newProjectName').value = '';
-                        showSuccessModal('Project created successfully.');
-                    } else {
-                        alert('Failed to add project');
-                    }
-                } catch (error) {
-                    console.error('Error adding project:', error);
-                    alert('An error occurred while adding the project');
+                    showErrorModal('เกิดข้อผิดพลาดในการเพิ่มสาขาใหม่');
                 }
             }
         });
@@ -373,7 +332,6 @@
                 formData.append('image', document.getElementById('announcementImage').files[0]);
             }
             formData.append('branch_id', document.getElementById('announcementBranch').value);
-            formData.append('project_id', document.getElementById('announcementProject').value);
 
             const token = getToken();
             const urlParams = new URLSearchParams(window.location.search);
@@ -391,11 +349,11 @@
                 if (response.ok) {
                     showSuccessModal('Announcement modified successfully.');
                 } else {
-                    alert('Failed to modify announcement');
+                    showErrorModal('ไม่สามารถบันทึกการแก้ไขประกาศได้');
                 }
             } catch (error) {
                 console.error('Error modifying announcement:', error);
-                alert('An error occurred while modifying the announcement');
+                showErrorModal('เกิดข้อผิดพลาดในการบันทึกการแก้ไขประกาศ');
             }
         });
 
@@ -420,11 +378,11 @@
                     document.getElementById('delete-modal').classList.add('hidden');
                     showSuccessModal('Announcement deleted successfully.');
                 } else {
-                    alert('Failed to delete announcement');
+                    showErrorModal('ไม่สามารถลบประกาศได้');
                 }
             } catch (error) {
                 console.error('Error deleting announcement:', error);
-                alert('An error occurred while deleting the announcement');
+                showErrorModal('เกิดข้อผิดพลาดในการลบประกาศ');
             }
         });
 

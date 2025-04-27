@@ -12,12 +12,13 @@ const branchRoutes = require('./branches');
 const feedbackRoutes = require('./feedback');
 const announcementRoutes = require('./announcements');
 const projectRoutes = require('./projects'); // Add this line
+const authMiddleware = require('../../middleware/authMiddleware');
 
 const router = express.Router();
 
 module.exports = (pool, io) => {
     router.use('/auth', authRoutes(pool, io));
-    router.use('/members', memberRoutes(pool, io));
+    router.use('/members', authMiddleware, memberRoutes(pool, io));
     router.use('/activities', activityRoutes(pool, io));
     router.use('/skills', skillRoutes(pool, io));
     router.use('/funds', fundRoutes(pool, io));

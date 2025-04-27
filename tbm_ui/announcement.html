@@ -139,6 +139,26 @@
         </div>
     </div>
 
+    <!-- Error Message Modal -->
+    <div id="error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <div class="flex justify-center">
+                <div class="w-20 h-20 flex items-center justify-center rounded-full bg-red-100 border-4 border-red-500">
+                    <svg class="w-12 h-12 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-red-600 mt-6">เกิดข้อผิดพลาด!</h2>
+            <p class="text-gray-700 text-lg mt-4" id="error-message"></p>
+            <button id="error-confirm-btn"
+                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ยืนยัน
+            </button>
+        </div>
+    </div>
+
     <style>
         /* Toggle container */
         .toggle-container {
@@ -182,6 +202,15 @@
     <script src="navbar.js"></script>
     <script src="selected-language.js"></script>
     <script>
+        function showErrorModal(message) {
+                document.getElementById('error-message').textContent = message;
+                document.getElementById('error-modal').classList.remove('hidden');
+            }
+
+            document.getElementById('error-confirm-btn').addEventListener('click', () => {
+                document.getElementById('error-modal').classList.add('hidden');
+            });
+
         function getToken() {
             return localStorage.getItem('token');
         }
@@ -189,7 +218,7 @@
         document.addEventListener('DOMContentLoaded', async () => {
             const token = getToken();
             if (!token) {
-                alert('You are not logged in!');
+                showErrorModal('คุณยังไม่ได้เข้าสู่ระบบ!');
                 window.location.href = 'login.html';
                 return;
             }
@@ -212,7 +241,7 @@
                     branchesSelect.appendChild(option);
                 });
             } catch (error) {
-                console.error('Error fetching branches:', error);
+                showErrorModal('เกิดข้อผิดพลาดในการโหลดข้อมูลสาขา');
             }
         });
 
@@ -245,11 +274,11 @@
                         document.getElementById('newBranchName').value = '';
                         showSuccessModal('Branch created successfully.');
                     } else {
-                        alert('Failed to add branch');
+                        showErrorModal('ไม่สามารถเพิ่มสาขาใหม่ได้');
                     }
                 } catch (error) {
                     console.error('Error adding branch:', error);
-                    alert('An error occurred while adding the branch');
+                    showErrorModal('เกิดข้อผิดพลาดในการเพิ่มสาขาใหม่');
                 }
             }
         });
@@ -278,11 +307,11 @@
                 if (response.ok) {
                     showAnnouncementSuccessModal('Announcement added successfully.');
                 } else {
-                    alert('Failed to add announcement');
+                    showErrorModal('ไม่สามารถเพิ่มประกาศได้');
                 }
             } catch (error) {
                 console.error('Error adding announcement:', error);
-                alert('An error occurred while adding the announcement');
+                showErrorModal('เกิดข้อผิดพลาดในการเพิ่มประกาศ');
             }
         });
 

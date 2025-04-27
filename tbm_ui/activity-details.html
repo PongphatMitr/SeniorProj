@@ -195,8 +195,40 @@
             </div>
         </div>
     </div>
+
+    <!-- Error Message Modal -->
+    <div id="error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <div class="flex justify-center">
+                <div class="w-20 h-20 flex items-center justify-center rounded-full bg-red-100 border-4 border-red-500">
+                    <svg class="w-12 h-12 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-red-600 mt-6">เกิดข้อผิดพลาด!</h2>
+            <p class="text-gray-700 text-lg mt-4" id="error-message"></p>
+            <button id="error-confirm-btn"
+                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ตกลง
+            </button>
+        </div>
+    </div>
+
     <!-- JavaScript for Messages -->
     <script>
+        function showErrorModal(message) {
+                const modal = document.getElementById('error-modal');
+                const messageElement = document.getElementById('error-message');
+                messageElement.textContent = message;
+                modal.classList.remove('hidden');
+
+                document.getElementById('error-confirm-btn').onclick = () => {
+                    modal.classList.add('hidden');
+                };
+            }
+
         function showMessage(message, isError = false) {
             const modal = document.getElementById('message-modal');
             const title = document.getElementById('message-title');
@@ -264,7 +296,7 @@
             activityId = urlParams.get('id'); // Ensure activityId is set globally
 
             if (!activityId) {
-                alert('ไม่พบรหัสกิจกรรม');
+                showErrorModal('ไม่พบรหัสกิจกรรม');
                 return;
             }
 
@@ -310,11 +342,11 @@
                     // Calculate and display time difference
                     calculateTimeDifference();
                 } else {
-                    alert('ไม่พบรายละเอียดกิจกรรม');
+                    showErrorModal('ไม่พบรายละเอียดกิจกรรม');
                 }
             } catch (error) {
                 console.error('Error fetching activity details:', error);
-                alert('เกิดข้อผิดพลาดในการดึงรายละเอียดกิจกรรม');
+                showErrorModal('เกิดข้อผิดพลาดในการดึงรายละเอียดกิจกรรม');
             }
         }
 
@@ -406,7 +438,7 @@
                                         }
                                     } catch (error) {
                                         console.error('Error fetching participants:', error);
-                                        alert('เกิดข้อผิดพลาดในการดึงข้อมูลผู้เข้าร่วม');
+                                        showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลผู้เข้าร่วม');
                                     }
                                 }
 
@@ -427,7 +459,7 @@
                                         console.log('Member:', member);
                                     } catch (error) {
                                         console.error('Error fetching member profile:', error);
-                                        alert('เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์สมาชิก');
+                                        showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์สมาชิก');
                                     }
                                 }
 
@@ -579,7 +611,7 @@
                                         console.log('Minimum Time Token:', minimumTimeTokenHours, minimumTimeTokenMinutes);
                                     } catch (error) {
                                         console.error('Error fetching community config:', error);
-                                        alert('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
+                                        showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
                                     }
                                 }
 

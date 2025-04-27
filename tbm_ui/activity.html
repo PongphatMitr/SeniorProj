@@ -30,23 +30,27 @@
         };
 
         async function confirmAndRemove(event, rowId, activityId) {
-            event.preventDefault();
-            const confirmation = confirm("คุณแน่ใจหรือไม่ว่าต้องการลบกิจกรรมนี้?");
-            if (confirmation) {
-                const response = await fetch(`http://localhost:3000/api/tbm/activities/${activityId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                event.preventDefault();
+
+                openConfirmDelete(async () => {
+                    try {
+                        const response = await fetch(`http://localhost:3000/api/tbm/activities/${activityId}`, {
+                            method: 'DELETE',
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('token')}`
+                            }
+                        });
+
+                        if (response.ok) {
+                            document.getElementById(rowId).remove();
+                        } else {
+                            console.error("Failed to delete activity");
+                        }
+                    } catch (error) {
+                        console.error('Error deleting activity:', error);
                     }
                 });
-                if (response.ok) {
-                    document.getElementById(rowId).remove();
-                    alert("กิจกรรมถูกลบเรียบร้อยแล้ว");
-                } else {
-                    alert("เกิดข้อผิดพลาดในการลบกิจกรรม");
-                }
             }
-        }
 
         async function fetchActivities(page = 1) {
             console.log(`📌 Fetching activities for page ${page}...`);
@@ -78,7 +82,7 @@
                 renderPagination();
             } catch (error) {
                 console.error('❌ Error fetching activities:', error);
-                alert('Error fetching activities. Please try again.');
+                showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลกิจกรรม กรุณาลองใหม่อีกครั้ง');
             }
         }
 
@@ -164,8 +168,8 @@
                 <td class="py-2.5 px-4 border-b border-gray-200 text-center text-[16px] font-medium">
                 ${activity.current_participants} / ${activity.max_participants}
                 </td>
-                <td class="py-2 px-4 border-b border-gray-200 text-center text-center">
-                    <div class="flex justify-center items-center gap-2 whitespace-nowrap">
+                <td class="py-2 px-4 border-b border-gray-200 text-center text-left">
+                    <div class="flex justify-start items-center gap-2 whitespace-nowrap">
                         <a href="activity-details.html?id=${activity.activity_id}"
                         class="bg-blue-500 hover:bg-blue-600 text-white text-sm font-semibold py-1.5 px-4 rounded-full whitespace-nowrap">
                         รายละเอียด
@@ -296,12 +300,12 @@
                     const errorData = await response.json();
                     throw new Error(errorData.error || 'Unknown error');
                 }
-        
-                alert('กิจกรรมได้รับการอนุมัติเรียบร้อยแล้ว');
-                fetchActivities(); // Refresh table
+
+                showSuccessModal('กิจกรรมได้รับการอนุมัติเรียบร้อยแล้ว');
+                fetchActivities();
             } catch (error) {
                 console.error('Error approving activity:', error);
-                alert('เกิดข้อผิดพลาด: ' + error.message);
+                showErrorModal('เกิดข้อผิดพลาดในการอนุมัติกิจกรรม: ' + error.message);
             }
         }
         
@@ -379,6 +383,70 @@
             </div>
         </div>
     </div>
+<!-- Confirm Delete Modal -->
+<div id="confirm-delete-modal"
+    class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+    <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+        <div class="flex justify-center">
+            <div
+                class="w-20 h-20 flex items-center justify-center rounded-full bg-yellow-100 border-4 border-yellow-500">
+                <svg class="w-12 h-12 text-yellow-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                    viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M17 16l4-4m0 0l-4-4m4 4H7" />
+                </svg>
+            </div>
+        </div>
+        <h2 class="text-3xl font-bold text-yellow-600 mt-6">คุณต้องการลบกิจกรรมนี้?</h2>
+        <p class="text-gray-700 text-lg mt-4">การลบกิจกรรมนี้จะไม่สามารถกู้คืนได้</p>
+        <div class="flex justify-center gap-4 mt-6">
+            <button id="confirm-delete-btn"
+                class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300">ลบ</button>
+            <button id="cancel-delete-btn"
+                class="px-6 py-3 bg-gray-300 text-gray-800 text-lg font-semibold rounded-lg hover:bg-gray-400 transition duration-300">ยกเลิก</button>
+        </div>
+    </div>
+</div>
+
+<!-- Success Message Modal -->
+<div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+    <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+        <div class="flex justify-center">
+            <div class="w-20 h-20 flex items-center justify-center rounded-full bg-green-100 border-4 border-green-500">
+                <svg class="w-12 h-12 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+            </div>
+        </div>
+        <h2 class="text-3xl font-bold text-green-600 mt-6">สำเร็จ!</h2>
+        <p class="text-gray-700 text-lg mt-4" id="success-message"></p>
+        <button onclick="closeModal('success-modal')"
+            class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+            ยืนยัน
+        </button>
+    </div>
+</div>
+
+<!-- Error Message Modal -->
+<div id="error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+    <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+        <div class="flex justify-center">
+            <div class="w-20 h-20 flex items-center justify-center rounded-full bg-red-100 border-4 border-red-500">
+                <svg class="w-12 h-12 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </div>
+        </div>
+        <h2 class="text-3xl font-bold text-red-600 mt-6">เกิดข้อผิดพลาด!</h2>
+        <p class="text-gray-700 text-lg mt-4" id="error-message"></p>
+        <button onclick="closeModal('error-modal')"
+            class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+            ยืนยัน
+        </button>
+    </div>
+</div>
 
     <style>
         /* Toggle container */
@@ -429,6 +497,48 @@
     <script src="selected-language.js"></script>
     
     <script>
+        let deleteActivityCallback = null;
+
+            function openConfirmDelete(callback) {
+                deleteActivityCallback = callback;
+                document.getElementById('confirm-delete-modal').classList.remove('hidden');
+            }
+
+            function closeConfirmDelete() {
+                document.getElementById('confirm-delete-modal').classList.add('hidden');
+            }
+
+            function openSuccessModal() {
+                document.getElementById('success-modal').classList.remove('hidden');
+            }
+
+            function showSuccessModal(message) {
+                    document.getElementById('success-message').textContent = message;
+                    document.getElementById('success-modal').classList.remove('hidden');
+                }
+
+                function showErrorModal(message) {
+                    document.getElementById('error-message').textContent = message;
+                    document.getElementById('error-modal').classList.remove('hidden');
+                }
+
+                function closeModal(modalId) {
+                    document.getElementById(modalId).classList.add('hidden');
+                }
+
+            // Event listener ปุ่มใน confirm modal
+            document.getElementById('confirm-delete-btn').addEventListener('click', () => {
+                if (deleteActivityCallback) {
+                    deleteActivityCallback();
+                }
+                closeConfirmDelete();
+                openSuccessModal();
+            });
+
+            document.getElementById('cancel-delete-btn').addEventListener('click', () => {
+                closeConfirmDelete();
+            });
+
         document.addEventListener('DOMContentLoaded', () => {
             const langThai = document.getElementById('lang-th');
             const langEnglish = document.getElementById('lang-en');
@@ -502,32 +612,7 @@
                     if (icon) link.appendChild(icon); // Re-add the icon
                     link.append(` ${langData.nav[index]}`); // Add translated text
                 });
-
-                // Update language toggle styles
-                if (lang === 'thai') {
-                    langThai.classList.add('active');
-                    langEnglish.classList.remove('active');
-                } else {
-                    langEnglish.classList.add('active');
-                    langThai.classList.remove('active');
-                }
             };
-
-            // Add event listeners for language toggle
-            langThai.addEventListener('click', () => {
-                currentLang = 'thai';
-                localStorage.setItem('selectedLanguage', currentLang);
-                updateContent(currentLang);
-            });
-
-            langEnglish.addEventListener('click', () => {
-                currentLang = 'english';
-                localStorage.setItem('selectedLanguage', currentLang);
-                updateContent(currentLang);
-            });
-
-            // Initialize content on page load
-            updateContent(currentLang);
         });
     </script>
     <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>

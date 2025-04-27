@@ -129,6 +129,27 @@
             </button>
         </div>
     </div>
+
+    <!-- Error Message Modal -->
+    <div id="error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden z-50">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <div class="flex justify-center">
+                <div class="w-20 h-20 flex items-center justify-center rounded-full bg-red-100 border-4 border-red-500">
+                    <svg class="w-12 h-12 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </div>
+            </div>
+            <h2 class="text-3xl font-bold text-red-600 mt-6">เกิดข้อผิดพลาด!</h2>
+            <p class="text-gray-700 text-lg mt-4" id="error-message"></p>
+            <button onclick="closeModal('error-modal')"
+                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                ยืนยัน
+            </button>
+        </div>
+    </div>
+
     <style>
         /* Toggle container */
         .toggle-container {
@@ -170,6 +191,20 @@
         }
     </style>
     <script>
+        // Function สำหรับแสดง Modal Error
+            function showErrorModal(message) {
+                const errorMessage = document.getElementById('error-message');
+                if (errorMessage) errorMessage.textContent = message;
+                const errorModal = document.getElementById('error-modal');
+                if (errorModal) errorModal.classList.remove('hidden');
+            }
+
+            // Function ปิด Modal ทั่วไป
+            function closeModal(modalId) {
+                const modal = document.getElementById(modalId);
+                if (modal) modal.classList.add('hidden');
+            }
+
         document.addEventListener('DOMContentLoaded', () => {
             console.log('🚀 announcement-detail.js loaded and DOM ready!');
 
@@ -316,11 +351,11 @@
                             if (deleteModal) deleteModal.classList.add('hidden');
                             showSuccessModal('ลบประกาศสำเร็จ');
                         } else {
-                            alert('ลบประกาศไม่สำเร็จ');
+                            showErrorModal('ลบประกาศไม่สำเร็จ');
                         }
                     } catch (error) {
                         console.error('Error deleting announcement:', error);
-                        alert('เกิดข้อผิดพลาดในการลบประกาศ');
+                        showErrorModal('เกิดข้อผิดพลาดในการลบประกาศ');
                     }
                 });
             }

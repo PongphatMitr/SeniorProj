@@ -45,10 +45,8 @@
                                         role="columnheader" scope="col">
                                         ชื่อ
                                     </th>
-                                    <th aria-colindex="2"
-                                        class="py-4 px-6 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        อีเมล
+                                    <th aria-colindex="2" class="py-4 px-6 text-left text-sm font-semibold text-gray-600" role="columnheader" scope="col">
+                                        เบอร์โทรศัพท์
                                     </th>
                                     <th aria-colindex="3"
                                         class="py-4 px-6 text-left text-sm font-semibold text-gray-600"
@@ -91,7 +89,7 @@
                     </svg>
                 </div>
             </div>
-            <h2 class="text-3xl font-bold text-green-600 mt-6">เข้าสู่ระบบสำเร็จ!</h2>
+            <h2 class="text-3xl font-bold text-green-600 mt-6">สำเร็จ!</h2>
             <p class="text-gray-700 text-lg mt-4">กำลังนำทางไปยังหน้าหลัก...</p>
             <button id="confirm-btn"
                 class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
@@ -123,13 +121,14 @@
 
     <script>
         let participants = [];
+    let requiredSkillName = null;
 
         async function fetchParticipants() {
             const urlParams = new URLSearchParams(window.location.search);
             const activityId = urlParams.get('id');
 
             if (!activityId) {
-                alert('ไม่พบรหัสกิจกรรม');
+                showErrorModal('ไม่พบรหัสกิจกรรม');
                 return;
             }
 
@@ -153,7 +152,7 @@
                 }
             } catch (error) {
                 console.error('Error fetching participants:', error);
-                alert('เกิดข้อผิดพลาดในการดึงรายชื่อผู้เข้าร่วม');
+                showErrorModal('เกิดข้อผิดพลาดในการดึงรายชื่อผู้เข้าร่วม');
             }
         }
 
@@ -165,7 +164,7 @@
                 row.className = 'hover:bg-gray-100';
                 row.innerHTML = `
                     <td class="py-4 px-6 border-b border-gray-200">${participant.name}</td>
-                    <td class="py-4 px-6 border-b border-gray-200">${participant.email}</td>
+                    <td class="py-4 px-6 border-b border-gray-200">${participant.phone}</td>
                     <td class="py-4 px-6 border-b border-gray-200">${participant.skills.length > 0 ? participant.skills.join(', ') : '-'}</td>
                     <td class="py-4 px-6 border-b border-gray-200">
                         <button class="bg-red-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" onclick="removeParticipant(${participant.user_id})">ลบ</button>
@@ -203,25 +202,36 @@
         }
 
         function renderSearchResults(data) {
-            const dropdown = document.getElementById('search-results-dropdown');
-            dropdown.innerHTML = '';
-            data.forEach((member) => {
-                const isParticipant = participants.some(participant => participant.user_id === member.user_id);
-                const item = document.createElement('div');
-                item.className = 'py-2 px-4 hover:bg-gray-200 cursor-pointer';
-                item.innerHTML = `
-                    <div class="flex justify-between items-center">
-                        <div>
-                            <p class="text-gray-700">${member.name}</p>
-                            <p class="text-gray-500 text-sm">${member.email}</p>
-                            <p class="text-gray-500 text-sm">${member.skills.length > 0 ? member.skills.join(', ') : '-'}</p>
-                        </div>
-                        ${isParticipant ? '<span class="text-green-500 font-bold">เข้าร่วมแล้ว</span>' : `<button class="bg-green-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline" onclick="addParticipant(${member.user_id})">เพิ่ม</button>`}
-                    </div>
-                `;
-                dropdown.appendChild(item);
-            });
-        }
+                const dropdown = document.getElementById('search-results-dropdown');
+                dropdown.innerHTML = '';
+
+                // กรองคนที่มีทักษะตรง
+                const filteredMembers = data.filter(member =>
+                    member.skills && member.skills.includes(requiredSkillName)
+                );
+
+                if (filteredMembers.length === 0) {
+                    renderSearchError('ไม่พบสมาชิกที่มีทักษะที่ต้องการ');
+                    return;
+                }
+
+                filteredMembers.forEach((member) => {
+                    const isParticipant = participants.some(participant => participant.user_id === member.user_id);
+                    const item = document.createElement('div');
+                    item.className = 'py-2 px-4 hover:bg-gray-200 cursor-pointer';
+                    item.innerHTML = `
+            <div class="flex justify-between items-center">
+                <div>
+                    <p class="text-gray-700">${member.name}</p>
+                    <p class="text-gray-500 text-sm">${member.email}</p>
+                    <p class="text-gray-500 text-sm">${member.skills.length > 0 ? member.skills.join(', ') : '-'}</p>
+                </div>
+                ${isParticipant ? '<span class="text-green-500 font-bold">เข้าร่วมแล้ว</span>' : `<button class="bg-green-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline" onclick="addParticipant(${member.user_id})">เพิ่ม</button>`}
+            </div>
+        `;
+                    dropdown.appendChild(item);
+                });
+            }
 
         function renderSearchError(message) {
             const dropdown = document.getElementById('search-results-dropdown');
@@ -233,31 +243,39 @@
         }
 
         async function addParticipant(userId) {
-            const urlParams = new URLSearchParams(window.location.search);
-            const activityId = urlParams.get('id');
+                const urlParams = new URLSearchParams(window.location.search);
+                const activityId = urlParams.get('id');
 
-            try {
-                const response = await fetch(`http://localhost:3000/api/tbm/activities/${activityId}/participants`, {
-                    method: 'POST',
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({ userId })
-                });
+                try {
+                    const response = await fetch(`http://localhost:3000/api/tbm/activities/${activityId}/participants`, {
+                        method: 'POST',
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ userId })
+                    });
 
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+                    const responseData = await response.json(); // 👈 อ่านข้อมูล JSON ก่อน
+
+                    if (!response.ok) {
+                        if (response.status === 401 || response.status === 403) {
+                            // Token หมดอายุจริง ค่อยพาไป login
+                            window.location.href = 'login.html';
+                        } else {
+                            // กรณีอื่นๆ เช่น ไม่มีทักษะ, เต็ม, อะไรแบบนี้ แค่โชว์ Modal
+                            showErrorModal(responseData.error || 'เกิดข้อผิดพลาด');
+                        }
+                        return; // ออกจาก function
+                    }
+
+                    showSuccessModal('ผู้เข้าร่วมถูกเพิ่มเรียบร้อยแล้ว');
+                    fetchParticipants(); // Refresh the participant list
+                } catch (error) {
+                    console.error('Error adding participant:', error);
+                    showErrorModal('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
                 }
-
-                alert('ผู้เข้าร่วมถูกเพิ่มเรียบร้อยแล้ว');
-                fetchParticipants(); // Refresh the participant list
-            } catch (error) {
-                console.error('Error adding participant:', error);
-                showErrorModal(error.message);
             }
-        }
 
         async function removeParticipant(userId) {
             const urlParams = new URLSearchParams(window.location.search);
@@ -277,13 +295,24 @@
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
 
-                alert('ผู้เข้าร่วมถูกลบเรียบร้อยแล้ว');
+                showSuccessModal('ผู้เข้าร่วมถูกลบเรียบร้อยแล้ว');
                 fetchParticipants(); // Refresh the participant list
             } catch (error) {
                 console.error('Error removing participant:', error);
-                alert('เกิดข้อผิดพลาดในการลบผู้เข้าร่วม');
+                showErrorModal('เกิดข้อผิดพลาดในการลบผู้เข้าร่วม');
             }
         }
+
+        function showSuccessModal(message) {
+                const successModal = document.getElementById('success-modal');
+                const successMessage = successModal.querySelector('p'); // หา <p> ใน success-modal
+                successMessage.textContent = message;
+                successModal.classList.remove('hidden');
+
+                document.getElementById('confirm-btn').onclick = () => {
+                    successModal.classList.add('hidden');
+                };
+            }
 
         function showErrorModal(message) {
             const errorModal = document.getElementById('error-modal');
@@ -292,13 +321,37 @@
             errorModal.classList.remove('hidden');
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchParticipants();
+        async function fetchRequiredSkill() {
+                const urlParams = new URLSearchParams(window.location.search);
+                const activityId = urlParams.get('id');
 
-            document.getElementById('error-confirm-btn').addEventListener('click', () => {
-                document.getElementById('error-modal').classList.add('hidden');
+                try {
+                    const response = await fetch(`http://localhost:3000/api/tbm/activities/${activityId}`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch required skill.');
+                    }
+
+                    const data = await response.json();
+                    requiredSkillName = data.required_skill_name; // เช่น "ซ่อมไฟ", "ทำอาหาร"
+                } catch (error) {
+                    console.error('Error fetching required skill:', error);
+                }
+            }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+                await fetchRequiredSkill();
+                fetchParticipants();
+
+                document.getElementById('error-confirm-btn').addEventListener('click', () => {
+                    document.getElementById('error-modal').classList.add('hidden');
+                });
             });
-        });
+
     </script>
     <script src="navbar.js"></script>
         <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
