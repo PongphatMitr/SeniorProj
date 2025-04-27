@@ -762,7 +762,7 @@
             sessionStorage.removeItem('registerFormData');
             sessionStorage.removeItem('registerUserId');
             sessionStorage.removeItem('registerPassword');
-            window.location.href = 'log-in.html';
+            window.location.href = 'member.html';
         }
 
         function showSuccessMessage(message, redirectUrl = null) {
@@ -822,15 +822,15 @@
         }
 
         // Close modals on button click
-        document.getElementById('confirm-success-btn').addEventListener('click', () => closeModal('success-modal'));
+        document.getElementById('success-confirm-btn').addEventListener('click', () => closeModal('success-modal')); // Fixed ID
         document.getElementById('confirm-error-btn').addEventListener('click', () => closeModal('error-modal'));
 
         document.getElementById('confirm-delete-btn').addEventListener('click', () => {
-                // ใส่ action ลบที่คุณอยากทำตรงนี้
-                closeModal('delete-modal');
-            });
+            // Delete action here
+            closeModal('delete-modal');
+        });
 
-            document.getElementById('cancel-delete-btn').addEventListener('click', () => closeModal('delete-modal'));
+        document.getElementById('cancel-delete-btn').addEventListener('click', () => closeModal('delete-modal'));
 
         // Close suggestions on blur with delay to allow click
         ['search-bar-1', 'search-bar-2', 'search-bar-3'].forEach(id => {
