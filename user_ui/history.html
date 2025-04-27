@@ -149,30 +149,32 @@
                 const isEarn = tx.transaction_type === 'earn';
                 const isZero = tx.time_credits === 0;
                 const sign = isZero ? '' : (isEarn ? '+' : '−');
-                const creditColor = isZero ? 'text-black' : (isEarn ? 'text-green-600' : 'text-red-600');
+                const creditColor = isZero ? 'text-black' : (isEarn ? 'text-green-500' : 'text-red-500');
                 const typeLabel = isEarn ? 'โอนเข้า' : 'โอนออก';                
         
                 const row = document.createElement('tr');
                 row.className = 'hover:bg-gray-50 transition text-base text-gray-800';
         
                 row.innerHTML = `
-                    <td class="px-4 py-3 font-medium">${tx.transaction_id}</td>
-                    <td class="px-4 py-3">${new Date(tx.date).toLocaleDateString('th-TH')}</td>
-                    <td class="px-4 py-3">${tx.time}</td>
-                    <td class="px-4 py-3 ${creditColor} font-semibold">${sign}${tx.time_credits} ชั่วโมง</td>
-                    <td class="px-4 py-3">${typeLabel}</td>
-                    <td class="px-4 py-3">${tx.activity_title || '—'}</td>
-                    <td class="px-4 py-3">${tx.requester_name || '—'}</td>
-                    <td class="px-4 py-3">${tx.participant_name || '—'}</td>
-                    <td class="px-4 py-3 text-center">
-                        ${tx.activity_id ? `
-                            <a href="${activityDetailsPage}?id=${tx.activity_id}"
-                               class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1 px-3 rounded shadow focus:outline-none focus:ring-2 focus:ring-blue-400">
-                                ดูรายละเอียด
-                            </a>` : '—'}
-                    </td>
-                `;
-        
+                <td class="px-4 py-3 font-medium">${tx.transaction_id}</td>
+                <td class="px-4 py-3">${new Date(tx.date).toLocaleDateString('th-TH')}</td>
+                <td class="px-4 py-3">${tx.time}</td>
+                <td class="px-4 py-3 font-semibold">
+                    <span class="${creditColor}">${sign}${tx.time_credits}</span> ชั่วโมง
+                </td>
+                <td class="px-4 py-3">${typeLabel}</td>
+                <td class="px-4 py-3">${tx.activity_title || '—'}</td>
+                <td class="px-4 py-3">${tx.requester_name || '—'}</td>
+                <td class="px-4 py-3">${tx.participant_name || '—'}</td>
+                <td class="px-4 py-3 text-center">
+                    ${tx.activity_id ? `
+                        <a href="${activityDetailsPage}?id=${tx.activity_id}"
+                           class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1 px-3 rounded shadow focus:outline-none focus:ring-2 focus:ring-blue-400">
+                            ดูรายละเอียด
+                        </a>` : '—'}
+                </td>
+            `;
+            
                 tbody.appendChild(row);
             });
         }
@@ -264,10 +266,6 @@
             });
         });
 
-        document.addEventListener('DOMContentLoaded', async () => {
-            await fetchProfile();  // ✅ เรียกชื่อให้ตรงกับที่เขียน
-            fetchTransactions();
-        });
         
         
     </script>
@@ -297,7 +295,7 @@
                         </div>
                         <div>
                             <p class="text-lg text-gray-500 mb-1">จำนวนเครดิตเวลาทั้งหมด</p>
-                            <p id="userBalance" class="text-xl font-bold text-green-600">8 ชั่วโมง</p>
+                            <p id="userBalance" class="text-xl font-bold text-green-500">8 ชั่วโมง</p>
                         </div>
                     </div>
 
@@ -366,10 +364,7 @@
                 }
                 const profileData = await response.json();
                 localStorage.setItem('profileData', JSON.stringify(profileData));
-        
-                // ✅ เพิ่มบรรทัดนี้ เพื่อเก็บ user_id แยกด้วย
                 localStorage.setItem('user_id', profileData.user_id);
-        
                 return profileData;
             } catch (error) {
                 console.error('Error fetching profile:', error);
@@ -377,6 +372,33 @@
             }
         }
         
+        document.addEventListener('DOMContentLoaded', async () => {
+            const profileData = await fetchProfile();  // ✅ เรียกและรับข้อมูลมา
+        
+            if (profileData) {
+                // ✅ Update ชื่อ user
+                const userNameElement = document.getElementById('userName');
+                if (userNameElement) {
+                    userNameElement.innerText = profileData.name;
+                }
+        
+                // ✅ Update เครดิตเวลา
+                const balanceElement = document.getElementById('userBalance');
+                if (balanceElement) {
+                    balanceElement.innerText = `${profileData.time_credits} ชั่วโมง`;
+                    balanceElement.classList.remove('text-green-500'); // ลบสีเก่า
+                    balanceElement.classList.add(profileData.time_credits > 0 ? 'text-green-500' : profileData.time_credits < 0 ? 'text-red-500' : 'text-gray-500');
+                }
+        
+                // ✅ Update หมายเลขบัญชี
+                const userIdElement = document.getElementById('userId');
+                if (userIdElement) {
+                    userIdElement.innerText = `เลขที่บัญชี: ${profileData.user_id}`;
+                }
+            }
+        
+            fetchTransactions();  // ✅ โหลดธุรกรรม
+        });
         
     </script>
     
