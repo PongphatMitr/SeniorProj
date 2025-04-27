@@ -23,66 +23,85 @@
          });
      
          async function fetchMemberProfile() {
-           try {
-             const response = await fetch(`http://localhost:3000/api/user/auth/profile`, {
-               headers: {
-                 'Authorization': `Bearer ${localStorage.getItem('token')}`
-               }
-             });
-             if (!response.ok) {
-               throw new Error('Network response was not ok');
-             }
-             const member = await response.json();
-             console.log('✅ Fetched Member:', member); // Debugging
-             globalUserId = member.user_id;
-             if (member.branch_id) {
-               console.log('✅ Branch ID:', member.branch_id); // Check if branch_id exists
-               member.branch = await fetchBranchName(member.branch_id);
-             } else {
-               console.warn('⚠️ User does not have a branch_id assigned.');
-               member.branch = 'N/A';
-             }
-             renderMemberProfile(member);
-           } catch (error) {
-             console.error('❌ Error fetching member profile:', error);
-             alert('เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์สมาชิก');
-           }
-         }
+            try {
+              const response = await fetch(`http://localhost:3000/api/user/auth/profile`, {
+                headers: {
+                  'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+              });
+              if (!response.ok) throw new Error('Network response was not ok');
+              
+              const member = await response.json();
+              
+              // Fetch branch name if branch_id exists
+              if (member.branch_id) {
+                member.branch = await fetchBranchName(member.branch_id);
+              } else {
+                member.branch = 'N/A';
+              }
+              
+              renderMemberProfile(member);
+            } catch (error) {
+              console.error('Error fetching profile:', error);
+              alert('Failed to load profile');
+            }
+          }
+        
+        
+
+          async function fetchBranchName(branchId) {
+            if (!branchId) return 'N/A';
+            
+            try {
+              const response = await fetch('http://localhost:3000/api/user/branches');
+              if (!response.ok) throw new Error('Failed to fetch branches');
+              
+              const branches = await response.json();
+              const branch = branches.find(b => b.branch_id === branchId);
+              return branch?.branch_name || 'N/A';
+            } catch (error) {
+              console.error('Error fetching branch:', error);
+              return 'N/A';
+            }
+          }
+
+          async function fetchBranchIdByName(branchName) {
+            if (!branchName || branchName === 'N/A') return null;
+            
+            try {
+              const response = await fetch('http://localhost:3000/api/user/branches');
+              if (!response.ok) throw new Error('Failed to fetch branches');
+              
+              const branches = await response.json();
+              const branch = branches.find(b => b.branch_name === branchName);
+              return branch?.branch_id || null;
+            } catch (error) {
+              console.error('Error fetching branch ID:', error);
+              return null;
+            }
+          }
+        
+        
      
-         async function fetchBranchName(branchId) {
-           if (!branchId) return 'N/A';
-           try {
-             const response = await fetch(`http://localhost:3000/api/user/branches`);
-             if (!response.ok) {
-               throw new Error(`Network response was not ok (${response.status})`);
-             }
-             const branches = await response.json();
-             console.log('Fetched Branches:', branches); // Debugging
-             const branch = branches.find(branch => parseInt(branch.branch_id) === parseInt(branchId));
-             return branch ? branch.branch_name : 'N/A';
-           } catch (error) {
-             console.error('Error fetching branch name:', error);
-             return 'N/A';
-           }
-         }
-     
-         function renderMemberProfile(member) {
-           const addressParts = splitAddress(member.address || '');
-           document.getElementById('house-no').textContent = addressParts.houseNo || 'N/A';
-           document.getElementById('subdistrict').textContent = addressParts.subdistrict || 'N/A';
-           document.getElementById('district').textContent = addressParts.district || 'N/A';
-           document.getElementById('province').textContent = addressParts.province || 'N/A';
-           document.getElementById('postal-code').textContent = addressParts.postalCode || 'N/A';
-           
-     
-           document.getElementById('member-name').textContent = member.name || 'N/A';
-           document.getElementById('member-phone').textContent = member.phone || 'N/A';
-           document.getElementById('member-branch').textContent = member.branch || 'N/A';
-           document.getElementById('member-time-credits').textContent = member.time_credits ?? 'N/A';
-           document.getElementById('member-status').textContent = member.status === 'active' ? 'ปกติ' : 'ไม่ปกติ';
-           document.getElementById('member-role').textContent = member.role || 'N/A';
-           document.getElementById('member-email').textContent = (member.email && member.email.trim() !== '') ? member.email : 'N/A';
-         }
+        function renderMemberProfile(member) {
+            // Personal Info
+            document.getElementById('member-name').textContent = member.name || 'N/A';
+            document.getElementById('member-phone').textContent = member.phone || 'N/A';
+            document.getElementById('member-email').textContent = member.email || 'N/A';
+            document.getElementById('member-role').textContent = member.role || 'N/A';
+            document.getElementById('member-branch').textContent = member.branch || 'N/A';
+            document.getElementById('member-time-credits').textContent = member.time_credits ?? 'N/A';
+            document.getElementById('member-status').textContent = member.status === 'active' ? 'ปกติ' : 'ไม่ปกติ';
+          
+            // Address Info
+            const addressParts = splitAddress(member.address || '');
+            document.getElementById('house-no').textContent = addressParts.houseNo || 'N/A';
+            document.getElementById('subdistrict').textContent = addressParts.subdistrict || 'N/A';
+            document.getElementById('district').textContent = addressParts.district || 'N/A';
+            document.getElementById('province').textContent = addressParts.province || 'N/A';
+            document.getElementById('postal-code').textContent = addressParts.postalCode || 'N/A';
+          }
+        
      
          function splitAddress(address) {
             const parts = {
@@ -157,63 +176,65 @@
           }
           
           
-
           async function saveProfile() {
-            const fullName = document.getElementById('member-name').value.trim();
-            const phone = document.getElementById('member-phone').value.trim();
-            const emailInput = document.getElementById('member-email').value.trim();
-            const email = emailInput === '' ? null : emailInput;
-          
             try {
-              if (fullName.split(' ').length < 2) {
-                showErrorMessage('กรุณากรอกชื่อและนามสกุลให้ครบถ้วน');
-                return;
-              }
-              const phoneRegex = /^0[0-9]{9}$/;
-              if (!phoneRegex.test(phone)) {
-                showErrorMessage('กรุณากรอกหมายเลขโทรศัพท์ให้ถูกต้อง (10 หลักและขึ้นต้นด้วย 0)');
-                return;
-              }
-              if (email !== null && !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
-                showErrorMessage('กรุณากรอกอีเมลให้ถูกต้อง');
-                return;
-              }
-          
-              const updatedData = {
-                name: fullName,
-                phone: phone,
-                email: email
-              };
-          
-              const response = await fetch('http://localhost:3000/api/user/auth/profile', {
-                method: 'PUT',
-                headers: {
-                  'Content-Type': 'application/json',
-                  'Authorization': `Bearer ${localStorage.getItem('token')}`
-                },
-                body: JSON.stringify(updatedData)
-              });
-          
-              if (response.ok) {
+                // Get updated values
+                const updatedData = {
+                    name: document.getElementById('member-name').value.trim(),
+                    phone: document.getElementById('member-phone').value.trim(),
+                    email: document.getElementById('member-email').value.trim() || null,
+                    branch_id: await fetchBranchIdByName(document.getElementById('member-branch').textContent)
+                };
+        
+                // Validation
+                if (updatedData.name.split(' ').length < 2) {
+                    showErrorMessage('กรุณากรอกชื่อ-นามสกุลให้ครบถ้วน');
+                    return;
+                }
+        
+                // API call
+                const response = await fetch('http://localhost:3000/api/user/auth/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(updatedData)
+                });
+        
+                if (!response.ok) throw new Error('Update failed');
+                
+                // Get updated profile with branch_id
                 const updatedMember = await response.json();
-                await resetToNormalView(['member-name', 'member-phone', 'member-email']); // ✅ รีเซ็ตเฉพาะ profile fields
+                
+                // Fetch fresh branch name
+                if (updatedMember.branch_id) {
+                    updatedMember.branch = await fetchBranchName(updatedMember.branch_id);
+                } else {
+                    updatedMember.branch = 'N/A';
+                }
+        
+                // Render updated data
                 renderMemberProfile(updatedMember);
-                showSuccessMessage('บันทึกข้อมูลโปรไฟล์สำเร็จแล้ว!');
-          
+                showSuccessMessage('อัปเดตโปรไฟล์สำเร็จ!');
+                
+                // Close the edit mode by hiding the edit buttons and displaying the saved data
                 document.getElementById('edit-profile-button').style.display = 'inline-block';
                 document.getElementById('save-profile-button').style.display = 'none';
                 document.getElementById('back-profile-button').style.display = 'none';
-              } else {
-                const errorData = await response.json();
-                showErrorMessage(`เกิดข้อผิดพลาดในการบันทึกข้อมูล: ${errorData.error || 'ไม่ทราบสาเหตุ'}`);
-              }
+        
+                // Revert the editable fields to their non-editable state
+                revertProfileChanges();
+        
             } catch (error) {
-              console.error('Save Profile Error:', error);
-              showErrorMessage('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+                console.error('Save error:', error);
+                showErrorMessage('อัปเดตข้อมูลไม่สำเร็จ: ' + error.message);
             }
-          }
-
-          
+        }
+        
+        
+        
+                
           let originalAddressData = {};
 
           function editAddress() {
@@ -426,6 +447,8 @@
                     </a>
                 </nav>
             </div>
+            <div class="flex flex-col md:flex-row gap-8">
+                <!-- Profile Section -->
             <div class="bg-white text-black p-10 rounded-xl shadow-xl w-full max-w-3xl border border-gray-200">
                 <h1 class="text-4xl font-bold mb-5 text-center">โปรไฟล์สมาชิก</h1>
                 <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">ข้อมูลสมาชิก</h2>
@@ -433,33 +456,33 @@
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="member-name">ชื่อ และ
                             นามสกุล:</label>
-                        <p class="text-gray-700 text-lg" id="member-name"></p>
+                        <p class="text-gray-700 text-lg" id="member-name">N/A</p>
                     </div>
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="member-phone">เบอร์โทร:</label>
-                        <p class="text-gray-700 text-lg" id="member-phone"></p>
+                        <p class="text-gray-700 text-lg" id="member-phone">N/A</p>
                     </div>
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="member-email">อีเมล:</label>
-                        <p class="text-gray-700 text-lg" id="member-email"></p>
+                        <p class="text-gray-700 text-lg" id="member-email">N/A</p>
                     </div>
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="member-role">บทบาท:</label>
-                        <p class="text-gray-700 text-lg" id="member-role"></p>
+                        <p class="text-gray-700 text-lg" id="member-role">N/A</p>
                     </div>
                       
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="member-branch">สาขา:</label>
-                        <p class="text-gray-700 text-lg" id="member-branch"></p>
+                        <p class="text-gray-700 text-lg" id="member-branch">N/A</p>
                     </div>
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2"
                             for="member-time-credits">เครดิตเวลา:</label>
-                        <p class="text-gray-700 text-lg" id="member-time-credits"></p>
+                        <p class="text-gray-700 text-lg" id="member-time-credits">N/A</p>
                     </div>
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="member-status">สถานะ:</label>
-                        <p class="text-gray-700 text-lg" id="member-status"></p>
+                        <p class="text-gray-700 text-lg" id="member-status">N/A</p>
                     </div>
                 </div>
                 <div class="flex justify-center mt-4 space-x-4">
@@ -551,32 +574,33 @@
                 </div>
             </div>
             <!-- Address Section (New Container) -->
-            <div class="bg-white text-black p-10 rounded-xl shadow-xl w-full max-w-3xl border border-gray-200 mt-10">
+            <div class="bg-white text-black p-10 rounded-xl shadow-xl w-full max-w-3xl border border-gray-200">
                 <h2 class="text-4xl font-bold mb-5 text-center">ข้อมูลที่อยู่</h2>
                 <h3 class="text-3xl font-bold mb-6 text-center text-blue-700">รายละเอียดที่อยู่</h3>
             
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-6">
-                <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="house-no">บ้านเลขที่:</label>
-                    <p class="text-gray-700 text-lg" id="house-no">N/A</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-36 gap-y-4 ml-24">
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="house-no">บ้านเลขที่:</label>
+                        <p class="text-gray-700 text-lg" id="house-no">N/A</p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="subdistrict">แขวง/ตำบล:</label>
+                        <p class="text-gray-700 text-lg" id="subdistrict">N/A</p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="district">เขต/อำเภอ:</label>
+                        <p class="text-gray-700 text-lg" id="district">N/A</p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="province">จังหวัด:</label>
+                        <p class="text-gray-700 text-lg" id="province">N/A</p>
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="postal-code">รหัสไปรษณีย์:</label>
+                        <p class="text-gray-700 text-lg" id="postal-code">N/A</p>
+                    </div>
                 </div>
-                <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="subdistrict">แขวง/ตำบล:</label>
-                    <p class="text-gray-700 text-lg" id="subdistrict">N/A</p>
-                </div>
-                <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="district">เขต/อำเภอ:</label>
-                    <p class="text-gray-700 text-lg" id="district">N/A</p>
-                </div>
-                <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="province">จังหวัด:</label>
-                    <p class="text-gray-700 text-lg" id="province">N/A</p>
-                </div>
-                <div>
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="postal-code">รหัสไปรษณีย์:</label>
-                    <p class="text-gray-700 text-lg" id="postal-code">N/A</p>
-                </div>
-                </div>
+                
             
                 <div class="flex justify-center mt-8 space-x-6">
                     <button
@@ -606,7 +630,7 @@
                       ย้อนกลับ
                     </button>
                   </div>
-                  
+                </div>
                   
             </div>
         </div>
