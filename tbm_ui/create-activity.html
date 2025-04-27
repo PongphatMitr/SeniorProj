@@ -22,9 +22,15 @@
             }
 
             // ปิด Modal ข้อผิดพลาด
-            document.getElementById('error-confirm-btn').addEventListener('click', () => {
-                document.getElementById('error-modal').classList.add('hidden');
-            });
+            const errorConfirmBtn = document.getElementById('error-confirm-btn');
+            if (errorConfirmBtn) {
+                errorConfirmBtn.addEventListener('click', () => {
+                    document.getElementById('error-modal').classList.add('hidden');
+                });
+            } else {
+                console.warn("Error Confirm Button not found");
+            }
+            
 
         async function fetchMembers() {
             try {
@@ -329,143 +335,185 @@
             fetchCommunityConfig();
             fetchSkillsAndCategories();
             fetchMembers();
-            setStartDateRange();
-            const startHours = document.getElementById('start-hours');
-            const startMinutes = document.getElementById('start-minutes');
-            const endHours = document.getElementById('end-hours');
-            const endMinutes = document.getElementById('end-minutes');
-            const maxParticipants = document.getElementById('max-participants');
+
+            // Date initialization with local time
+            const initializeDates = () => {
+                const now = new Date();
+                const year = now.getFullYear();
+                const month = String(now.getMonth() + 1).padStart(2, '0');
+                const day = String(now.getDate()).padStart(2, '0');
+                const today = `${year}-${month}-${day}`;
+                
+                const startDateInput = document.getElementById('start-date');
+                const endDateInput = document.getElementById('end-date');
+                
+                startDateInput.value = today;
+                endDateInput.value = today;
+                startDateInput.min = today;
+                endDateInput.min = today;
+            };
+
+            // Time initialization with local time
+            const initializeTimes = () => {
+                const now = new Date();
+                const currentHour = now.getHours().toString().padStart(2, '0');
+                const currentMinute = String(Math.floor(now.getMinutes() / 5) * 5).padStart(2, '0');
+
+                // Set start time
+                document.getElementById('start-hours').value = currentHour;
+                document.getElementById('start-minutes').value = currentMinute;
+
+                // Set end time (start time + 1 hour)
+                updateEndTime();
+            };
+
+            function updateEndTime() {
+                const startHours = parseInt(document.getElementById("start-hours").value, 10);
+                const startMinutes = parseInt(document.getElementById("start-minutes").value, 10);
+                
+                if (!isNaN(startHours)) {
+                    let endHours = startHours + 1;
+                    const endMinutes = startMinutes;
+                    
+                    // Handle midnight rollover
+                    if (endHours >= 24) endHours = 0;
+                    
+                    document.getElementById("end-hours").value = endHours.toString().padStart(2, '0');
+                    document.getElementById("end-minutes").value = endMinutes.toString().padStart(2, '0');
+                    
+                    calculateTimeDifference();
+                    calculateTimeTokens();
+                }
+            }
+
+            // Initialize dates and times
+            initializeDates();
+            initializeTimes();
+
+            // Event listeners for time inputs
+            document.getElementById('start-hours').addEventListener('change', updateEndTime);
+            document.getElementById('start-minutes').addEventListener('change', updateEndTime);
+            document.getElementById('end-hours').addEventListener('change', calculateTimeDifference);
+            document.getElementById('end-minutes').addEventListener('change', calculateTimeDifference);
+
+            // Date synchronization
             const startDate = document.getElementById('start-date');
             const endDate = document.getElementById('end-date');
-            const startTime = document.getElementById('start-time');
-            const endTime = document.getElementById('end-time');
-            if (maxParticipants) {
-                maxParticipants.addEventListener('input', calculateTimeTokens);
-            } else {
-                console.warn("⚠️ Warning: #max-participants element not found.");
-            }
-            if (startDate) {
-                startDate.addEventListener('input', (event) => {
-                    updateEndDate(event.target.value);
-                    calculateTimeTokens();
-                });
-            } else {
-                console.warn("⚠️ Warning: #start-date element not found.");
-            }
-            if (endDate) {
-                endDate.addEventListener('input', (event) => {
-                    syncDates(event.target.value);
-                });
-            } else {
-                console.warn("⚠️ Warning: #end-date element not found.");
-            }
-            if (startTime) {
-                startTime.addEventListener('input', (event) => {
-                    adjustEndTime(event.target.value);
-                    calculateTimeTokens();
-                });
-            } else {
-                console.warn("⚠️ Warning: #start-time element not found.");
-            }
-            if (endTime) {
-                endTime.addEventListener('input', calculateTimeTokens);
-            } else {
-                console.warn("⚠️ Warning: #end-time element not found.");
-            }
-            if (startHours) {
-                startHours.addEventListener('change', calculateTimeTokens);
-            } else {
-                console.warn("⚠️ Warning: #start-hours element not found.");
-            }
-            if (startMinutes) {
-                startMinutes.addEventListener('change', calculateTimeTokens);
-            } else {
-                console.warn("⚠️ Warning: #start-minutes element not found.");
-            }
-            if (endHours) {
-                endHours.addEventListener('change', calculateTimeTokens);
-            } else {
-                console.warn("⚠️ Warning: #end-hours element not found.");
-            }
-            if (endMinutes) {
-                endMinutes.addEventListener('change', calculateTimeTokens);
-            } else {
-                console.warn("⚠️ Warning: #end-minutes element not found.");
-            }
+            
+            startDate.addEventListener('input', () => {
+                endDate.min = startDate.value;
+                if (new Date(startDate.value) > new Date(endDate.value)) {
+                    endDate.value = startDate.value;
+                }
+                calculateTimeTokens();
+            });
 
-            // Set the date from URL parameter if available
-            const urlParams = new URLSearchParams(window.location.search);
-            const dateParam = urlParams.get('date');
-            if (dateParam) {
-                document.getElementById('start-date').value = dateParam;
-                document.getElementById('end-date').value = dateParam;
-            }
+            endDate.addEventListener('input', calculateTimeTokens);
 
-            const successConfirmBtn = document.getElementById('success-confirm-btn');
-            if (successConfirmBtn) {
-                successConfirmBtn.addEventListener('click', closeSuccessModal);
-            }
+            // ... [Rest of your existing DOMContentLoaded code] ...
         });
 
-        function setStartDateRange() {
-            const now = new Date();
-            const minStartDate = new Date();
-            minStartDate.setDate(now.getDate() + 3);
-            const formattedMinStartDate = minStartDate.toISOString().split('T')[0];
-            const startDateInput = document.getElementById('start-date');
-            const endDateInput = document.getElementById('end-date');
-            startDateInput.setAttribute('min', formattedMinStartDate);
-            endDateInput.setAttribute('min', formattedMinStartDate);
-            endDateInput.value = formattedMinStartDate;
-            syncDates(formattedMinStartDate);
+        // ... [Keep all other functions the same] ...
+
+        function calculateTimeDifference() {
+            const startHours = parseInt(document.getElementById("start-hours").value, 10);
+            const startMinutes = parseInt(document.getElementById("start-minutes").value, 10);
+            const endHours = parseInt(document.getElementById("end-hours").value, 10);
+            const endMinutes = parseInt(document.getElementById("end-minutes").value, 10);
+            
+            if (!isNaN(startHours) && !isNaN(startMinutes) && !isNaN(endHours) && !isNaN(endMinutes)) {
+                const startTotal = startHours * 60 + startMinutes;
+                let endTotal = endHours * 60 + endMinutes;
+                
+                if (endTotal < startTotal) endTotal += 1440; // Add 24 hours if negative
+                
+                const duration = endTotal - startTotal;
+                const hours = Math.floor(duration / 60);
+                const minutes = duration % 60;
+                
+                const timeDifferenceElement = document.getElementById("time-difference");
+                timeDifferenceElement.value = `${hours} ชั่วโมง ${minutes} นาที`;
+                
+                const minimumMinutes = minimumTimeTokenHours * 60 + minimumTimeTokenMinutes;
+                timeDifferenceElement.classList.toggle('text-red-600', duration < minimumMinutes);
+                timeDifferenceElement.classList.toggle('text-green-600', duration >= minimumMinutes);
+            }
         }
 
-        function syncDates(selectedDate) {
+        // In the script section
+        function setStartDateRange() {
+            const now = new Date();
+            const formattedCurrentDate = now.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+
+            // Get date inputs
             const startDateInput = document.getElementById('start-date');
-                    const endDateInput = document.getElementById('end-date');
-                    startDateInput.value = selectedDate;
-                    endDateInput.value = selectedDate;
-                }
+            const endDateInput = document.getElementById('end-date');
 
-                function adjustEndTime(startTime) {
-                    if (!startTime) return;
-                    let [hours, minutes] = startTime.split(":").map(Number);
-                    hours += 1;
-                    if (hours >= 24) hours = 0;
-                    const endTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-                    document.getElementById('end-time').value = endTime;
-                }
+            // Set default values to today
+            startDateInput.value = formattedCurrentDate;
+            endDateInput.value = formattedCurrentDate;
 
-                function calculateTimeDifference() {
-                    const startHours = parseInt(document.getElementById("start-hours").value, 10);
-                    const startMinutes = parseInt(document.getElementById("start-minutes").value, 10);
-                    const endHours = parseInt(document.getElementById("end-hours").value, 10);
-                    const endMinutes = parseInt(document.getElementById("end-minutes").value, 10);
-                    if (!isNaN(startHours) && !isNaN(startMinutes) && !isNaN(endHours) && !isNaN(endMinutes)) {
-                        let startTime = new Date();
-                        startTime.setHours(startHours, startMinutes, 0);
-                        let endTime = new Date();
-                        endTime.setHours(endHours, endMinutes, 0);
-                        let durationInMinutes = (endTime - startTime) / (1000 * 60);
-                        if (durationInMinutes < 0) {
-                            durationInMinutes += 24 * 60;
-                        }
-                        const hours = Math.floor(durationInMinutes / 60);
-                        const minutes = durationInMinutes % 60;
-                        const totalDurationInHours = hours + (minutes / 60);
-                        const timeDifferenceElement = document.getElementById("time-difference");
-                        timeDifferenceElement.value = `${hours} ชั่วโมง ${minutes} นาที`;
-                        const minimumDurationInHours = minimumTimeTokenHours + (minimumTimeTokenMinutes / 60);
-                        if (totalDurationInHours < minimumDurationInHours) {
-                            timeDifferenceElement.classList.remove('text-green-600');
-                            timeDifferenceElement.classList.add('text-red-600');
-                        } else {
-                            timeDifferenceElement.classList.remove('text-red-600');
-                            timeDifferenceElement.classList.add('text-green-600');
-                        }
-                    }
+            // Set minimum dates to today
+            startDateInput.min = formattedCurrentDate;
+            endDateInput.min = formattedCurrentDate;
+
+            // Remove any maximum date constraints
+            startDateInput.removeAttribute('max');
+            endDateInput.removeAttribute('max');
+        }
+
+        function syncDates() {
+            const startDateInput = document.getElementById('start-date');
+            const endDateInput = document.getElementById('end-date');
+            
+            // If start date is changed to a later date than end date, update end date
+            if (new Date(startDateInput.value) > new Date(endDateInput.value)) {
+                endDateInput.value = startDateInput.value;
+            }
+            
+            // Always keep end date minimum same as start date
+            endDateInput.min = startDateInput.value;
+}
+
+        function adjustEndTime(startTime) {
+            if (!startTime) return;
+            let [hours, minutes] = startTime.split(":").map(Number);
+            hours += 1;
+            if (hours >= 24) hours = 0;
+            const endTime = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+            document.getElementById('end-time').value = endTime;
+        }
+
+        function calculateTimeDifference() {
+            const startHours = parseInt(document.getElementById("start-hours").value, 10);
+            const startMinutes = parseInt(document.getElementById("start-minutes").value, 10);
+            const endHours = parseInt(document.getElementById("end-hours").value, 10);
+            const endMinutes = parseInt(document.getElementById("end-minutes").value, 10);
+            if (!isNaN(startHours) && !isNaN(startMinutes) && !isNaN(endHours) && !isNaN(endMinutes)) {
+                let startTime = new Date();
+                startTime.setHours(startHours, startMinutes, 0);
+                let endTime = new Date();
+                endTime.setHours(endHours, endMinutes, 0);
+                let durationInMinutes = (endTime - startTime) / (1000 * 60);
+                if (durationInMinutes < 0) {
+                    durationInMinutes += 24 * 60;
                 }
-            </script>
+                const hours = Math.floor(durationInMinutes / 60);
+                const minutes = durationInMinutes % 60;
+                const totalDurationInHours = hours + (minutes / 60);
+                const timeDifferenceElement = document.getElementById("time-difference");
+                timeDifferenceElement.value = `${hours} ชั่วโมง ${minutes} นาที`;
+                const minimumDurationInHours = minimumTimeTokenHours + (minimumTimeTokenMinutes / 60);
+                if (totalDurationInHours < minimumDurationInHours) {
+                    timeDifferenceElement.classList.remove('text-green-600');
+                    timeDifferenceElement.classList.add('text-red-600');
+                } else {
+                    timeDifferenceElement.classList.remove('text-red-600');
+                    timeDifferenceElement.classList.add('text-green-600');
+                }
+            }
+        }
+    </script>
 </head>
 <body class="bg-gray-100">
     <div class="flex flex-col md:flex-row">
@@ -508,7 +556,7 @@
                             <option value="non_exchange">ไม่มีเครดิต (บริการอาสา)</option>
                         </select>
                     </div>
-<hr class="my-8 border-gray-200">
+                    <hr class="my-8 border-gray-200">
                     <!-- Section: Activity Details -->
                     <div class="mb-4">
                         <label class="block text-gray-700 text-sm font-bold mb-2" for="title">ชื่อกิจกรรม</label>
@@ -551,10 +599,12 @@
                     <hr class="my-8 border-gray-200">
                     <!-- Section: Date -->
                     <div class="grid grid-cols-2 gap-4 mb-4">
+                        <!-- Start Date -->
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="start-date">วันที่เริ่มต้น</label>
                             <input id="start-date" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="date" required />
-                        </div>
+                        </div>  
+                        <!-- End Date -->
                         <div>
                             <label class="block text-gray-700 text-sm font-bold mb-2" for="end-date">วันที่สิ้นสุด</label>
                             <input id="end-date" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="date" required />
@@ -611,25 +661,7 @@
                         <div class="mb-6">
                             <label for="time-difference" class="block text-gray-700 text-sm font-bold mb-2">เวลาต่าง</label>
                             <input id="time-difference" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text" readonly />
-                        </div>
-                        <script>
-                            document.getElementById('start-hours').addEventListener('change', updateEndTime);
-                            document.getElementById('start-minutes').addEventListener('change', updateEndTime);
-                            document.getElementById('end-hours').addEventListener('change', calculateTimeDifference);
-                            document.getElementById('end-minutes').addEventListener('change', calculateTimeDifference);
-
-                            function updateEndTime() {
-                                let startHours = parseInt(document.getElementById("start-hours").value, 10);
-                                let startMinutes = parseInt(document.getElementById("start-minutes").value, 10);
-                                if (!isNaN(startHours) && !isNaN(startMinutes)) {
-                                    let endHours = startHours + 1;
-                                    if (endHours >= 24) endHours = 0;
-                                    document.getElementById("end-hours").value = endHours.toString().padStart(2, '0');
-                                    document.getElementById("end-minutes").value = startMinutes.toString().padStart(2, '0');
-                                    calculateTimeDifference();
-                                }
-                            }
-                        </script>
+                        </div>  
                     </div>
                     <!-- Section: Participants & Status -->
                     <div class="grid grid-cols-2 gap-4 mb-4">
