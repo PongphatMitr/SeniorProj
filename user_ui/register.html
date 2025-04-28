@@ -70,18 +70,18 @@
             <div class="bg-white rounded-lg shadow-lg p-8 w-full max-w-5xl flex flex-col md:flex-row md:space-x-8">
                 <div class="flex-1">
                     <h1 class="text-4xl font-bold text-center text-blue-900 mb-8">TIME BANK</h1>
-                    <h2 class="text-2xl font-bold text-center text-blue-900 mb-6">Register</h2>
+                    <h2 class="text-2xl font-bold text-center text-blue-900 mb-6">ลงทะเบียน</h2>
                     <form id="registerForm" class="space-y-6" autocomplete="off">
                         <div class="flex flex-col md:flex-row md:space-x-4">
                             <div class="flex-1">
                                 <label class="block text-gray-700 text-sm font-bold mb-2"
-                                    for="username">Username</label>
+                                    for="username">ชื่อผู้ใช้</label>
                                 <input
                                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                     id="username" placeholder="ชื่อผู้ใช้" type="text" required />
                             </div>
                             <div class="flex-1 mt-4 md:mt-0">
-                                <label class="block text-gray-700 text-sm font-bold mb-2" for="email">Email <span
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="email">อีเมล <span
                                         class="text-red-500">*เลือกกรอกได้</span></label>
                                 <input
                                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
@@ -91,14 +91,13 @@
                         <div class="flex flex-col md:flex-row md:space-x-4">
                             <div class="flex-1">
                                 <label class="block text-gray-700 text-sm font-bold mb-2"
-                                    for="password">Password</label>
+                                    for="password">รหัสผ่าน</label>
                                 <input
                                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                     id="password" placeholder="รหัสผ่าน" type="password" required />
                             </div>
                             <div class="flex-1 mt-4 md:mt-0">
-                                <label class="block text-gray-700 text-sm font-bold mb-2" for="confirmPassword">Confirm
-                                    Password</label>
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="confirmPassword">ยืนยันรหัสผ่าน</label>
                                 <input
                                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                     id="confirmPassword" placeholder="ยืนยันรหัสผ่าน" type="password" required />
@@ -120,7 +119,7 @@
                         </div>
                         <div class="flex flex-col md:flex-row md:space-x-4 items-end">
                             <div class="flex-1">
-                                <label class="block text-gray-700 text-sm font-bold mb-2" for="phone">Phone</label>
+                                <label class="block text-gray-700 text-sm font-bold mb-2" for="phone">เบอร์โทรศัพท์</label>
                                 <input
                                     class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                                     id="phone" placeholder="เบอร์โทรศัพท์" type="text" required />
@@ -128,7 +127,7 @@
                             <div class="flex-1">
                                 <div class="dropdown-container mb-0 relative">
                                     <label for="branchInput"
-                                        class="block text-gray-700 text-sm font-bold mb-2">Branch</label>
+                                        class="block text-gray-700 text-sm font-bold mb-2">สาขา</label>
                                     <input type="text" id="branchInput" placeholder="ค้นหาสาขา" class="dropdown-input"
                                         autocomplete="off" />
                                     <div id="branchDropdown" class="dropdown-list"></div>
@@ -136,16 +135,12 @@
                             </div>
                         </div>
 
-                        <div class="flex items-center justify-center">
+                        <div class="flex items-center justify-center pt-10">
                             <button
-                                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                                type="submit">ลงทะเบียน</button>
+                                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-5 rounded focus:outline-none focus:shadow-outline"
+                                type="submit">ต่อไป</button>
                         </div>
                     </form>
-                    <div class="text-center mt-4">
-                        <p class="text-gray-700">มีบัญชีอยู่แล้ว? <a class="text-blue-500"
-                                href="log-in.html">เข้าสู่ระบบ</a></p>
-                    </div>
                 </div>
 
                 <fieldset class="border border-gray-300 rounded p-4 w-full md:w-96 flex-shrink-0" autocomplete="off">
