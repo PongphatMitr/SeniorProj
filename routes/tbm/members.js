@@ -429,29 +429,28 @@ const memberRoutes = (pool) => {
         }
     });
 
-    // Demote a TimeBankManager by ID
+    // Demote TimeBankManager to Member
     router.put('/:id/demote-timebankmanager', async (req, res) => {
         const { id } = req.params;
-        const requesterId = req.user.id;
 
         if (isNaN(id)) {
             return res.status(400).json({ error: 'Invalid member ID' });
         }
 
         try {
-            const isRequesterAdmin = await isAdmin(pool, requesterId);
-            if (!isRequesterAdmin) {
-                return res.status(403).json({ error: 'Only Admins are allowed to perform this action' });
+            const result = await pool.query(
+                `UPDATE users
+             SET role = 'Member'
+             WHERE user_id = $1 AND role = 'TimeBankManager'
+             RETURNING *`,
+                [id]
+            );
+
+            if (result.rowCount === 0) {
+                return res.status(400).json({ error: 'Cannot demote: user is not a TimeBankManager' });
             }
 
-            const result = await pool.query(
-                'UPDATE users SET role = $1 WHERE user_id = $2 AND role = $3 RETURNING *',
-                ['Member', id, 'TimeBankManager']
-            );
-            if (result.rowCount === 0) {
-                return res.status(404).json({ error: 'TimeBankManager not found or already demoted' });
-            }
-            res.status(200).json({ message: 'TimeBankManager demoted to member successfully' });
+            res.status(200).json({ message: 'Demoted TimeBankManager to Member successfully' });
         } catch (err) {
             console.error('Error demoting TimeBankManager:', err.message);
             res.status(500).json({ error: 'An error occurred. Please try again.' });

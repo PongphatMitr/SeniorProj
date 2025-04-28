@@ -199,7 +199,7 @@
 
     async function fetchCurrentUser() {
         try {
-            const response = await fetch('http://localhost:3000/api/tbm/members/user', {
+            const response = await fetch('http://localhost:3000/api/tbm/auth/profile', {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
@@ -318,8 +318,6 @@
                                 <li role="presentation" class="dropdown-item"><a role="menuitem" href="member-profile.html?memberId=${member.user_id}" target="_self"><b>โปรไฟล์</b></a></li>
                                 <li role="presentation" class="dropdown-item"><a role="menuitem" href="member-transaction.html?memberId=${member.user_id}" target="_self"><b>สมุดบัญชี</b></a></li>
                                 <li role="presentation" class="dropdown-item"><a role="menuitem" href="member-skills.html?memberId=${member.user_id}" target="_self"><b>ความสามารถ</b></a></li>
-                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self"><b>PDF</b></a></li>
-                                <li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self"><b>วันที่สะดวกทำงาน</b></a></li>
                                 ${member.status === 'active' ?
                         `<li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self" onclick="confirmAndRemove(event, 'row-${index + 1}', ${member.user_id})"><b class="red">ลบสมาชิก</b></a></li>` :
                         `<li role="presentation" class="dropdown-item"><a role="menuitem" href="#" target="_self" onclick="confirmAndRestore(event, 'row-${index + 1}', ${member.user_id})"><b class="green">กู้คืนสมาชิก</b></a></li>`

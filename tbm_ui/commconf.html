@@ -25,7 +25,7 @@
             </div>
 
             <h1 class="text-4xl font-bold mb-5">จัดการชุมชน</h1>
-            <div class="bg-white text-black p-8 rounded-lg shadow-lg">
+            <div class="bg-white text-black p-8 rounded-lg shadow-lg w-full max-w-3xl mx-auto">
                 <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">การตั้งค่าชุมชน</h2>
                 <div class="mb-4">
                     <label class="block text-gray-700 text-sm font-bold mb-2" for="default-time-token">ค่าเริ่มต้นของ
@@ -56,13 +56,13 @@
                         <div class="flex items-center">
                             <input
                                 class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="minimum-time-token-hours" type="number" placeholder="ชั่วโมง" />
+                                id="minimum-time-token-hours" type="number" min="0" max="24" placeholder="ชั่วโมง" />
                             <span class="ml-2 text-gray-700">ชั่วโมง</span>
                         </div>
                         <div class="flex items-center">
                             <input
                                 class="shadow appearance-none border rounded py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                                id="minimum-time-token-minutes" type="number" placeholder="นาที" />
+                                id="minimum-time-token-minutes" type="number" min="0" max="60" placeholder="นาที" />
                             <span class="ml-2 text-gray-700">นาที</span>
                         </div>
                     </div>
@@ -337,6 +337,16 @@
 
             let defaultExchangeRateId = parseInt(newExchangeRate, 10);
             let branchId = parseInt(newBranch, 10);
+
+            // 🛡️ Validation ใหม่ (เพิ่มตรงนี้)
+            if (isNaN(minimumTimeTokenHours) || minimumTimeTokenHours < 0 || minimumTimeTokenHours > 24) {
+                showErrorModal('กรุณากรอกจำนวนชั่วโมงระหว่าง 0 ถึง 24 เท่านั้น');
+                return;
+            }
+            if (isNaN(minimumTimeTokenMinutes) || minimumTimeTokenMinutes < 0 || minimumTimeTokenMinutes > 60) {
+                showErrorModal('กรุณากรอกจำนวนนาทีระหว่าง 0 ถึง 60 เท่านั้น');
+                return;
+            }
 
             if (newExchangeRate === 'new' && newExchangeRateDescription) {
                 try {

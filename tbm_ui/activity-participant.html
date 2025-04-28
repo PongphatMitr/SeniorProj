@@ -120,8 +120,10 @@
     </div>
 
     <script>
-        let participants = [];
-    let requiredSkillName = null;
+       let participants = [];
+        let requiredSkillName = null;
+        let activityStatus = ''; // 🛡️ เพิ่มตัวนี้ใหม่
+
 
         async function fetchParticipants() {
             const urlParams = new URLSearchParams(window.location.search);
@@ -157,22 +159,31 @@
         }
 
         function renderParticipants(data) {
-            const tbody = document.getElementById('participants-tbody');
-            tbody.innerHTML = '';
-            data.forEach((participant) => {
-                const row = document.createElement('tr');
-                row.className = 'hover:bg-gray-100';
-                row.innerHTML = `
-                    <td class="py-4 px-6 border-b border-gray-200">${participant.name}</td>
-                    <td class="py-4 px-6 border-b border-gray-200">${participant.phone}</td>
-                    <td class="py-4 px-6 border-b border-gray-200">${participant.skills.length > 0 ? participant.skills.join(', ') : '-'}</td>
-                    <td class="py-4 px-6 border-b border-gray-200">
-                        <button class="bg-red-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" onclick="removeParticipant(${participant.user_id})">ลบ</button>
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
+                const tbody = document.getElementById('participants-tbody');
+                tbody.innerHTML = '';
+                data.forEach((participant) => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-gray-100';
+
+                    let actionButtons = '';
+                    // ✅ เงื่อนไข: ถ้าไม่ใช่สถานะห้าม ค่อยสร้างปุ่ม "ลบ"
+                    if (!['เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา', 'ผู้เข้าร่วมไม่ครบ'].includes(activityStatus)) {
+                        actionButtons = `
+                <button class="bg-red-500 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" onclick="removeParticipant(${participant.user_id})">ลบ</button>
+            `;
+                    }
+
+                    row.innerHTML = `
+            <td class="py-4 px-6 border-b border-gray-200">${participant.name}</td>
+            <td class="py-4 px-6 border-b border-gray-200">${participant.phone}</td>
+            <td class="py-4 px-6 border-b border-gray-200">${participant.skills.length > 0 ? participant.skills.join(', ') : '-'}</td>
+            <td class="py-4 px-6 border-b border-gray-200">
+                ${actionButtons}
+            </td>
+        `;
+                    tbody.appendChild(row);
+                });
+            }
 
         async function searchMembers() {
             const searchTerm = document.getElementById('search-input').value.trim().toLowerCase();
@@ -219,6 +230,15 @@
                     const isParticipant = participants.some(participant => participant.user_id === member.user_id);
                     const item = document.createElement('div');
                     item.className = 'py-2 px-4 hover:bg-gray-200 cursor-pointer';
+
+                    let actionContent = '';
+                    // ✅ เงื่อนไข: ถ้าไม่ใช่สถานะห้าม ค่อยโชว์ปุ่ม "เพิ่ม"
+                    if (!['เสร็จสิ้น', 'ยกเลิก', 'เกินเวลา', 'ผู้เข้าร่วมไม่ครบ'].includes(activityStatus)) {
+                        actionContent = isParticipant
+                            ? '<span class="text-green-500 font-bold">เข้าร่วมแล้ว</span>'
+                            : `<button class="bg-green-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline" onclick="addParticipant(${member.user_id})">เพิ่ม</button>`;
+                    }
+
                     item.innerHTML = `
             <div class="flex justify-between items-center">
                 <div>
@@ -226,7 +246,7 @@
                     <p class="text-gray-500 text-sm">${member.email}</p>
                     <p class="text-gray-500 text-sm">${member.skills.length > 0 ? member.skills.join(', ') : '-'}</p>
                 </div>
-                ${isParticipant ? '<span class="text-green-500 font-bold">เข้าร่วมแล้ว</span>' : `<button class="bg-green-500 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline" onclick="addParticipant(${member.user_id})">เพิ่ม</button>`}
+                ${actionContent}
             </div>
         `;
                     dropdown.appendChild(item);
@@ -338,6 +358,7 @@
 
                     const data = await response.json();
                     requiredSkillName = data.required_skill_name; // เช่น "ซ่อมไฟ", "ทำอาหาร"
+                    activityStatus = data.status; // 🛡️ บันทึกสถานะด้วย เช่น "เสร็จสิ้น", "ยกเลิก"
                 } catch (error) {
                     console.error('Error fetching required skill:', error);
                 }

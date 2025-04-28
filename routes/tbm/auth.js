@@ -6,95 +6,95 @@ const authMiddleware = require('../../middleware/authMiddleware');
 
 dotenv.config();
 
-const authRoutes = (pool) => {
+const authRoutes = (pool, io) => {
     const router = express.Router();
 
     // Register a new user
-        router.post('/register', async (req, res) => {
-            const {
-                username,
-                password,
-                email = null, // Default to null if empty
-                role = 'User',
-                name,
-                phone,
-                address,
-                branch
-            } = req.body;
-    
-            try {
-                // Validate required fields
-                const requiredFields = ['username', 'password', 'role', 'name', 'phone'];
-                const missingFields = requiredFields.filter(field => !req.body[field]);
-    
-                if (missingFields.length > 0) {
-                    return res.status(400).json({
-                        error: `Missing required fields: ${missingFields.join(', ')}`,
-                    });
+    router.post('/register', async (req, res) => {
+        const {
+            username,
+            password,
+            email = null, // Default to null if empty
+            role = 'User',
+            name,
+            phone,
+            address,
+            branch
+        } = req.body;
+
+        try {
+            // Validate required fields
+            const requiredFields = ['username', 'password', 'role', 'name', 'phone'];
+            const missingFields = requiredFields.filter(field => !req.body[field]);
+
+            if (missingFields.length > 0) {
+                return res.status(400).json({
+                    error: `Missing required fields: ${missingFields.join(', ')}`,
+                });
+            }
+
+            // Validate phone format
+            const phoneRegex = /^[0-9]{10}$/;
+            if (!phoneRegex.test(phone)) {
+                return res.status(400).json({ error: 'หมายเลขโทรศัพท์ต้องมี 10 หลักและขึ้นต้นด้วย 0' });
+            }
+
+            // Check for existing username (email is optional)
+            const userExists = await pool.query(
+                'SELECT * FROM users WHERE username = $1 OR (email = $2 AND email IS NOT NULL)',
+                [username, email]
+            );
+
+            if (userExists.rows.length > 0) {
+                return res.status(409).json({ error: 'Username or email already exists' });
+            }
+
+            // Hash password
+            const hashedPassword = await bcrypt.hash(password, 10);
+
+            // Fetch default time token from community_config
+            const configResult = await pool.query('SELECT default_time_token FROM community_config LIMIT 1');
+            const defaultTimeToken = configResult.rows[0].default_time_token;
+
+            // Fetch branch_id from branches table
+            let branchId = null;
+            if (branch) {
+                const branchResult = await pool.query('SELECT branch_id FROM branches WHERE branch_name = $1', [branch]);
+                if (branchResult.rows.length > 0) {
+                    branchId = branchResult.rows[0].branch_id;
+                } else {
+                    const newBranchResult = await pool.query(
+                        'INSERT INTO branches (branch_name) VALUES ($1) RETURNING branch_id',
+                        [branch]
+                    );
+                    branchId = newBranchResult.rows[0].branch_id;
                 }
-    
-                // Validate phone format
-                const phoneRegex = /^[0-9]{10}$/;
-                if (!phoneRegex.test(phone)) {
-                    return res.status(400).json({ error: 'หมายเลขโทรศัพท์ต้องมี 10 หลักและขึ้นต้นด้วย 0' });
-                }
-    
-                // Check for existing username (email is optional)
-                const userExists = await pool.query(
-                    'SELECT * FROM users WHERE username = $1 OR (email = $2 AND email IS NOT NULL)',
-                    [username, email]
-                );
-    
-                if (userExists.rows.length > 0) {
-                    return res.status(409).json({ error: 'Username or email already exists' });
-                }
-    
-                // Hash password
-                const hashedPassword = await bcrypt.hash(password, 10);
-    
-                // Fetch default time token from community_config
-                const configResult = await pool.query('SELECT default_time_token FROM community_config LIMIT 1');
-                const defaultTimeToken = configResult.rows[0].default_time_token;
-    
-                // Fetch branch_id from branches table
-                let branchId = null;
-                if (branch) {
-                    const branchResult = await pool.query('SELECT branch_id FROM branches WHERE branch_name = $1', [branch]);
-                    if (branchResult.rows.length > 0) {
-                        branchId = branchResult.rows[0].branch_id;
-                    } else {
-                        const newBranchResult = await pool.query(
-                            'INSERT INTO branches (branch_name) VALUES ($1) RETURNING branch_id',
-                            [branch]
-                        );
-                        branchId = newBranchResult.rows[0].branch_id;
-                    }
-                }
-    
-                // Insert user allowing email to be NULL
-                const result = await pool.query(
-                    `INSERT INTO users 
+            }
+
+            // Insert user allowing email to be NULL
+            const result = await pool.query(
+                `INSERT INTO users 
                     (username, password, email, role, name, phone, address, branch_id, time_credits, status) 
                     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, DEFAULT) 
                     RETURNING user_id, username, email, role, name, phone, address, branch_id, time_credits, status, created_at`,
-                    [username, hashedPassword, email || null, role, name, phone, address, branchId, defaultTimeToken]
-                );
-    
-                res.status(201).json(result.rows[0]);
-    
-            } catch (err) {
-                console.error('Registration Error Details:', err);
-    
-                if (err.code === '23505') {
-                    return res.status(409).json({ error: 'Username or email already exists' });
-                }
-                if (err.code === '23502') {
-                    return res.status(400).json({ error: `Missing required field: ${err.column}` });
-                }
-    
-                res.status(500).json({ error: 'Internal server error. Please try again.' });
+                [username, hashedPassword, email || null, role, name, phone, address, branchId, defaultTimeToken]
+            );
+
+            res.status(201).json(result.rows[0]);
+
+        } catch (err) {
+            console.error('Registration Error Details:', err);
+
+            if (err.code === '23505') {
+                return res.status(409).json({ error: 'Username or email already exists' });
             }
-        });
+            if (err.code === '23502') {
+                return res.status(400).json({ error: `Missing required field: ${err.column}` });
+            }
+
+            res.status(500).json({ error: 'Internal server error. Please try again.' });
+        }
+    });
 
     // Modified login route with status check and logging
     router.post('/login', async (req, res) => {
@@ -225,57 +225,60 @@ const authRoutes = (pool) => {
 
     // Save changes to profile
     router.put('/profile', authMiddleware, async (req, res) => {
-        const { name, phone, address, email } = req.body;
-    
+        const { name, phone, email, address } = req.body;
+
         try {
+            const phoneRegex = /^0[0-9]{9}$/;
+            if (phone && !phoneRegex.test(phone)) {
+                return res.status(400).json({ error: 'Phone number must be 10 digits and start with 0' });
+            }
+
+            if (email && !/^[\w-.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
+                return res.status(400).json({ error: 'Invalid email format' });
+            }
+
             const fieldsToUpdate = [];
             const values = [];
             let query = 'UPDATE users SET ';
-    
-            if (name !== undefined) {
-                fieldsToUpdate.push(`name = $${fieldsToUpdate.length + 1}`);
-                values.push(name);
+
+            if (name) {
+                fieldsToUpdate.push('name = $' + (fieldsToUpdate.length + 1));
+                values.push(name.trim());
             }
-            if (phone !== undefined) {
-                fieldsToUpdate.push(`phone = $${fieldsToUpdate.length + 1}`);
-                values.push(phone);
+            if (phone) {
+                fieldsToUpdate.push('phone = $' + (fieldsToUpdate.length + 1));
+                values.push(phone.trim());
             }
-            if (address !== undefined) {
-                fieldsToUpdate.push(`address = $${fieldsToUpdate.length + 1}`);
-                values.push(address);
+            if (email !== undefined) {
+                fieldsToUpdate.push('email = $' + (fieldsToUpdate.length + 1));
+                values.push(email ? email.trim() : null);
             }
-            if (email !== undefined) { 
-                fieldsToUpdate.push(`email = $${fieldsToUpdate.length + 1}`); // 🛠 สำคัญ!! email
-                values.push(email);
+            if (address !== undefined) { // ✅ address รองรับด้วย
+                fieldsToUpdate.push('address = $' + (fieldsToUpdate.length + 1));
+                values.push(address ? address.trim() : null);
             }
-    
+
             if (fieldsToUpdate.length === 0) {
                 return res.status(400).json({ error: 'No fields to update' });
             }
-    
-            // Always update updated_at
-            fieldsToUpdate.push(`updated_at = NOW()`);
-    
-            // Final query
-            query += fieldsToUpdate.join(', ') + ` WHERE user_id = $${fieldsToUpdate.length + 1} RETURNING *`;
+
+            query += fieldsToUpdate.join(', ') + ' WHERE user_id = $' + (fieldsToUpdate.length + 1) + ' RETURNING *';
             values.push(req.user.userId);
-    
+
             const result = await pool.query(query, values);
+
             const updatedUser = result.rows[0];
-    
             if (!updatedUser) {
                 return res.status(404).json({ error: 'User not found' });
             }
-    
+
             res.json(updatedUser);
-    
-        } catch (error) {
-            console.error('Profile Update Error:', error.message);
-            res.status(500).json({ error: 'Internal server error' });
+
+        } catch (err) {
+            console.error('Profile Update Error:', err.message);
+            res.status(500).json({ error: 'Internal server error. Please try again.' });
         }
     });
-    
-      
 
     // Add to authRoutes
     router.patch('/users/:id/status', authMiddleware, async (req, res) => {

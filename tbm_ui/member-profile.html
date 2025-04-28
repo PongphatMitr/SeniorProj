@@ -9,150 +9,319 @@
     <script>
         let globalUserId = null; // Global variable to store user_id
 
-        // เพิ่มฟังก์ชันแสดง modal ข้อผิดพลาด
-            function showErrorModal(message) {
-                document.getElementById('error-message').textContent = message;
-                document.getElementById('error-modal').classList.remove('hidden');
-                document.getElementById('error-confirm-btn').onclick = function () {
-                    document.getElementById('error-modal').classList.add('hidden');
-                };
-            }
+        document.addEventListener('DOMContentLoaded', () => {
+            fetchMemberProfile(); // โหลดโปรไฟล์
 
-            // เพิ่มฟังก์ชันแสดง modal ยืนยันการบันทึก (Promise-based)
-            function showConfirmSaveModal() {
-                return new Promise((resolve) => {
-                    const modal = document.getElementById('confirm-save-modal');
-                    modal.classList.remove('hidden');
-
-                    const confirmBtn = document.getElementById('confirm-save-btn');
-                    const cancelBtn = document.getElementById('cancel-save-btn');
-
-                    const cleanup = () => {
-                        modal.classList.add('hidden');
-                        confirmBtn.onclick = null;
-                        cancelBtn.onclick = null;
-                    };
-
-                    confirmBtn.onclick = () => { cleanup(); resolve(true); };
-                    cancelBtn.onclick = () => { cleanup(); resolve(false); };
+            const confirmSuccessBtn = document.getElementById('confirm-success-btn');
+            if (confirmSuccessBtn) {
+                confirmSuccessBtn.addEventListener('click', function () {
+                    const modal = document.getElementById('success-modal');
+                    modal.classList.remove('opacity-100', 'scale-100');
+                    setTimeout(() => modal.classList.add('hidden'), 300);
                 });
             }
-
-        function showSuccessModal(message, callback) {
-                document.getElementById('success-message').textContent = message;
-                document.getElementById('success-modal').classList.remove('hidden');
-                document.getElementById('success-confirm-btn').onclick = function () {
-                    document.getElementById('success-modal').classList.add('hidden');
-                    if (typeof callback === 'function') callback();
-                };
-            }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchMemberProfile();
         });
 
         async function fetchMemberProfile() {
             try {
-                const response = await fetch(`http://localhost:3000/api/user/auth/profile`, {
+                const response = await fetch(`http://localhost:3000/api/tbm/auth/profile`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
                 });
-
-                if (!response.ok) {
-                    throw new Error('Network response was not ok');
-                }
+                if (!response.ok) throw new Error('Network response was not ok');
 
                 const member = await response.json();
-                console.log('✅ Fetched Member:', member);  // Debugging
 
-                globalUserId = member.user_id;
-
+                // Fetch branch name if branch_id exists
                 if (member.branch_id) {
-                    console.log('✅ Branch ID:', member.branch_id); // Check if branch_id exists
                     member.branch = await fetchBranchName(member.branch_id);
                 } else {
-                    console.warn('⚠️ User does not have a branch_id assigned.');
                     member.branch = 'N/A';
                 }
 
                 renderMemberProfile(member);
             } catch (error) {
-                console.error('❌ Error fetching member profile:', error);
-                showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลโปรไฟล์สมาชิก');
+                console.error('Error fetching profile:', error);
+                alert('Failed to load profile');
             }
         }
 
+
+
         async function fetchBranchName(branchId) {
             if (!branchId) return 'N/A';
-            try {
-                const response = await fetch(`http://localhost:3000/api/user/branches`);
-                if (!response.ok) {
-                    throw new Error(`Network response was not ok (${response.status})`);
-                }
-                const branches = await response.json();
-                console.log('Fetched Branches:', branches); // Debugging
 
-                const branch = branches.find(branch => parseInt(branch.branch_id) === parseInt(branchId));
-                return branch ? branch.branch_name : 'N/A';
+            try {
+                const response = await fetch('http://localhost:3000/api/tbm/branches');
+                if (!response.ok) throw new Error('Failed to fetch branches');
+
+                const branches = await response.json();
+                const branch = branches.find(b => b.branch_id === branchId);
+                return branch?.branch_name || 'N/A';
             } catch (error) {
-                console.error('Error fetching branch name:', error);
-                showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลสาขา');
+                console.error('Error fetching branch:', error);
                 return 'N/A';
             }
         }
 
+        async function fetchBranchIdByName(branchName) {
+            if (!branchName || branchName === 'N/A') return null;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/tbm/branches');
+                if (!response.ok) throw new Error('Failed to fetch branches');
+
+                const branches = await response.json();
+                const branch = branches.find(b => b.branch_name === branchName);
+                return branch?.branch_id || null;
+            } catch (error) {
+                console.error('Error fetching branch ID:', error);
+                return null;
+            }
+        }
+
+
+
         function renderMemberProfile(member) {
+            // Personal Info
             document.getElementById('member-name').textContent = member.name || 'N/A';
             document.getElementById('member-phone').textContent = member.phone || 'N/A';
-            document.getElementById('member-address').textContent = member.address || 'N/A';
-            document.getElementById('member-branch').textContent = member.branch || 'N/A'; // ใช้ค่าที่ได้จาก fetchBranchName
-            document.getElementById('member-time-credits').textContent = member.time_credits || 'N/A';
+            document.getElementById('member-email').textContent = member.email || 'N/A';
+            document.getElementById('member-role').textContent = member.role || 'N/A';
+            document.getElementById('member-branch').textContent = member.branch || 'N/A';
+            document.getElementById('member-time-credits').textContent = member.time_credits ?? 'N/A';
             document.getElementById('member-status').textContent = member.status === 'active' ? 'ปกติ' : 'ไม่ปกติ';
+
+            // Address Info
+            const addressParts = splitAddress(member.address || '');
+            document.getElementById('house-no').textContent = addressParts.houseNo || 'N/A';
+            document.getElementById('subdistrict').textContent = addressParts.subdistrict || 'N/A';
+            document.getElementById('district').textContent = addressParts.district || 'N/A';
+            document.getElementById('province').textContent = addressParts.province || 'N/A';
+            document.getElementById('postal-code').textContent = addressParts.postalCode || 'N/A';
         }
+
+
+        function splitAddress(address) {
+            const parts = {
+                houseNo: '',
+                subdistrict: '',
+                district: '',
+                province: '',
+                postalCode: ''
+            };
+
+            if (!address) return parts;
+
+            const [houseNoPart, rest] = address.split(',', 2); // ✨ แยกบ้านเลขที่ = ก่อน ,
+            parts.houseNo = (houseNoPart || '').trim(); // บ้านเลขที่
+
+            if (rest) {
+                const tokens = rest.trim().split(/\s+/); // หลัง , ตัดด้วย " "
+                if (tokens.length >= 4) {
+                    parts.subdistrict = tokens[0];
+                    parts.district = tokens[1];
+                    parts.province = tokens[2];
+                    parts.postalCode = tokens[3];
+                }
+            }
+
+            return parts;
+        }
+
 
         let originalData = {}; // To store the old data
 
-        function enableEditing() {
-            if (!globalUserId) {
-                showErrorModal('ไม่พบ User ID กรุณารีเฟรชหน้าเว็บใหม่');
-                return;
-            }
+        function editProfile() {
+            const profileFields = ['member-name', 'member-phone', 'member-email'];
+            originalData = {}; // เก็บค่าเก่า
 
-            const fields = ['member-name', 'member-phone', 'member-address'];
-            originalData = {}; // Clear previous data
-
-            fields.forEach(field => {
+            profileFields.forEach(field => {
                 const element = document.getElementById(field);
+                if (!element) return;
                 originalData[field] = element.textContent;
-
-                let input;
-                if (field === 'member-address') {
-                    // Use textarea for address to support multiple lines
-                    input = document.createElement('textarea');
-                    input.rows = 4; // Adjust height of the textarea
-                    input.className = 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline resize-none';
-                } else {
-                    // Keep using input for name and phone
-                    input = document.createElement('input');
-                    input.type = 'text';
-                    input.className = 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
-                }
-
-                input.value = element.textContent;
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
+                input.value = element.textContent === 'N/A' ? '' : element.textContent.trim();
                 element.parentNode.replaceChild(input, element);
                 input.id = field;
             });
 
-            const editButton = document.getElementById('edit-button');
-            const backButton = document.getElementById('back-button');
-
-            editButton.textContent = 'บันทึก';
-            editButton.onclick = saveChanges;
-
-            backButton.style.display = 'inline-block';
-            backButton.onclick = () => revertChanges(fields);
+            // แสดงปุ่ม Save และ Back
+            document.getElementById('edit-profile-button').style.display = 'none';
+            document.getElementById('save-profile-button').style.display = 'inline-block';
+            document.getElementById('back-profile-button').style.display = 'inline-block';
         }
+
+
+        function revertProfileChanges() {
+            const profileFields = ['member-name', 'member-phone', 'member-email'];
+
+            profileFields.forEach(field => {
+                const element = document.getElementById(field);
+                if (!element) return;
+                const p = document.createElement('p');
+                p.textContent = originalData[field];
+                p.className = 'text-gray-700 text-lg';
+                element.parentNode.replaceChild(p, element);
+                p.id = field;
+            });
+
+            // กลับไปโชว์ปุ่ม Edit
+            document.getElementById('edit-profile-button').style.display = 'inline-block';
+            document.getElementById('save-profile-button').style.display = 'none';
+            document.getElementById('back-profile-button').style.display = 'none';
+        }
+
+
+        async function saveProfile() {
+            try {
+                // Get updated values
+                const updatedData = {
+                    name: document.getElementById('member-name').value.trim(),
+                    phone: document.getElementById('member-phone').value.trim(),
+                    email: document.getElementById('member-email').value.trim() || null,
+                    branch_id: await fetchBranchIdByName(document.getElementById('member-branch').textContent)
+                };
+
+                // Validation
+                if (updatedData.name.split(' ').length < 2) {
+                    showErrorMessage('กรุณากรอกชื่อ-นามสกุลให้ครบถ้วน');
+                    return;
+                }
+
+                // API call
+                const response = await fetch('http://localhost:3000/api/tbm/auth/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(updatedData)
+                });
+
+                if (!response.ok) throw new Error('Update failed');
+
+                // Get updated profile with branch_id
+                const updatedMember = await response.json();
+
+                // Fetch fresh branch name
+                if (updatedMember.branch_id) {
+                    updatedMember.branch = await fetchBranchName(updatedMember.branch_id);
+                } else {
+                    updatedMember.branch = 'N/A';
+                }
+
+                // Render updated data
+                renderMemberProfile(updatedMember);
+                showSuccessMessage('อัปเดตโปรไฟล์สำเร็จ!');
+
+                // Close the edit mode by hiding the edit buttons and displaying the saved data
+                document.getElementById('edit-profile-button').style.display = 'inline-block';
+                document.getElementById('save-profile-button').style.display = 'none';
+                document.getElementById('back-profile-button').style.display = 'none';
+
+                // Revert the editable fields to their non-editable state
+                revertProfileChanges();
+
+            } catch (error) {
+                console.error('Save error:', error);
+                showErrorMessage('อัปเดตข้อมูลไม่สำเร็จ: ' + error.message);
+            }
+        }
+
+
+
+
+        let originalAddressData = {};
+
+        function editAddress() {
+            const addressFields = ['house-no', 'subdistrict', 'district', 'province', 'postal-code'];
+            originalData = {}; // เก็บค่าเดิม
+
+            addressFields.forEach(field => {
+                const element = document.getElementById(field);
+                if (!element) return;
+                originalData[field] = element.textContent;
+                const input = document.createElement('input');
+                input.type = 'text';
+                input.className = 'shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline';
+                input.value = element.textContent === 'N/A' ? '' : element.textContent.trim();
+                element.parentNode.replaceChild(input, element);
+                input.id = field;
+            });
+
+            // แสดงปุ่ม save / back ของที่อยู่
+            document.getElementById('edit-address-button').style.display = 'none';
+            document.getElementById('save-address-button').style.display = 'inline-block';
+            document.getElementById('back-address-button').style.display = 'inline-block';
+        }
+
+        async function saveAddress() {
+            const houseNo = document.getElementById('house-no').value.trim();
+            const subdistrict = document.getElementById('subdistrict').value.trim();
+            const district = document.getElementById('district').value.trim();
+            const province = document.getElementById('province').value.trim();
+            const postalCode = document.getElementById('postal-code').value.trim();
+
+            if (!houseNo || !subdistrict || !district || !province || !postalCode) {
+                showErrorMessage('กรุณากรอกข้อมูลที่อยู่ให้ครบถ้วน');
+                return;
+            }
+
+            const fullAddress = `${houseNo}, ${subdistrict} ${district} ${province} ${postalCode}`.replace(/\s+/g, ' ').trim();
+
+            const updatedData = { address: fullAddress };
+
+            try {
+                const response = await fetch('http://localhost:3000/api/tbm/auth/profile', {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    },
+                    body: JSON.stringify(updatedData)
+                });
+
+                if (response.ok) {
+                    const updatedMember = await response.json();
+                    await resetToNormalView(['house-no', 'subdistrict', 'district', 'province', 'postal-code']);
+                    renderMemberProfile(updatedMember);
+                    showSuccessMessage('บันทึกข้อมูลที่อยู่สำเร็จแล้ว!');
+
+                    document.getElementById('edit-address-button').style.display = 'inline-block';
+                    document.getElementById('save-address-button').style.display = 'none';
+                    document.getElementById('back-address-button').style.display = 'none';
+                } else {
+                    const errorData = await response.json();
+                    showErrorMessage(`เกิดข้อผิดพลาดในการบันทึกข้อมูล: ${errorData.error || 'ไม่ทราบสาเหตุ'}`);
+                }
+            } catch (error) {
+                showErrorMessage('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+            }
+        }
+
+
+        function revertAddressChanges() {
+            const addressFields = ['house-no', 'subdistrict', 'district', 'province', 'postal-code'];
+
+            addressFields.forEach(field => {
+                const element = document.getElementById(field);
+                if (!element) return;
+                const p = document.createElement('p');
+                p.textContent = originalData[field];
+                p.className = 'text-gray-700 text-lg';
+                element.parentNode.replaceChild(p, element);
+                p.id = field;
+            });
+
+            document.getElementById('edit-address-button').style.display = 'inline-block';
+            document.getElementById('save-address-button').style.display = 'none';
+            document.getElementById('back-address-button').style.display = 'none';
+        }
+
 
 
         function revertChanges(fields) {
@@ -164,98 +333,101 @@
                 element.parentNode.replaceChild(p, element);
                 p.id = field;
             });
-
             const editButton = document.getElementById('edit-button');
             const backButton = document.getElementById('back-button');
-
             // Reset the "แก้ไข" button
             editButton.textContent = 'แก้ไข';
             editButton.onclick = enableEditing;
-
             // Hide the "ย้อนกลับ" button
             backButton.style.display = 'none';
         }
 
-        async function saveChanges() {
-            const fullName = document.getElementById('member-name').value.trim();
-            const phone = document.getElementById('member-phone').value.trim();
-            const address = document.getElementById('member-address').value.trim();
 
-            // Validate name (must include at least two words)
-            if (fullName.split(' ').length < 2) {
-                showErrorModal('กรุณากรอกชื่อและนามสกุลให้ครบถ้วน');
-                return;
+        function showSuccessMessage(message) {
+            document.getElementById('success-message').textContent = message;
+            const modal = document.getElementById('success-modal');
+            modal.classList.remove('hidden');
+            // Animate opening
+            setTimeout(() => {
+                modal.classList.add('opacity-100', 'scale-100');
+            }, 50);
+            const confirmSuccessBtn = document.getElementById('confirm-success-btn');
+            if (confirmSuccessBtn) {
+                // Reset previous event first (ป้องกัน double click หลายครั้ง)
+                confirmSuccessBtn.onclick = function () {
+                    modal.classList.remove('opacity-100', 'scale-100');
+                    setTimeout(() => modal.classList.add('hidden'), 300);
+                };
             }
+            // Auto close after 3s (optional)
+            setTimeout(() => {
+                modal.classList.remove('opacity-100', 'scale-100');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+            }, 3000);
+        }
 
-            // Validate Thai phone number (must start with 0 and be 10 digits)
-            const phoneRegex = /^0[0-9]{9}$/;
-            if (!phoneRegex.test(phone)) {
-                showErrorModal('กรุณากรอกหมายเลขโทรศัพท์ให้ถูกต้อง (10 หลักและขึ้นต้นด้วย 0)');
-                return;
-            }
+        function showErrorMessage(message) {
+            alert(message); // สามารถเปลี่ยนเป็น Modal error ได้ถ้าต้องการ
+        }
 
-            // Advanced address validation: must contain house number and keywords like เขต/อำเภอ/ตำบล/จังหวัด
-            const addressRegex = /\d+.*(เขต|อำเภอ|ตำบล|จังหวัด)/;
-            if (!addressRegex.test(address)) {
-                showErrorModal('กรุณากรอกที่อยู่ให้ครบถ้วน รวมถึงเลขที่บ้าน เขต/อำเภอ และจังหวัด');
-                return;
-            }
-
-            // แสดง modal ยืนยันการบันทึก
-            const userConfirmed = await showConfirmSaveModal();
-            if (!userConfirmed) return;
-
-            const member = {
-                name: fullName,
-                phone: phone,
-                address: address
-            };
-
-            try {
-                const response = await fetch('http://localhost:3000/api/user/auth/profile', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify(member)
-                });
-
-                if (response.ok) {
-                    showSuccessModal('บันทึกข้อมูลโปรไฟล์สำเร็จแล้ว!');
-                    renderMemberProfile(member);
-
-                    const fields = ['member-name', 'member-phone', 'member-address'];
-                    fields.forEach(field => {
-                        const element = document.getElementById(field);
+        function resetToNormalView(fields = []) {
+            return new Promise((resolve) => {
+                fields.forEach(field => {
+                    const element = document.getElementById(field);
+                    if (element && (element.tagName === 'INPUT' || element.tagName === 'TEXTAREA')) {
                         const p = document.createElement('p');
-                        p.textContent = element.value;
+                        p.textContent = element.value.trim() === '' ? 'N/A' : element.value.trim();
                         p.className = 'text-gray-700 text-lg';
                         element.parentNode.replaceChild(p, element);
                         p.id = field;
-                    });
-
-                    document.getElementById('edit-button').textContent = 'แก้ไข';
-                    document.getElementById('edit-button').onclick = enableEditing;
-                    document.getElementById('back-button').style.display = 'none';
-
-                    fetchMemberProfile();  // Refresh profile after saving
-                } else {
-                    const errorData = await response.json();
-                    showErrorModal(`เกิดข้อผิดพลาดในการบันทึกข้อมูล: ${errorData.error || 'ไม่ทราบสาเหตุ'}`);
-                }
-            } catch (error) {
-                console.error('Error saving member profile:', error);
-                showErrorModal('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
-            }
+                    }
+                });
+                resolve();
+            });
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-        });
+
+
+
+        function splitAddress(address) {
+            const parts = {
+                houseNo: '',
+                subdistrict: '',
+                district: '',
+                province: '',
+                postalCode: ''
+            };
+
+            if (!address) return parts;
+
+            const commaIndex = address.indexOf(',');
+            if (commaIndex !== -1) {
+                parts.houseNo = address.slice(0, commaIndex).trim(); // เอาเฉพาะก่อน comma แบบไม่เอา comma มาด้วย
+                const rest = address.slice(commaIndex + 1).trim(); // หลัง comma ตัดช่องว่าง
+                const tokens = rest.split(/\s+/); // แยกช่องว่างเป็น token
+
+                if (tokens.length >= 4) {
+                    parts.subdistrict = tokens[0];
+                    parts.district = tokens[1];
+                    parts.province = tokens[2];
+                    parts.postalCode = tokens[3];
+                }
+            } else {
+                // ไม่มี comma เลย
+                parts.houseNo = address.trim();
+            }
+
+            return parts;
+        }
+
     </script>
+    <script src="navbar.js"></script>
 </head>
 
-<body class="bg-gray-100">
+<body class="bg-blue-700">
+    
     <div class="flex flex-col md:flex-row">
         <!-- Sidebar -->
         <div class="w-full md:w-1/6 bg-white h-screen p-5 sticky top-0 flex flex-col">
@@ -263,137 +435,189 @@
                 <ul id="navList" class="space-y-4"></ul>
             </nav>
         </div>
+        
         <!-- Main Content -->
-        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10 flex justify-center items-center">
-            <div class="absolute top-5 right-5 flex items-center gap-4">
-                <!-- Notification Placeholder -->
-                <div id="mainNotificationPanel" class="relative"></div>
+        <div class="w-full md:w-5/6 bg-blue-700 text-white p-10 flex flex-col">
+            <!-- ✅ ปุ่มย้อนกลับชิดขอบ sidebar -->
+            <div class="flex justify-start mb-5">
+                <button onclick="window.history.back()"
+                    class="bg-gray-200 hover:bg-gray-300 text-gray-700 font-bold py-2 px-4 rounded">
+                    ⬅ ย้อนกลับ
+                </button>
             </div>
-            <div class="bg-white text-black p-10 rounded-xl shadow-xl w-full max-w-3xl border border-gray-200">
-                <h1 class="text-4xl font-bold mb-5 text-center">โปรไฟล์สมาชิก</h1>
-                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">ข้อมูลสมาชิก</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-36 gap-y-4 ml-24">
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="member-name">ชื่อ:</label>
-                        <p class="text-gray-700 text-lg" id="member-name"></p>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="member-phone">เบอร์โทร:</label>
-                        <p class="text-gray-700 text-lg" id="member-phone"></p>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="member-address">ที่อยู่:</label>
-                        <p class="text-gray-700 text-lg" id="member-address"></p>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="member-branch">สาขา:</label>
-                        <p class="text-gray-700 text-lg" id="member-branch"></p>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2"
-                            for="member-time-credits">เครดิตเวลา:</label>
-                        <p class="text-gray-700 text-lg" id="member-time-credits"></p>
-                    </div>
-                    <div class="mb-4">
-                        <label class="block text-gray-700 text-sm font-bold mb-2" for="member-status">สถานะ:</label>
-                        <p class="text-gray-700 text-lg" id="member-status"></p>
-                    </div>
-                </div>
-                <div class="flex justify-center mt-4 space-x-4">
-                    <button
-                        class="bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                        id="edit-button" onclick="enableEditing()">
-                        แก้ไข
-                    </button>
-                    <button
-                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                        id="back-button" style="display: none;" onclick="window.history.back()">
-                        ย้อนกลับ
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-    <!-- Success Message Modal -->
-    <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
-            <div class="flex justify-center">
-                <div class="w-20 h-20 flex items-center justify-center rounded-full bg-green-100 border-4 border-green-500">
-                    <svg class="w-12 h-12 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
-                </div>
-            </div>
-            <h2 class="text-3xl font-bold text-green-600 mt-6">แก้ไขสำเร็จ!</h2>
-            <p class="text-gray-700 text-lg mt-4" id="success-message">แก้ไขประกาศสำเร็จ</p>
-            <button id="success-confirm-btn"
-                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
-                ยืนยัน
-            </button>
-        </div>
-    </div>
+            <div class="flex flex-col md:flex-row gap-8">
+                
+                <!-- Profile Section -->
+                <div class="bg-white text-black p-10 rounded-xl shadow-xl w-full max-w-3xl border border-gray-200">
+                    <h1 class="text-4xl font-bold mb-5 text-center">โปรไฟล์สมาชิก</h1>
+                    <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">ข้อมูลสมาชิก</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-36 gap-y-4 ml-24">
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="member-name">ชื่อ และ
+                                นามสกุล:</label>
+                            <p class="text-gray-700 text-lg" id="member-name">N/A</p>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2"
+                                for="member-phone">เบอร์โทร:</label>
+                            <p class="text-gray-700 text-lg" id="member-phone">N/A</p>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="member-email">อีเมล:</label>
+                            <p class="text-gray-700 text-lg" id="member-email">N/A</p>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="member-role">บทบาท:</label>
+                            <p class="text-gray-700 text-lg" id="member-role">N/A</p>
+                        </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div id="delete-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
-            <h2 class="text-3xl font-bold text-red-600 mt-6">ยืนยันการลบประกาศ</h2>
-            <p class="text-gray-700 text-lg mt-4">ต้องการลบประกาศหรือไม่?</p>
-            <div class="mt-6 flex justify-center">
-                <button id="confirm-delete-btn"
-                    class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300 mr-4">
-                    ยืนยัน
-                </button>
-                <button id="cancel-delete-btn"
-                    class="px-6 py-3 bg-gray-600 text-white text-lg font-semibold rounded-lg hover:bg-gray-700 transition duration-300">
-                    ยกเลิก
-                </button>
-            </div>
-        </div>
-    </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="member-branch">สาขา:</label>
+                            <p class="text-gray-700 text-lg" id="member-branch">N/A</p>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2"
+                                for="member-time-credits">เครดิตเวลา:</label>
+                            <p class="text-gray-700 text-lg" id="member-time-credits">N/A</p>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="member-status">สถานะ:</label>
+                            <p class="text-gray-700 text-lg" id="member-status">N/A</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-center mt-4 space-x-4">
+                        <button id="edit-profile-button"
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                            onclick="editProfile()">
+                            แก้ไขโปรไฟล์
+                        </button>
 
-    <!-- Error Modal -->
-    <div id="error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
-            <div class="flex justify-center">
-                <div class="w-20 h-20 flex items-center justify-center rounded-full bg-red-100 border-4 border-red-500">
-                    <svg class="w-12 h-12 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
+                        <button id="save-profile-button"
+                            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                            onclick="saveProfile()" style="display: none;">
+                            บันทึกการเปลี่ยนแปลง
+                        </button>
+
+                        <button id="back-profile-button"
+                            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
+                            onclick="revertProfileChanges()" style="display: none;">
+                            ย้อนกลับ
+                        </button>
+                    </div>
+
+                    <div class="mt-8">
+                        <h2 class="text-2xl font-bold text-center text-blue-700 mb-4">เข้าสู่ระบบผ่าน LINE</h2>
+                        <div class="flex flex-col items-center">
+                            <!-- Display the QR code image -->
+                            <img id="line-qr-code" src="QRcodeLine.jpg" alt="QR Code for LINE Login"
+                                class="mb-4 w-32 h-32" />
+
+                            <!-- Fallback clickable link -->
+                            <p class="text-gray-600 text-sm">
+                                สแกน QR Code เพื่อเข้าสู่ระบบผ่าน LINE
+                            </p>
+                        </div>
+                    </div>
+
+
+                    <!-- Confirm Change Profile Modal -->
+                    <div id="confirm-change-modal"
+                        class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden transition-opacity duration-300">
+                        <div
+                            class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-xl text-center transform scale-95 transition-transform duration-300">
+                            <h2 class="text-3xl font-bold text-gray-900">ยืนยันการเปลี่ยนแปลง</h2>
+                            <p class="text-gray-700 text-lg mt-4">คุณต้องการบันทึกการเปลี่ยนแปลงหรือไม่?</p>
+                            <div class="flex justify-center mt-6 space-x-4">
+                                <button id="confirm-save-btn"
+                                    class="bg-green-600 text-white text-lg px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition duration-300">
+                                    ตกลง
+                                </button>
+                                <button id="cancel-save-btn"
+                                    class="bg-gray-400 text-white text-lg px-6 py-3 rounded-lg font-semibold hover:bg-gray-500 transition duration-300">
+                                    ยกเลิก
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Success Message Modal -->
+                    <div id="success-modal"
+                        class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden transition-opacity duration-300">
+                        <div
+                            class="bg-white p-10 rounded-lg shadow-2xl w-full max-w-2xl text-center transform scale-95 transition-transform duration-300">
+                            <div class="flex justify-center">
+                                <div
+                                    class="w-24 h-24 flex items-center justify-center rounded-full bg-green-100 border-4 border-green-500 animate-bounce">
+                                    <svg class="w-16 h-16 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <h2 class="text-4xl font-bold text-green-600 mt-6">บันทึกข้อมูลสำเร็จ!</h2>
+                            <p id="success-message" class="text-gray-700 text-xl mt-4">
+                                ข้อมูลของคุณได้รับการอัปเดตเรียบร้อยแล้ว</p>
+                            <button id="confirm-success-btn"
+                                class="mt-8 px-8 py-4 bg-blue-600 text-white text-xl font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                                ตกลง
+                            </button>
+                        </div>
+                    </div>
                 </div>
-            </div>
-            <h2 class="text-3xl font-bold text-red-600 mt-6">เกิดข้อผิดพลาด!</h2>
-            <p class="text-gray-700 text-lg mt-4" id="error-message"></p>
-            <button id="error-confirm-btn"
-                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
-                ตกลง
-            </button>
-        </div>
-    </div>
-    
-    <!-- Save Confirmation Modal -->
-    <div id="confirm-save-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
-            <h2 class="text-3xl font-bold text-blue-600 mt-6">ยืนยันการบันทึก</h2>
-            <p class="text-gray-700 text-lg mt-4">คุณต้องการบันทึกการเปลี่ยนแปลงหรือไม่?</p>
-            <div class="mt-6 flex justify-center">
-                <button id="confirm-save-btn"
-                    class="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300 mr-4">
-                    ยืนยัน
-                </button>
-                <button id="cancel-save-btn"
-                    class="px-6 py-3 bg-gray-600 text-white text-lg font-semibold rounded-lg hover:bg-gray-700 transition duration-300">
-                    ยกเลิก
-                </button>
-            </div>
-        </div>
-    </div>
+                <!-- Address Section (New Container) -->
+                <div class="bg-white text-black p-10 rounded-xl shadow-xl w-full max-w-3xl border border-gray-200">
+                    <h2 class="text-4xl font-bold mb-5 text-center">ข้อมูลที่อยู่</h2>
+                    <h3 class="text-3xl font-bold mb-6 text-center text-blue-700">รายละเอียดที่อยู่</h3>
 
-    <script src="navbar.js"></script>
-        <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-        <script src="notification.js"></script>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-36 gap-y-4 ml-24">
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="house-no">บ้านเลขที่:</label>
+                            <p class="text-gray-700 text-lg" id="house-no">N/A</p>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2"
+                                for="subdistrict">แขวง/ตำบล:</label>
+                            <p class="text-gray-700 text-lg" id="subdistrict">N/A</p>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="district">เขต/อำเภอ:</label>
+                            <p class="text-gray-700 text-lg" id="district">N/A</p>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2" for="province">จังหวัด:</label>
+                            <p class="text-gray-700 text-lg" id="province">N/A</p>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-bold mb-2"
+                                for="postal-code">รหัสไปรษณีย์:</label>
+                            <p class="text-gray-700 text-lg" id="postal-code">N/A</p>
+                        </div>
+                    </div>
+
+
+                    <div class="flex justify-center mt-8 space-x-6">
+                        <button id="edit-address-button"
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-8 rounded focus:outline-none focus:shadow-outline transition duration-300"
+                            onclick="editAddress()" type="button">
+                            แก้ไขที่อยู่
+                        </button>
+                        <button id="save-address-button"
+                            class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-8 rounded focus:outline-none focus:shadow-outline transition duration-300"
+                            onclick="saveAddress()" style="display: none;" type="button">
+                            บันทึกที่อยู่
+                        </button>
+                        <button id="back-address-button"
+                            class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-8 rounded focus:outline-none focus:shadow-outline transition duration-300"
+                            onclick="revertAddressChanges()" style="display: none;" type="button">
+                            ย้อนกลับ
+                        </button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
 </body>
 
 </html>
