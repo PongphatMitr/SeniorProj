@@ -90,6 +90,26 @@
         </div>
     </div>
 
+    <!-- Add Category Modal -->
+    <div id="add-category-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md text-center">
+            <h2 class="text-3xl font-bold text-blue-600 mb-4">เพิ่มหมวดหมู่ใหม่</h2>
+            <input id="new-category-name" type="text"
+                class="shadow appearance-none border rounded w-full py-2 px-3 mb-6 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                placeholder="กรุณาใส่ชื่อหมวดหมู่ใหม่" />
+            <div class="flex justify-center gap-4">
+                <button id="confirm-add-category"
+                    class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded">
+                    ตกลง
+                </button>
+                <button id="cancel-add-category"
+                    class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-6 rounded">
+                    ยกเลิก
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         function showSuccessModal(message, redirectUrl = null) {
                 document.getElementById('success-message').textContent = message;
@@ -153,38 +173,53 @@
             }
         }
 
-        async function addCategory() {
-            const newCategory = prompt("กรุณาใส่ชื่อหมวดหมู่ใหม่:");
-            if (newCategory) {
-                try {
-                    const response = await fetch('http://localhost:3000/api/tbm/skills/categories', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        },
-                        body: JSON.stringify({ category: newCategory })
-                    });
+        function addCategory() {
+                const modal = document.getElementById('add-category-modal');
+                const input = document.getElementById('new-category-name');
+                const confirmBtn = document.getElementById('confirm-add-category');
+                const cancelBtn = document.getElementById('cancel-add-category');
 
-                    if (response.ok) {
-                        const category = await response.json();
-                        const select = document.getElementById('categorySelect');
-                        const option = document.createElement('option');
-                        option.value = category.category_id; // Use category_id as the value
-                        option.text = category.category;
-                        select.add(option);
-                        select.value = category.category_id;
+                input.value = ''; // เคลียร์ input ก่อนโชว์
+                modal.classList.remove('hidden');
+
+                confirmBtn.onclick = async () => {
+                    const newCategory = input.value.trim();
+                    if (newCategory) {
+                        try {
+                            const response = await fetch('http://localhost:3000/api/tbm/skills/categories', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                                },
+                                body: JSON.stringify({ category: newCategory })
+                            });
+
+                            if (response.ok) {
+                                const category = await response.json();
+                                const select = document.getElementById('categorySelect');
+                                const option = document.createElement('option');
+                                option.value = category.category_id;
+                                option.text = category.category;
+                                select.add(option);
+                                select.value = category.category_id;
+                                modal.classList.add('hidden');
+                            } else {
+                                showErrorModal('เกิดข้อผิดพลาดในการเพิ่มหมวดหมู่');
+                            }
+                        } catch (error) {
+                            console.error('Error:', error);
+                            showErrorModal('เกิดข้อผิดพลาดในการเพิ่มหมวดหมู่');
+                        }
                     } else {
-                        showErrorModal('เกิดข้อผิดพลาดในการเพิ่มหมวดหมู่');
-
+                        showErrorModal('กรุณากรอกชื่อหมวดหมู่');
                     }
-                } catch (error) {
-                    console.error('Error:', error);
-                    showErrorModal('เกิดข้อผิดพลาดในการเพิ่มหมวดหมู่');
+                };
 
-                }
+                cancelBtn.onclick = () => {
+                    modal.classList.add('hidden');
+                };
             }
-        }
 
         async function createSkill(event) {
             event.preventDefault();

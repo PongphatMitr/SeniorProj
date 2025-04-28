@@ -371,10 +371,14 @@
         }
 
         function changeYear(year) {
-            currentYear = year;
-            renderCalendar(currentMonth, currentYear);
-            updateDisplayedMonthYear(); // 🛠 อัปเดตหัวปฏิทิน
-        }
+                if (currentEra === 'BE') {
+                    currentYear = year - 543; // แปลง พ.ศ. → ค.ศ. ก่อน render
+                } else {
+                    currentYear = year;
+                }
+                renderCalendar(currentMonth, currentYear);
+                updateDisplayedMonthYear();
+            }
 
         function changeMonthDirect(month) {
             currentMonth = month;
@@ -406,36 +410,43 @@
         }
 
         function updateDisplayedMonthYear() {
-            let displayYear = currentEra === 'BE' ? currentYear + 543 : currentYear;
-            const monthName = new Intl.DateTimeFormat('th-TH', { month: 'long' }).format(new Date(currentYear, currentMonth));
-            document.getElementById('month-year').textContent = `${displayYear} ${monthName}`;
-        }
+                const monthName = new Intl.DateTimeFormat('th-TH', { month: 'long' }).format(new Date(currentYear, currentMonth));
+                const displayYear = currentEra === 'BE' ? currentYear + 543 : currentYear;
+                document.getElementById('month-year').textContent = `${monthName} ${displayYear}`;
+            }
 
         let currentEra = 'AD'; // เริ่มต้นให้เป็น ค.ศ.
 
         function populateYearSelect() {
-            const yearSelect = document.getElementById('year-select');
-            yearSelect.innerHTML = '';
+                const yearSelect = document.getElementById('year-select');
+                yearSelect.innerHTML = '';
 
-            let currentYearAD = new Date().getFullYear(); // ปี ค.ศ. จริง ๆ
-            let startYearAD = currentYearAD - 5;
-            let endYearAD = currentYearAD + 5;
+                let currentYearAD = new Date().getFullYear(); // ปี ค.ศ. จริง ๆ
+                let startYearAD = currentYearAD - 5;
+                let endYearAD = currentYearAD + 5;
 
-            for (let year = startYearAD; year <= endYearAD; year++) {
-                let option = document.createElement('option');
-                option.value = year; // เก็บค่าเป็น ค.ศ.
-                option.textContent = currentEra === 'BE' ? `${year + 543}` : `${year}`; // แสดง พ.ศ. หรือ ค.ศ.
-                if (year === currentYearAD) {
-                    option.selected = true;
+                for (let year = startYearAD; year <= endYearAD; year++) {
+                    const option = document.createElement('option');
+                    if (currentEra === 'BE') {
+                        option.value = year + 543; // 💥 เซ็ต value = พ.ศ.
+                        option.textContent = `พ.ศ. ${year + 543}`;
+                        if ((year + 543) === (currentYear + 543)) {
+                            option.selected = true;
+                        }
+                    } else {
+                        option.value = year; // 💥 value เป็น ค.ศ. ปกติ
+                        option.textContent = `ค.ศ. ${year}`;
+                        if (year === currentYear) {
+                            option.selected = true;
+                        }
+                    }
+                    yearSelect.appendChild(option);
                 }
-                yearSelect.appendChild(option);
-            }
 
-            yearSelect.addEventListener('change', () => {
-                const selectedYear = parseInt(yearSelect.value);
-                changeYear(currentEra === 'BE' ? selectedYear - 543 : selectedYear);
-            });
-        }
+                yearSelect.addEventListener('change', () => {
+                    changeYear(parseInt(yearSelect.value)); // ✅ ดึง year ตามที่แสดง
+                });
+            }
 
         document.addEventListener('DOMContentLoaded', () => {
             fetchActivities();
@@ -447,6 +458,7 @@
                 currentEra = this.value;
                 populateYearSelect(); // Re-populate ปีใหม่ตามรูปแบบ era
                 updateDisplayedMonthYear(); // Update หัวปฏิทินด้วย
+                renderCalendar(currentMonth, currentYear); // รีเรนเดอร์ปฏิทินใหม่
             });
 
         });

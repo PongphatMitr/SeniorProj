@@ -3,9 +3,233 @@
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>สมุดบัญชี - Time Bank</title>
+    <title>ประวัติธุรกรรมทั้งหมด - Time Bank</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+    <style>
+        th.sortable:hover {
+            cursor: pointer;
+            background-color: #f1f1f1;
+        }
+    </style>
+    <script>
+        let transactions = [];
+        let currentPage = 1;
+        const pageSize = 10;
+        let totalTransactions = 0;
+        let sortColumn = '';
+        let sortDirection = 'asc';
+
+        function getMemberIdFromURL() {
+                const params = new URLSearchParams(window.location.search);
+                return params.get('memberId');
+            }
+
+        function showErrorModal(message) {
+            document.getElementById('error-message').textContent = message || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง';
+            document.getElementById('error-modal').classList.remove('hidden');
+        }
+
+        function setupErrorModal() {
+            const errorConfirmBtn = document.getElementById('error-confirm-btn');
+            if (errorConfirmBtn) {
+                errorConfirmBtn.addEventListener('click', () => {
+                    document.getElementById('error-modal').classList.add('hidden');
+                });
+            }
+        }
+
+        async function fetchMemberTransactions(memberId, page = 1) {
+                try {
+                    const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/transactions?page=${page}&pageSize=${pageSize}`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        console.error(`❌ Error ${response.status}: ${errorText}`);
+                        throw new Error('ไม่สามารถดึงข้อมูลธุรกรรมของสมาชิกนี้ได้');
+                    }
+
+                    const data = await response.json();
+                    transactions = data.transactions;
+                    totalTransactions = data.total;
+
+                    renderTable(transactions);
+                    renderPagination();
+                } catch (error) {
+                    console.error('❌ Error fetching member transactions:', error);
+                    showErrorModal('เกิดข้อผิดพลาดในการโหลดธุรกรรมของสมาชิกนี้');
+                }
+            }
+
+        function renderTable(data) {
+            const tbody = document.getElementById('transaction-tbody');
+            tbody.innerHTML = '';
+
+            if (data.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="9" class="text-center text-gray-500 py-6 text-base font-medium">
+                        ไม่มีประวัติธุรกรรมในระบบ
+                    </td>
+                `;
+                tbody.appendChild(row);
+                return;
+            }
+
+            data.forEach(tx => {
+                const isEarn = tx.transaction_type === 'earn';
+                const isSpend = tx.transaction_type === 'spend';
+                const isZero = tx.time_credits === 0;
+                const sign = isZero ? '' : (isEarn ? '+' : '−');
+                const creditColor = isZero ? 'text-black' : (isEarn ? 'text-green-600' : 'text-red-600');
+                const typeLabel = isEarn ? 'โอนเข้า' : isSpend ? 'โอนออก' : tx.transaction_type;
+
+                const row = document.createElement('tr');
+                row.className = 'hover:bg-gray-50 transition text-base text-gray-800 text-center';
+
+                row.innerHTML = `
+                    <td class="px-4 py-3 font-medium">${tx.transaction_id}</td>
+                    <td class="px-4 py-3">${new Date(tx.date).toLocaleDateString('th-TH')}</td>
+                    <td class="px-4 py-3">${tx.time}</td>
+                    <td class="px-4 py-3">${tx.requester_name || '—'}</td>
+                    <td class="px-4 py-3">${typeLabel}</td>
+                    <td class="px-4 py-3 ${creditColor} font-semibold">${sign}${tx.time_credits} ชั่วโมง</td>
+                    <td class="px-4 py-3">${tx.participant_name || '—'}</td>
+                    <td class="px-4 py-3">${tx.activity_title || '—'}</td>
+                    <td class="px-4 py-3 text-center">
+                        ${tx.activity_id ? `
+                            <a href="activity-details.html?id=${tx.activity_id}"
+                               class="bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-1 px-3 rounded shadow focus:outline-none focus:ring-2 focus:ring-blue-400">
+                                ดูรายละเอียด
+                            </a>` : '—'}
+                    </td>
+                `;
+
+                tbody.appendChild(row);
+            });
+        }
+
+        function renderPagination() {
+            const paginationContainer = document.getElementById('pagination');
+            paginationContainer.innerHTML = '';
+
+            const totalPages = Math.ceil(totalTransactions / pageSize);
+
+            const firstButton = document.createElement('button');
+            firstButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1';
+            firstButton.textContent = 'First';
+            firstButton.disabled = currentPage === 1;
+            firstButton.onclick = () => {
+                currentPage = 1;
+                fetchAllTransactions(currentPage);
+            };
+            paginationContainer.appendChild(firstButton);
+
+            const prevButton = document.createElement('button');
+            prevButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1';
+            prevButton.textContent = 'Prev';
+            prevButton.disabled = currentPage === 1;
+            prevButton.onclick = () => {
+                if (currentPage > 1) {
+                    currentPage--;
+                    fetchAllTransactions(currentPage);
+                }
+            };
+            paginationContainer.appendChild(prevButton);
+
+            // Show max 5 page buttons centered around current page
+            let startPage = Math.max(1, currentPage - 2);
+            let endPage = Math.min(totalPages, currentPage + 2);
+            if (currentPage <= 2) {
+                endPage = Math.min(5, totalPages);
+            }
+            if (currentPage >= totalPages - 1) {
+                startPage = Math.max(1, totalPages - 4);
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+                const pageButton = document.createElement('button');
+                pageButton.className = `bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1 ${i === currentPage ? 'bg-blue-700' : ''}`;
+                pageButton.textContent = i;
+                pageButton.onclick = () => {
+                    currentPage = i;
+                    fetchAllTransactions(currentPage);
+                };
+                paginationContainer.appendChild(pageButton);
+            }
+
+            const nextButton = document.createElement('button');
+            nextButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1';
+            nextButton.textContent = 'Next';
+            nextButton.disabled = currentPage === totalPages;
+            nextButton.onclick = () => {
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    fetchAllTransactions(currentPage);
+                }
+            };
+            paginationContainer.appendChild(nextButton);
+
+            const lastButton = document.createElement('button');
+            lastButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1';
+            lastButton.textContent = 'Last';
+            lastButton.disabled = currentPage === totalPages;
+            lastButton.onclick = () => {
+                currentPage = totalPages;
+                fetchAllTransactions(currentPage);
+            };
+            paginationContainer.appendChild(lastButton);
+        }
+
+        function sortTable(column) {
+            const direction = sortColumn === column && sortDirection === 'asc' ? 'desc' : 'asc';
+            sortColumn = column;
+            sortDirection = direction;
+
+            transactions.sort((a, b) => {
+                let aVal = a[column];
+                let bVal = b[column];
+
+                // For date column, convert to Date for comparison
+                if (column === 'date') {
+                    aVal = new Date(aVal);
+                    bVal = new Date(bVal);
+                }
+
+                if (aVal < bVal) return direction === 'asc' ? -1 : 1;
+                if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+                return 0;
+            });
+
+            renderTable(transactions);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+                document.querySelectorAll('th.sortable').forEach(header => {
+                    header.addEventListener('click', () => {
+                        const column = header.getAttribute('data-column');
+                        sortTable(column);
+                    });
+                });
+
+                setupErrorModal();
+
+                const memberId = getMemberIdFromURL();
+                if (memberId) {
+                    fetchMemberTransactions(memberId, currentPage);
+                } else {
+                    showErrorModal('ไม่พบรหัสสมาชิกใน URL');
+                }
+            });
+    </script>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script src="notification.js"></script>
+    <script src="selected-language.js"></script>
+    <script src="navbar.js"></script>
 </head>
 
 <body class="bg-gray-100">
@@ -22,49 +246,47 @@
                 <!-- Notification Placeholder -->
                 <div id="mainNotificationPanel" class="relative"></div>
             </div>
-            <h1 class="text-4xl font-bold mb-5">สมุดบัญชี</h1>
+
             <div class="bg-white text-black p-8 rounded-lg shadow-lg">
-                <h2 class="text-3xl font-bold mb-6 text-center text-blue-700">รายการธุรกรรม</h2>
+                <!-- Header Section -->
+                <div class="text-center mb-8">
+                    <h2 class="text-3xl font-extrabold text-blue-700 tracking-tight mb-2 leading-snug">
+                        ธุรกรรมเวลาทั้งหมด
+                    </h2>
+                    <p class="text-red-600 text-lg font-medium leading-relaxed max-w-2xl mx-auto">
+                        แสดงข้อมูลการให้และรับความช่วยเหลือผ่านกิจกรรมต่าง ๆ ที่ได้ดำเนินการเสร็จสิ้นแล้ว
+                    </p>
+                </div>
+
                 <div class="overflow-x-auto">
                     <div class="table-responsive-sm">
-                        <table aria-busy="false" aria-colcount="6" class="table b-table b-table-stacked-md w-full"
-                            role="table">
-                            <thead class="bg-gray-100" role="rowgroup">
-                                <tr role="row">
-                                    <th aria-colindex="1"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        รหัสธุรกรรม
-                                    </th>
-                                    <th aria-colindex="2"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        วันที่
-                                    </th>
-                                    <th aria-colindex="3"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        รายละเอียด
-                                    </th>
-                                    <th aria-colindex="4"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        เครดิตเวลา
-                                    </th>
-                                    <th aria-colindex="5"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        ชื่อกิจกรรม
-                                    </th>
-                                    <th aria-colindex="6"
-                                        class="py-2 px-4 text-left text-sm font-semibold text-gray-600"
-                                        role="columnheader" scope="col">
-                                        ชื่อผู้ขอ
-                                    </th>
+                        <table
+                            class="min-w-full text-sm text-gray-800 border border-gray-300 rounded-lg shadow-sm overflow-hidden">
+                            <thead class="bg-gray-50 border-b border-gray-300">
+                                <tr>
+                                    <th class="px-4 py-3 text-center text-base font-semibold text-gray-700 uppercase tracking-wide sortable"
+                                        data-column="transaction_id">รหัสธุรกรรม</th>
+                                    <th class="px-4 py-3 text-center text-base font-semibold text-gray-700 uppercase tracking-wide sortable"
+                                        data-column="date">วันที่</th>
+                                    <th class="px-4 py-3 text-center text-base font-semibold text-gray-700 uppercase tracking-wide sortable"
+                                        data-column="time">เวลา</th>
+                                    <th class="px-4 py-3 text-center text-base font-semibold text-gray-700 uppercase tracking-wide sortable"
+                                        data-column="requester_name">ผู้ขอ</th>
+                                    <th class="px-4 py-3 text-center text-base font-semibold text-gray-700 uppercase tracking-wide sortable"
+                                        data-column="transaction_type">ประเภทธุรกรรม</th>
+                                    <th class="px-4 py-3 text-center text-base font-semibold text-gray-700 uppercase tracking-wide sortable"
+                                        data-column="time_credits">เครดิตเวลา</th>
+                                    <th class="px-4 py-3 text-center text-base font-semibold text-gray-700 uppercase tracking-wide sortable"
+                                        data-column="participant_name">ผู้เข้าร่วม</th>
+                                    <th class="px-4 py-3 text-center text-base font-semibold text-gray-700 uppercase tracking-wide sortable"
+                                        data-column="activity_title">ชื่อกิจกรรม</th>
+                                    <th
+                                        class="px-4 py-3 text-center text-base font-semibold text-gray-700 uppercase tracking-wide">
+                                        รายละเอียด</th>
                                 </tr>
                             </thead>
-                            <tbody id="transaction-tbody" role="rowgroup">
-                                <!-- Transactions will be dynamically inserted here -->
+                            <tbody id="transaction-tbody" class="divide-y divide-gray-200 bg-white">
+                                <!-- Dynamic rows from renderTable() go here -->
                             </tbody>
                         </table>
                     </div>
@@ -72,205 +294,30 @@
                 <div class="flex items-center justify-center mt-5" id="pagination">
                     <!-- Pagination buttons will be dynamically inserted here -->
                 </div>
-                <div class="flex justify-center mt-4">
-                    <button
-                        class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-                        onclick="window.history.back()">
-                        ย้อนกลับ
-                    </button>
-                </div>
             </div>
         </div>
     </div>
-
-    <!-- Success Message Modal -->
-    <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+    <!-- Error Modal -->
+    <div id="error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
         <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
             <div class="flex justify-center">
-                <div class="w-20 h-20 flex items-center justify-center rounded-full bg-green-100 border-4 border-green-500">
-                    <svg class="w-12 h-12 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                        stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                <div class="w-20 h-20 flex items-center justify-center rounded-full bg-red-100 border-4 border-red-500">
+                    <svg class="w-12 h-12 text-red-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                        viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </div>
             </div>
-            <h2 class="text-3xl font-bold text-green-600 mt-6">แก้ไขสำเร็จ!</h2>
-            <p class="text-gray-700 text-lg mt-4" id="success-message">แก้ไขประกาศสำเร็จ</p>
-            <button id="success-confirm-btn"
+            <h2 class="text-3xl font-bold text-red-600 mt-6">เกิดข้อผิดพลาด!</h2>
+            <p id="error-message" class="text-gray-700 text-lg mt-4">เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง</p>
+            <button id="error-confirm-btn"
                 class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
                 ยืนยัน
             </button>
         </div>
     </div>
 
-    <!-- Delete Confirmation Modal -->
-    <div id="delete-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
-            <h2 class="text-3xl font-bold text-red-600 mt-6">ยืนยันการลบประกาศ</h2>
-            <p class="text-gray-700 text-lg mt-4">ต้องการลบประกาศหรือไม่?</p>
-            <div class="mt-6 flex justify-center">
-                <button id="confirm-delete-btn"
-                    class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300 mr-4">
-                    ยืนยัน
-                </button>
-                <button id="cancel-delete-btn"
-                    class="px-6 py-3 bg-gray-600 text-white text-lg font-semibold rounded-lg hover:bg-gray-700 transition duration-300">
-                    ยกเลิก
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        let memberId = new URLSearchParams(window.location.search).get('memberId');
-        if (!memberId) {
-                showErrorModal('ไม่พบรหัสสมาชิกใน URL');
-                throw new Error('No memberId provided in the URL');
-            }
-
-        let transactions = [];
-        let currentPage = 1;
-        const pageSize = 10;
-        let totalTransactions = 0;
-
-        function showSuccessModal(message) {
-                document.getElementById('success-message').textContent = message;
-                document.getElementById('success-modal').classList.remove('hidden');
-            }
-
-            document.getElementById('success-confirm-btn').addEventListener('click', () => {
-                document.getElementById('success-modal').classList.add('hidden');
-            });
-
-            function showErrorModal(message) {
-                    document.getElementById('success-message').textContent = message;
-                    document.getElementById('success-modal').classList.remove('hidden');
-                }
-
-                document.getElementById('success-confirm-btn').addEventListener('click', () => {
-                    document.getElementById('success-modal').classList.add('hidden');
-                });
-
-        async function fetchTransactions(page) {
-            try {
-                const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}/transactions?page=${page}&pageSize=${pageSize}`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                const data = await response.json();
-                if (Array.isArray(data.transactions)) {
-                    transactions = data.transactions;
-                    totalTransactions = data.total;
-                    renderTable(transactions);
-                    renderPagination();
-                } else {
-                    console.error('Expected an array but got:', data);
-                    showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลธุรกรรม');
-                }
-            } catch (error) {
-                console.error('Error fetching transactions:', error);
-                showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลธุรกรรม');
-            }
-        }
-
-        function renderTable(data) {
-            const tbody = document.getElementById('transaction-tbody');
-            tbody.innerHTML = '';
-            data.forEach((transaction, index) => {
-                const row = document.createElement('tr');
-                row.id = `row-${index + 1}`;
-                row.className = 'hover:bg-gray-100';
-                const timeCreditsClass = transaction.transaction_type === 'earn' ? 'text-green-500' : 'text-red-500';
-                row.innerHTML = `
-                    <td aria-colindex="1" data-label="รหัสธุรกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${transaction.transaction_id}
-                    </td>
-                    <td aria-colindex="2" data-label="วันที่" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${new Date(transaction.date).toLocaleDateString()}
-                    </td>
-                    <td aria-colindex="3" data-label="รายละเอียด" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${transaction.details}
-                    </td>
-                    <td aria-colindex="4" data-label="เครดิตเวลา" role="cell" class="py-2 px-4 border-b border-gray-200 ${timeCreditsClass}">
-                        ${transaction.time_credits}
-                    </td>
-                    <td aria-colindex="5" data-label="ชื่อกิจกรรม" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${transaction.activity_title || ''}
-                    </td>
-                    <td aria-colindex="6" data-label="ชื่อผู้ขอ" role="cell" class="py-2 px-4 border-b border-gray-200">
-                        ${transaction.requester_name || ''}
-                    </td>
-                `;
-                tbody.appendChild(row);
-            });
-        }
-
-        function renderPagination() {
-            const paginationContainer = document.getElementById('pagination');
-            paginationContainer.innerHTML = '';
-
-            const totalPages = Math.ceil(totalTransactions / pageSize);
-
-            const firstButton = document.createElement('button');
-            firstButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1';
-            firstButton.textContent = 'First';
-            firstButton.onclick = () => {
-                currentPage = 1;
-                fetchTransactions(currentPage);
-            };
-            paginationContainer.appendChild(firstButton);
-
-            const prevButton = document.createElement('button');
-            prevButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1';
-            prevButton.textContent = 'Prev';
-            prevButton.onclick = () => {
-                if (currentPage > 1) {
-                    currentPage--;
-                    fetchTransactions(currentPage);
-                }
-            };
-            paginationContainer.appendChild(prevButton);
-
-            for (let i = 1; i <= totalPages; i++) {
-                const pageButton = document.createElement('button');
-                pageButton.className = `bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1 ${i === currentPage ? 'bg-blue-700' : ''}`;
-                pageButton.textContent = i;
-                pageButton.onclick = () => {
-                    currentPage = i;
-                    fetchTransactions(currentPage);
-                };
-                paginationContainer.appendChild(pageButton);
-            }
-
-            const nextButton = document.createElement('button');
-            nextButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1';
-            nextButton.textContent = 'Next';
-            nextButton.onclick = () => {
-                if (currentPage < totalPages) {
-                    currentPage++;
-                    fetchTransactions(currentPage);
-                }
-            };
-            paginationContainer.appendChild(nextButton);
-
-            const lastButton = document.createElement('button');
-            lastButton.className = 'bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline mx-1';
-            lastButton.textContent = 'Last';
-            lastButton.onclick = () => {
-                currentPage = totalPages;
-                fetchTransactions(currentPage);
-            };
-            paginationContainer.appendChild(lastButton);
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchTransactions(currentPage);
-        });
-    </script>
-    <script src="navbar.js"></script>
-        <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-        <script src="notification.js"></script>
 </body>
 
 </html>

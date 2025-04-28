@@ -58,25 +58,29 @@ const categories = Object.keys(categoryMap)
                 categoryDiv.setAttribute('data-category', category);
 
                 categoryDiv.innerHTML = `
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="text-xl font-bold category-name">${category}</h3>
-                        <div>
-                            <button
-                                class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
-                                type="button" onclick="modifyCategory('${category.replace(/'/g, "\\'")}')">แก้ไข</button>
-                        </div>
-                    </div>
-                `;
+    <div class="mb-2">
+        <p class="text-2xl font-bold text-gray-1000 mb-1">หมวดหมู่</p>
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="text-xl category-name ml-4">${category}</h3>
+            <div>
+                <button
+                    class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline"
+                    type="button" onclick="modifyCategory('${category.replace(/'/g, "\\'")}')">แก้ไข</button>
+            </div>
+        </div>
+        <p class="text-2xl font-bold text-gray-700 mb-2">ทักษะ</p>
+    </div>
+`;
 
                 data.filter(skill => skill.category === category).forEach(skill => {
                     const skillP = document.createElement('p');
-                    skillP.className = 'mb-2';
+                    skillP.className = 'mb-2 flex justify-between items-center';
                     skillP.innerHTML = `
-                        <span class="skill-name">${skill.name}</span>
-                        <button
-                            class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 ml-2 mt-2 rounded focus:outline-none focus:shadow-outline hidden"
-                            type="button" onclick="removeSkill(${skill.skill_id})">ลบ</button>
-                    `;
+    <span class="text-lg skill-name ml-4">${skill.name}</span>
+    <button
+        class="bg-red-500 hover:bg-red-700 text-white font-bold py-1 px-2 rounded focus:outline-none focus:shadow-outline hidden ml-4"
+        type="button" onclick="removeSkill(${skill.skill_id})">ลบ</button>
+`;
                     categoryDiv.appendChild(skillP);
                 });
 

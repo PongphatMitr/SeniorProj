@@ -15,22 +15,38 @@
         let categories = [];
         let selectedSkills = [];
 
+        // เพิ่มฟังก์ชันนี้หลังฟังก์ชัน showErrorModal
+            function showConfirmation(message, onConfirm) {
+                const modal = document.getElementById('confirm-modal');
+                const messageElement = document.getElementById('confirm-message');
+
+                messageElement.textContent = message;
+                modal.classList.remove('hidden');
+
+                // ลบ event listeners เดิมเพื่อป้องกันการเรียกซ้ำ
+                const confirmBtn = document.getElementById('confirm-yes-btn');
+                const cancelBtn = document.getElementById('confirm-no-btn');
+
+                confirmBtn.onclick = null;
+                cancelBtn.onclick = null;
+
+                // กำหนดการทำงานเมื่อคลิกยืนยัน
+                confirmBtn.onclick = () => {
+                    modal.classList.add('hidden');
+                    onConfirm();
+                };
+
+                // กำหนดการทำงานเมื่อคลิกยกเลิก
+                cancelBtn.onclick = () => {
+                    modal.classList.add('hidden');
+                };
+            }
+
         // แสดง Modal ข้อผิดพลาด
             function showErrorModal(message) {
                 document.getElementById('error-message').textContent = message;
                 document.getElementById('error-modal').classList.remove('hidden');
             }
-
-            // ปิด Modal ข้อผิดพลาด
-            const errorConfirmBtn = document.getElementById('error-confirm-btn');
-            if (errorConfirmBtn) {
-                errorConfirmBtn.addEventListener('click', () => {
-                    document.getElementById('error-modal').classList.add('hidden');
-                });
-            } else {
-                console.warn("Error Confirm Button not found");
-            }
-            
 
         async function fetchMembers() {
             try {
@@ -51,27 +67,32 @@
         }
 
         async function fetchCommunityConfig() {
-            try {
-                const response = await fetch('http://localhost:3000/api/tbm/community-config', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                try {
+                    const response = await fetch('http://localhost:3000/api/tbm/community-config', {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! status: ${response.status}`);
                     }
-                });
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
+                    const data = await response.json();
+                    exchangeRate = data.default_exchange_rate_description;
+                    minimumTimeTokenHours = parseInt(data.minimum_time_token_hours);
+                    minimumTimeTokenMinutes = parseInt(data.minimum_time_token_minutes);
+
+                    console.log('Exchange Rate:', exchangeRate);
+                    console.log('Minimum Time Token:', minimumTimeTokenHours, minimumTimeTokenMinutes);
+
+                    document.getElementById('minimum-time-token').innerText =
+                        `ใช้เวลาขั้นต่ำ ${minimumTimeTokenHours} ชั่วโมง ${minimumTimeTokenMinutes} นาที เพื่อแลกเปลี่ยนโทเคนของกิจกรรมที่ร้องขอ`;
+
+                } catch (error) {
+                    console.error('Error fetching community config:', error);
+                    showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
                 }
-                const data = await response.json();
-                exchangeRate = data.default_exchange_rate_description;
-                minimumTimeTokenHours = data.minimum_time_token_hours;
-                minimumTimeTokenMinutes = data.minimum_time_token_minutes;
-                console.log('Exchange Rate:', exchangeRate);
-                console.log('Minimum Time Token:', minimumTimeTokenHours, minimumTimeTokenMinutes);
-                document.getElementById('minimum-time-token').innerText = `ใช้เวลาขั้นต่ำ ${minimumTimeTokenHours} ชั่วโมง ${minimumTimeTokenMinutes} นาที เพื่อแลกเปลี่ยนโทเคนของกิจกรรมที่ร้องขอ`;
-            } catch (error) {
-                console.error('Error fetching community config:', error);
-                showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
+                calculateTimeTokens();
             }
-        }
 
         function searchMembers() {
             const searchTerm = document.getElementById('requester-name').value.toLowerCase();
@@ -195,125 +216,146 @@
             document.getElementById('skill-dropdown').disabled = false;
         }
 
-        async function fetchCommunityConfig() {
-            try {
-                const response = await fetch('http://localhost:3000/api/tbm/community-config', {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-                exchangeRate = data.default_exchange_rate_description;
-                minimumTimeTokenHours = data.minimum_time_token_hours;
-                minimumTimeTokenMinutes = data.minimum_time_token_minutes;
-                console.log('Exchange Rate:', exchangeRate);
-                console.log('Minimum Time Token:', minimumTimeTokenHours, minimumTimeTokenMinutes);
-                document.getElementById('minimum-time-token').innerText = `ใช้เวลาขั้นต่ำ ${minimumTimeTokenHours} ชั่วโมง ${minimumTimeTokenMinutes} นาที เพื่อแลกเปลี่ยนโทเคนของกิจกรรมที่ร้องขอ`;
-                calculateTimeTokens();
-            } catch (error) {
-                console.error('Error fetching community config:', error);
-                showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลการตั้งค่าชุมชน');
-            }
-        }
+        // ใน create-activity.html แทนที่ฟังก์ชันเดิมด้วยโค้ดนี้
+            function calculateTimeTokens() {
+                const startHours = document.getElementById('start-hours')?.value;
+                const startMinutes = document.getElementById('start-minutes')?.value;
+                const endHours = document.getElementById('end-hours')?.value;
+                const endMinutes = document.getElementById('end-minutes')?.value;
+                const maxParticipants = parseInt(document.getElementById('max-participants')?.value, 10) || 0;
 
-        function calculateTimeTokens() {
-            const startHours = document.getElementById('start-hours')?.value;
-            const startMinutes = document.getElementById('start-minutes')?.value;
-            const endHours = document.getElementById('end-hours')?.value;
-            const endMinutes = document.getElementById('end-minutes')?.value;
-            const maxParticipants = parseInt(document.getElementById('max-participants')?.value, 10) || 0;
-            if (!startHours || !startMinutes || !endHours || !endMinutes || maxParticipants <= 0) {
-                document.getElementById('time-tokens-required').value = '0.00';
-                document.getElementById('time-tokens-per-participant').value = '0.00';
-                return;
+                const startDateInput = document.getElementById('start-date');
+                const endDateInput = document.getElementById('end-date');
+
+                if (!startHours || !startMinutes || !endHours || !endMinutes || !startDateInput || !endDateInput) {
+                    document.getElementById('time-tokens-required').value = '0.00';
+                    document.getElementById('time-tokens-per-participant').value = '0.00';
+                    return;
+                }
+
+                // เพิ่มในส่วนต้นของ calculateTimeTokens()
+                const activityType = document.getElementById('activity-type').value;
+                if (activityType === 'non_exchange') {
+                    document.getElementById('time-tokens-required').value = '0.00';
+                    document.getElementById('time-tokens-per-participant').value = '0.00';
+                    return;
+                }
+
+                const startDateStr = startDateInput.value;
+                let endDateStr = endDateInput.value;
+
+                // สร้าง Date object สำหรับคำนวณ
+                const startDateTime = new Date(`${startDateStr}T${startHours}:${startMinutes}`);
+                let endDateTime = new Date(`${endDateStr}T${endHours}:${endMinutes}`);
+
+                // ✅ แก้ไขวันที่ถ้าเวลาสิ้นสุดน้อยกว่าเวลาเริ่มต้น
+                if (endDateTime <= startDateTime) {
+                    endDateTime.setDate(endDateTime.getDate() + 1);
+                    const newEndDate = endDateTime.toISOString().split("T")[0];
+                    endDateInput.value = newEndDate;
+                    endDateInput.setAttribute("min", newEndDate);
+                }
+
+                // คำนวณระยะเวลาใหม่หลังจากแก้ไขวันที่
+                const finalDuration = (endDateTime - startDateTime) / (1000 * 60 * 60);
+
+                let timeTokensRequired = 0;
+                let timeTokensPerParticipant = 0;
+
+                if (exchangeRate === '1 โทเคนเวลา ต่อ 1 ชั่วโมง') {
+                    timeTokensPerParticipant = finalDuration;
+                    timeTokensRequired = maxParticipants * finalDuration;
+                } else if (exchangeRate === '1 โทเคนเวลา ต่อ 1 กิจกรรม') {
+                    timeTokensPerParticipant = 1;
+                    timeTokensRequired = maxParticipants;
+                }
+
+                document.getElementById('time-tokens-required').value = timeTokensRequired.toFixed(2);
+                document.getElementById('time-tokens-per-participant').value = timeTokensPerParticipant.toFixed(2);
             }
-            const startTime = new Date();
-            startTime.setHours(parseInt(startHours, 10), parseInt(startMinutes, 10), 0);
-            const endTime = new Date();
-            endTime.setHours(parseInt(endHours, 10), parseInt(endMinutes, 10), 0);
-            let durationInHours = (endTime - startTime) / (1000 * 60 * 60);
-            if (durationInHours < 0) {
-                durationInHours += 24;
-            }
-            const minimumDurationInHours = minimumTimeTokenHours + (minimumTimeTokenMinutes / 60);
-            if (durationInHours < minimumDurationInHours) {
-                document.getElementById('time-tokens-required').value = '0.00';
-                document.getElementById('time-tokens-per-participant').value = '0.00';
-                return;
-            }
-            let timeTokensRequired = 0;
-            let timeTokensPerParticipant = 0;
-            if (exchangeRate === '1 โทเคนเวลา ต่อ 1 ชั่วโมง') {
-                timeTokensPerParticipant = durationInHours;
-                timeTokensRequired = maxParticipants * durationInHours;
-            } else if (exchangeRate === '1 โทเคนเวลา ต่อ 1 กิจกรรม') {
-                timeTokensPerParticipant = 1;
-                timeTokensRequired = maxParticipants;
-            }
-            document.getElementById('time-tokens-required').value = timeTokensRequired.toFixed(2);
-            document.getElementById('time-tokens-per-participant').value = timeTokensPerParticipant.toFixed(2);
-        }
 
         async function submitActivity(event) {
-            event.preventDefault();
-            const title = document.getElementById('title').value;
-            const description = document.getElementById('description').value;
-            const location = document.getElementById('location').value;
-            const startDate = document.getElementById('start-date').value;
-            const endDate = document.getElementById('end-date').value;
-            const maxParticipants = parseInt(document.getElementById('max-participants').value, 10);
-            const requesterId = document.getElementById('requester-id').value;
-            const requesterPhone = document.getElementById('phone').value;
-            const status = document.getElementById('status').value;
-            const activityType = document.getElementById('activity-type').value;
-            if (!activityType) {
-                showErrorModal('กรุณาเลือกประเภทของกิจกรรม');
-                return;
-            }
-            const timeTokensRequired = parseFloat(document.getElementById('time-tokens-required').value);
-            const timeTokensPerParticipant = parseFloat(document.getElementById('time-tokens-per-participant').value);
-            const startHours = document.getElementById('start-hours').value;
-            const startMinutes = document.getElementById('start-minutes').value;
-            const endHours = document.getElementById('end-hours').value;
-            const endMinutes = document.getElementById('end-minutes').value;
-            if (!startHours || !startMinutes || !endHours || !endMinutes) {
-                showErrorModal('กรุณาเลือกเวลาเริ่มต้นและเวลาสิ้นสุดให้ครบ');
-                return;
-            }
-            const startTime = `${startHours}:${startMinutes}`;
-            const endTime = `${endHours}:${endMinutes}`;
-            if (selectedSkills.length === 0) {
-                showErrorModal('กรุณาเลือก 1 ทักษะสำหรับกิจกรรม');
-                return;
-            }
-            const required_skill = selectedSkills[0].skill_id;
-            const activityData = {
-                title, description, location, start_date: startDate, start_time: startTime, end_date: endDate, end_time: endTime,
-                max_participants: maxParticipants, requester_id: requesterId, requester_phone: requesterPhone, status,
-                time_tokens_required: timeTokensRequired, time_tokens_per_participant: timeTokensPerParticipant, required_skills: required_skill, activity_type: activityType
-            };
-            try {
-                const response = await fetch('http://localhost:3000/api/tbm/activities', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify(activityData)
-                });
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(`Activity creation failed: ${errorData.error}`);
+                event.preventDefault();
+
+                const title = document.getElementById('title').value;
+                const description = document.getElementById('description').value;
+                const location = document.getElementById('location').value;
+                const startDate = document.getElementById('start-date').value;
+                const endDate = document.getElementById('end-date').value;
+                const maxParticipants = parseInt(document.getElementById('max-participants').value, 10);
+                const requesterId = document.getElementById('requester-id').value;
+                const requesterPhone = document.getElementById('phone').value;
+                const status = document.getElementById('status').value;
+                const activityType = document.getElementById('activity-type').value;
+                const timeTokensRequired = parseFloat(document.getElementById('time-tokens-required').value);
+                const timeTokensPerParticipant = parseFloat(document.getElementById('time-tokens-per-participant').value);
+                const startHours = document.getElementById('start-hours').value;
+                const startMinutes = document.getElementById('start-minutes').value;
+                const endHours = document.getElementById('end-hours').value;
+                const endMinutes = document.getElementById('end-minutes').value;
+
+                if (!activityType) {
+                    showErrorModal('กรุณาเลือกประเภทของกิจกรรม');
+                    return;
                 }
-                showSuccessModal();
-            } catch (error) {
-                console.error('Error:', error);
-                showErrorModal('เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+                if (!requesterId) {
+                    showErrorModal('กรุณาเลือกผู้ขอ');
+                    return;
+                }
+                if (!maxParticipants || isNaN(maxParticipants)) {
+                    showErrorModal('กรุณาระบุจำนวนผู้เข้าร่วม');
+                    return;
+                }
+                if (!startHours || !startMinutes || !endHours || !endMinutes) {
+                    showErrorModal('กรุณาเลือกเวลาเริ่มต้นและเวลาสิ้นสุดให้ครบ');
+                    return;
+                }
+                if (selectedSkills.length === 0) {
+                    showErrorModal('กรุณาเลือก 1 ทักษะสำหรับกิจกรรม');
+                    return;
+                }
+
+                const startTime = `${startHours}:${startMinutes}`;
+                const endTime = `${endHours}:${endMinutes}`;
+                const required_skill = selectedSkills[0].skill_id;
+
+                const activityData = {
+                    title,
+                    description,
+                    location,
+                    start_date: startDate,
+                    start_time: startTime,
+                    end_date: endDate,
+                    end_time: endTime,
+                    max_participants: Number(maxParticipants),
+                    requester_id: Number(requesterId),
+                    requester_phone: requesterPhone,
+                    status,
+                    time_tokens_required: activityType === 'exchange' ? timeTokensRequired : 0,
+                    time_tokens_per_participant: activityType === 'exchange' ? timeTokensPerParticipant : 0,
+                    required_skills: Number(required_skill),
+                    activity_type: activityType
+                };
+
+                try {
+                    const response = await fetch('http://localhost:3000/api/tbm/activities', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify(activityData)
+                    });
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        throw new Error(`Activity creation failed: ${errorData.error}`);
+                    }
+                    showSuccessModal();
+                } catch (error) {
+                    console.error('Error while submitting activity:', error);
+                    showErrorModal(error.message || 'เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง');
+                }
             }
-        }
 
     function showSuccessModal() {
         document.getElementById('success-modal').classList.remove('hidden');
@@ -329,61 +371,196 @@
             // Implement the function to fetch user details
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
+        // แก้ไขฟังก์ชันนี้
+            function showCreateConfirmation() {
+                showConfirmation("คุณต้องการสร้างกิจกรรมนี้ใช่หรือไม่?", () => {
+                    const form = document.querySelector('form');
+                    if (form) {
+                        // สร้าง event object จำลอง
+                        const event = {
+                            preventDefault: () => { }
+                        };
+                        submitActivity(event);
+                    }
+                });
+            }
+
+            function autoSetEndTime() {
+                    const startHours = parseInt(document.getElementById('start-hours').value, 10);
+                    const startMinutes = parseInt(document.getElementById('start-minutes').value, 10);
+
+                    if (isNaN(startHours) || isNaN(startMinutes)) return;
+
+                    let endHours = startHours + 1;
+                    let endMinutes = startMinutes;
+
+                    if (endHours >= 24) {
+                        endHours = endHours % 24;
+                        const endDateInput = document.getElementById('end-date');
+                        const currentEndDate = new Date(endDateInput.value);
+                        currentEndDate.setDate(currentEndDate.getDate() + 1);
+                        const newEndDateStr = currentEndDate.toISOString().split('T')[0];
+                        endDateInput.value = newEndDateStr;
+                        endDateInput.setAttribute('min', newEndDateStr);
+                    }
+
+                    document.getElementById('end-hours').value = endHours.toString().padStart(2, '0');
+                    document.getElementById('end-minutes').value = endMinutes.toString().padStart(2, '0');
+                }
+
+                function updateEndDate(startDateValue) {
+                        const endDateInput = document.getElementById('end-date');
+                        const startHours = parseInt(document.getElementById('start-hours').value, 10);
+                        const startMinutes = parseInt(document.getElementById('start-minutes').value, 10);
+                        const endHours = parseInt(document.getElementById('end-hours').value, 10);
+                        const endMinutes = parseInt(document.getElementById('end-minutes').value, 10);
+
+                        if (!endDateInput) return;
+
+                        endDateInput.setAttribute('min', startDateValue);
+
+                        if (endDateInput.value < startDateValue) {
+                            endDateInput.value = startDateValue;
+                        }
+
+                        if (
+                            endDateInput.value === startDateValue &&
+                            !isNaN(startHours) && !isNaN(startMinutes) &&
+                            !isNaN(endHours) && !isNaN(endMinutes)
+                        ) {
+                            const startTime = startHours * 60 + startMinutes;
+                            const endTime = endHours * 60 + endMinutes;
+
+                            if (startTime > endTime) {
+                                const newEndDate = new Date(startDateValue);
+                                newEndDate.setDate(newEndDate.getDate() + 1);
+                                const formattedNewEndDate = newEndDate.toISOString().split('T')[0];
+                                endDateInput.value = formattedNewEndDate;
+                                endDateInput.setAttribute('min', formattedNewEndDate);
+                            }
+                        }
+                    }
+
+                function handleActivityTypeChange() {
+                        const type = document.getElementById('activity-type').value;
+                        const tokenFields = document.getElementById('token-fields');
+                        if (!tokenFields) {
+                            console.warn('token-fields not found, skipping...');
+                            return; // ➔ ป้องกัน error
+                        }
+                        if (type === 'exchange') {
+                            tokenFields.classList.remove('hidden');
+                            calculateTimeTokens();
+                        } else {
+                            tokenFields.classList.add('hidden');
+                        }
+                    }
+
+                    // Date initialization with local time
+                        const initializeDates = () => {
+                            const now = new Date();
+                            const year = now.getFullYear();
+                            const month = String(now.getMonth() + 1).padStart(2, '0');
+                            const day = String(now.getDate()).padStart(2, '0');
+                            const today = `${year}-${month}-${day}`;
+
+                            const startDateInput = document.getElementById('start-date');
+                            const endDateInput = document.getElementById('end-date');
+
+                            startDateInput.value = today;
+                            endDateInput.value = today;
+                            startDateInput.min = today;
+                            endDateInput.min = today;
+                        };
+
+                        // Time initialization with local time
+                        const initializeTimes = () => {
+                            const now = new Date();
+                            const currentHour = now.getHours().toString().padStart(2, '0');
+                            const currentMinute = String(Math.floor(now.getMinutes() / 5) * 5).padStart(2, '0');
+
+                            // Set start time
+                            document.getElementById('start-hours').value = currentHour;
+                            document.getElementById('start-minutes').value = currentMinute;
+
+                            // Set end time (start time + 1 hour)
+                            updateEndTime();
+                        };
+
+                        function updateEndTime() {
+                                const startHours = parseInt(document.getElementById("start-hours").value, 10);
+                                const startMinutes = parseInt(document.getElementById("start-minutes").value, 10);
+
+                                if (!isNaN(startHours)) {
+                                    let endHours = startHours + 1;
+                                    const endMinutes = startMinutes;
+
+                                    // Handle midnight rollover
+                                    if (endHours >= 24) endHours = 0;
+
+                                    document.getElementById("end-hours").value = endHours.toString().padStart(2, '0');
+                                    document.getElementById("end-minutes").value = endMinutes.toString().padStart(2, '0');
+
+                                    calculateTimeDifference();
+                                    calculateTimeTokens();
+                                }
+                            }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const params = new URLSearchParams(window.location.search);
+            const selectedDate = params.get('date');
+
+            if (selectedDate) {
+                // 🌟 ถ้ามี date ที่ส่งมาจาก calendar
+                document.getElementById('start-date').value = selectedDate;
+                document.getElementById('end-date').value = selectedDate;
+
+                // 🌟 ต้องเซ็ต min ด้วย ไม่งั้นเลือกไม่ได้
+                document.getElementById('start-date').setAttribute('min', selectedDate);
+                document.getElementById('end-date').setAttribute('min', selectedDate);
+            } else {
+                // ถ้าไม่มี (เข้าแบบปกติ) ➔ initialize วันนี้
+                initializeDates();
+            }
+
             checkLoginStatus();
+            initializeTimes();
+            await fetchCommunityConfig(); // 🛡️ ต้องรอค่าพร้อมก่อน
             fetchUserDetails();
-            fetchCommunityConfig();
             fetchSkillsAndCategories();
             fetchMembers();
+            handleActivityTypeChange();
+            document.getElementById('activity-type').addEventListener('change', () => {
+                handleActivityTypeChange();
+            });
 
-            // Date initialization with local time
-            const initializeDates = () => {
-                const now = new Date();
-                const year = now.getFullYear();
-                const month = String(now.getMonth() + 1).padStart(2, '0');
-                const day = String(now.getDate()).padStart(2, '0');
-                const today = `${year}-${month}-${day}`;
-                
-                const startDateInput = document.getElementById('start-date');
-                const endDateInput = document.getElementById('end-date');
-                
-                startDateInput.value = today;
-                endDateInput.value = today;
-                startDateInput.min = today;
-                endDateInput.min = today;
-            };
+            document.getElementById('start-hours').addEventListener('change', () => {
+                autoSetEndTime();
+                updateEndDate(document.getElementById('start-date').value);
+                calculateTimeTokens();
+            });
 
-            // Time initialization with local time
-            const initializeTimes = () => {
-                const now = new Date();
-                const currentHour = now.getHours().toString().padStart(2, '0');
-                const currentMinute = String(Math.floor(now.getMinutes() / 5) * 5).padStart(2, '0');
+            document.getElementById('start-minutes').addEventListener('change', () => {
+                autoSetEndTime();
+                updateEndDate(document.getElementById('start-date').value);
+                calculateTimeTokens();
+            });
 
-                // Set start time
-                document.getElementById('start-hours').value = currentHour;
-                document.getElementById('start-minutes').value = currentMinute;
+            // เพิ่ม listener สำหรับ max-participants
+            document.getElementById('max-participants').addEventListener('input', calculateTimeTokens);
 
-                // Set end time (start time + 1 hour)
-                updateEndTime();
-            };
+            const activityTypeDropdown = document.getElementById('activity-type');
+            if (activityTypeDropdown) {
+                activityTypeDropdown.addEventListener('change', handleActivityTypeChange);
+            }
 
-            function updateEndTime() {
-                const startHours = parseInt(document.getElementById("start-hours").value, 10);
-                const startMinutes = parseInt(document.getElementById("start-minutes").value, 10);
-                
-                if (!isNaN(startHours)) {
-                    let endHours = startHours + 1;
-                    const endMinutes = startMinutes;
-                    
-                    // Handle midnight rollover
-                    if (endHours >= 24) endHours = 0;
-                    
-                    document.getElementById("end-hours").value = endHours.toString().padStart(2, '0');
-                    document.getElementById("end-minutes").value = endMinutes.toString().padStart(2, '0');
-                    
-                    calculateTimeDifference();
-                    calculateTimeTokens();
-                }
+            const errorConfirmBtn = document.getElementById('error-confirm-btn');
+            if (errorConfirmBtn) {
+                errorConfirmBtn.addEventListener('click', () => {
+                    document.getElementById('error-modal').classList.add('hidden');
+                });
+            } else {
+                console.warn("Error Confirm Button not found");
             }
 
             // Initialize dates and times
@@ -391,10 +568,24 @@
             initializeTimes();
 
             // Event listeners for time inputs
-            document.getElementById('start-hours').addEventListener('change', updateEndTime);
-            document.getElementById('start-minutes').addEventListener('change', updateEndTime);
-            document.getElementById('end-hours').addEventListener('change', calculateTimeDifference);
-            document.getElementById('end-minutes').addEventListener('change', calculateTimeDifference);
+            document.getElementById('start-hours').addEventListener('change', () => {
+                autoSetEndTime();
+                updateEndDate(startDate.value);
+                calculateTimeTokens();
+            });
+            document.getElementById('start-minutes').addEventListener('change', () => {
+                autoSetEndTime();
+                updateEndDate(startDate.value);
+                calculateTimeTokens();
+            });
+            document.getElementById('end-hours').addEventListener('change', () => {
+                updateEndDate(startDate.value);
+                calculateTimeTokens();
+            });
+            document.getElementById('end-minutes').addEventListener('change', () => {
+                updateEndDate(startDate.value);
+                calculateTimeTokens();
+            });
 
             // Date synchronization
             const startDate = document.getElementById('start-date');
@@ -416,51 +607,55 @@
         // ... [Keep all other functions the same] ...
 
         function calculateTimeDifference() {
-            const startHours = parseInt(document.getElementById("start-hours").value, 10);
-            const startMinutes = parseInt(document.getElementById("start-minutes").value, 10);
-            const endHours = parseInt(document.getElementById("end-hours").value, 10);
-            const endMinutes = parseInt(document.getElementById("end-minutes").value, 10);
-            
-            if (!isNaN(startHours) && !isNaN(startMinutes) && !isNaN(endHours) && !isNaN(endMinutes)) {
-                const startTotal = startHours * 60 + startMinutes;
-                let endTotal = endHours * 60 + endMinutes;
-                
-                if (endTotal < startTotal) endTotal += 1440; // Add 24 hours if negative
-                
-                const duration = endTotal - startTotal;
-                const hours = Math.floor(duration / 60);
-                const minutes = duration % 60;
-                
-                const timeDifferenceElement = document.getElementById("time-difference");
-                timeDifferenceElement.value = `${hours} ชั่วโมง ${minutes} นาที`;
-                
-                const minimumMinutes = minimumTimeTokenHours * 60 + minimumTimeTokenMinutes;
-                timeDifferenceElement.classList.toggle('text-red-600', duration < minimumMinutes);
-                timeDifferenceElement.classList.toggle('text-green-600', duration >= minimumMinutes);
+                const startHours = parseInt(document.getElementById("start-hours").value, 10);
+                const startMinutes = parseInt(document.getElementById("start-minutes").value, 10);
+                const endHours = parseInt(document.getElementById("end-hours").value, 10);
+                const endMinutes = parseInt(document.getElementById("end-minutes").value, 10);
+
+                if (!isNaN(startHours) && !isNaN(startMinutes) && !isNaN(endHours) && !isNaN(endMinutes)) {
+                    let startTime = new Date();
+                    startTime.setHours(startHours, startMinutes, 0);
+                    let endTime = new Date();
+                    endTime.setHours(endHours, endMinutes, 0);
+                    let durationInMinutes = (endTime - startTime) / (1000 * 60);
+                    if (durationInMinutes < 0) {
+                        durationInMinutes += 24 * 60;
+                    }
+                    const hours = Math.floor(durationInMinutes / 60);
+                    const minutes = durationInMinutes % 60;
+                    const totalDurationInHours = hours + (minutes / 60);
+                    const timeDifferenceElement = document.getElementById("time-difference");
+                    timeDifferenceElement.value = `${hours} ชั่วโมง ${minutes} นาที`;
+                    const minimumDurationInHours = minimumTimeTokenHours + (minimumTimeTokenMinutes / 60);
+                    if (totalDurationInHours < minimumDurationInHours) {
+                        timeDifferenceElement.classList.remove('text-green-600');
+                        timeDifferenceElement.classList.add('text-red-600');
+                    } else {
+                        timeDifferenceElement.classList.remove('text-red-600');
+                        timeDifferenceElement.classList.add('text-green-600');
+                    }
+                }
+                calculateTimeTokens(); // ✨ เพิ่มตรงนี้
             }
-        }
 
         // In the script section
         function setStartDateRange() {
-            const now = new Date();
-            const formattedCurrentDate = now.toISOString().split('T')[0]; // Format as YYYY-MM-DD
+                const now = new Date();
+                const minStartDate = new Date();
+                minStartDate.setDate(now.getDate() + 3);
 
-            // Get date inputs
-            const startDateInput = document.getElementById('start-date');
-            const endDateInput = document.getElementById('end-date');
+                const formattedMinStartDate = minStartDate.toISOString().split('T')[0];
 
-            // Set default values to today
-            startDateInput.value = formattedCurrentDate;
-            endDateInput.value = formattedCurrentDate;
+                const startDateInput = document.getElementById('start-date');
+                const endDateInput = document.getElementById('end-date');
 
-            // Set minimum dates to today
-            startDateInput.min = formattedCurrentDate;
-            endDateInput.min = formattedCurrentDate;
+                startDateInput.setAttribute('min', formattedMinStartDate);
+                startDateInput.value = formattedMinStartDate;
+                endDateInput.setAttribute('min', formattedMinStartDate);
+                endDateInput.value = formattedMinStartDate;
 
-            // Remove any maximum date constraints
-            startDateInput.removeAttribute('max');
-            endDateInput.removeAttribute('max');
-        }
+                syncDates(formattedMinStartDate);
+            }
 
         function syncDates() {
             const startDateInput = document.getElementById('start-date');
@@ -677,20 +872,28 @@
                         </div>
                     </div>
                     <!-- Section: Time Tokens -->
-                    <div class="grid grid-cols-2 gap-4 mb-4">
+                    <!-- Section: Time Tokens (ซ่อน/โชว์ตามประเภทกิจกรรม) -->
+                    <div id="token-fields" class="grid grid-cols-2 gap-4 mb-4 hidden">
                         <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="time-tokens-required">จำนวนโทเค็นเวลาที่ต้องการ</label>
-                            <input id="time-tokens-required" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text" readonly />
+                            <label class="block text-gray-700 text-sm font-bold mb-2"
+                                for="time-tokens-required">จำนวนโทเค็นเวลาที่ต้องการ</label>
+                            <input id="time-tokens-required" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text"
+                                readonly />
                         </div>
                         <div>
-                            <label class="block text-gray-700 text-sm font-bold mb-2" for="time-tokens-per-participant">จำนวนโทเค็นเวลาต่อผู้เข้าร่วม</label>
-                            <input id="time-tokens-per-participant" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text" readonly />
+                            <label class="block text-gray-700 text-sm font-bold mb-2"
+                                for="time-tokens-per-participant">จำนวนโทเค็นเวลาต่อผู้เข้าร่วม</label>
+                            <input id="time-tokens-per-participant" class="shadow border rounded w-full py-2 px-3 text-gray-700" type="text"
+                                readonly />
                         </div>
                     </div>
                     <!-- Buttons -->
                     <div class="flex justify-center space-x-4">
                         <button onclick="window.history.back();" class="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded"> ย้อนกลับ </button>
-                        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" type="submit"> สร้างกิจกรรม </button>
+                        <button type="button" onclick="showCreateConfirmation()"
+                            class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
+                            สร้างกิจกรรม
+                        </button>
                     </div>
                 </form>
             </div>
@@ -735,6 +938,25 @@
                 class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
                 ตกลง
             </button>
+        </div>
+    </div>
+
+    <!-- เพิ่มส่วนนี้ก่อน </body> -->
+    <!-- Confirmation Modal -->
+    <div id="confirm-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+            <h2 class="text-3xl font-bold text-blue-600 mt-6">ยืนยันการสร้างกิจกรรม</h2>
+            <p id="confirm-message" class="text-gray-700 text-lg mt-4"></p>
+            <div class="mt-6 flex justify-center gap-4">
+                <button id="confirm-yes-btn"
+                    class="px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                    ยืนยัน
+                </button>
+                <button id="confirm-no-btn"
+                    class="px-6 py-3 bg-gray-600 text-white text-lg font-semibold rounded-lg hover:bg-gray-700 transition duration-300">
+                    ยกเลิก
+                </button>
+            </div>
         </div>
     </div>
 
