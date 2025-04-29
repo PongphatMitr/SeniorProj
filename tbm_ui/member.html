@@ -197,6 +197,13 @@
         let confirmCallback = null;
     let currentUser = {}; // ไว้เก็บข้อมูล user ตัวเอง
 
+    window.addEventListener('pageshow', function (event) {
+            if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+                // ถ้า user กดย้อนกลับ หรือหน้าถูกดึงจาก cache → reload ใหม่
+                window.location.reload();
+            }
+        });
+
     async function fetchCurrentUser() {
         try {
             const response = await fetch('http://localhost:3000/api/tbm/auth/profile', {
@@ -465,7 +472,7 @@
                                     headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
                                 });
                                 if (response.ok) {
-                                    document.getElementById(rowId).remove();
+                                    await fetchMembers(currentPage, '', sortField, sortOrder);
                                     showSuccessModal("สมาชิกถูกลบเรียบร้อยแล้ว");
                                 } else {
                                     showErrorModal("เกิดข้อผิดพลาดในการลบสมาชิก");
@@ -488,7 +495,7 @@
                                 }
                             });
                             if (response.ok) {
-                                fetchMembers(currentPage, '', sortField, sortOrder);
+                                await fetchMembers(currentPage, '', sortField, sortOrder);
                                 showSuccessModal("สมาชิกถูกกู้คืนเรียบร้อยแล้ว");
                             } else {
                                 showErrorModal("เกิดข้อผิดพลาดในการกู้คืนสมาชิก");
@@ -512,7 +519,7 @@
                                 }
                             });
                             if (response.ok) {
-                                fetchMembers(currentPage, '', sortField, sortOrder);
+                                await fetchMembers(currentPage, '', sortField, sortOrder);
                                 showSuccessModal("สมาชิกถูกอนุมัติเรียบร้อยแล้ว");
                             } else {
                                 const errorData = await response.json();
@@ -538,7 +545,7 @@
                                 body: JSON.stringify({ newRole })
                             });
                             if (response.ok) {
-                                fetchMembers(currentPage, '', sortField, sortOrder);
+                                await fetchMembers(currentPage, '', sortField, sortOrder);
                                 showSuccessModal(`สมาชิกถูกเลื่อนขั้นเป็น ${newRole} เรียบร้อยแล้ว`);
                             } else {
                                 const errorData = await response.json();
@@ -562,7 +569,7 @@
                                 }
                             });
                             if (response.ok) {
-                                fetchMembers(currentPage, '', sortField, sortOrder);
+                                await fetchMembers(currentPage, '', sortField, sortOrder);
                                 showSuccessModal("สมาชิกถูกไล่ออกจากชุมชนเรียบร้อยแล้ว");
                             } else {
                                 showErrorModal("เกิดข้อผิดพลาดในการไล่ออกจากชุมชน");
@@ -585,7 +592,7 @@
                                 }
                             });
                             if (response.ok) {
-                                fetchMembers(currentPage, '', sortField, sortOrder);
+                                await fetchMembers(currentPage, '', sortField, sortOrder);
                                 showSuccessModal("TimeBankManager ถูกลดขั้นเรียบร้อยแล้ว");
                             } else {
                                 showErrorModal("เกิดข้อผิดพลาดในการลดขั้น TimeBankManager");
@@ -608,7 +615,7 @@
                                 }
                             });
                             if (response.ok) {
-                                fetchMembers(currentPage, '', sortField, sortOrder);
+                                await fetchMembers(currentPage, '', sortField, sortOrder);
                                 showSuccessModal("Admin ถูกลดขั้นเรียบร้อยแล้ว");
                             } else {
                                 showErrorModal("เกิดข้อผิดพลาดในการลดขั้น Admin");
@@ -631,9 +638,14 @@
                 }
 
                 document.addEventListener('DOMContentLoaded', async () => {
-                        await fetchCurrentUser(); // ดึงข้อมูล user ก่อน
-                        fetchCommunityConfig();
-                        fetchMembers(currentPage);
+                        await fetchCurrentUser();
+                    await fetchCommunityConfig();
+                    await fetchMembers(currentPage);
+
+                    if (sessionStorage.getItem('needsReload') === 'true') {
+                        sessionStorage.removeItem('needsReload');
+                        window.location.reload();
+                    }
                     });
 
             </script>
