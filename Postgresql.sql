@@ -271,7 +271,8 @@ INSERT INTO users (username, password, email, role, name, phone, address, branch
 ('save002', '$2a$10$4tEtE.kQJrXrM2G5w.8Fs.PWVcMz/WeE0iZSfPPdxz0DTY82mVOTy', 'savewaris001@gmail.com', 'Member', 'save member', '0950457333', '52/41 ราชพฤกษ์ 9 ราชพฤกษ์, บางเชือกหนัง ตลิ่งชัน กรุงเทพมหานคร 10170', 1, 10, 'active'),
 ('membertest', '$2a$10$XfLWeatP9pN6.bFrOkYwGu.MoOBPi5GeL9quJz3OgB2ssCVK.bkcS', 'testing@gmail.com', 'Member', 'Member Testing', '0950457333', '52/41 ราชพฤกษ์ 9 ราชพฤกษ์, บางเชือกหนัง ตลิ่งชัน กรุงเทพมหานคร 10170', 1, 10, 'active'),
 ('tbmtest', '$2a$10$XfLWeatP9pN6.bFrOkYwGu.MoOBPi5GeL9quJz3OgB2ssCVK.bkcS', 'testing@gmail.com', 'TimeBankManager', 'TimeBankManager Testing', '0950457333', '52/41 ราชพฤกษ์ 9 ราชพฤกษ์, บางเชือกหนัง ตลิ่งชัน กรุงเทพมหานคร 10170', 1, 10, 'active'),
-('admintest', '$2a$10$XfLWeatP9pN6.bFrOkYwGu.MoOBPi5GeL9quJz3OgB2ssCVK.bkcS', 'testing@gmail.com', 'Admin', 'Admin Testing', '0950457333', '52/41 ราชพฤกษ์ 9 ราชพฤกษ์, บางเชือกหนัง ตลิ่งชัน กรุงเทพมหานคร 10170', 1, 10, 'active')
+('admintest', '$2a$10$XfLWeatP9pN6.bFrOkYwGu.MoOBPi5GeL9quJz3OgB2ssCVK.bkcS', 'testing@gmail.com', 'Admin', 'Admin Testing', '0950457333', '52/41 ราชพฤกษ์ 9 ราชพฤกษ์, บางเชือกหนัง ตลิ่งชัน กรุงเทพมหานคร 10170', 1, 10, 'active'),
+('usertest', '$2a$10$XfLWeatP9pN6.bFrOkYwGu.MoOBPi5GeL9quJz3OgB2ssCVK.bkcS', 'testing@gmail.com', 'User', 'User Testing', '0950457333', '52/41 ราชพฤกษ์ 9 ราชพฤกษ์, บางเชือกหนัง ตลิ่งชัน กรุงเทพมหานคร 10170', 1, 10, 'active')
 ;
 
 -- Insert initial data into activities (with required_skills)
@@ -490,26 +491,32 @@ INSERT INTO activity_participants (
 );
 INSERT INTO activity_participants (
     activity_id,
-    user_id
+    user_id,
+	attended
 ) VALUES (
     7,
-    1
+    1,
+	'true'
 );
 
 INSERT INTO activity_participants (
     activity_id,
-    user_id
+    user_id,
+	attended
 ) VALUES (
     7,
-    4
+    4,
+	'true'
 );
 
 INSERT INTO activity_participants (
     activity_id,
-    user_id
+    user_id,
+	attended
 ) VALUES (
     7,
-    3
+    3,
+	'true'
 );
 
 
