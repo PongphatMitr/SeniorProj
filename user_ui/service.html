@@ -355,7 +355,7 @@
                         joinButton.innerText = 'ยกเลิก';
                         joinButton.classList.remove('bg-blue-500');
                         joinButton.classList.add('bg-red-500');
-                        document.getElementById(`participants-${index}`).innerText = activities[index].current_participants;
+                        document.getElementById(`participants-${index}`).innerText = `${activities[index].current_participants} / ${activities[index].max_participants}`;
 
                         showMessage("เข้าร่วมกิจกรรมสำเร็จ!");
                     } else {

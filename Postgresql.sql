@@ -273,10 +273,10 @@ INSERT INTO users (username, password, email, role, name, phone, address, branch
 
 -- Insert initial data into activities (with required_skills)
 INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, requester_phone, status, time_tokens_required, time_tokens_per_participant, required_skills, activity_type) VALUES 
-('กิจกรรมทำความสะอาดชุมชน', 'ทำความสะอาดชุมชน', 'Community Center', '2023-01-01', '09:00', '2023-01-01', '12:00', 20, 5, '1234567890', 'เกินเวลา', 20, 1, 4,'exchange'),
-('กิจกรรมสอนคอมพิวเตอร์', 'สอนคอมพิวเตอร์ให้กับชุมชน', 'Community Center', '2023-01-15', '10:00', '2023-01-15', '13:00', 15, 5, '0987654321', 'เกินเวลา', 15, 1, 5, 'exchange'),
-('กิจกรรมทำอาหาร', 'ทำอาหารร่วมกัน', 'Community Kitchen', '2023-01-30', '11:00', '2023-01-30', '14:00', 10, 5, '0987654321', 'เสร็จสิ้น', 10, 1, 6, 'exchange'),
-('กิจกรรมทำสวน', 'ทำสวนร่วมกัน', 'Community Garden', '2023-02-05', '08:00', '2023-02-05', '11:00', 25, 5, '0987654321', 'เสร็จสิ้น', 25, 1, 7, 'non_exchange');
+('กิจกรรมทำความสะอาดชุมชน', 'ทำความสะอาดชุมชน', 'Community Center', '2023-01-01', '09:00', '2023-01-01', '12:00', 20, 6, '1234567890', 'เกินเวลา', 20, 1, 4,'exchange'),
+('กิจกรรมสอนคอมพิวเตอร์', 'สอนคอมพิวเตอร์ให้กับชุมชน', 'Community Center', '2023-01-15', '10:00', '2023-01-15', '13:00', 15, 6, '0987654321', 'เกินเวลา', 15, 1, 5, 'exchange'),
+('กิจกรรมทำอาหาร', 'ทำอาหารร่วมกัน', 'Community Kitchen', '2023-01-30', '11:00', '2023-01-30', '14:00', 10, 6, '0987654321', 'เสร็จสิ้น', 10, 1, 6, 'exchange'),
+('กิจกรรมทำสวน', 'ทำสวนร่วมกัน', 'Community Garden', '2023-02-05', '08:00', '2023-02-05', '11:00', 25, 6, '0987654321', 'เสร็จสิ้น', 25, 1, 7, 'non_exchange');
 
 -- Insert initial data into categories
 INSERT INTO categories (category) VALUES 
@@ -392,7 +392,7 @@ INSERT INTO activities (
     CURRENT_DATE,
     to_char(NOW() + INTERVAL '1 minute', 'HH24:MI')::time,
     10,
-    2,
+    6,
     '0123456789',
     'กำลังจะเริ่ม',
     5,
@@ -426,7 +426,7 @@ INSERT INTO activities (
     CURRENT_DATE,
     to_char(NOW() + INTERVAL '59 minute', 'HH24:MI')::time,
     10,
-    2,
+    6,
     '0123456789',
     'กำลังจะเริ่ม',
     5,
@@ -460,9 +460,9 @@ INSERT INTO activities (
     CURRENT_DATE - INTERVAL '1 day',
     to_char(NOW() + INTERVAL '1 minute', 'HH24:MI')::time,
     10,
-    2,
+    6,
     '0123456789',
-    'กำลังจะเริ่ม',
+    'รอการอนุมัติ',
     5,
     1,
     1,
@@ -536,7 +536,7 @@ INSERT INTO activities (
     CURRENT_DATE,
     to_char(NOW() + INTERVAL '1 hour 30 seconds', 'HH24:MI')::time, -- 1hr after start
     10,
-    2,
+    6,
     '0812345678',
     'กำลังจะเริ่ม',
     5,
