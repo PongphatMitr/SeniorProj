@@ -226,13 +226,61 @@
         async function joinActivity(activityId, index) {
             const token = localStorage.getItem('token');
             const userId = globalUserId;
-
+        
             if (!token || !userId) {
+                console.error('Missing token or userId:', { token, userId });
                 showMessage("คุณต้องเข้าสู่ระบบก่อนเข้าร่วมกิจกรรม", true);
                 return;
             }
-
+        
             try {
+                // Fetch activity details
+                const activityRes = await fetch(`http://localhost:3000/api/user/activities/${activityId}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+        
+                if (!activityRes.ok) {
+                    throw new Error(`Failed to fetch activity. Status: ${activityRes.status}`);
+                }
+        
+                const activity = await activityRes.json();
+                const requiredSkillId = Number(activity.required_skills);
+        
+                // Fetch user's top 3 skills using member API
+                const skillsResponse = await fetch(`http://localhost:3000/api/user/members/${userId}/skills`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+        
+                if (!skillsResponse.ok) {
+                    throw new Error(`Failed to fetch user skills. Status: ${skillsResponse.status}`);
+                }
+        
+                const skillsData = await skillsResponse.json();
+                console.log('Fetched member skill data:', skillsData);
+        
+                let memberSkills = [];
+                if (skillsData.skills && Array.isArray(skillsData.skills)) {
+                    memberSkills = skillsData.skills.map(skill => ({
+                        skill_id: skill.skill_id || null,
+                        name: skill.name || 'N/A',
+                        category: skill.category || 'N/A'
+                    }));
+                } else {
+                    console.error('Skill format unexpected:', skillsData);
+                    showMessage("เกิดข้อผิดพลาดในการดึงข้อมูลทักษะของสมาชิก", true);
+                    return;
+                }
+        
+                const skillIds = memberSkills.map(skill => skill.skill_id);
+                console.log('User skill IDs:', skillIds, 'Required skill:', requiredSkillId);
+        
+                if (!skillIds.includes(requiredSkillId)) {
+                    console.warn('User does not have required skill:', requiredSkillId);
+                    showMessage("ไม่สามารถเข้าร่วมกิจกรรมนี้ได้\nเนื่องจากทักษะของคุณไม่ตรงกับเงื่อนไขของกิจกรรม", true);
+                    return;
+                }
+        
+                // Proceed to join activity
                 const response = await fetch(`http://localhost:3000/api/user/activities/${activityId}/participants`, {
                     method: 'POST',
                     headers: {
@@ -241,28 +289,31 @@
                     },
                     body: JSON.stringify({ memberId: userId })
                 });
-
+        
                 const data = await response.json();
-
+                console.log('Join activity response:', data);
+        
                 if (response.ok) {
-                    showMessage("เข้าร่วมกิจกรรมสำเร็จ!", false); // ✅ Success message
-                    await fetchParticipants(activityId); // Update participants count
-
-                    // Update button appearance
+                    showMessage("เข้าร่วมกิจกรรมสำเร็จ!", false);
+                    await fetchParticipants(activityId);
+        
                     const joinButton = document.getElementById('join-button');
                     joinButton.innerText = 'ยกเลิกการเข้าร่วมกิจกรรม';
                     joinButton.classList.remove('bg-green-500');
                     joinButton.classList.add('bg-red-500');
-
                 } else {
-                    showMessage(data.error || "เกิดข้อผิดพลาดในการเข้าร่วมกิจกรรม", true); // ❌ Error message
+                    console.error('Failed to join activity:', data);
+                    showMessage(data.error || "เกิดข้อผิดพลาดในการเข้าร่วมกิจกรรม", true);
                 }
+        
             } catch (error) {
-                console.error('Error joining activity:', error);
-                showMessage("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง", true); // ❌ Error message
+                console.error('Unexpected error in joinActivity:', error);
+                showMessage("เกิดข้อผิดพลาด กรุณาลองใหม่อีกครั้ง", true);
             }
         }
-
+        
+        
+        
         async function leaveActivity(activityId, index) {
             const token = localStorage.getItem('token');
             const userId = globalUserId;
@@ -659,15 +710,17 @@
             const icon = document.getElementById('message-icon');
             const iconSvg = document.getElementById('message-icon-svg');
             const iconPath = document.getElementById('message-icon-path');
-
-            // Reset styles first
+        
+            // Reset styles
             title.classList.remove('text-red-600', 'text-green-600');
             icon.classList.remove('bg-red-100', 'border-red-500', 'bg-green-100', 'border-green-500');
             iconSvg.classList.remove('text-red-500', 'text-green-500');
-
-            text.textContent = message;
-            modal.classList.remove('hidden'); // Show modal
-
+        
+            // ✨ เปลี่ยนตรงนี้ ใช้ innerHTML + แทน \n ด้วย <br>
+            text.innerHTML = message.replace(/\n/g, '<br>');
+        
+            modal.classList.remove('hidden');
+        
             if (isError) {
                 title.textContent = "เกิดข้อผิดพลาด!";
                 title.classList.add('text-red-600');
@@ -681,16 +734,18 @@
                 iconSvg.classList.add('text-green-500');
                 iconPath.setAttribute("d", "M5 13l4 4L19 7"); // Checkmark icon
             }
-
+        
             // Animate fade-in
             setTimeout(() => modal.classList.add('opacity-100', 'scale-100'), 50);
-
-            // Close on button click
+        
+            // Close modal
             document.getElementById('confirm-message-btn').onclick = () => {
                 modal.classList.remove('opacity-100', 'scale-100');
-                setTimeout(() => modal.classList.add('hidden'), 300); // Smooth fade-out
+                setTimeout(() => modal.classList.add('hidden'), 300);
             };
         }
+
+        
 
         function showConfirmation(message, onConfirm) {
             const modal = document.getElementById('confirm-modal');
