@@ -269,7 +269,10 @@ INSERT INTO users (username, password, email, role, name, phone, address, branch
 ('moji', '$2a$10$AfvWwUB3xPrYByh4UEpSSeptvKp07aIACEyzVJB4TJVRUM8aDNwWm', 'testuser@example.com', 'Member', 'ณิชาภา เกษมวงศ์', '0811111111', '51/41 ราชพฤกษ์ 9 ราชพฤกษ์, บางเชือกหนัง ตลิ่งชัน กรุงเทพมหานคร 10170', 1, 10, 'active'),
 ('save001', '$2a$10$4tEtE.kQJrXrM2G5w.8Fs.PWVcMz/WeE0iZSfPPdxz0DTY82mVOTy', 'savewaris001@gmail.com', 'Admin', 'save admin', '0950457333', '53/41 ราชพฤกษ์ 9 ราชพฤกษ์, บางเชือกหนัง ตลิ่งชัน กรุงเทพมหานคร 10170', 1, 10, 'active'),
 ('save002', '$2a$10$4tEtE.kQJrXrM2G5w.8Fs.PWVcMz/WeE0iZSfPPdxz0DTY82mVOTy', 'savewaris001@gmail.com', 'Member', 'save member', '0950457333', '52/41 ราชพฤกษ์ 9 ราชพฤกษ์, บางเชือกหนัง ตลิ่งชัน กรุงเทพมหานคร 10170', 1, 10, 'active'),
-('testing', '$2a$10$XfLWeatP9pN6.bFrOkYwGu.MoOBPi5GeL9quJz3OgB2ssCVK.bkcS', 'testing@gmail.com', 'Member', 'Testing Account', '0950457333', '52/41 ราชพฤกษ์ 9 ราชพฤกษ์, บางเชือกหนัง ตลิ่งชัน กรุงเทพมหานคร 10170', 1, 10, 'active');
+('membertest', '$2a$10$XfLWeatP9pN6.bFrOkYwGu.MoOBPi5GeL9quJz3OgB2ssCVK.bkcS', 'testing@gmail.com', 'Member', 'Testing Account', '0950457333', '52/41 ราชพฤกษ์ 9 ราชพฤกษ์, บางเชือกหนัง ตลิ่งชัน กรุงเทพมหานคร 10170', 1, 10, 'active'),
+('tbmtest', '$2a$10$XfLWeatP9pN6.bFrOkYwGu.MoOBPi5GeL9quJz3OgB2ssCVK.bkcS', 'testing@gmail.com', 'TimeBankmanger', 'Testing Account', '0950457333', '52/41 ราชพฤกษ์ 9 ราชพฤกษ์, บางเชือกหนัง ตลิ่งชัน กรุงเทพมหานคร 10170', 1, 10, 'active'),
+('admintest', '$2a$10$XfLWeatP9pN6.bFrOkYwGu.MoOBPi5GeL9quJz3OgB2ssCVK.bkcS', 'testing@gmail.com', 'Admin', 'Testing Account', '0950457333', '52/41 ราชพฤกษ์ 9 ราชพฤกษ์, บางเชือกหนัง ตลิ่งชัน กรุงเทพมหานคร 10170', 1, 10, 'active')
+;
 
 -- Insert initial data into activities (with required_skills)
 INSERT INTO activities (title, description, location, start_date, start_time, end_date, end_time, max_participants, requester_id, requester_phone, status, time_tokens_required, time_tokens_per_participant, required_skills, activity_type) VALUES 
