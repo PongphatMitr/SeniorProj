@@ -206,9 +206,9 @@
                             ${activity.status}
                         </span>
                     </td>
-                    <td class="py-2.5 px-4 border-b border-gray-200 text-center text-[16px] font-medium">
-                    ${activity.current_participants} / ${activity.max_participants}
-                    </td>
+                    <td id="participants-${index}" class="py-2.5 px-4 border-b border-gray-200 text-center text-[16px] font-medium">
+    ${activity.current_participants} / ${activity.max_participants}
+</td>
                 <td class="py-2 px-4 border-b border-gray-200 text-center text-center">
                     <a href="${isRequester ? 'myactivity-details.html' : 'activity-details.html'}?id=${activity.activity_id}"
                        class="inline-block w-full bg-blue-500 text-white font-bold py-1 px-2 rounded text-center whitespace-nowrap">
@@ -355,7 +355,7 @@
                         joinButton.innerText = 'ยกเลิก';
                         joinButton.classList.remove('bg-blue-500');
                         joinButton.classList.add('bg-red-500');
-                        document.getElementById(`participants-${index}`).innerText = activities[index].current_participants;
+                        document.getElementById(`participants-${index}`).innerText = `${activities[index].current_participants} / ${activities[index].max_participants}`;
 
                         showMessage("เข้าร่วมกิจกรรมสำเร็จ!");
                     } else {
