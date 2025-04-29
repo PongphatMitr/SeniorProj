@@ -490,26 +490,32 @@ INSERT INTO activity_participants (
 );
 INSERT INTO activity_participants (
     activity_id,
-    user_id
+    user_id,
+	attended
 ) VALUES (
     7,
-    1
+    1,
+	'true'
 );
 
 INSERT INTO activity_participants (
     activity_id,
-    user_id
+    user_id,
+	attended
 ) VALUES (
     7,
-    4
+    4,
+	'true'
 );
 
 INSERT INTO activity_participants (
     activity_id,
-    user_id
+    user_id,
+	attended
 ) VALUES (
     7,
-    3
+    3,
+	'true'
 );
 
 

@@ -9,6 +9,25 @@
     <script>
         let globalUserId = null; // Global variable to store user_id
 
+        function forceReloadProfileFields() {
+                const fields = ['member-name', 'member-phone', 'member-email'];
+                fields.forEach(id => {
+                    const input = document.getElementById(id);
+                    if (input && (input.tagName === 'INPUT' || input.tagName === 'TEXTAREA')) {
+                        const p = document.createElement('p');
+                        p.textContent = input.value.trim() || 'N/A';
+                        p.className = 'text-gray-700 text-lg';
+                        input.parentNode.replaceChild(p, input);
+                        p.id = id;
+                    }
+                });
+            }
+
+        function getQueryParam(param) {
+                const urlParams = new URLSearchParams(window.location.search);
+                return urlParams.get(param);
+            }
+
         document.addEventListener('DOMContentLoaded', () => {
             fetchMemberProfile(); // โหลดโปรไฟล์
 
@@ -23,31 +42,37 @@
         });
 
         async function fetchMemberProfile() {
-            try {
-                const response = await fetch(`http://localhost:3000/api/tbm/auth/profile`, {
-                    headers: {
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    }
-                });
-                if (!response.ok) throw new Error('Network response was not ok');
-
-                const member = await response.json();
-
-                // Fetch branch name if branch_id exists
-                if (member.branch_id) {
-                    member.branch = await fetchBranchName(member.branch_id);
-                } else {
-                    member.branch = 'N/A';
+                const memberId = getQueryParam('memberId');
+                if (!memberId) {
+                    alert("ไม่พบ memberId ใน URL");
+                    return;
                 }
 
-                renderMemberProfile(member);
-            } catch (error) {
-                console.error('Error fetching profile:', error);
-                alert('Failed to load profile');
+                try {
+                    const response = await fetch(`http://localhost:3000/api/tbm/members/${memberId}`, {
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+
+                    if (!response.ok) throw new Error('ไม่สามารถโหลดข้อมูลสมาชิก');
+
+                    const member = await response.json();
+                    globalUserId = memberId;
+
+                    // ถ้ามี branch_id ให้ดึงชื่อ branch มา
+                    if (member.branch_id) {
+                        member.branch = await fetchBranchName(member.branch_id);
+                    } else {
+                        member.branch = 'N/A';
+                    }
+
+                    renderMemberProfile(member);
+                } catch (error) {
+                    console.error('เกิดข้อผิดพลาดในการโหลดข้อมูลสมาชิก:', error);
+                    alert('ไม่สามารถโหลดข้อมูลสมาชิก');
+                }
             }
-        }
-
-
 
         async function fetchBranchName(branchId) {
             if (!branchId) return 'N/A';
@@ -177,63 +202,54 @@
 
 
         async function saveProfile() {
-            try {
-                // Get updated values
-                const updatedData = {
-                    name: document.getElementById('member-name').value.trim(),
-                    phone: document.getElementById('member-phone').value.trim(),
-                    email: document.getElementById('member-email').value.trim() || null,
-                    branch_id: await fetchBranchIdByName(document.getElementById('member-branch').textContent)
-                };
+                try {
+                    const existingMember = await fetch(`http://localhost:3000/api/tbm/members/${globalUserId}`, {
+                        headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
+                    }).then(res => res.json());
 
-                // Validation
-                if (updatedData.name.split(' ').length < 2) {
-                    showErrorMessage('กรุณากรอกชื่อ-นามสกุลให้ครบถ้วน');
-                    return;
+                    const updatedData = {
+                        name: document.getElementById('member-name').value.trim(),
+                        phone: document.getElementById('member-phone').value.trim(),
+                        address: existingMember.address || '',
+                        branch_id: await fetchBranchIdByName(document.getElementById('member-branch').textContent),
+                        time_credits: existingMember.time_credits ?? 0,
+                        status: existingMember.status || 'active'
+                    };
+
+                    if (updatedData.name.split(' ').length < 2) {
+                        showErrorMessage('กรุณากรอกชื่อ-นามสกุลให้ครบถ้วน');
+                        return;
+                    }
+
+                    const response = await fetch(`http://localhost:3000/api/tbm/members/${globalUserId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify(updatedData)
+                    });
+
+                    if (!response.ok) throw new Error('Update failed');
+
+                    // ✅ ดึงข้อมูลใหม่
+                    await fetchMemberProfile();
+
+                    // ✅ Reset input fields กลับไปเป็น <p> (เพราะ input ตอน edit มันยังไม่หาย)
+                    await resetToNormalView(['member-name', 'member-phone', 'member-email']);
+
+                    showSuccessMessage('อัปเดตโปรไฟล์สำเร็จ!');
+
+                    // ✅ ปิดโหมดแก้ไข
+                    document.getElementById('edit-profile-button').style.display = 'inline-block';
+                    document.getElementById('save-profile-button').style.display = 'none';
+                    document.getElementById('back-profile-button').style.display = 'none';
+
+                } catch (error) {
+                    console.error('Save error:', error);
+                    showErrorMessage('อัปเดตข้อมูลไม่สำเร็จ: ' + error.message);
                 }
-
-                // API call
-                const response = await fetch('http://localhost:3000/api/tbm/auth/profile', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify(updatedData)
-                });
-
-                if (!response.ok) throw new Error('Update failed');
-
-                // Get updated profile with branch_id
-                const updatedMember = await response.json();
-
-                // Fetch fresh branch name
-                if (updatedMember.branch_id) {
-                    updatedMember.branch = await fetchBranchName(updatedMember.branch_id);
-                } else {
-                    updatedMember.branch = 'N/A';
-                }
-
-                // Render updated data
-                renderMemberProfile(updatedMember);
-                showSuccessMessage('อัปเดตโปรไฟล์สำเร็จ!');
-
-                // Close the edit mode by hiding the edit buttons and displaying the saved data
-                document.getElementById('edit-profile-button').style.display = 'inline-block';
-                document.getElementById('save-profile-button').style.display = 'none';
-                document.getElementById('back-profile-button').style.display = 'none';
-
-                // Revert the editable fields to their non-editable state
-                revertProfileChanges();
-
-            } catch (error) {
-                console.error('Save error:', error);
-                showErrorMessage('อัปเดตข้อมูลไม่สำเร็จ: ' + error.message);
             }
-        }
-
-
-
 
         let originalAddressData = {};
 
@@ -260,49 +276,53 @@
         }
 
         async function saveAddress() {
-            const houseNo = document.getElementById('house-no').value.trim();
-            const subdistrict = document.getElementById('subdistrict').value.trim();
-            const district = document.getElementById('district').value.trim();
-            const province = document.getElementById('province').value.trim();
-            const postalCode = document.getElementById('postal-code').value.trim();
+                const houseNo = document.getElementById('house-no').value.trim();
+                const subdistrict = document.getElementById('subdistrict').value.trim();
+                const district = document.getElementById('district').value.trim();
+                const province = document.getElementById('province').value.trim();
+                const postalCode = document.getElementById('postal-code').value.trim();
 
-            if (!houseNo || !subdistrict || !district || !province || !postalCode) {
-                showErrorMessage('กรุณากรอกข้อมูลที่อยู่ให้ครบถ้วน');
-                return;
-            }
+                if (!houseNo || !subdistrict || !district || !province || !postalCode) {
+                    showErrorMessage('กรุณากรอกข้อมูลที่อยู่ให้ครบถ้วน');
+                    return;
+                }
 
-            const fullAddress = `${houseNo}, ${subdistrict} ${district} ${province} ${postalCode}`.replace(/\s+/g, ' ').trim();
+                const fullAddress = `${houseNo}, ${subdistrict} ${district} ${province} ${postalCode}`.replace(/\s+/g, ' ').trim();
 
-            const updatedData = { address: fullAddress };
+                const updatedData = { address: fullAddress };
 
-            try {
-                const response = await fetch('http://localhost:3000/api/tbm/auth/profile', {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${localStorage.getItem('token')}`
-                    },
-                    body: JSON.stringify(updatedData)
-                });
+                try {
+                    const response = await fetch('http://localhost:3000/api/tbm/auth/profile', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        },
+                        body: JSON.stringify(updatedData)
+                    });
 
-                if (response.ok) {
-                    const updatedMember = await response.json();
+                    if (!response.ok) {
+                        const errorData = await response.json();
+                        showErrorMessage(`เกิดข้อผิดพลาดในการบันทึกข้อมูล: ${errorData.error || 'ไม่ทราบสาเหตุ'}`);
+                        return;
+                    }
+
+                    // ✅ ดึงข้อมูลใหม่
+                    await fetchMemberProfile();
+
+                    // ✅ Reset input fields กลับเป็น <p> (เพราะ input ตอนแก้ไขยังอยู่)
                     await resetToNormalView(['house-no', 'subdistrict', 'district', 'province', 'postal-code']);
-                    renderMemberProfile(updatedMember);
+
                     showSuccessMessage('บันทึกข้อมูลที่อยู่สำเร็จแล้ว!');
 
                     document.getElementById('edit-address-button').style.display = 'inline-block';
                     document.getElementById('save-address-button').style.display = 'none';
                     document.getElementById('back-address-button').style.display = 'none';
-                } else {
-                    const errorData = await response.json();
-                    showErrorMessage(`เกิดข้อผิดพลาดในการบันทึกข้อมูล: ${errorData.error || 'ไม่ทราบสาเหตุ'}`);
-                }
-            } catch (error) {
-                showErrorMessage('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
-            }
-        }
 
+                } catch (error) {
+                    showErrorMessage('เกิดข้อผิดพลาดในการบันทึกข้อมูล');
+                }
+            }
 
         function revertAddressChanges() {
             const addressFields = ['house-no', 'subdistrict', 'district', 'province', 'postal-code'];
@@ -504,21 +524,6 @@
                             ย้อนกลับ
                         </button>
                     </div>
-
-                    <div class="mt-8">
-                        <h2 class="text-2xl font-bold text-center text-blue-700 mb-4">เข้าสู่ระบบผ่าน LINE</h2>
-                        <div class="flex flex-col items-center">
-                            <!-- Display the QR code image -->
-                            <img id="line-qr-code" src="QRcodeLine.jpg" alt="QR Code for LINE Login"
-                                class="mb-4 w-32 h-32" />
-
-                            <!-- Fallback clickable link -->
-                            <p class="text-gray-600 text-sm">
-                                สแกน QR Code เพื่อเข้าสู่ระบบผ่าน LINE
-                            </p>
-                        </div>
-                    </div>
-
 
                     <!-- Confirm Change Profile Modal -->
                     <div id="confirm-change-modal"
