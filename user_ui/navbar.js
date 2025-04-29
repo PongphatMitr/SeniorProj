@@ -111,7 +111,7 @@ ${sidebarHeader}
   </button>
 </li>
 <li class="mb-4">
- <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-100 p-2 rounded-lg transition ${getCurrentPage() === 'homepage.html' ? 'bg-blue-100 text-blue-700 font-semibold' : ''}" href="homepage.html">
+ <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-100 p-2 rounded-lg transition ${getCurrentPage() === 'HomePage.html' ? 'bg-blue-100 text-blue-700 font-semibold' : ''}" href="HomePage.html">
   <i class="fas fa-home mr-3 w-5"></i>
   หน้าหลัก
  </a>
@@ -149,7 +149,7 @@ ${sidebarHeader}
  </a>
 </li>
 <li class="mb-5">
- <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="homepage.html">
+ <a class="flex items-center text-gray-700 hover:text-blue-600 hover:bg-gray-200 p-2 rounded transition duration-300" href="HomePage.html">
   <i class="fas fa-home mr-3"></i>
   หน้าหลัก
  </a>
@@ -200,8 +200,28 @@ function setDropdownState(id, state) {
 
 async function checkLoginStatus() {
   const token = localStorage.getItem('token');
-  const isLoginPage = window.location.pathname.endsWith('log-in.html');
-  const isRegisterPage = window.location.pathname.endsWith('register.html') || window.location.pathname.endsWith('register-skill.html');
+  const currentPath = window.location.pathname;
+
+  // Get base filename without query parameters
+  const isRootPath = currentPath === '/' || currentPath === '/index.html';
+
+// In navbar.js's checkLoginStatus function
+const filename = currentPath.split('/').pop().split('?')[0].toLowerCase(); // Add .toLowerCase()
+
+// Update allowed pages list (include all case variations):
+const allowedPages = new Set([
+  'login.html',
+  'log-in.html', 
+  'register.html',
+  'register-skill.html',
+  'homepage.html',
+  'homepage.html', // lowercase version
+  'index.html',
+  ''
+]);
+
+  const isAllowedPage = allowedPages.has(filename) || isRootPath;
+
   if (token) {
     try {
       const response = await fetch('http://localhost:3000/api/user/auth/verify', {
@@ -211,31 +231,32 @@ async function checkLoginStatus() {
           'Authorization': `Bearer ${token}`
         }
       });
+      
       if (response.ok) {
         updateSidebar(true);
       } else {
-        localStorage.removeItem('token');
-        updateSidebar(false);
-        if (!isLoginPage && !isRegisterPage) {
-          showErrorModal('Token verification failed. Redirecting to login page.');
-        }
+        handleInvalidToken(isAllowedPage);
       }
     } catch (error) {
-      console.error('Error:', error);
-      localStorage.removeItem('token');
-      updateSidebar(false);
-      if (!isLoginPage && !isRegisterPage) {
-        showErrorModal('Error occurred during token verification. Redirecting to login page.');
-      }
+      handleInvalidToken(isAllowedPage);
     }
   } else {
     updateSidebar(false);
-    if (!isLoginPage && !isRegisterPage) {
-      showErrorModal('No token found. Redirecting to login page.');
+    if (!isAllowedPage) {
+      showErrorModal('Please login to access this page. Redirecting...');
+      setTimeout(() => window.location.href = 'log-in.html', 2000);
     }
   }
 }
 
+function handleInvalidToken(isAllowedPage) {
+  localStorage.removeItem('token');
+  updateSidebar(false);
+  if (!isAllowedPage) {
+    showErrorModal('Session expired. Redirecting to login...');
+    setTimeout(() => window.location.href = 'log-in.html', 2000);
+  }
+}
 function showLogoutModal() {
   const logoutModal = document.getElementById('logout-modal');
   if (logoutModal) {

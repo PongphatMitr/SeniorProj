@@ -1,391 +1,502 @@
-<html lang="en">
+    <html lang="en">
 
-<head>
-    <meta charset="utf-8" />
-    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
-    <title>Time Bank</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
-</head>
+    <head>
+        <meta charset="utf-8" />
+        <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+        <title>Time Bank</title>
+        <script src="https://cdn.tailwindcss.com"></script>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet" />
+        <script src="navbar.js"></script>
+    </head>
 
-<body class="bg-gray-100">
-    <div class="flex">
-        <!-- Sidebar -->
-        <div class="w-full md:w-1/6 bg-white h-screen p-5 sticky top-0 flex flex-col">
-            <nav class="flex-grow">
-                <ul id="navList" class="space-y-4"></ul>
-            </nav>
-        </div>
-        <!-- Main Content -->
-        <div class="w-5/6 bg-blue-700 text-white p-10 relative">
-
-            <h1 class="text-4xl font-bold mb-5">TIME BANK</h1>
-            <h2 class="text-3xl font-bold mb-5">ธนาคารเวลา คืออะไร ?</h2>
-            <p class="mb-10">
-                เป็นรูปแบบกิจกรรม ที่ช่วยส่งเสริมให้ชุมชนดูแลซึ่งกันและกัน ด้วยการแลกเปลี่ยนทักษะ ประสบการณ์
-                บริการขั้นพื้นฐาน และสามารถสะสมเวลาไว้ เสมือนเราออมเงิน
-            </p>
-            <div class="flex items-center mb-5">
-                <h2 class="text-3xl font-bold mr-4">ข่าวสารประชาสัมพันธ์</h2>
-                <a class="bg-white font-bold text-lg text-blue-600 px-4 py-3 rounded-3xl"
-                    href="announcement.html">เพิ่ม</a>
+    <body class="bg-gray-100">
+        <div class="flex">
+            <!-- Sidebar -->
+            <div class="w-full md:w-1/6 bg-white h-screen p-5 sticky top-0 flex flex-col">
+                <nav class="flex-grow">
+                    <ul id="navList" class="space-y-4"></ul>
+                </nav>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5" id="newsContainer">
-                <!-- News items will be dynamically inserted here -->
-            </div>
-        </div>
-    </div>
+            <!-- Main Content -->
+            <div class="w-5/6 bg-blue-700 text-white p-10 relative">
 
-    <!-- Delete Confirmation Modal -->
-    <div id="delete-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
-            <h2 class="text-3xl font-bold text-red-600 mt-6">ยืนยันการลบประกาศ</h2>
-            <p class="text-gray-700 text-lg mt-4">ต้องการลบประกาศหรือไม่?</p>
-            <div class="mt-6 flex justify-center">
-                <button id="confirm-delete-btn"
-                    class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300 mr-4">
-                    ยืนยัน
-                </button>
-                <button id="cancel-delete-btn"
-                    class="px-6 py-3 bg-gray-600 text-white text-lg font-semibold rounded-lg hover:bg-gray-700 transition duration-300">
-                    ยกเลิก
-                </button>
-            </div>
-        </div>
-    </div>
+                <h1 class="text-4xl font-bold mb-5">TIME BANK</h1>
+                <h2 class="text-3xl font-bold mb-5">ธนาคารเวลา คืออะไร ?</h2>
+                <p class="mb-10">
+                    เป็นรูปแบบกิจกรรม ที่ช่วยส่งเสริมให้ชุมชนดูแลซึ่งกันและกัน ด้วยการแลกเปลี่ยนทักษะ ประสบการณ์
+                    บริการขั้นพื้นฐาน และสามารถสะสมเวลาไว้ เสมือนเราออมเงิน
+                </p>
 
-    <!-- Success Message Modal -->
-    <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
-            <div class="flex justify-center">
-                <div
-                    class="w-20 h-20 flex items-center justify-center rounded-full bg-green-100 border-4 border-green-500">
-                    <svg class="w-12 h-12 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none"
-                        viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
+                <h1 class="text-4xl font-bold mb-5">การทำงานของกิจกรรม</h1>
+                <div class="relative flex items-center justify-center w-full overflow-x-auto bg-white p-10 rounded-xl shadow-md border">
+                    <div class="flex items-center space-x-4">
+                
+                    <!-- Timeline Step -->
+                    <div class="flex flex-col items-center">
+                        <div class="w-6 h-6 rounded-full bg-blue-500"></div>
+                        <div class="h-16 w-0.5 bg-blue-500"></div>
+                        <p class="text-sm font-bold text-blue-500">กำลังจะเริ่ม</p>
+                    </div>
+                    <div class="w-16 h-6 bg-blue-500 clip-arrow"></div>
+                
+                    <div class="flex flex-col items-center">
+                        <div class="w-6 h-6 rounded-full bg-orange-400"></div>
+                        <div class="h-16 w-0.5 bg-orange-400"></div>
+                        <p class="text-sm font-bold text-orange-400">กำลังทำกิจกรรม</p>
+                    </div>
+                    <div class="w-16 h-6 bg-pink-500 clip-arrow"></div>
+                
+                    <div class="flex flex-col items-center">
+                        <div class="w-6 h-6 rounded-full bg-pink-500"></div>
+                        <div class="h-16 w-0.5 bg-pink-500"></div>
+                        <p class="text-sm font-bold text-pink-500">รอผู้ขอยืนยันผล</p>
+                    </div>
+                    <div class="w-16 h-6 bg-indigo-500 clip-arrow"></div>
+                
+                    <div class="flex flex-col items-center">
+                        <div class="w-6 h-6 rounded-full bg-indigo-500"></div>
+                        <div class="h-16 w-0.5 bg-indigo-500"></div>
+                        <p class="text-sm font-bold text-indigo-500">รอการอนุมัติ</p>
+                    </div>
+                    <div class="w-16 h-6 bg-orange-600 clip-arrow"></div>
+                
+                    <div class="flex flex-col items-center">
+                        <div class="w-6 h-6 rounded-full bg-orange-600"></div>
+                        <div class="h-16 w-0.5 bg-orange-600"></div>
+                        <p class="text-sm font-bold text-orange-600">เกินเวลา</p>
+                    </div>
+                    <div class="w-16 h-6 bg-green-500 clip-arrow"></div>
+                
+                    <div class="flex flex-col items-center">
+                        <div class="w-6 h-6 rounded-full bg-green-500"></div>
+                        <div class="h-16 w-0.5 bg-green-500"></div>
+                        <p class="text-sm font-bold text-green-500">สำเร็จ</p>
+                    </div>
+                
+                    </div>
+                </div>
+                
+                <!-- CSS clip path -->
+                <style>
+                    .clip-arrow {
+                    clip-path: polygon(0 0, 85% 0, 100% 50%, 85% 100%, 0 100%, 15% 50%);
+                    }
+                </style>
+
+                <h1 class="mt-20 mb-20 text-center text-3xl font-semibold">การเปลี่ยนแปลงสถานะของกิจกรรม</h1>
+
+                <ul class="relative grid w-[min(60rem,90%)] mx-auto list-none gap-y-24 gap-x-20 grid-cols-[0.25rem_1fr] md:grid-cols-[1fr_0.25rem_1fr]">
+                    <div aria-hidden="true" class="hidden md:block absolute top-0 bottom-0 left-[calc(50%-0.125rem)] w-1 rounded-full bg-gray-300"></div>
+                
+                    <!-- กำลังจะเริ่ม -->
+                    <li class="relative col-start-2 row-span-2 grid grid-rows-[auto_auto_auto] mx-6 md:col-start-1 md:row-start-1 md:row-end-3">
+                        <div class="relative flex items-center justify-center h-12 -mx-6 rounded-l-full text-white font-bold text-lg bg-blue-500">
+                            กำลังจะเริ่ม
+                            <div class="absolute bottom-[-0.75rem] right-0 w-6 aspect-square" style="background: linear-gradient(rgba(0,0,0,0.2), transparent), #3B82F6; clip-path: polygon(0 0, 100% 0, 0 100%)"></div>
+                        </div>
+                        <div class="relative bg-gray-100 px-6 pt-6 pb-4 font-medium text-black">กำลังจะเริ่ม</div>
+                        <div class="relative bg-gray-100 px-6 pb-6 font-light text-black">
+                            กิจกรรมนี้อยู่ในช่วงเวลารอเริ่มต้น ผู้ขอและผู้เข้าร่วมได้ทำการลงทะเบียนเรียบร้อยแล้ว และกิจกรรมจะเปิดดำเนินการตามเวลาที่กำหนด.
+                        </div>
+                    </li>
+                
+                    <!-- ยกเลิก -->
+                    <li class="relative col-start-2 row-span-2 grid grid-rows-[auto_auto_auto] mx-6 md:col-start-3 md:row-start-2 md:row-end-4">
+                        <div class="relative flex items-center justify-center h-12 -mx-6 rounded-r-full text-white font-bold text-lg bg-red-600">
+                            ยกเลิก
+                            <div class="absolute bottom-[-0.75rem] left-0 w-6 aspect-square" style="background: linear-gradient(rgba(0,0,0,0.2), transparent), #DC2626; clip-path: polygon(0 0, 100% 0, 100% 100%)"></div>
+                        </div>
+                        <div class="relative bg-gray-100 px-6 pt-6 pb-4 font-medium text-black">ยกเลิก</div>
+                        <div class="relative bg-gray-100 px-6 pb-6 font-light text-black">
+                            กิจกรรมนี้ถูกยกเลิกก่อนเริ่มต้น อาจเกิดจากผู้ขอยกเลิกเอง, ไม่มีผู้เข้าร่วมครบ, หรือสาเหตุจำเป็นอื่นๆ ที่ผู้ดูแลระบบพิจารณา.
+                        </div>
+                    </li>
+                
+                    <!-- ผู้เข้าร่วมไม่ครบ -->
+                    <li class="relative col-start-2 row-span-2 grid grid-rows-[auto_auto_auto] mx-6 md:col-start-1 md:row-start-3 md:row-end-5">
+                        <div class="relative flex items-center justify-center h-12 -mx-6 rounded-l-full text-white font-bold text-lg bg-rose-500">
+                            ผู้เข้าร่วมไม่ครบ
+                            <div class="absolute bottom-[-0.75rem] right-0 w-6 aspect-square" style="background: linear-gradient(rgba(0,0,0,0.2), transparent), #F43F5E; clip-path: polygon(0 0, 100% 0, 0 100%)"></div>
+                        </div>
+                        <div class="relative bg-gray-100 px-6 pt-6 pb-4 font-medium text-black">ผู้เข้าร่วมไม่ครบ</div>
+                        <div class="relative bg-gray-100 px-6 pb-6 font-light text-black">
+                            กำหนดจำนวนผู้เข้าร่วมขั้นต่ำไม่ครบถ้วนตามเงื่อนไขที่ตั้งไว้ ระบบจึงทำการยกเลิกกิจกรรมอัตโนมัติเพื่อความเหมาะสม.
+                        </div>
+                    </li>
+                
+                    <!-- กำลังทำกิจกรรม -->
+                    <li class="relative col-start-2 row-span-2 grid grid-rows-[auto_auto_auto] mx-6 md:col-start-3 md:row-start-4 md:row-end-6">
+                        <div class="relative flex items-center justify-center h-12 -mx-6 rounded-r-full text-white font-bold text-lg bg-yellow-500">
+                            กำลังทำกิจกรรม
+                            <div class="absolute bottom-[-0.75rem] left-0 w-6 aspect-square" style="background: linear-gradient(rgba(0,0,0,0.2), transparent), #EAB308; clip-path: polygon(0 0, 100% 0, 100% 100%)"></div>
+                        </div>
+                        <div class="relative bg-gray-100 px-6 pt-6 pb-4 font-medium text-black">กำลังทำกิจกรรม</div>
+                        <div class="relative bg-gray-100 px-6 pb-6 font-light text-black">
+                            กิจกรรมอยู่ระหว่างการดำเนินการจริง ผู้เข้าร่วมทำกิจกรรมตามรายละเอียดที่ตกลงไว้ และระบบจะรอการสรุปผลหลังเสร็จสิ้น.
+                        </div>
+                    </li>
+                
+                    <!-- รอผู้ขอยืนยันผล -->
+                    <li class="relative col-start-2 row-span-2 grid grid-rows-[auto_auto_auto] mx-6 md:col-start-1 md:row-start-5 md:row-end-7">
+                        <div class="relative flex items-center justify-center h-12 -mx-6 rounded-l-full text-white font-bold text-lg bg-pink-500">
+                            รอผู้ขอยืนยันผล
+                            <div class="absolute bottom-[-0.75rem] right-0 w-6 aspect-square" style="background: linear-gradient(rgba(0,0,0,0.2), transparent), #EC4899; clip-path: polygon(0 0, 100% 0, 0 100%)"></div>
+                        </div>
+                        <div class="relative bg-gray-100 px-6 pt-6 pb-4 font-medium text-black">รอผู้ขอยืนยันผล</div>
+                        <div class="relative bg-gray-100 px-6 pb-6 font-light text-black">
+                            กิจกรรมจบลงแล้ว และระบบกำลังรอให้ผู้ขอ (เจ้าของกิจกรรม) เข้ามาทำการยืนยันผลการเข้าร่วมของผู้ให้บริการทุกคน เพื่อดำเนินการแจกแต้มเวลา.
+                        </div>
+                    </li>
+                
+                    <!-- รอการอนุมัติ -->
+                    <li class="relative col-start-2 row-span-2 grid grid-rows-[auto_auto_auto] mx-6 md:col-start-3 md:row-start-6 md:row-end-8">
+                        <div class="relative flex items-center justify-center h-12 -mx-6 rounded-r-full text-white font-bold text-lg bg-indigo-500">
+                            รอการอนุมัติ
+                            <div class="absolute bottom-[-0.75rem] left-0 w-6 aspect-square" style="background: linear-gradient(rgba(0,0,0,0.2), transparent), #6366F1; clip-path: polygon(0 0, 100% 0, 100% 100%)"></div>
+                        </div>
+                        <div class="relative bg-gray-100 px-6 pt-6 pb-4 font-medium text-black">รอการอนุมัติ</div>
+                        <div class="relative bg-gray-100 px-6 pb-6 font-light text-black">
+                            ผู้ขอได้ยืนยันผลแล้ว รอให้ผู้ดูแลระบบหรือผู้อนุมัติ (TimeBank Manager) ตรวจสอบและอนุมัติการให้แต้มเวลาผู้เข้าร่วมแต่ละราย.
+                        </div>
+                    </li>
+                
+                    <!-- เกินเวลา -->
+                    <li class="relative col-start-2 row-span-2 grid grid-rows-[auto_auto_auto] mx-6 md:col-start-1 md:row-start-7 md:row-end-9">
+                        <div class="relative flex items-center justify-center h-12 -mx-6 rounded-l-full text-white font-bold text-lg bg-orange-500">
+                            เกินเวลา
+                            <div class="absolute bottom-[-0.75rem] right-0 w-6 aspect-square" style="background: linear-gradient(rgba(0,0,0,0.2), transparent), #F97316; clip-path: polygon(0 0, 100% 0, 0 100%)"></div>
+                        </div>
+                        <div class="relative bg-gray-100 px-6 pt-6 pb-4 font-medium text-black">เกินเวลา</div>
+                        <div class="relative bg-gray-100 px-6 pb-6 font-light text-black">
+                            กิจกรรมสิ้นสุดเกินกำหนดเวลาแล้ว และผู้ขอยังไม่ได้ยืนยันผลในเวลาที่กำหนด ทำให้กิจกรรมถูกระบุสถานะนี้โดยอัตโนมัติ.
+                        </div>
+                    </li>
+                
+                    <!-- สำเร็จ -->
+                    <li class="relative col-start-2 row-span-2 grid grid-rows-[auto_auto_auto] mx-6 md:col-start-3 md:row-start-8 md:row-end-10">
+                        <div class="relative flex items-center justify-center h-12 -mx-6 rounded-r-full text-white font-bold text-lg bg-green-500">
+                            สำเร็จ
+                            <div class="absolute bottom-[-0.75rem] left-0 w-6 aspect-square" style="background: linear-gradient(rgba(0,0,0,0.2), transparent), #22C55E; clip-path: polygon(0 0, 100% 0, 100% 100%)"></div>
+                        </div>
+                        <div class="relative bg-gray-100 px-6 pt-6 pb-4 font-medium text-black">สำเร็จ</div>
+                        <div class="relative bg-gray-100 px-6 pb-6 font-light text-black">
+                            กิจกรรมได้รับการอนุมัติและเสร็จสมบูรณ์ ผู้เข้าร่วมได้รับแต้มเวลา และสถานะนี้ถือเป็นการสรุปปิดกิจกรรมอย่างสมบูรณ์.
+                        </div>
+                    </li>
+                </ul>
+                
+
+
+                <div class="flex items-center mt-10 mb-10">
+                    <h2 class="text-3xl font-bold mr-4">ข่าวสารประชาสัมพันธ์</h2>
+                    <a class="bg-white font-bold text-lg text-blue-600 px-4 py-3 rounded-3xl"
+                        href="announcement.html">เพิ่ม</a>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-5" id="newsContainer">
+                    <!-- News items will be dynamically inserted here -->
                 </div>
             </div>
-            <h2 class="text-3xl font-bold text-green-600 mt-6">สำเร็จ!</h2>
-            <p class="text-gray-700 text-lg mt-4" id="success-message">ข้อความสำเร็จ</p>
-            <button id="success-confirm-btn"
-                class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
-                ยืนยัน
-            </button>
         </div>
-    </div>
+                
 
-    <!-- Error Message Modal -->
-    <div id="error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-        <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
-            <h2 class="text-3xl font-bold text-red-600 mt-6">เกิดข้อผิดพลาด</h2>
-            <p class="text-gray-700 text-lg mt-4" id="error-message">ข้อความผิดพลาด</p>
-            <div class="mt-6 flex justify-center">
-                <button id="error-confirm-btn"
-                    class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300">
-                    ตกลง
+        <!-- Delete Confirmation Modal -->
+        <div id="delete-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+            <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+                <h2 class="text-3xl font-bold text-red-600 mt-6">ยืนยันการลบประกาศ</h2>
+                <p class="text-gray-700 text-lg mt-4">ต้องการลบประกาศหรือไม่?</p>
+                <div class="mt-6 flex justify-center">
+                    <button id="confirm-delete-btn"
+                        class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300 mr-4">
+                        ยืนยัน
+                    </button>
+                    <button id="cancel-delete-btn"
+                        class="px-6 py-3 bg-gray-600 text-white text-lg font-semibold rounded-lg hover:bg-gray-700 transition duration-300">
+                        ยกเลิก
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Message Modal -->
+        <div id="success-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+            <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+                <div class="flex justify-center">
+                    <div
+                        class="w-20 h-20 flex items-center justify-center rounded-full bg-green-100 border-4 border-green-500">
+                        <svg class="w-12 h-12 text-green-500" xmlns="http://www.w3.org/2000/svg" fill="none"
+                            viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                    </div>
+                </div>
+                <h2 class="text-3xl font-bold text-green-600 mt-6">สำเร็จ!</h2>
+                <p class="text-gray-700 text-lg mt-4" id="success-message">ข้อความสำเร็จ</p>
+                <button id="success-confirm-btn"
+                    class="mt-6 px-6 py-3 bg-blue-600 text-white text-lg font-semibold rounded-lg hover:bg-blue-700 transition duration-300">
+                    ยืนยัน
                 </button>
             </div>
         </div>
-    </div>
 
-    <style>
-        /* Toggle container */
-        .toggle-container {
-            display: flex;
-            background-color: #E5E7EB;
-            border-radius: 20px;
-            padding: 6px;
-            align-items: center;
-            justify-content: space-between;
-            width: 180px;
-        }
+        <!-- Error Message Modal -->
+        <div id="error-modal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+            <div class="bg-white p-8 rounded-lg shadow-2xl w-full max-w-lg text-center">
+                <h2 class="text-3xl font-bold text-red-600 mt-6">เกิดข้อผิดพลาด</h2>
+                <p class="text-gray-700 text-lg mt-4" id="error-message">ข้อความผิดพลาด</p>
+                <div class="mt-6 flex justify-center">
+                    <button id="error-confirm-btn"
+                        class="px-6 py-3 bg-red-600 text-white text-lg font-semibold rounded-lg hover:bg-red-700 transition duration-300">
+                        ตกลง
+                    </button>
+                </div>
+            </div>
+        </div>
 
-        /* Labels */
-        .toggle-label {
-            flex: 1;
-            text-align: center;
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: gray;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            border-radius: 9999px;
-            padding: 5px;
-            user-select: none;
-        }
-
-        .toggle-label.active {
-            background-color: white;
-            color: #1D4ED8;
-            font-weight: bold;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-        }
-
-        /* Disabled Label */
-        .toggle-label.disabled {
-            pointer-events: none;
-            background-color: white;
-            color: #6B7280;
-            font-weight: bold;
-        }
-    </style>
-    <script>
-        let userRole = null;
-        function showSuccessModal(message) {
-            document.getElementById('success-message').textContent = message;
-            document.getElementById('success-modal').classList.remove('hidden');
-            document.getElementById('success-confirm-btn').onclick = function () {
-                document.getElementById('success-modal').classList.add('hidden');
-            };
-        }
-
-        function showErrorModal(message) {
-            document.getElementById('error-message').textContent = message;
-            document.getElementById('error-modal').classList.remove('hidden');
-            document.getElementById('error-confirm-btn').onclick = function () {
-                document.getElementById('error-modal').classList.add('hidden');
-            };
-        }
-
-        document.addEventListener('DOMContentLoaded', async () => {
-            console.log('🚀 homepage.js loaded and DOM ready!');
-            await loadUserRole();
-            fetchAnnouncements();
-
-            
-
-            const langThai = document.getElementById('lang-th');
-            const langEnglish = document.getElementById('lang-en');
-
-            const translations = {
-                thai: {
-                    mainHeading: 'ธนาคารเวลา',
-                    subHeading: 'ธนาคารเวลา คืออะไร ?',
-                    description: 'เป็นรูปแบบกิจกรรม ที่ช่วยส่งเสริมให้ชุมชนดูแลซึ่งกันและกัน ด้วยการแลกเปลี่ยนทักษะ ประสบการณ์ บริการขั้นพื้นฐาน และสามารถสะสมเวลาไว้ เสมือนเราออมเงิน',
-                    newsHeader: 'ข่าวสารประชาสัมพันธ์',
-                },
-                english: {
-                    mainHeading: 'TIME BANK',
-                    subHeading: 'What is a Time Bank?',
-                    description: 'A Time Bank is an activity model that helps communities support each other by exchanging skills, experiences, and basic services, allowing participants to save time as if saving money.',
-                    newsHeader: 'News and Announcements',
-                }
-            };
-
-            const mainHeading = document.querySelector('h1');
-            const subHeading = document.querySelector('h2:nth-of-type(1)');
-            const description = document.querySelector('p.mb-10');
-            const newsHeader = document.querySelector('h2:nth-of-type(2)');
-            const newsContainer = document.getElementById('newsContainer');
-
-            let currentLang = localStorage.getItem('selectedLanguage') || 'thai';
-
-            function updateContent(lang) {
-                const langData = translations[lang];
-
-                if (mainHeading) mainHeading.textContent = langData.mainHeading;
-                if (subHeading) subHeading.textContent = langData.subHeading;
-                if (description) description.textContent = langData.description;
-                if (newsHeader) newsHeader.textContent = langData.newsHeader;
-
-                // Toggle active state
-                if (lang === 'thai') {
-                    langThai?.classList.add('active');
-                    langEnglish?.classList.remove('active');
-                } else {
-                    langEnglish?.classList.add('active');
-                    langThai?.classList.remove('active');
-                }
-
-                localStorage.setItem('selectedLanguage', lang);
+        <style>
+            /* Toggle container */
+            .toggle-container {
+                display: flex;
+                background-color: #E5E7EB;
+                border-radius: 20px;
+                padding: 6px;
+                align-items: center;
+                justify-content: space-between;
+                width: 180px;
             }
 
-            if (langThai && langEnglish) {
-                langThai.addEventListener('click', () => {
-                    currentLang = 'thai';
-                    updateContent(currentLang);
-                });
-
-                langEnglish.addEventListener('click', () => {
-                    currentLang = 'english';
-                    updateContent(currentLang);
-                });
+            /* Labels */
+            .toggle-label {
+                flex: 1;
+                text-align: center;
+                font-size: 0.9rem;
+                font-weight: 500;
+                color: gray;
+                cursor: pointer;
+                transition: all 0.3s ease;
+                border-radius: 9999px;
+                padding: 5px;
+                user-select: none;
             }
 
-            // Initialize content
-            updateContent(currentLang);
-
-            function arrayBufferToBase64(buffer) {
-                if (!buffer || !buffer.length) return '';
-                const binary = buffer.map((b) => String.fromCharCode(b)).join('');
-                return window.btoa(binary);
+            .toggle-label.active {
+                background-color: white;
+                color: #1D4ED8;
+                font-weight: bold;
+                box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
             }
 
-            async function loadUserRole() {
-                const token = localStorage.getItem('token');
-                if (!token) {
-                    console.warn('⚠️ No token found. Redirecting to login...');
-                    window.location.href = 'log-in.html';
-                    return;
+            /* Disabled Label */
+            .toggle-label.disabled {
+                pointer-events: none;
+                background-color: white;
+                color: #6B7280;
+                font-weight: bold;
+            }
+        </style>
+        <script>
+            let userRole = null;
+            function showSuccessModal(message) {
+                document.getElementById('success-message').textContent = message;
+                document.getElementById('success-modal').classList.remove('hidden');
+                document.getElementById('success-confirm-btn').onclick = function () {
+                    document.getElementById('success-modal').classList.add('hidden');
+                };
+            }
+
+            function showErrorModal(message) {
+                document.getElementById('error-message').textContent = message;
+                document.getElementById('error-modal').classList.remove('hidden');
+                document.getElementById('error-confirm-btn').onclick = function () {
+                    document.getElementById('error-modal').classList.add('hidden');
+                };
+            }
+
+            document.addEventListener('DOMContentLoaded', async () => {
+                console.log('🚀 homepage.js loaded and DOM ready!');
+                await loadUserRole();
+                fetchAnnouncements();
+
+                
+
+
+                function arrayBufferToBase64(buffer) {
+                    if (!buffer || !buffer.length) return '';
+                    const binary = buffer.map((b) => String.fromCharCode(b)).join('');
+                    return window.btoa(binary);
                 }
 
-                let profileData = JSON.parse(localStorage.getItem('profileData'));
+                async function loadUserRole() {
+                    const token = localStorage.getItem('token');
+                    
+                    // Allow access without token for homepage
+                    if (!token && window.location.pathname.toLowerCase().endsWith('homepage.html')) {
+                      console.log('✅ Allowing guest access to homepage');
+                      return;
+                    }
 
-                if (!profileData || !profileData.role) {
-                    try {
-                        const res = await fetch('http://localhost:3000/api/user/auth/profile', {
-                            headers: { 'Authorization': `Bearer ${token}` }
-                        });
-                        if (!res.ok) throw new Error('Failed to fetch profile');
-                        profileData = await res.json();
-                        localStorage.setItem('profileData', JSON.stringify(profileData));
-                        console.log('📥 Fetched and saved profileData');
-                    } catch (err) {
-                        console.error('🚨 Error loading profile:', err);
-                        showErrorModal('ไม่สามารถโหลดข้อมูลผู้ใช้ได้ กรุณาเข้าสู่ระบบใหม่');
-                        return;
+                    let profileData = JSON.parse(localStorage.getItem('profileData'));
+
+                    if (!profileData || !profileData.role) {
+                        try {
+                            const res = await fetch('http://localhost:3000/api/user/auth/profile', {
+                                headers: { 'Authorization': `Bearer ${token}` }
+                            });
+                            if (!res.ok) throw new Error('Failed to fetch profile');
+                            profileData = await res.json();
+                            localStorage.setItem('profileData', JSON.stringify(profileData));
+                            console.log('📥 Fetched and saved profileData');
+                        } catch (err) {
+                            console.error('🚨 Error loading profile:', err);
+                            showErrorModal('ไม่สามารถโหลดข้อมูลผู้ใช้ได้ กรุณาเข้าสู่ระบบใหม่');
+                            return;
+                        }
+                        // In checkLoginStatus
+                        console.log('Current path:', currentPath);
+                        console.log('Normalized filename:', filename);
+                        console.log('Is allowed page:', isAllowedPage);
+
+                        // In homepage.js's loadUserRole
+                        console.log('Token exists:', !!token);
+                        console.log('Current path:', window.location.pathname);
+                    }
+
+                    userRole = profileData.role;
+                    console.log('🔑 Loaded user role:', userRole);
+
+                    const addButton = document.querySelector('a[href="announcement.html"]');
+                    if (addButton && (userRole === 'User' || userRole === 'Member')) {
+                        addButton.style.display = 'none';
                     }
                 }
-
-                userRole = profileData.role;
-                console.log('🔑 Loaded user role:', userRole);
 
                 const addButton = document.querySelector('a[href="announcement.html"]');
                 if (addButton && (userRole === 'User' || userRole === 'Member')) {
                     addButton.style.display = 'none';
                 }
-            }
 
-            const addButton = document.querySelector('a[href="announcement.html"]');
-            if (addButton && (userRole === 'User' || userRole === 'Member')) {
-                addButton.style.display = 'none';
-            }
+                // ✅ Fetch and render announcements with detailed logging
+                function fetchAnnouncements() {
+                    console.log('🔄 Connecting to database to fetch announcements...');
 
-            // ✅ Fetch and render announcements with detailed logging
-            function fetchAnnouncements() {
-                console.log('🔄 Connecting to database to fetch announcements...');
+                    fetch('http://localhost:3000/api/user/announcements/')
+                        .then(res => {
+                            console.log('📡 API Response:', res);
+                            if (!res.ok) throw new Error(`❌ Failed to fetch. Status: ${res.status}`);
+                            return res.json();
+                        })
+                        .then(data => {
+                            console.log('📦 Data:', data);
+                            newsContainer.innerHTML = '';
 
-                fetch('http://localhost:3000/api/user/announcements/')
-                    .then(res => {
-                        console.log('📡 API Response:', res);
-                        if (!res.ok) throw new Error(`❌ Failed to fetch. Status: ${res.status}`);
-                        return res.json();
-                    })
-                    .then(data => {
-                        console.log('📦 Data:', data);
-                        newsContainer.innerHTML = '';
+                            data.forEach((announcement, index) => {
+                                const newsElement = document.createElement('div');
+                                newsElement.classList.add('bg-white', 'text-black', 'p-5', 'rounded-lg', 'shadow', 'relative', 'cursor-pointer');
+                                newsElement.addEventListener('click', () => {
+                                    window.location.href = `announcement-detail.html?id=${announcement.announcement_id}`;
+                                });
 
-                        data.forEach((announcement, index) => {
-                            const newsElement = document.createElement('div');
-                            newsElement.classList.add('bg-white', 'text-black', 'p-5', 'rounded-lg', 'shadow', 'relative', 'cursor-pointer');
-                            newsElement.addEventListener('click', () => {
-                                window.location.href = `announcement-detail.html?id=${announcement.announcement_id}`;
-                            });
-
-                            let imageUrl = 'https://placehold.co/300x200?text=No+Image';
-                            if (announcement.image?.data && Array.isArray(announcement.image.data)) {
-                                try {
-                                    imageUrl = `data:image/jpeg;base64,${arrayBufferToBase64(announcement.image.data)}`;
-                                    console.log(`🖼️ Converted image for #${index + 1}`);
-                                } catch (e) {
-                                    console.warn(`⚠️ Image conversion failed at #${index + 1}`, e);
+                                let imageUrl = 'https://placehold.co/300x200?text=No+Image';
+                                if (announcement.image?.data && Array.isArray(announcement.image.data)) {
+                                    try {
+                                        imageUrl = `data:image/jpeg;base64,${arrayBufferToBase64(announcement.image.data)}`;
+                                        console.log(`🖼️ Converted image for #${index + 1}`);
+                                    } catch (e) {
+                                        console.warn(`⚠️ Image conversion failed at #${index + 1}`, e);
+                                    }
                                 }
+
+                                newsElement.innerHTML = `
+        ${userRole !== 'User' && userRole !== 'Member' ? `
+        <button class="absolute top-2 right-2 bg-red-600 text-white px-2 py-2 rounded-md delete-btn" data-id="${announcement.announcement_id}" aria-label="Delete announcement">
+            <i class="fas fa-trash-alt"></i>
+        </button>
+        <button class="absolute top-2 right-12 bg-yellow-500 text-white px-2 py-2 rounded-md modify-btn" data-id="${announcement.announcement_id}" aria-label="Modify announcement">
+            <i class="fas fa-edit"></i>
+        </button>
+        ` : ''}
+        <img src="${imageUrl}" class="h-40 w-full object-cover mb-5 rounded" alt="Announcement image showing ${announcement.title}">
+        <p class="text-gray-500 mb-2">${new Date(announcement.date).toLocaleDateString()}</p>
+        <p class="font-bold text-lg">${announcement.title}</p>
+        <p>${announcement.description}</p>
+    `;
+
+                                newsContainer.appendChild(newsElement);
+                                console.log(`✅ Rendered #${index + 1}`);
+                            });
+
+                            if (data.length === 0) {
+                                console.log('📭 No announcements in DB');
                             }
 
-                            newsElement.innerHTML = `
-    ${userRole !== 'User' && userRole !== 'Member' ? `
-    <button class="absolute top-2 right-2 bg-red-600 text-white px-2 py-2 rounded-md delete-btn" data-id="${announcement.announcement_id}" aria-label="Delete announcement">
-        <i class="fas fa-trash-alt"></i>
-    </button>
-    <button class="absolute top-2 right-12 bg-yellow-500 text-white px-2 py-2 rounded-md modify-btn" data-id="${announcement.announcement_id}" aria-label="Modify announcement">
-        <i class="fas fa-edit"></i>
-    </button>
-    ` : ''}
-    <img src="${imageUrl}" class="h-40 w-full object-cover mb-5 rounded" alt="Announcement image showing ${announcement.title}">
-    <p class="text-gray-500 mb-2">${new Date(announcement.date).toLocaleDateString()}</p>
-    <p class="font-bold text-lg">${announcement.title}</p>
-    <p>${announcement.description}</p>
-`;
+                            // Add event listeners to delete buttons
+                            document.querySelectorAll('.delete-btn').forEach(button => {
+                                button.addEventListener('click', (e) => {
+                                    e.stopPropagation(); // Prevent the click event from propagating to the parent element
+                                    const announcementId = button.getAttribute('data-id');
+                                    const token = localStorage.getItem('token');
 
-                            newsContainer.appendChild(newsElement);
-                            console.log(`✅ Rendered #${index + 1}`);
+                                    // Show delete confirmation modal
+                                    document.getElementById('delete-modal').classList.remove('hidden');
+                                    document.getElementById('confirm-delete-btn').setAttribute('data-id', announcementId);
+                                });
+                            });
+
+                            // Add event listeners to modify buttons
+                            document.querySelectorAll('.modify-btn').forEach(button => {
+                                button.addEventListener('click', (e) => {
+                                    e.stopPropagation(); // Prevent the click event from propagating to the parent element
+                                    const announcementId = button.getAttribute('data-id');
+                                    window.location.href = `announcement-modify.html?id=${announcementId}`;
+                                });
+                            });
+                        })
+                        .catch(err => {
+                            console.error('🚨 Error fetching announcements:', err);
+                            showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลประกาศ');
                         });
+                }
 
-                        if (data.length === 0) {
-                            console.log('📭 No announcements in DB');
+                fetchAnnouncements();
+
+                // Handle delete confirmation
+                const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
+                if (confirmDeleteBtn) {
+                    confirmDeleteBtn.addEventListener('click', async () => {
+                        const announcementId = confirmDeleteBtn.getAttribute('data-id');
+                        const token = localStorage.getItem('token');
+
+                        try {
+                            const response = await fetch(`http://localhost:3000/api/user/announcements/${announcementId}`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Authorization': `Bearer ${token}`
+                                }
+                            });
+
+                            if (response.ok) {
+                                showSuccessModal('ลบประกาศสำเร็จแล้ว');
+                                document.getElementById('delete-modal').classList.add('hidden');
+                                fetchAnnouncements();
+                            } else {
+                                showErrorModal('ลบประกาศไม่สำเร็จ กรุณาลองใหม่');
+                            }
+                        } catch (error) {
+                            console.error('Error deleting announcement:', error);
+                            showErrorModal('เกิดข้อผิดพลาดขณะลบประกาศ');
                         }
-
-                        // Add event listeners to delete buttons
-                        document.querySelectorAll('.delete-btn').forEach(button => {
-                            button.addEventListener('click', (e) => {
-                                e.stopPropagation(); // Prevent the click event from propagating to the parent element
-                                const announcementId = button.getAttribute('data-id');
-                                const token = localStorage.getItem('token');
-
-                                // Show delete confirmation modal
-                                document.getElementById('delete-modal').classList.remove('hidden');
-                                document.getElementById('confirm-delete-btn').setAttribute('data-id', announcementId);
-                            });
-                        });
-
-                        // Add event listeners to modify buttons
-                        document.querySelectorAll('.modify-btn').forEach(button => {
-                            button.addEventListener('click', (e) => {
-                                e.stopPropagation(); // Prevent the click event from propagating to the parent element
-                                const announcementId = button.getAttribute('data-id');
-                                window.location.href = `announcement-modify.html?id=${announcementId}`;
-                            });
-                        });
-                    })
-                    .catch(err => {
-                        console.error('🚨 Error fetching announcements:', err);
-                        showErrorModal('เกิดข้อผิดพลาดในการดึงข้อมูลประกาศ');
                     });
-            }
+                }
 
-            fetchAnnouncements();
+                // Handle delete cancellation
+                const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
+                if (cancelDeleteBtn) {
+                    cancelDeleteBtn.addEventListener('click', () => {
+                        document.getElementById('delete-modal').classList.add('hidden');
+                    });
+                }
+            });
+        </script>
+        <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    </body>
 
-            // Handle delete confirmation
-            const confirmDeleteBtn = document.getElementById('confirm-delete-btn');
-            if (confirmDeleteBtn) {
-                confirmDeleteBtn.addEventListener('click', async () => {
-                    const announcementId = confirmDeleteBtn.getAttribute('data-id');
-                    const token = localStorage.getItem('token');
-
-                    try {
-                        const response = await fetch(`http://localhost:3000/api/user/announcements/${announcementId}`, {
-                            method: 'DELETE',
-                            headers: {
-                                'Authorization': `Bearer ${token}`
-                            }
-                        });
-
-                        if (response.ok) {
-                            showSuccessModal('ลบประกาศสำเร็จแล้ว');
-                            document.getElementById('delete-modal').classList.add('hidden');
-                            fetchAnnouncements();
-                        } else {
-                            showErrorModal('ลบประกาศไม่สำเร็จ กรุณาลองใหม่');
-                        }
-                    } catch (error) {
-                        console.error('Error deleting announcement:', error);
-                        showErrorModal('เกิดข้อผิดพลาดขณะลบประกาศ');
-                    }
-                });
-            }
-
-            // Handle delete cancellation
-            const cancelDeleteBtn = document.getElementById('cancel-delete-btn');
-            if (cancelDeleteBtn) {
-                cancelDeleteBtn.addEventListener('click', () => {
-                    document.getElementById('delete-modal').classList.add('hidden');
-                });
-            }
-        });
-    </script>
-    <script src="navbar.js"></script>
-    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
-</body>
-
-</html>
+    </html>
